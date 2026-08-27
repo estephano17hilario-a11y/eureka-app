@@ -13,7 +13,7 @@ export interface FigmaCardEditorCallbacks {
 export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: Flashcard): string {
   return `
     <div>
-      <!-- Action Header with 4-level Breadcrumbs -->
+      <!-- Action Header with Breadcrumbs -->
       <div class="figma-action-header">
         <div class="figma-breadcrumbs" style="font-size:1.1rem; flex-wrap:wrap;">
           <button class="figma-icon-btn-dark" id="btn-card-edit-back" style="margin-right:6px;" title="Volver">
@@ -35,10 +35,6 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
         </div>
 
         <div class="figma-header-actions-group">
-          <button class="figma-icon-btn-dark" id="btn-toggle-editor-mode" title="Vista dividida">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-          </button>
-
           <button class="figma-icon-btn-dark" id="btn-save-card-check" style="background:var(--f-blue); border-color:var(--f-blue); color:#090a0d;" title="Guardar tarjeta">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
           </button>
@@ -49,12 +45,12 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
       <div class="figma-editor-container apple-glass-panel">
         
         <!-- ANVERSO -->
-        <div class="figma-field-block">
-          <label class="figma-field-label">Anverso</label>
+        <div class="figma-field-block" id="drop-zone-anverso">
+          <label class="figma-field-label">Anverso (Pregunta / Imagen)</label>
           <textarea 
             id="f-anverso-input" 
             class="figma-editor-textarea" 
-            placeholder="Introduce el texto aquí"
+            placeholder="Introduce el texto aquí o arrastra/pega una imagen..."
           >${editCard?.front || ''}</textarea>
 
           <!-- Rich Toolbar Anverso -->
@@ -66,38 +62,30 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
             <button type="button" class="figma-tool-btn" id="tool-img-anverso" title="Adjuntar Imagen">📷</button>
             <input type="file" id="f-file-anverso" accept="image/*" style="display:none;" />
 
-            <button type="button" class="figma-tool-btn" id="tool-draw-anverso" title="Dibujar">✏️</button>
-            <button type="button" class="figma-tool-btn" id="tool-occlusion-btn" title="Oclusión de Imágenes (Genera tarjetas individuales por cada máscara)" style="color:#50b5ff;">🔲</button>
+            <button type="button" class="figma-tool-btn" id="tool-occlusion-btn" title="Oclusión de Imágenes" style="color:#50b5ff;">🔲 Oclusión</button>
             <button type="button" class="figma-tool-btn" id="tool-audio-anverso" title="Audio TTS">🔊</button>
-            <button type="button" class="figma-tool-btn" id="tool-a-anverso" title="Formato">A</button>
 
             <span style="width:1px; height:18px; background:var(--f-border); margin:0 4px;"></span>
 
             <button type="button" class="figma-tool-btn" data-fmt="**" title="Negrita"><strong>B</strong></button>
             <button type="button" class="figma-tool-btn" data-fmt="*" title="Cursiva"><em>I</em></button>
             <button type="button" class="figma-tool-btn" data-fmt="__" title="Subrayado"><u>U</u></button>
-            <button type="button" class="figma-tool-btn" data-fmt="~~" title="Tachado"><s>S</s></button>
-            <button type="button" class="figma-tool-btn" data-fmt="## " title="Encabezado">H</button>
-            <button type="button" class="figma-tool-btn" data-fmt="- " title="Lista">≡</button>
-            <button type="button" class="figma-tool-btn" data-fmt="$_2$" title="Subíndice">X₂</button>
-            <button type="button" class="figma-tool-btn" data-fmt="$^2$" title="Superíndice">X²</button>
             <button type="button" class="figma-tool-btn" id="tool-katex-anverso" title="Fórmula LaTeX" style="color:#818cf8; font-weight:800;">fx</button>
-            <button type="button" class="figma-tool-btn" data-fmt="\`\`\`" title="Código">&lt;/&gt;</button>
           </div>
 
-          <div id="f-anverso-img-preview" class="image-attach-preview ${editCard?.frontImage ? '' : 'hidden'}">
-            <img src="${editCard?.frontImage || ''}" id="f-anverso-img-tag" alt="Adjunto anverso" />
-            <button type="button" class="btn-remove-img" id="btn-del-anverso-img">×</button>
+          <div id="f-anverso-img-preview" class="image-attach-preview ${editCard?.frontImage ? '' : 'hidden'}" style="margin-top:10px; position:relative; display:inline-block;">
+            <img src="${editCard?.frontImage || ''}" id="f-anverso-img-tag" alt="Adjunto anverso" style="max-height:200px; border-radius:12px; border:1px solid var(--f-border);" />
+            <button type="button" class="apple-icon-del-btn" id="btn-del-anverso-img" style="position:absolute; top:6px; right:6px;">×</button>
           </div>
         </div>
 
         <!-- REVERSO -->
-        <div class="figma-field-block">
-          <label class="figma-field-label">Reverso</label>
+        <div class="figma-field-block" id="drop-zone-reverso">
+          <label class="figma-field-label">Reverso (Respuesta / Explicación)</label>
           <textarea 
             id="f-reverso-input" 
             class="figma-editor-textarea" 
-            placeholder="Introduce el texto aquí"
+            placeholder="Introduce la respuesta aquí..."
           >${editCard?.back || ''}</textarea>
 
           <!-- Rich Toolbar Reverso -->
@@ -112,16 +100,12 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
             <button type="button" class="figma-tool-btn" id="tool-audio-reverso" title="Audio TTS">🔊</button>
             <button type="button" class="figma-tool-btn" data-fmt-r="**" title="Negrita"><strong>B</strong></button>
             <button type="button" class="figma-tool-btn" data-fmt-r="*" title="Cursiva"><em>I</em></button>
-            <button type="button" class="figma-tool-btn" data-fmt-r="__" title="Subrayado"><u>U</u></button>
-            <button type="button" class="figma-tool-btn" data-fmt-r="~~" title="Tachado"><s>S</s></button>
-            <button type="button" class="figma-tool-btn" data-fmt-r="## " title="Encabezado">H</button>
             <button type="button" class="figma-tool-btn" id="tool-katex-reverso" title="Fórmula LaTeX" style="color:#818cf8; font-weight:800;">fx</button>
-            <button type="button" class="figma-tool-btn" data-fmt-r="\`\`\`" title="Código">&lt;/&gt;</button>
           </div>
 
-          <div id="f-reverso-img-preview" class="image-attach-preview ${editCard?.backImage ? '' : 'hidden'}">
-            <img src="${editCard?.backImage || ''}" id="f-reverso-img-tag" alt="Adjunto reverso" />
-            <button type="button" class="btn-remove-img" id="btn-del-reverso-img">×</button>
+          <div id="f-reverso-img-preview" class="image-attach-preview ${editCard?.backImage ? '' : 'hidden'}" style="margin-top:10px; position:relative; display:inline-block;">
+            <img src="${editCard?.backImage || ''}" id="f-reverso-img-tag" alt="Adjunto reverso" style="max-height:200px; border-radius:12px; border:1px solid var(--f-border);" />
+            <button type="button" class="apple-icon-del-btn" id="btn-del-reverso-img" style="position:absolute; top:6px; right:6px;">×</button>
           </div>
         </div>
 
@@ -129,8 +113,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
         <div class="figma-toggle-row">
           <div class="figma-toggle-left">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            <span>Tarjetas invertidas</span>
-            <span style="color:var(--f-text-muted); cursor:pointer;" title="Crea dos tarjetas automáticamente: Anverso -> Reverso y Reverso -> Anverso">ⓘ</span>
+            <span>Tarjetas invertidas (Anverso ⇄ Reverso)</span>
           </div>
 
           <label class="figma-switch">
@@ -140,11 +123,6 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
         </div>
 
       </div>
-
-      <!-- Floating Buttons -->
-      <button class="figma-fab-help" id="btn-fab-help" title="Ayuda">
-        ?
-      </button>
     </div>
   `;
 }
@@ -159,12 +137,124 @@ export function bindFigmaCardEditorEvents(
   const reversoInput = container.querySelector('#f-reverso-input') as HTMLTextAreaElement | null;
   const invertedToggle = container.querySelector('#toggle-inverted-cards') as HTMLInputElement | null;
 
-  let frontImage = editCard?.frontImage;
-  let backImage = editCard?.backImage;
-  let occlusionImage = editCard?.occlusionImage;
+  let frontImage: string | undefined = editCard?.frontImage;
+  let backImage: string | undefined = editCard?.backImage;
+  let occlusionImage: string | undefined = editCard?.occlusionImage;
   let occlusionMasks: OcclusionMask[] = editCard?.occlusionMasks || [];
   let currentOcclusionMode: OcclusionMode = editCard?.occlusionMode || 'hide_all_reveal_one';
 
+  const updateImgPreviews = () => {
+    const prevA = container.querySelector('#f-anverso-img-preview') as HTMLElement | null;
+    const tagA = container.querySelector('#f-anverso-img-tag') as HTMLImageElement | null;
+    if (prevA && tagA) {
+      if (frontImage) {
+        tagA.src = frontImage;
+        prevA.classList.remove('hidden');
+      } else {
+        prevA.classList.add('hidden');
+      }
+    }
+
+    const prevR = container.querySelector('#f-reverso-img-preview') as HTMLElement | null;
+    const tagR = container.querySelector('#f-reverso-img-tag') as HTMLImageElement | null;
+    if (prevR && tagR) {
+      if (backImage) {
+        tagR.src = backImage;
+        prevR.classList.remove('hidden');
+      } else {
+        prevR.classList.add('hidden');
+      }
+    }
+  };
+
+  // Helper to handle File or Blob to DataURL
+  const handleFileToDataUrl = (file: File | Blob, isFront: boolean) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const res = e.target?.result as string;
+      if (res) {
+        if (isFront) frontImage = res;
+        else backImage = res;
+        updateImgPreviews();
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Paste handler for images from clipboard
+  const setupPasteHandler = (input: HTMLTextAreaElement | null, isFront: boolean) => {
+    input?.addEventListener('paste', (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            e.preventDefault();
+            handleFileToDataUrl(file, isFront);
+            break;
+          }
+        }
+      }
+    });
+  };
+
+  setupPasteHandler(anversoInput, true);
+  setupPasteHandler(reversoInput, false);
+
+  // Drag and drop handler on drop zones
+  const setupDropZone = (zoneId: string, isFront: boolean) => {
+    const zone = container.querySelector(zoneId) as HTMLElement | null;
+    if (!zone) return;
+
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.style.borderColor = 'var(--f-blue)';
+    });
+
+    zone.addEventListener('dragleave', () => {
+      zone.style.borderColor = '';
+    });
+
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.style.borderColor = '';
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.type.startsWith('image/')) {
+          handleFileToDataUrl(file, isFront);
+        }
+      }
+    });
+  };
+
+  setupDropZone('#drop-zone-anverso', true);
+  setupDropZone('#drop-zone-reverso', false);
+
+  // File pickers
+  const fileA = container.querySelector('#f-file-anverso') as HTMLInputElement | null;
+  container.querySelector('#tool-img-anverso')?.addEventListener('click', () => fileA?.click());
+  fileA?.addEventListener('change', () => {
+    if (fileA.files && fileA.files[0]) handleFileToDataUrl(fileA.files[0], true);
+  });
+
+  const fileR = container.querySelector('#f-file-reverso') as HTMLInputElement | null;
+  container.querySelector('#tool-img-reverso')?.addEventListener('click', () => fileR?.click());
+  fileR?.addEventListener('change', () => {
+    if (fileR.files && fileR.files[0]) handleFileToDataUrl(fileR.files[0], false);
+  });
+
+  container.querySelector('#btn-del-anverso-img')?.addEventListener('click', () => {
+    frontImage = undefined;
+    updateImgPreviews();
+  });
+
+  container.querySelector('#btn-del-reverso-img')?.addEventListener('click', () => {
+    backImage = undefined;
+    updateImgPreviews();
+  });
+
+  // Text formatting
   const insertFormatting = (textarea: HTMLTextAreaElement | null, prefix: string, suffix: string = '') => {
     if (!textarea) return;
     const start = textarea.selectionStart;
@@ -216,12 +306,11 @@ export function bindFigmaCardEditorEvents(
   container.querySelector('#tool-occlusion-btn')?.addEventListener('click', () => {
     openImageOcclusionModal({
       deckId: deck.id,
-      initialImage: occlusionImage || HEART_ANATOMY_SVG_URI,
+      initialImage: frontImage || occlusionImage || HEART_ANATOMY_SVG_URI,
       initialMasks: occlusionMasks,
       initialMode: currentOcclusionMode,
       onConfirm: (img, masks, mode) => {
         if (masks.length > 0) {
-          // Genera automáticamente N flashcards individuales para el mazo
           deckService.createOcclusionCards(deck.id, img, masks, mode);
           callbacks.onSaved();
         } else {

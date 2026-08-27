@@ -10,6 +10,8 @@ export interface FigmaAdvancedDeckMenuViewCallbacks {
 }
 
 export function renderFigmaAdvancedDeckMenuView(deck: Deck): string {
+  const currentTheme = localStorage.getItem('eureka_theme') || 'oled';
+
   return `
     <div class="ios-fullscreen-view">
       
@@ -40,8 +42,22 @@ export function renderFigmaAdvancedDeckMenuView(deck: Deck): string {
           </div>
         </div>
 
-        <!-- Group 2: Audio y Estilo -->
+        <!-- Group 2: Audio, Tema & Estilo -->
         <div class="apple-card-grouped">
+          <div class="apple-list-row" id="adv-view-row-theme" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">🎨</span>
+              <div>
+                <div style="font-size:1.02rem; font-weight:600; color:#fff;">Tema Visual y Fondo de la App</div>
+                <div style="font-size:0.78rem; color:var(--f-text-secondary);">OLED, Liquid Glass o Emerald</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="color:var(--f-blue); font-size:0.92rem; font-weight:700; text-transform:capitalize;" id="lbl-active-theme">${currentTheme}</span>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+
           <div class="apple-list-row" id="adv-view-row-tts" style="cursor:pointer;">
             <div style="display:flex; align-items:center; gap:14px;">
               <span style="font-size:1.2rem;">🔊</span>
@@ -51,14 +67,6 @@ export function renderFigmaAdvancedDeckMenuView(deck: Deck): string {
               <span style="color:var(--f-text-secondary); font-size:0.9rem;">${deck.settings.ttsVoiceLang}</span>
               <span class="apple-chevron">›</span>
             </div>
-          </div>
-
-          <div class="apple-list-row" id="adv-view-row-style" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:1.2rem;">🗂</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Estilo de la tarjeta</span>
-            </div>
-            <span class="apple-chevron">›</span>
           </div>
         </div>
 
@@ -176,6 +184,21 @@ export function bindFigmaAdvancedDeckMenuViewEvents(
   container.querySelector('#adv-view-row-algo')?.addEventListener('click', () => callbacks.onOpenAlgorithmSelector());
   container.querySelector('#adv-view-row-ai')?.addEventListener('click', () => callbacks.onOpenAiBuilder());
   container.querySelector('#adv-view-row-import')?.addEventListener('click', () => callbacks.onOpenBatchImport());
+
+  // Theme Selector (Requirement 4: modificar la UI de las flashcards y el fondo de la app)
+  container.querySelector('#adv-view-row-theme')?.addEventListener('click', () => {
+    const themes = ['oled', 'glass', 'emerald'];
+    const current = localStorage.getItem('eureka_theme') || 'oled';
+    const nextIdx = (themes.indexOf(current) + 1) % themes.length;
+    const next = themes[nextIdx];
+    localStorage.setItem('eureka_theme', next);
+
+    document.body.className = '';
+    document.body.classList.add(`theme-${next}`);
+
+    const lbl = container.querySelector('#lbl-active-theme');
+    if (lbl) lbl.textContent = next;
+  });
 
   // Rename
   container.querySelector('#adv-view-row-rename')?.addEventListener('click', () => {

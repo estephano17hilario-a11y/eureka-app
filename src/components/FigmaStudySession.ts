@@ -7,7 +7,7 @@ import { ttsService } from '../services/tts.service';
 
 export interface FigmaStudyOptions {
   deckId: string;
-  specificCardId?: string; // Para estudiar una tarjeta individual directamente
+  specificCardId?: string;
   onExit: () => void;
 }
 
@@ -18,6 +18,7 @@ export class FigmaStudySession {
   private isFlipped: boolean = false;
   private isSingleCardMode: boolean = false;
   private onExitCallback: () => void;
+  private historyStack: { cardIndex: number; isFlipped: boolean }[] = [];
   private sessionStats = {
     startTime: Date.now(),
     againCount: 0,
@@ -60,7 +61,9 @@ export class FigmaStudySession {
     }
 
     const currentCard = this.queue[this.currentCardIndex];
-    const progressPercent = Math.round(((this.currentCardIndex + 1) / this.queue.length) * 100);
+    const totalCount = this.queue.length;
+    const currentNum = this.currentCardIndex;
+    const progressPercent = totalCount > 0 ? Math.round((currentNum / totalCount) * 100) : 0;
     const intervalProjections = srsService.projectIntervals(currentCard, this.deck.settings);
 
     if (this.deck.settings.autoPlayAudio && !this.isFlipped) {
@@ -69,90 +72,105 @@ export class FigmaStudySession {
     }
 
     container.innerHTML = `
-      <div class="ios-fullscreen-view" style="padding:0;">
+      <div class="cupertino-study-container">
         
-        <!-- Header iOS -->
-        <div class="ios-navbar" style="padding:0 4px; margin-bottom:12px;">
-          <button class="ios-back-btn" id="btn-study-exit">
-            <span class="ios-back-chevron">‹</span> Salir
-          </button>
+        <!-- Header exact matching Reference Image 3 & 5 -->
+        <div class="cupertino-study-header">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <button class="ios-back-btn" id="btn-study-exit" style="padding:0; font-size:1.1rem; color:#fff;">
+                <span class="ios-back-chevron">‹</span> Salir
+              </button>
+              <h2 style="font-size:1.55rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">
+                ${this.deck.name}
+              </h2>
+            </div>
+
+            <button class="cupertino-icon-square" id="btn-study-audio" title="Pronunciación TTS">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+
+          <!-- Progress track matching Image 3 (Pill 0/10 + Green Dot Track) -->
+          <div class="cupertino-progress-row">
+            <div class="cupertino-progress-pill">${currentNum}/${totalCount}</div>
+            <div class="cupertino-track-bar">
+              <div class="cupertino-track-fill" style="width: ${progressPercent}%;"></div>
+              <div class="cupertino-track-thumb" style="left: ${progressPercent}%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Card Canvas (Responsive, Auto-Height, No Cut-Off Images) -->
+        <div class="cupertino-flashcard-box" id="f-study-scene">
           
-          <div style="text-align:center;">
-            <div style="font-size:1rem; font-weight:800; color:#ffffff;">${this.deck.name}</div>
-            <div style="font-size:0.75rem; color:var(--f-text-secondary);">
-              ${this.isSingleCardMode ? 'Tarjeta focalizada' : `Tarjeta ${this.currentCardIndex + 1} de ${this.queue.length}`}
-            </div>
+          <!-- Top 3-dots icon -->
+          <div class="cupertino-card-top-action">
+            <button class="cupertino-btn-card-menu" id="btn-card-more-action" title="Opciones">⋮</button>
           </div>
 
-          <button class="figma-icon-btn-dark" id="btn-study-audio" style="width:38px; height:38px;" title="Pronunciación por voz">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-          </button>
-        </div>
-
-        <!-- iOS Progress Bar -->
-        <div style="width:100%; height:4px; background:#1c1d22; border-radius:99px; overflow:hidden; margin-bottom:14px;">
-          <div style="width:${progressPercent}%; height:100%; background:var(--f-blue); transition:width 0.25s;"></div>
-        </div>
-
-        <!-- 3D Card Scene -->
-        <div class="figma-study-scene" id="f-study-scene">
-          <div class="figma-study-card ${this.isFlipped ? 'flipped' : ''}" id="f-card-element">
-            
-            <!-- ANVERSO -->
-            <div class="figma-study-face front apple-glass-panel">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <span class="apple-badge-subpill" style="font-size:0.8rem;">
-                  ${currentCard.type === 'image_occlusion' ? '🖼️ OCLUSIÓN DE IMAGEN' : 'PREGUNTA'}
-                </span>
-                ${currentCard.isInverted ? `<span class="apple-badge-subpill" style="color:#ec4899; background:rgba(236,72,153,0.12);">⇄ INVERTIDO</span>` : ''}
-              </div>
-
-              <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
-                ${this.renderCardContent(currentCard, false)}
-              </div>
-
-              <div style="text-align:center; font-size:0.85rem; color:var(--f-text-muted); margin-top:16px;">
-                Toca la tarjeta o presiona Espacio para voltear
-              </div>
-            </div>
-
-            <!-- REVERSO -->
-            <div class="figma-study-face back apple-glass-panel">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <span class="apple-badge-subpill" style="color:var(--f-green); background:rgba(132,204,22,0.12); font-size:0.8rem;">
-                  RESPUESTA REVELADA
-                </span>
-              </div>
-
-              <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
-                ${this.renderCardContent(currentCard, true)}
-              </div>
-            </div>
-
+          <!-- Card Content (Front or Back) -->
+          <div class="cupertino-card-body-content">
+            ${
+              !this.isFlipped
+                ? this.renderFrontContent(currentCard)
+                : this.renderBackContent(currentCard)
+            }
           </div>
-        </div>
 
-        <!-- Rating Buttons Bar -->
-        <div style="margin-top:auto; padding-top:12px;">
           ${
             !this.isFlipped
               ? `
-            <button class="figma-btn-blue-pill" id="btn-f-show-answer" style="width:100%; padding:18px; font-size:1.1rem; justify-content:center; border-radius:18px;">
-              Mostrar Respuesta
-            </button>
+            <div class="cupertino-card-hint-text">
+              Toca la tarjeta o presiona Espacio para voltear
+            </div>
+          `
+              : ''
+          }
+        </div>
+
+        <!-- Bottom Controls matching Image 3 & Image 5 -->
+        <div class="cupertino-bottom-controls">
+          ${
+            !this.isFlipped
+              ? `
+            <!-- Control Bar Front (Image 3): [⌨] [Mostrar respuesta] [↶] -->
+            <div class="cupertino-front-controls-row">
+              <button class="cupertino-icon-square" id="btn-show-shortcuts" title="Atajos de teclado">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="18" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
+              </button>
+
+              <button class="cupertino-btn-show-answer" id="btn-f-show-answer">
+                Mostrar respuesta
+              </button>
+
+              <button class="cupertino-icon-square" id="btn-undo-card" title="Deshacer última tarjeta">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+              </button>
+            </div>
           `
               : `
-            <div class="figma-rating-grid">
-              ${intervalProjections
-                .map(
-                  (p) => `
-                <button class="figma-rate-btn btn-${p.rating}" data-rating="${p.rating}">
-                  <span class="f-rate-time">${p.displayTime}</span>
-                  <span class="f-rate-lbl">${p.label}</span>
-                </button>
-              `
-                )
-                .join('')}
+            <!-- Rating Bar Back (Image 5): 4 Frosted Cupertino Buttons -->
+            <div class="cupertino-rating-row">
+              <button class="cupertino-rate-pill rate-again" data-rating="again">
+                <span class="c-rate-title">De nuevo</span>
+                <span class="c-rate-subtitle">${intervalProjections[0].displayTime}</span>
+              </button>
+
+              <button class="cupertino-rate-pill rate-hard" data-rating="hard">
+                <span class="c-rate-title">Difícil</span>
+                <span class="c-rate-subtitle">${intervalProjections[1].displayTime}</span>
+              </button>
+
+              <button class="cupertino-rate-pill rate-good" data-rating="good">
+                <span class="c-rate-title">Bien</span>
+                <span class="c-rate-subtitle">${intervalProjections[2].displayTime}</span>
+              </button>
+
+              <button class="cupertino-rate-pill rate-easy" data-rating="easy">
+                <span class="c-rate-title">Fácil</span>
+                <span class="c-rate-subtitle">${intervalProjections[3].displayTime}</span>
+              </button>
             </div>
           `
           }
@@ -164,45 +182,83 @@ export class FigmaStudySession {
     this.bindEvents(container);
   }
 
-  private renderCardContent(card: Flashcard, isBack: boolean): string {
+  private renderFrontContent(card: Flashcard): string {
     if (card.type === 'image_occlusion' && card.occlusionImage) {
       const mode = card.occlusionMode || 'hide_all_reveal_one';
       return `
-        <div>
-          <div style="position:relative; display:inline-block; max-width:100%; border-radius:14px; overflow:hidden; margin-bottom:14px;">
-            <img src="${card.occlusionImage}" alt="Oclusión" draggable="false" style="max-width:100%; height:auto; display:block;" />
+        <div class="cupertino-occlusion-wrap">
+          <div class="cupertino-occlusion-img-box">
+            <img src="${card.occlusionImage}" alt="Oclusión" draggable="false" class="cupertino-responsive-img" />
             ${(card.occlusionMasks || [])
               .map((m) => {
                 const isActive = m.id === card.activeMaskId;
                 if (isActive) {
-                  return isBack
-                    ? `<div class="figma-drawn-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:transparent; border:2.5px solid #84cc16; box-shadow:0 0 16px rgba(132,204,22,0.9);"></div>`
-                    : `<div class="figma-drawn-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#ef4444; border:2px solid #ffffff; font-size:1.2rem; font-weight:900; color:#fff;">?</div>`;
+                  return `<div class="figma-drawn-mask active-question-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#ef4444; border:2px solid #ffffff; font-size:1.1rem; font-weight:900; color:#fff;">?</div>`;
                 } else {
                   if (mode === 'hide_all_reveal_one') {
-                    return `<div class="figma-drawn-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#191a1e; border:1px solid #475569;"></div>`;
-                  } else {
-                    return '';
+                    return `<div class="figma-drawn-mask other-hidden-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#1c1d22; border:1px solid #3f3f46;"></div>`;
                   }
+                  return '';
                 }
               })
               .join('')}
           </div>
-          <div style="font-size:1.15rem; line-height:1.55; color:#ffffff;">
-            ${isBack ? katexService.parseAndRender(card.back) : katexService.parseAndRender(card.front)}
+          <div class="cupertino-card-main-title" style="margin-top:16px;">
+            ${katexService.parseAndRender(card.front)}
           </div>
         </div>
       `;
     }
 
-    const img = isBack ? card.backImage : card.frontImage;
-    const text = isBack ? `${card.front}\n\n---\n\n${card.back}` : card.front;
+    return `
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; width:100%;">
+        ${card.frontImage ? `<img src="${card.frontImage}" class="cupertino-responsive-img" alt="Front Attachment" />` : ''}
+        <div class="cupertino-card-main-title">
+          ${katexService.parseAndRender(card.front)}
+        </div>
+      </div>
+    `;
+  }
+
+  private renderBackContent(card: Flashcard): string {
+    if (card.type === 'image_occlusion' && card.occlusionImage) {
+      return `
+        <div class="cupertino-occlusion-wrap">
+          <div class="cupertino-occlusion-img-box">
+            <img src="${card.occlusionImage}" alt="Oclusión Revelada" draggable="false" class="cupertino-responsive-img" />
+            ${(card.occlusionMasks || [])
+              .map((m) => {
+                const isActive = m.id === card.activeMaskId;
+                if (isActive) {
+                  return `<div class="figma-drawn-mask active-revealed-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:transparent; border:3px solid #84cc16; box-shadow:0 0 20px rgba(132,204,22,0.9);"></div>`;
+                }
+                return `<div class="figma-drawn-mask other-hidden-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#1c1d22; border:1px solid #3f3f46;"></div>`;
+              })
+              .join('')}
+          </div>
+          <div class="cupertino-card-main-title" style="margin-top:14px;">
+            ${katexService.parseAndRender(card.front)}
+          </div>
+          <div class="cupertino-card-divider"></div>
+          <div class="cupertino-card-answer-text">
+            ${katexService.parseAndRender(card.back)}
+          </div>
+        </div>
+      `;
+    }
 
     return `
-      <div>
-        ${img ? `<div style="text-align:center; margin-bottom:16px;"><img src="${img}" style="max-width:100%; max-height:240px; border-radius:14px;" /></div>` : ''}
-        <div style="font-size:1.25rem; line-height:1.65; color:#ffffff; font-weight:600;">
-          ${katexService.parseAndRender(text)}
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center; width:100%;">
+        <div class="cupertino-card-main-title" style="color:var(--f-text-secondary); font-size:1.2rem;">
+          ${katexService.parseAndRender(card.front)}
+        </div>
+        
+        <div class="cupertino-card-divider"></div>
+
+        ${card.backImage ? `<img src="${card.backImage}" class="cupertino-responsive-img" style="margin-bottom:14px;" alt="Back Attachment" />` : ''}
+
+        <div class="cupertino-card-answer-text">
+          ${katexService.parseAndRender(card.back)}
         </div>
       </div>
     `;
@@ -216,31 +272,50 @@ export class FigmaStudySession {
 
     const triggerFlip = () => {
       if (!this.isFlipped) {
+        this.historyStack.push({ cardIndex: this.currentCardIndex, isFlipped: false });
         this.isFlipped = true;
         this.render(container);
       }
     };
 
     document.getElementById('btn-f-show-answer')?.addEventListener('click', triggerFlip);
-    document.getElementById('f-study-scene')?.addEventListener('click', () => triggerFlip());
+    document.getElementById('f-study-scene')?.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).id === 'btn-card-more-action') return;
+      triggerFlip();
+    });
+
+    // Undo button
+    document.getElementById('btn-undo-card')?.addEventListener('click', () => {
+      if (this.currentCardIndex > 0) {
+        this.currentCardIndex--;
+        this.isFlipped = false;
+        this.render(container);
+      }
+    });
+
+    // Shortcuts button
+    document.getElementById('btn-show-shortcuts')?.addEventListener('click', () => {
+      alert('⌨️ Atajos de Teclado:\n\n• [Espacio] o [Enter] = Mostrar respuesta / Voltear\n• [1] = De nuevo (Muy difícil)\n• [2] = Difícil\n• [3] = Bien\n• [4] = Fácil\n• [Z] = Deshacer');
+    });
 
     // Audio
     document.getElementById('btn-study-audio')?.addEventListener('click', (e) => {
       e.stopPropagation();
       const currentCard = this.queue[this.currentCardIndex];
-      const text = currentCard.audioText || currentCard.front;
+      const text = this.isFlipped ? currentCard.back : currentCard.front;
       ttsService.speak(text, currentCard.audioLang || this.deck.settings.ttsVoiceLang);
     });
 
-    // Rating buttons
-    container.querySelectorAll<HTMLButtonElement>('.figma-rate-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
+    // Rating buttons (Image 5)
+    container.querySelectorAll<HTMLButtonElement>('.cupertino-rate-pill').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const rating = btn.dataset.rating as StudyRating;
         if (rating) this.handleRating(rating, container);
       });
     });
 
-    // Keyboard
+    // Keyboard controls
     window.onkeydown = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.code === 'Enter') {
         if (!this.isFlipped) {
@@ -252,6 +327,12 @@ export class FigmaStudySession {
         else if (e.key === '2') this.handleRating('hard', container);
         else if (e.key === '3') this.handleRating('good', container);
         else if (e.key === '4') this.handleRating('easy', container);
+      } else if (e.key === 'z' || e.key === 'Z') {
+        if (this.currentCardIndex > 0) {
+          this.currentCardIndex--;
+          this.isFlipped = false;
+          this.render(container);
+        }
       }
     };
   }
@@ -289,7 +370,7 @@ export class FigmaStudySession {
     const accuracy = this.sessionStats.totalReviewed > 0 ? Math.round((goodEasy / this.sessionStats.totalReviewed) * 100) : 100;
 
     container.innerHTML = `
-      <div class="ios-fullscreen-view" style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:40px 10px;">
+      <div class="cupertino-study-container" style="align-items:center; text-align:center; padding:40px 10px;">
         <div style="font-size:3.5rem; margin-bottom:12px;">🎉</div>
         <h2 style="font-size:2rem; font-weight:800; color:#ffffff; margin-bottom:8px;">¡Sesión Completada!</h2>
         <p style="color:var(--f-text-secondary); margin-bottom:24px; font-size:1rem;">
@@ -298,7 +379,7 @@ export class FigmaStudySession {
 
         <div class="apple-card-grouped" style="width:100%; max-width:480px; text-align:left; margin-bottom:24px;">
           <div class="apple-list-row" style="padding:14px 20px;">
-            <span style="color:#f87171; font-weight:700;">🔴 Muy Difícil</span>
+            <span style="color:#f87171; font-weight:700;">🔴 De nuevo</span>
             <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.againCount}</strong>
           </div>
           <div class="apple-list-row" style="padding:14px 20px;">
@@ -306,11 +387,11 @@ export class FigmaStudySession {
             <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.hardCount}</strong>
           </div>
           <div class="apple-list-row" style="padding:14px 20px;">
-            <span style="color:#38bdf8; font-weight:700;">🔵 Bien (Siguiente Escalón)</span>
+            <span style="color:#84cc16; font-weight:700;">🔵 Bien</span>
             <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.goodCount}</strong>
           </div>
           <div class="apple-list-row" style="padding:14px 20px;">
-            <span style="color:#84cc16; font-weight:700;">🟢 Fácil</span>
+            <span style="color:#38bdf8; font-weight:700;">🟢 Fácil</span>
             <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.easyCount}</strong>
           </div>
         </div>
@@ -328,7 +409,7 @@ export class FigmaStudySession {
 
   private renderEmptyState(container: HTMLElement): void {
     container.innerHTML = `
-      <div class="ios-fullscreen-view" style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:60px 10px;">
+      <div class="cupertino-study-container" style="align-items:center; text-align:center; padding:60px 10px;">
         <div style="font-size:4rem; margin-bottom:12px;">🏆</div>
         <h2 style="font-size:2rem; font-weight:800; color:#ffffff; margin-bottom:8px;">¡Todo al día!</h2>
         <p style="color:var(--f-text-secondary); margin-bottom:28px; font-size:1rem;">No tienes tarjetas pendientes en este mazo hoy.</p>
