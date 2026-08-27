@@ -1,20 +1,22 @@
+export type BgThemeType = 'modern_black' | 'holo_cyber' | 'emerald_vision' | 'digital_blue' | 'sunset_magenta';
+
 export interface AppCustomizationTheme {
-  accentColor: string; // Hex e.g. '#38bdf8'
+  accentColor: string;
   accentName: 'blue' | 'green' | 'purple' | 'amber' | 'pink' | 'red';
-  bgTheme: 'oled' | 'glass' | 'midnight' | 'emerald';
-  cardRadius: 'standard' | 'super_rounded' | 'sharp';
-  cardSurface: 'matte' | 'glass' | 'obsidian';
-  uiScale: 'normal' | 'comfortable' | 'compact';
+  bgTheme: BgThemeType;
+  cardRadius: 'super_rounded' | 'standard' | 'sharp';
+  cardSurface: 'matte' | 'glass' | 'obsidian' | 'holo';
+  uiScale: 'comfortable' | 'normal';
 }
 
-const STORAGE_KEY = 'eureka_customization_theme';
+const STORAGE_KEY = 'eureka_customization_theme_v2';
 
 const DEFAULT_THEME: AppCustomizationTheme = {
   accentColor: '#38bdf8',
   accentName: 'blue',
-  bgTheme: 'oled',
+  bgTheme: 'modern_black',
   cardRadius: 'super_rounded',
-  cardSurface: 'matte',
+  cardSurface: 'glass',
   uiScale: 'comfortable'
 };
 
@@ -57,10 +59,9 @@ export class ThemeService {
     const root = document.documentElement;
     const body = document.body;
 
-    // Accent colors
     const accents: Record<string, string> = {
       blue: '#38bdf8',
-      green: '#84cc16',
+      green: '#10b981',
       purple: '#a855f7',
       amber: '#f59e0b',
       pink: '#ec4899',
@@ -71,7 +72,6 @@ export class ThemeService {
     root.style.setProperty('--f-blue', color);
     root.style.setProperty('--f-accent', color);
 
-    // Body background class
     body.className = '';
     body.classList.add(`theme-${this.currentTheme.bgTheme}`);
     body.classList.add(`radius-${this.currentTheme.cardRadius}`);

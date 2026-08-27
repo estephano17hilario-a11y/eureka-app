@@ -1,4 +1,4 @@
-import { themeService, type AppCustomizationTheme } from '../services/theme.service';
+import { themeService, type AppCustomizationTheme, type BgThemeType } from '../services/theme.service';
 
 export interface FigmaAppSettingsViewCallbacks {
   onBack: () => void;
@@ -20,87 +20,121 @@ export function renderFigmaAppSettingsView(): string {
         <div style="width:60px;"></div>
       </div>
 
-      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:20px; padding-bottom:40px;">
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:22px; padding-bottom:40px;">
         
         <div>
-          <h2 style="font-size:1.75rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Personaliza tu Eureka</h2>
-          <p style="font-size:0.9rem; color:var(--f-text-secondary);">Adapta los colores, formas y dimensiones a tu estilo</p>
+          <h2 style="font-size:1.8rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Atmósfera & Estilo Visual</h2>
+          <p style="font-size:0.92rem; color:var(--f-text-secondary);">Diseño moderno futurista con gradientes y mallas cromáticas</p>
         </div>
 
-        <!-- 1. Color de Acento -->
-        <div class="apple-card-grouped" style="padding:20px 22px;">
-          <div style="font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:12px;">
-            Color de Acento Principal
-          </div>
-
-          <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-            <button class="theme-color-circle ${t.accentName === 'blue' ? 'active' : ''}" data-accent="blue" style="background:#38bdf8;" title="Cyber Blue"></button>
-            <button class="theme-color-circle ${t.accentName === 'green' ? 'active' : ''}" data-accent="green" style="background:#84cc16;" title="Neon Green"></button>
-            <button class="theme-color-circle ${t.accentName === 'purple' ? 'active' : ''}" data-accent="purple" style="background:#a855f7;" title="Electric Purple"></button>
-            <button class="theme-color-circle ${t.accentName === 'amber' ? 'active' : ''}" data-accent="amber" style="background:#f59e0b;" title="Sunset Amber"></button>
-            <button class="theme-color-circle ${t.accentName === 'pink' ? 'active' : ''}" data-accent="pink" style="background:#ec4899;" title="Coral Pink"></button>
-            <button class="theme-color-circle ${t.accentName === 'red' ? 'active' : ''}" data-accent="red" style="background:#ef4444;" title="Crimson"></button>
-          </div>
-        </div>
-
-        <!-- 2. Fondo y Atmósfera de la App -->
-        <div class="apple-card-grouped" style="padding:20px 22px;">
-          <div style="font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:12px;">
+        <!-- 1. Atmósferas y Fondos Futuristas (Inspirados en las Imágenes) -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:14px;">
             Atmósfera y Fondo de la App
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
-            <div class="theme-preset-box ${t.bgTheme === 'oled' ? 'selected' : ''}" data-bg="oled">
-              <div style="font-size:1.3rem; margin-bottom:4px;">🖤</div>
-              <div style="font-weight:700; color:#fff;">OLED Pitch Black</div>
-              <div style="font-size:0.76rem; color:var(--f-text-secondary);">Negro puro, ahorro de batería</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+            
+            <div class="theme-preset-card ${t.bgTheme === 'modern_black' ? 'selected' : ''}" data-bg="modern_black">
+              <div class="theme-preview-box preview-modern-black">
+                <span class="theme-badge-glow">Default</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Modern Lead Black</div>
+                <div class="theme-card-desc">Plomo oscuro elegante y sutil, estilo Noji/AnkiPro nativo</div>
+              </div>
             </div>
 
-            <div class="theme-preset-box ${t.bgTheme === 'glass' ? 'selected' : ''}" data-bg="glass">
-              <div style="font-size:1.3rem; margin-bottom:4px;">🔮</div>
-              <div style="font-weight:700; color:#fff;">Liquid Glass</div>
-              <div style="font-size:0.76rem; color:var(--f-text-secondary);">Medianoche translúcido con blur</div>
+            <div class="theme-preset-card ${t.bgTheme === 'holo_cyber' ? 'selected' : ''}" data-bg="holo_cyber">
+              <div class="theme-preview-box preview-holo-cyber">
+                <span class="theme-badge-glow" style="background:#ec4899;">Holo 3D</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Holo Prism Chrome</div>
+                <div class="theme-card-desc">Efecto holográfico iridiscente con mallas de color</div>
+              </div>
             </div>
 
-            <div class="theme-preset-box ${t.bgTheme === 'emerald' ? 'selected' : ''}" data-bg="emerald">
-              <div style="font-size:1.3rem; margin-bottom:4px;">🌿</div>
-              <div style="font-weight:700; color:#fff;">Emerald Cyber</div>
-              <div style="font-size:0.76rem; color:var(--f-text-secondary);">Verde bosque profundo</div>
+            <div class="theme-preset-card ${t.bgTheme === 'digital_blue' ? 'selected' : ''}" data-bg="digital_blue">
+              <div class="theme-preview-box preview-digital-blue">
+                <span class="theme-badge-glow" style="background:#38bdf8;">Digital</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Digital Technology</div>
+                <div class="theme-card-desc">Aura azul eléctrico y cian futurista profundo</div>
+              </div>
             </div>
+
+            <div class="theme-preset-card ${t.bgTheme === 'emerald_vision' ? 'selected' : ''}" data-bg="emerald_vision">
+              <div class="theme-preview-box preview-emerald-vision">
+                <span class="theme-badge-glow" style="background:#10b981;">Vision</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Vision Emerald</div>
+                <div class="theme-card-desc">Anillo de luz verde neón y esmeralda cósmico</div>
+              </div>
+            </div>
+
+            <div class="theme-preset-card ${t.bgTheme === 'sunset_magenta' ? 'selected' : ''}" data-bg="sunset_magenta">
+              <div class="theme-preview-box preview-sunset-magenta">
+                <span class="theme-badge-glow" style="background:#a855f7;">Unlocking</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Sunset Magenta</div>
+                <div class="theme-card-desc">Gradiente violeta, púrpura y magenta resplandeciente</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 2. Color de Acento -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:14px;">
+            Color de Acento de Botones y Resaltados
+          </div>
+
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <button class="theme-color-circle ${t.accentName === 'blue' ? 'active' : ''}" data-accent="blue" style="background:linear-gradient(135deg, #38bdf8, #0284c7);" title="Cyber Blue"></button>
+            <button class="theme-color-circle ${t.accentName === 'green' ? 'active' : ''}" data-accent="green" style="background:linear-gradient(135deg, #10b981, #059669);" title="Neon Emerald"></button>
+            <button class="theme-color-circle ${t.accentName === 'purple' ? 'active' : ''}" data-accent="purple" style="background:linear-gradient(135deg, #a855f7, #7e22ce);" title="Electric Purple"></button>
+            <button class="theme-color-circle ${t.accentName === 'amber' ? 'active' : ''}" data-accent="amber" style="background:linear-gradient(135deg, #f59e0b, #d97706);" title="Sunset Amber"></button>
+            <button class="theme-color-circle ${t.accentName === 'pink' ? 'active' : ''}" data-accent="pink" style="background:linear-gradient(135deg, #ec4899, #be185d);" title="Coral Pink"></button>
+            <button class="theme-color-circle ${t.accentName === 'red' ? 'active' : ''}" data-accent="red" style="background:linear-gradient(135deg, #ef4444, #b91c1c);" title="Crimson"></button>
           </div>
         </div>
 
         <!-- 3. Formas y Bordes de las Tarjetas -->
-        <div class="apple-card-grouped" style="padding:20px 22px;">
-          <div style="font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:12px;">
-            Formas y Bordes (Radio de Esquinas)
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:14px;">
+            Formas y Bordes de las Flashcards
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
-            <button class="apple-btn-outline-pill ${t.cardRadius === 'super_rounded' ? 'active-pill' : ''}" data-radius="super_rounded" style="padding:14px 10px; font-weight:700; text-align:center;">
-              Super Redondo (26px)
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
+            <button class="apple-btn-outline-pill ${t.cardRadius === 'super_rounded' ? 'active-pill' : ''}" data-radius="super_rounded" style="padding:16px 10px; font-weight:800; text-align:center;">
+              Super Redondo (28px)
             </button>
-            <button class="apple-btn-outline-pill ${t.cardRadius === 'standard' ? 'active-pill' : ''}" data-radius="standard" style="padding:14px 10px; font-weight:700; text-align:center;">
+            <button class="apple-btn-outline-pill ${t.cardRadius === 'standard' ? 'active-pill' : ''}" data-radius="standard" style="padding:16px 10px; font-weight:800; text-align:center;">
               Estándar iOS (18px)
             </button>
-            <button class="apple-btn-outline-pill ${t.cardRadius === 'sharp' ? 'active-pill' : ''}" data-radius="sharp" style="padding:14px 10px; font-weight:700; text-align:center;">
-              Moderno Recto (10px)
+            <button class="apple-btn-outline-pill ${t.cardRadius === 'sharp' ? 'active-pill' : ''}" data-radius="sharp" style="padding:16px 10px; font-weight:800; text-align:center;">
+              Futurista Recto (10px)
             </button>
           </div>
         </div>
 
-        <!-- 4. Escala Táctil de Botones -->
-        <div class="apple-card-grouped" style="padding:20px 22px;">
-          <div style="font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:12px;">
-            Tamaño Táctil y Comodidad de Botones
+        <!-- 4. Escala Táctil de Botones Grandes -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:14px;">
+            Tamaño de Botones y Ergonomía Táctil
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;">
-            <button class="apple-btn-secondary ${t.uiScale === 'comfortable' ? 'active-pill' : ''}" data-scale="comfortable" style="padding:16px; border-radius:16px; font-weight:700;">
+          <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:14px;">
+            <button class="apple-btn-secondary ${t.uiScale === 'comfortable' ? 'active-pill' : ''}" data-scale="comfortable" style="padding:18px; border-radius:18px; font-weight:800; font-size:1.05rem;">
               ✨ Cómodo y Grande (Recomendado)
             </button>
-            <button class="apple-btn-secondary ${t.uiScale === 'normal' ? 'active-pill' : ''}" data-scale="normal" style="padding:16px; border-radius:16px; font-weight:700;">
-              Normal Estándar
+            <button class="apple-btn-secondary ${t.uiScale === 'normal' ? 'active-pill' : ''}" data-scale="normal" style="padding:18px; border-radius:18px; font-weight:800; font-size:1.05rem;">
+              Normal
             </button>
           </div>
         </div>
@@ -130,14 +164,14 @@ export function bindFigmaAppSettingsViewEvents(
     });
   });
 
-  // Background box
-  container.querySelectorAll<HTMLElement>('.theme-preset-box').forEach((box) => {
-    box.addEventListener('click', () => {
-      const bg = box.dataset.bg as AppCustomizationTheme['bgTheme'];
+  // Background presets
+  container.querySelectorAll<HTMLElement>('.theme-preset-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const bg = card.dataset.bg as BgThemeType;
       if (bg) {
         themeService.setTheme({ bgTheme: bg });
-        container.querySelectorAll('.theme-preset-box').forEach((b) => b.classList.remove('selected'));
-        box.classList.add('selected');
+        container.querySelectorAll('.theme-preset-card').forEach((b) => b.classList.remove('selected'));
+        card.classList.add('selected');
         callbacks.onThemeChanged();
       }
     });
