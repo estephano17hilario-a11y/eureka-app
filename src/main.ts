@@ -335,7 +335,11 @@ class EurekaFigmaApp {
     else if (this.currentTab === 'inicio' && this.currentView === 'dashboard') {
       bindFigmaDashboardEvents(layout, subdeck, {
         onBackToSubdecks: () => {
-          this.currentView = 'subdeck';
+          if (subdeck.parentId) {
+            this.currentView = 'subdeck';
+          } else {
+            this.currentView = 'root';
+          }
           this.render();
         },
         onBackToRoot: () => {

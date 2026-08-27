@@ -367,9 +367,24 @@ export class FigmaStudySession {
     });
 
     modal.querySelector('#btn-menu-reset-card')?.addEventListener('click', () => {
-      deckService.resetCardProgress(currentCard.id);
       closeModal();
-      this.render(container);
+      dialogService.showConfirm({
+        title: 'Restablecer Progreso',
+        message: '¿Deseas restablecer el progreso de esta tarjeta a estado nuevo?',
+        confirmText: 'Continuar',
+        onConfirm: () => {
+          dialogService.showConfirm({
+            title: '⚠️ Confirmación Final',
+            message: 'Esta acción borrará todo el historial e intervalos acumulados de esta tarjeta. ¿Confirmar por segunda vez?',
+            confirmText: 'Restablecer Definitivamente',
+            isDanger: true,
+            onConfirm: () => {
+              deckService.resetCardProgress(currentCard.id);
+              this.render(container);
+            }
+          });
+        }
+      });
     });
 
     modal.querySelector('#btn-menu-delete-card')?.addEventListener('click', () => {

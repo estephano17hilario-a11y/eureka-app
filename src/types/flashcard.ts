@@ -63,7 +63,7 @@ export interface DeckSettings {
   ttsVoiceLang: string;
   enableMicroGames?: boolean;
   microGameInterval?: number; // Cada cuántas tarjetas se activa (ej: 5, 10, 15, 20, o 0 para desactivar)
-  preferredMicroGame?: 'all' | 'bubbles' | 'breathing' | 'rhythm';
+  preferredMicroGame?: 'all' | 'tap_frenzy' | 'flash_reflex' | 'meteor_smash' | 'arrow_rush';
   cardStyle?: {
     fontSize?: 'sm' | 'md' | 'lg';
     theme?: 'oled' | 'liquid_glass' | 'emerald_forest';

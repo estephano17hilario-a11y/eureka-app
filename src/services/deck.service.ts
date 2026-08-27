@@ -418,15 +418,34 @@ export class DeckService {
 
   /**
    * Operaciones en Lote (Batch Actions)
+   * Al mover una tarjeta de Mazo X a Mazo Y:
+   * 1. Preserva el dueDate pendiente intacto (ej: si faltan 5 días para verla, se mantendrá en 5 días).
+   * 2. Mapea el escalón actual al nuevo mazo de destino para que el siguiente repaso ('Bien')
+   *    salte al siguiente intervalo mayor de la nueva carpeta (ej: 7 días).
    */
   public moveCards(cardIds: string[], targetDeckId: string): void {
     const idSet = new Set(cardIds);
     const now = Date.now();
+    const targetDeck = this.getDeckById(targetDeckId);
+    const targetSteps = targetDeck?.settings?.learningSteps || [4, 1440, 2880, 7200, 15840, 25920, 41760, 82080, 146880, 246240, 400320, 633600];
+
     this.cards = this.cards.map(c => {
       if (idSet.has(c.id)) {
+        const currentInterval = c.intervalMinutes > 0 ? c.intervalMinutes : Math.max(1, Math.round((c.dueDate - now) / 60000));
+        
+        let mappedIndex = 0;
+        for (let i = 0; i < targetSteps.length; i++) {
+          if (targetSteps[i] <= currentInterval) {
+            mappedIndex = i;
+          } else {
+            break;
+          }
+        }
+
         return {
           ...c,
           deckId: targetDeckId,
+          stepIndex: mappedIndex,
           updatedAt: now
         };
       }
@@ -438,6 +457,28 @@ export class DeckService {
   public deleteCards(cardIds: string[]): void {
     const idSet = new Set(cardIds);
     this.cards = this.cards.filter(c => !idSet.has(c.id));
+    this.notify();
+  }
+
+  public resetCardsProgress(cardIds: string[]): void {
+    const idSet = new Set(cardIds);
+    const now = Date.now();
+    this.cards = this.cards.map(c => {
+      if (idSet.has(c.id)) {
+        return {
+          ...c,
+          state: 'new',
+          stepIndex: 0,
+          intervalMinutes: 4,
+          easeFactor: 2.50,
+          lapses: 0,
+          reps: 0,
+          dueDate: now,
+          updatedAt: now
+        };
+      }
+      return c;
+    });
     this.notify();
   }
 

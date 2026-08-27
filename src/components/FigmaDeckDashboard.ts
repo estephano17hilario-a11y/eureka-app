@@ -348,6 +348,9 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           <button class="batch-action-btn btn-batch-invert" id="btn-batch-invert-action" title="Revertir o desrevertir">
             ⇄ Revertir
           </button>
+          <button class="batch-action-btn btn-batch-reset" id="btn-batch-reset-action" title="Restablecer progreso a nuevo" style="background:rgba(245,158,11,0.18); color:#f59e0b; border:1px solid rgba(245,158,11,0.35);">
+            🔄 Borrar Progreso
+          </button>
           <button class="batch-action-btn btn-batch-delete" id="btn-batch-delete-action" title="Eliminar seleccionadas">
             🗑️ Borrar
           </button>
@@ -495,6 +498,32 @@ export function bindFigmaDashboardEvents(
     deckService.toggleInvertCards(Array.from(selectedCards));
     selectedCards.clear();
     updateBatchDock();
+  });
+
+  // Batch Reset Progress (Solicitud #4: Doble Confirmación)
+  container.querySelector('#btn-batch-reset-action')?.addEventListener('click', () => {
+    if (selectedCards.size === 0) return;
+    const count = selectedCards.size;
+    dialogService.showConfirm({
+      title: 'Restablecer Progreso',
+      message: `¿Deseas restablecer el progreso de ${count} tarjeta(s) seleccionada(s) a estado nuevo?`,
+      confirmText: 'Continuar',
+      onConfirm: () => {
+        // Segunda confirmación obligatoria
+        dialogService.showConfirm({
+          title: '⚠️ Confirmación Final',
+          message: `Esta acción borrará todo el historial de repasos e intervalos de estas ${count} tarjeta(s). ¿Confirmar por segunda vez?`,
+          confirmText: 'Restablecer Definitivamente',
+          isDanger: true,
+          onConfirm: () => {
+            deckService.resetCardsProgress(Array.from(selectedCards));
+            selectedCards.clear();
+            updateBatchDock();
+            callbacks.onConfigureDeck(deck.id);
+          }
+        });
+      }
+    });
   });
 
   // Batch Move to Folder / Deck Modal

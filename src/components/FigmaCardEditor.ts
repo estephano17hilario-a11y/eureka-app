@@ -445,6 +445,7 @@ export function bindFigmaCardEditorEvents(
         activeMaskId: isOcclusion && occlusionMasks[0] ? occlusionMasks[0].id : undefined,
         occlusionMode: currentOcclusionMode
       });
+      callbacks.onSaved();
     } else {
       deckService.createCard(
         {
@@ -461,9 +462,37 @@ export function bindFigmaCardEditorEvents(
         },
         createInverted
       );
-    }
 
-    callbacks.onSaved();
+      // Solicitud #5: Mantenerse en el cuadro de creación al crear tarjeta
+      // Mostrar feedback visual y limpiar campos para la siguiente tarjeta
+      if (anversoInput) anversoInput.value = '';
+      if (reversoInput) reversoInput.value = '';
+      frontImage = undefined;
+      backImage = undefined;
+      occlusionImage = undefined;
+      occlusionMasks = [];
+      updateThumbnailBoxes();
+      anversoInput?.focus();
+
+      // Banner flotante de éxito
+      const feedbackToast = document.createElement('div');
+      feedbackToast.className = 'figma-toast-banner';
+      feedbackToast.style.position = 'fixed';
+      feedbackToast.style.top = '24px';
+      feedbackToast.style.left = '50%';
+      feedbackToast.style.transform = 'translateX(-50%)';
+      feedbackToast.style.background = 'rgba(16, 185, 129, 0.95)';
+      feedbackToast.style.color = '#ffffff';
+      feedbackToast.style.padding = '12px 24px';
+      feedbackToast.style.borderRadius = '14px';
+      feedbackToast.style.fontWeight = '800';
+      feedbackToast.style.fontSize = '0.95rem';
+      feedbackToast.style.zIndex = '999999';
+      feedbackToast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(16,185,129,0.4)';
+      feedbackToast.innerHTML = `✓ ¡Tarjeta agregada! Escribe la siguiente o pulsa ‹ Volver al terminar.`;
+      document.body.appendChild(feedbackToast);
+      setTimeout(() => feedbackToast.remove(), 2500);
+    }
   };
 
   container.querySelector('#btn-save-card-check')?.addEventListener('click', saveCard);

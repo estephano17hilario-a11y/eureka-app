@@ -28,7 +28,7 @@ export function renderFigmaDeckSettingsView(deck: Deck): string {
       
       <!-- iOS Native Header -->
       <div class="ios-navbar">
-        <button class="ios-back-btn" id="btn-settings-back">
+        <button class="ios-back-btn" id="btn-deck-settings-back">
           <span class="ios-back-chevron">‹</span> Volver
         </button>
         <h1 class="ios-nav-title">Ajustes del Mazo</h1>

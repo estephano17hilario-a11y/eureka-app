@@ -2407,99 +2407,109 @@ html, body {
 }
 
 /* ==========================================================================
-   NEURO-ERGONOMIC RESTORATIVE MICRO-GAMES
+   FAST FRENETIC ARCADE REFLEX MICRO-GAMES
    ========================================================================== */
 
-.zen-bubble {
-  position: absolute;
-  width: 46px;
-  height: 46px;
+.turbo-tap-btn {
+  width: 170px;
+  height: 170px;
   border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f59e0b, #b45309 65%, #78350f);
+  border: 4px solid rgba(254, 240, 138, 0.6);
+  box-shadow: 0 0 45px rgba(245, 158, 11, 0.7), inset 0 0 20px rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.06s ease, box-shadow 0.08s ease;
+  user-select: none;
+  outline: none;
+}
+
+.turbo-tap-btn:active,
+.turbo-tap-btn.tap-pulse {
+  transform: scale(0.91);
+  box-shadow: 0 0 60px rgba(239, 68, 68, 0.9), inset 0 0 30px rgba(255, 255, 255, 0.8);
+  background: radial-gradient(circle at 35% 35%, #ef4444, #b91c1c 65%, #7f1d1d);
+}
+
+.flash-target-btn {
+  height: 80px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  font-size: 2rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  transition: transform 0.08s ease, background 0.1s ease, box-shadow 0.1s ease;
+}
+
+.flash-target-btn:active {
+  transform: scale(0.93);
+}
+
+.flash-target-btn.flashing {
+  background: var(--c) !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 35px var(--c), 0 0 15px #ffffff !important;
+  transform: scale(1.08);
+  animation: flashJolt 0.2s ease-in-out infinite alternate;
+}
+
+@keyframes flashJolt {
+  from { transform: scale(1.05); }
+  to { transform: scale(1.12); }
+}
+
+.meteor-target {
+  position: absolute;
+  font-size: 2.2rem;
   cursor: pointer;
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
-  animation: floatBubble 3s ease-in-out infinite alternate;
-  transition: transform 0.15s ease, opacity 0.2s ease;
   user-select: none;
+  animation: meteorFloat ease-in-out infinite alternate;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+  filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
 }
 
-.zen-bubble:hover {
-  transform: scale(1.18);
+.meteor-target:hover {
+  transform: scale(1.25);
 }
 
-.zen-bubble.popped {
-  transform: scale(1.6);
+.meteor-target.smashed {
+  transform: scale(2.2);
   opacity: 0;
   pointer-events: none;
 }
 
-@keyframes floatBubble {
+@keyframes meteorFloat {
   0% { transform: translateY(0px) rotate(0deg); }
-  100% { transform: translateY(-12px) rotate(6deg); }
+  100% { transform: translateY(-16px) rotate(15deg); }
 }
 
-.breathing-orb-container {
-  width: 150px;
-  height: 150px;
+.arrow-dir-btn {
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  font-size: 1.5rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  transition: transform 0.08s ease, background 0.12s ease;
 }
 
-.breathing-orb {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #38bdf8 0%, rgba(56, 189, 248, 0.2) 70%, transparent 100%);
-  box-shadow: 0 0 35px rgba(56, 189, 248, 0.7);
-  animation: zenBreath 8s ease-in-out infinite;
+.arrow-dir-btn:hover {
+  background: rgba(168, 85, 247, 0.25);
+  border-color: #c084fc;
 }
 
-@keyframes zenBreath {
-  0%, 100% {
-    width: 60px;
-    height: 60px;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-    background: radial-gradient(circle, #38bdf8, rgba(56, 189, 248, 0.2));
-  }
-  50% {
-    width: 130px;
-    height: 130px;
-    box-shadow: 0 0 50px rgba(16, 185, 129, 0.85);
-    background: radial-gradient(circle, #10b981, rgba(16, 185, 129, 0.3));
-  }
-}
-
-.harmonic-ripple-core {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #c084fc, #7e22ce);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 30px rgba(192, 132, 252, 0.6);
-  animation: harmonicPulse 2.4s ease-in-out infinite;
-  transition: transform 0.15s ease;
-}
-
-.harmonic-ripple-core:hover {
-  transform: scale(1.1);
-}
-
-@keyframes harmonicPulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(192, 132, 252, 0.5);
-  }
-  50% {
-    transform: scale(1.15);
-    box-shadow: 0 0 45px rgba(245, 158, 11, 0.8);
-  }
+.arrow-dir-btn:active {
+  transform: scale(0.9);
+  background: #a855f7;
 }
 
 
