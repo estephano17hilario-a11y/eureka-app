@@ -90,9 +90,10 @@ export function bindFigmaSubdeckEvents(
   callbacks: FigmaSubdeckCallbacks
 ): void {
   container.querySelector('#btn-subdeck-back')?.addEventListener('click', () => callbacks.onBack());
+  container.querySelector('#btn-back-to-inicio')?.addEventListener('click', () => callbacks.onBack());
   container.querySelector('#crumb-inicio')?.addEventListener('click', () => callbacks.onBack());
 
-  container.querySelectorAll('.figma-deck-card').forEach((row) => {
+  container.querySelectorAll('.figma-deck-row').forEach((row) => {
     row.addEventListener('click', () => {
       const id = (row as HTMLElement).dataset.subdeckId;
       if (id) callbacks.onSelectSubdeck(id);

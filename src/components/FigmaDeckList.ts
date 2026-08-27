@@ -78,7 +78,7 @@ export function renderFigmaDeckList(): string {
 }
 
 export function bindFigmaDeckListEvents(container: HTMLElement, callbacks: FigmaDeckListCallbacks): void {
-  container.querySelectorAll('.figma-deck-card').forEach((card) => {
+  container.querySelectorAll('.figma-deck-row').forEach((card) => {
     card.addEventListener('click', () => {
       const id = (card as HTMLElement).dataset.deckId;
       if (id) callbacks.onSelectDeck(id);
