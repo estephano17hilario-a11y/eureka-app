@@ -3043,44 +3043,25 @@ option {
 }
 
 /* ==========================================================================
-   STACKED CARDS DECK EFFECT (RECROS APILADOS DEBAJO PARA OCLUSIONES/INVERTIDOS)
+   CLEAN CARD SHADOW & DEPTH (IDÉNTICO A LA IMAGEN 2)
    ========================================================================== */
 
-.card-stacked-deck-effect {
-  position: relative !important;
-  z-index: 1;
+.figma-card-item {
+  background: rgba(22, 24, 33, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px !important;
+  padding: 14px 18px !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+  transition: all 0.15s ease !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
 }
 
-.card-stacked-deck-effect::before {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 8px;
-  right: 8px;
-  height: 100%;
-  background: rgba(22, 24, 33, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  z-index: -1;
-  transform: scale(0.985);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
-}
-
-.card-stacked-deck-effect::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 16px;
-  right: 16px;
-  height: 100%;
-  background: rgba(15, 16, 22, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  z-index: -2;
-  transform: scale(0.97);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
-  pointer-events: none;
+.figma-card-item:hover {
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.14) !important;
 }
 
 

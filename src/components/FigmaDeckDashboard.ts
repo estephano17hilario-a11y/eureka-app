@@ -41,140 +41,98 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
   const cards = deckService.getCardsByDeck(deck.id, true);
 
-  // Agrupación inteligente de tarjetas por groupId (Oclusiones múltiples y pares invertidos)
-  const renderedGroupIds = new Set<string>();
   const cardItemsHtml: string[] = [];
 
   for (const c of cards) {
-    if (c.groupId && c.type === 'image_occlusion') {
-      if (renderedGroupIds.has(c.groupId)) continue;
-      renderedGroupIds.add(c.groupId);
+    const hasMedia = !!(c.frontImage || c.backImage || (c.type === 'image_occlusion' && c.occlusionImage));
+    const isOcclusion = c.type === 'image_occlusion';
+    const isInverted = c.isInverted;
 
-      const groupCards = deckService.getCardsByGroupId(c.groupId);
-      cardItemsHtml.push(`
-        <div class="occlusion-group-card apple-glass-panel selectable-card-target card-stacked-deck-effect" data-group-id="${c.groupId}" style="cursor:pointer; padding:16px 20px; border-radius:16px; margin-bottom:16px;">
-          <div class="occlusion-group-header" data-toggle-group="${c.groupId}" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:8px; color:var(--f-blue); font-size:0.84rem; font-weight:700;">
-                <span style="font-size:1.05rem;">🖼️</span>
-                <span>Oclusión de Imagen (${groupCards.length} máscaras)</span>
-              </div>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <button class="btn-toggle-group-accordion" data-group-id="${c.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.2rem; cursor:pointer; padding:0 4px; line-height:1;">
-                  ▸
-                </button>
-              </div>
+    cardItemsHtml.push(`
+      <div class="figma-card-item apple-glass-panel selectable-card-target" data-card-id="${c.id}" title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; padding:14px 18px; border-radius:16px; margin-bottom:10px;">
+        
+        ${
+          isInverted
+            ? `
+          <!-- Top Row Invertido -->
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
+              <span style="font-size:0.95rem;">⇄</span>
+              <span>Invertido</span>
             </div>
-
-            <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
-              ${katexService.parseAndRender(c.front || 'Identifica las estructuras del diagrama')}
-            </div>
-
-            <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:4px;">
-              Toca para desplegar las ${groupCards.length} tarjetas de oclusión
-            </div>
-
-            <div style="display:flex; align-items:center; gap:6px; margin-top:8px; color:var(--f-text-muted);">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            </div>
+            <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
+              ⋮
+            </button>
           </div>
 
-          <!-- Subtarjetas desglosadas al click (Ocultas por defecto) -->
-          <div class="occlusion-group-body" id="group-body-${c.groupId}" style="display:none; margin-top:14px; flex-direction:column; gap:10px; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px;">
-            ${groupCards
-              .map(
-                (gc, idx) => `
-              <div class="figma-card-item apple-glass-panel selectable-card-target" data-card-id="${gc.id}" title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.03);">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-                  <span style="font-size:0.75rem; font-weight:800; color:var(--f-blue); background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:6px;">
-                    Máscara #${idx + 1}
-                  </span>
-                  <button class="btn-card-item-dots" data-card-id="${gc.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.2rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones">⋮</button>
-                </div>
-                <div class="figma-card-title-bold" style="font-size:0.92rem; font-weight:700; color:#fff; line-height:1.4;">
-                  ${katexService.parseAndRender(gc.front)}
-                </div>
-                ${
-                  gc.back
-                    ? `
-                  <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.84rem; line-height:1.4; margin-top:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                    ${katexService.parseAndRender(gc.back)}
-                  </div>
-                `
-                    : ''
-                }
-              </div>
-            `
-              )
-              .join('')}
+          <!-- Front Title -->
+          <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
+            ${katexService.parseAndRender(c.front)}
           </div>
-        </div>
-      `);
-    } else {
-      // Formato exacto de la Imagen 2 para todas las flashcards individuales e invertidas
-      const hasMedia = !!(c.frontImage || c.backImage || (c.type === 'image_occlusion' && c.occlusionImage));
-      const isStacked = c.isInverted || !!c.groupId;
-
-      cardItemsHtml.push(`
-        <div class="figma-card-item apple-glass-panel selectable-card-target ${isStacked ? 'card-stacked-deck-effect' : ''}" data-card-id="${c.id}" title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; padding:14px 18px; border-radius:16px; margin-bottom:${isStacked ? '16px' : '10px'};">
-          
-          ${
-            c.isInverted
-              ? `
-            <!-- Top Row Invertido -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
-                <span style="font-size:0.95rem;">⇄</span>
-                <span>Invertido</span>
-              </div>
-              <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
-                ⋮
-              </button>
+        `
+            : isOcclusion
+            ? `
+          <!-- Top Row Oclu -->
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                <circle cx="9" cy="9" r="2"/>
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+              </svg>
+              <span>Oclu</span>
             </div>
+            <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
+              ⋮
+            </button>
+          </div>
 
-            <!-- Front Title -->
-            <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
+          <!-- Front Title -->
+          <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
+            ${katexService.parseAndRender(c.front)}
+          </div>
+        `
+            : `
+          <!-- Standard Title with 3-dots on the right (Zero empty space at top) -->
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+            <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42; flex:1;">
               ${katexService.parseAndRender(c.front)}
             </div>
-          `
-              : `
-            <!-- Title with 3-dots on the right (Zero empty space at top) -->
-            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
-              <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42; flex:1;">
-                ${katexService.parseAndRender(c.front)}
-              </div>
-              <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1; flex-shrink:0; margin-top:-2px;" title="Opciones de tarjeta">
-                ⋮
-              </button>
-            </div>
-          `
-          }
+            <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1; flex-shrink:0; margin-top:-2px;" title="Opciones de tarjeta">
+              ⋮
+            </button>
+          </div>
+        `
+        }
 
-          <!-- Back Description (Grey Secondary Preview) -->
-          ${
-            c.back
-              ? `
-            <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
-              ${katexService.parseAndRender(c.back)}
-            </div>
-          `
-              : ''
-          }
+        <!-- Back Description (Grey Secondary Preview) -->
+        ${
+          c.back
+            ? `
+          <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+            ${katexService.parseAndRender(c.back)}
+          </div>
+        `
+            : ''
+        }
 
-          <!-- Attached Image Indicator (Image 2 style) -->
-          ${
-            hasMedia
-              ? `
-            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; color:var(--f-text-muted);">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            </div>
-          `
-              : ''
-          }
+        <!-- Attached Image Indicator (SVG icon) -->
+        ${
+          hasMedia
+            ? `
+          <div style="display:flex; align-items:center; gap:6px; margin-top:10px; color:var(--f-text-muted);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+              <circle cx="9" cy="9" r="2"/>
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+            </svg>
+          </div>
+        `
+            : ''
+        }
 
-        </div>
-      `);
-    }
+      </div>
+    `);
   }
 
   return `
