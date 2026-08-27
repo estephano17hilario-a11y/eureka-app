@@ -1,5 +1,5 @@
 /* ==========================================================================
-   EUREKA - RESPONSIVE DESIGN SYSTEM (MOBILE APK, TABLET & WEB)
+   EUREKA - 100% RESPONSIVE DESIGN SYSTEM (WEB, DESKTOP, MOBILE & APK)
    ========================================================================== */
 
 :root {
@@ -43,7 +43,7 @@
   display: none !important;
 }
 
-/* Fixed Background Atmosphere */
+/* Fixed Background Atmosphere (Inamovible) */
 body {
   margin: 0;
   padding: 0;
@@ -116,14 +116,18 @@ body.radius-super_rounded .apple-card-grouped,
 body.radius-super_rounded .cupertino-flashcard-box,
 body.radius-super_rounded .cupertino-editor-card-box,
 body.radius-super_rounded .figma-card-container,
+body.radius-super_rounded .figma-card-item,
+body.radius-super_rounded .occlusion-group-card,
 body.radius-super_rounded .figma-hero-metric-box {
-  border-radius: 28px !important;
+  border-radius: 26px !important;
 }
 
 body.radius-standard .apple-card-grouped,
 body.radius-standard .cupertino-flashcard-box,
 body.radius-standard .cupertino-editor-card-box,
 body.radius-standard .figma-card-container,
+body.radius-standard .figma-card-item,
+body.radius-standard .occlusion-group-card,
 body.radius-standard .figma-hero-metric-box {
   border-radius: 18px !important;
 }
@@ -132,6 +136,8 @@ body.radius-sharp .apple-card-grouped,
 body.radius-sharp .cupertino-flashcard-box,
 body.radius-sharp .cupertino-editor-card-box,
 body.radius-sharp .figma-card-container,
+body.radius-sharp .figma-card-item,
+body.radius-sharp .occlusion-group-card,
 body.radius-sharp .figma-hero-metric-box {
   border-radius: 10px !important;
 }
@@ -290,7 +296,7 @@ html, body {
   transform: scale(1.06);
 }
 
-/* Mobile Bottom Navigation Bar (Docked at bottom of screen on Mobile/APK) */
+/* Mobile Bottom Navigation Bar */
 .mobile-bottom-nav {
   position: fixed;
   bottom: 0;
@@ -751,12 +757,132 @@ html, body {
 }
 
 /* ==========================================================================
+   CRITICAL: Flashcard Items in Deck Dashboard and Library
+   ========================================================================== */
+
+.figma-card-item {
+  background: var(--f-surface) !important;
+  border: 1px solid var(--f-border) !important;
+  border-radius: 20px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s, border-color 0.15s;
+}
+
+.figma-card-item:hover {
+  background: var(--f-surface-subtle) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  transform: translateY(-1px);
+}
+
+.figma-card-top-tag-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.figma-tag-invertido {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: var(--f-text-secondary);
+}
+
+.figma-card-title-bold {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.figma-card-body-text {
+  font-size: 0.96rem;
+  color: var(--f-text-secondary);
+  line-height: 1.55;
+}
+
+/* Apple Panels and Grouped Cards */
+.apple-glass-panel {
+  background: var(--f-surface);
+  border: 1px solid var(--f-border);
+  border-radius: var(--f-radius-lg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+}
+
+.apple-card-grouped {
+  background: var(--f-surface);
+  border-radius: 22px;
+  border: 1px solid var(--f-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.apple-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.apple-list-row:last-child {
+  border-bottom: none;
+}
+
+.apple-badge-subpill {
+  display: inline-block;
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--f-blue);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--f-radius-full);
+}
+
+.apple-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--f-surface-subtle);
+  border: 1px solid var(--f-border);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.apple-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.apple-btn-outline-pill {
+  padding: 9px 18px;
+  border-radius: var(--f-radius-full);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--f-border);
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.apple-btn-outline-pill:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ==========================================================================
    Occlusion Accordion Group Card
    ========================================================================== */
 
 .occlusion-group-card {
-  background: var(--f-surface);
-  border: 1px solid var(--f-border);
+  background: var(--f-surface) !important;
+  border: 1px solid var(--f-border) !important;
   border-radius: 22px;
   padding: 20px 22px;
   margin-bottom: 16px;
@@ -869,7 +995,7 @@ html, body {
   border-radius: 50%;
   background: #000000;
   color: #ffffff;
-  border: 1.5px solid #ffffff;
+  border: 1px solid #ffffff;
   font-size: 13px;
   font-weight: 900;
   display: flex;
@@ -1210,7 +1336,7 @@ html, body {
 .rate-good { background: rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.35); color: #10b981; }
 .rate-easy { background: rgba(56, 189, 248, 0.14); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8; }
 
-/* Fullscreen Views */
+/* Fullscreen iOS Views */
 .ios-fullscreen-view {
   width: 100%;
   display: flex;
@@ -1260,48 +1386,6 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.apple-card-grouped {
-  background: var(--f-surface);
-  border-radius: 22px;
-  border: 1px solid var(--f-border);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-
-.apple-list-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.apple-list-row:last-child {
-  border-bottom: none;
-}
-
-.apple-btn-secondary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: var(--f-surface-subtle);
-  border: 1px solid var(--f-border);
-  color: #ffffff;
-  cursor: pointer;
-}
-
-.apple-btn-outline-pill {
-  padding: 9px 18px;
-  border-radius: var(--f-radius-full);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--f-border);
-  color: #ffffff;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 /* Floating Action Buttons */
@@ -1498,6 +1582,21 @@ html, body {
 
   .figma-deck-subtext {
     font-size: 0.82rem;
+  }
+
+  /* Flashcard Item in Mobile */
+  .figma-card-item {
+    padding: 16px 18px !important;
+    border-radius: 18px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .figma-card-title-bold {
+    font-size: 1.05rem !important;
+  }
+
+  .figma-card-body-text {
+    font-size: 0.9rem !important;
   }
 
   /* Hero Dashboard Metrics */
