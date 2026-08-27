@@ -1,12 +1,12 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
-import { openFigmaDeckSettingsModal } from './FigmaDeckSettingsModal';
 import { katexService } from '../services/katex.service';
 
 export interface FigmaDashboardCallbacks {
   onBackToSubdecks: () => void;
   onBackToRoot: () => void;
   onStudy: (deckId: string) => void;
+  onStudySpecificCard: (deckId: string, cardId: string) => void;
   onAddCard: (deckId: string) => void;
   onConfigureDeck: (deckId: string) => void;
   onEditCard: (cardId: string) => void;
@@ -39,7 +39,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
     <div>
       <!-- Action Header with 3-level Breadcrumb -->
       <div class="figma-action-header">
-        <div class="figma-breadcrumbs" style="font-size:1.15rem;">
+        <div class="figma-breadcrumbs" style="font-size:1.2rem;">
           <button class="figma-icon-btn-dark" id="btn-dash-back" style="margin-right:6px;" title="Volver">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           </button>
@@ -94,7 +94,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
           <div class="figma-stat-pill">
             <div class="figma-stat-val-badge" style="color:#84cc16;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               <span>${learningCount}</span>
             </div>
             <span class="figma-stat-name">En aprendizaje</span>
@@ -102,7 +102,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
           <div class="figma-stat-pill">
             <div class="figma-stat-val-badge" style="color:#38bdf8;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
               <span>${masteredCount}</span>
             </div>
             <span class="figma-stat-name">Dominadas</span>
@@ -153,12 +153,12 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           </button>
         </div>
 
-        <!-- Cards List Container in Dashboard with Full CRUD -->
+        <!-- Cards List Container with Targeted Single-Card Study on click -->
         <div id="dash-cards-list-mount" style="margin-top:18px;">
           ${cards
             .map(
               (c) => `
-            <div class="figma-card-item apple-glass-panel" data-dash-card-id="${c.id}">
+            <div class="figma-card-item apple-glass-panel clickable-card-row" data-dash-card-id="${c.id}" title="Toca para aprender esta tarjeta en específico">
               <div class="figma-card-top-tag-row">
                 <div class="figma-tag-invertido">
                   ${
@@ -171,6 +171,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
                       ? `<span>🖼️ Oclusión</span>`
                       : `<span>Estándar</span>`
                   }
+                  <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px; margin-left:6px;">🎯 Estudiar</span>
                 </div>
                 
                 <div style="display:flex; align-items:center; gap:8px;">
@@ -212,18 +213,10 @@ export function bindFigmaDashboardEvents(
   container.querySelector('#btn-study-cards-main')?.addEventListener('click', () => callbacks.onStudy(deck.id));
   container.querySelector('#btn-dash-add-card')?.addEventListener('click', () => callbacks.onAddCard(deck.id));
 
-  // Open Settings Modal (Foto 1)
-  const openSettingsModal = () => {
-    openFigmaDeckSettingsModal({
-      deck,
-      onSaved: () => callbacks.onConfigureDeck(deck.id),
-      onClose: () => {}
-    });
-  };
-
-  container.querySelector('#btn-dash-menu')?.addEventListener('click', openSettingsModal);
-  container.querySelector('#btn-open-algo-settings')?.addEventListener('click', openSettingsModal);
-  container.querySelector('#btn-deck-info-icon')?.addEventListener('click', openSettingsModal);
+  // Open Settings View (Foto 1)
+  container.querySelector('#btn-dash-menu')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
+  container.querySelector('#btn-open-algo-settings')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
+  container.querySelector('#btn-deck-info-icon')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
 
   // Export JSON
   container.querySelector('#btn-dash-code')?.addEventListener('click', () => {
@@ -241,24 +234,41 @@ export function bindFigmaDashboardEvents(
     alert(`Enlace para compartir mazo "${deck.name}":\nhttps://eureka.app/deck/${deck.id}`);
   });
 
-  // Card CRUD actions inside dashboard list
-  container.querySelectorAll<HTMLButtonElement>('.btn-card-edit-action').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.editId;
-      if (id) callbacks.onEditCard(id);
+  // Targeted Single-Card Study on card row click!
+  const bindCardRowClicks = () => {
+    container.querySelectorAll('.clickable-card-row').forEach((row) => {
+      row.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.classList.contains('btn-card-edit-action') || target.classList.contains('btn-card-del-action')) {
+          return;
+        }
+        const cardId = (row as HTMLElement).dataset.dashCardId;
+        if (cardId) {
+          callbacks.onStudySpecificCard(deck.id, cardId);
+        }
+      });
     });
-  });
 
-  container.querySelectorAll<HTMLButtonElement>('.btn-card-del-action').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.delId;
-      if (id && confirm('¿Eliminar esta tarjeta definitivamente?')) {
-        deckService.deleteCard(id);
-      }
+    container.querySelectorAll<HTMLButtonElement>('.btn-card-edit-action').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.editId;
+        if (id) callbacks.onEditCard(id);
+      });
     });
-  });
+
+    container.querySelectorAll<HTMLButtonElement>('.btn-card-del-action').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.delId;
+        if (id && confirm('¿Eliminar esta tarjeta definitivamente?')) {
+          deckService.deleteCard(id);
+        }
+      });
+    });
+  };
+
+  bindCardRowClicks();
 
   // Search filter
   const searchInput = container.querySelector('#dash-search-input') as HTMLInputElement | null;
@@ -270,10 +280,11 @@ export function bindFigmaDashboardEvents(
       cardsMount.innerHTML = filtered
         .map(
           (c) => `
-        <div class="figma-card-item apple-glass-panel" data-dash-card-id="${c.id}">
+        <div class="figma-card-item apple-glass-panel clickable-card-row" data-dash-card-id="${c.id}" title="Toca para aprender esta tarjeta en específico">
           <div class="figma-card-top-tag-row">
             <div class="figma-tag-invertido">
               ${c.isInverted ? `<span>Invertido</span>` : `<span>Estándar</span>`}
+              <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px; margin-left:6px;">🎯 Estudiar</span>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
               <button class="btn-card-edit-action" data-edit-id="${c.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-weight:700;">✏️ Editar</button>
@@ -287,23 +298,7 @@ export function bindFigmaDashboardEvents(
         )
         .join('');
 
-      cardsMount.querySelectorAll<HTMLButtonElement>('.btn-card-edit-action').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const id = btn.dataset.editId;
-          if (id) callbacks.onEditCard(id);
-        });
-      });
-
-      cardsMount.querySelectorAll<HTMLButtonElement>('.btn-card-del-action').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const id = btn.dataset.delId;
-          if (id && confirm('¿Eliminar esta tarjeta?')) {
-            deckService.deleteCard(id);
-          }
-        });
-      });
+      bindCardRowClicks();
     }
   });
 }

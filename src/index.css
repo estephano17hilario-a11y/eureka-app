@@ -1,14 +1,14 @@
 /* ==========================================================================
-   EUREKA - APPLE LIQUID GLASS 60FPS & FIGMA DARK DESIGN SYSTEM
+   EUREKA - APPLE LIQUID GLASS 60FPS & CUPERTINO NATIVE DESIGN SYSTEM
    ========================================================================== */
 
 :root {
-  --f-bg: #090a0d;
-  --f-surface: #141518;
-  --f-surface-subtle: #1c1d22;
-  --f-surface-glass: rgba(24, 25, 29, 0.75);
-  --f-input-bg: #222328;
-  --f-input-border: rgba(255, 255, 255, 0.09);
+  --f-bg: #07080a;
+  --f-surface: #121316;
+  --f-surface-subtle: #1a1b20;
+  --f-surface-glass: rgba(20, 21, 26, 0.82);
+  --f-input-bg: #1e1f24;
+  --f-input-border: rgba(255, 255, 255, 0.1);
   --f-border: rgba(255, 255, 255, 0.08);
   
   --f-text-primary: #ffffff;
@@ -17,6 +17,7 @@
   
   --f-blue: #38bdf8;
   --f-blue-hover: #50b5ff;
+  --f-apple-blue: #007aff;
   --f-green: #84cc16;
   --f-purple: #a855f7;
   --f-orange: #f59e0b;
@@ -51,10 +52,11 @@ html, body {
   height: 100%;
   background-color: var(--f-bg);
   color: var(--f-text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
-  font-size: 15px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
 }
 
 .hidden {
@@ -81,14 +83,93 @@ html, body {
 }
 
 /* ==========================================================================
+   iOS Cupertino Fullscreen Views & Navigation
+   ========================================================================== */
+
+.ios-fullscreen-view {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  animation: iosFadeIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes iosFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ios-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 16px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--f-border);
+}
+
+.ios-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--f-blue);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 6px;
+  transition: opacity 0.15s;
+}
+
+.ios-back-btn:active {
+  opacity: 0.6;
+}
+
+.ios-back-chevron {
+  font-size: 1.6rem;
+  line-height: 1;
+  margin-top: -2px;
+}
+
+.ios-nav-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.015em;
+}
+
+.ios-content-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.apple-icon-circle-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+/* ==========================================================================
    Apple Liquid Glass Modals & Panels
    ========================================================================== */
 
 .apple-glass-modal {
   width: 100%;
   background: var(--f-surface-glass);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
+  backdrop-filter: blur(36px);
+  -webkit-backdrop-filter: blur(36px);
   border: 1px solid var(--f-border);
   border-radius: var(--f-radius-lg);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -97,16 +178,16 @@ html, body {
 
 .apple-glass-panel {
   background: var(--f-surface-glass);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
   border: 1px solid var(--f-border);
   border-radius: var(--f-radius-lg);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
 .apple-card-grouped {
-  background: #191a1e;
-  border-radius: 18px;
+  background: #15161a;
+  border-radius: 20px;
   border: 1px solid var(--f-border);
   overflow: hidden;
 }
@@ -115,7 +196,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 18px 22px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: background 0.15s;
 }
@@ -130,25 +211,25 @@ html, body {
 
 .apple-chevron {
   color: var(--f-text-muted);
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 600;
 }
 
 .apple-badge-beta {
   background: #38bdf8;
-  color: #0c0d10;
-  font-size: 0.72rem;
+  color: #07080a;
+  font-size: 0.75rem;
   font-weight: 800;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   text-transform: uppercase;
 }
 
 .apple-badge-subpill {
   display: inline-block;
-  background: rgba(56, 189, 248, 0.12);
+  background: rgba(56, 189, 248, 0.14);
   color: #38bdf8;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: var(--f-radius-full);
@@ -159,7 +240,7 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #25262c;
+  background: #202228;
   border: 1px solid var(--f-border);
   color: #ffffff;
   cursor: pointer;
@@ -167,7 +248,7 @@ html, body {
 }
 
 .apple-btn-secondary:hover {
-  background: #30323a;
+  background: #2b2e36;
 }
 
 .apple-btn-secondary:active {
@@ -192,12 +273,12 @@ html, body {
 }
 
 .apple-btn-outline-pill {
-  padding: 8px 18px;
+  padding: 9px 20px;
   border-radius: var(--f-radius-full);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--f-border);
   color: #ffffff;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
@@ -209,51 +290,51 @@ html, body {
 
 /* Algorithm Card (Foto 3) */
 .apple-algo-card {
-  background: #191a1e;
+  background: #15161a;
   border: 1.5px solid var(--f-border);
-  border-radius: 18px;
-  padding: 18px 20px;
+  border-radius: 20px;
+  padding: 20px 22px;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
 
 .apple-algo-card:hover {
-  background: #202227;
+  background: #1c1d22;
   border-color: rgba(255, 255, 255, 0.16);
 }
 
 .apple-algo-card.selected {
   border-color: var(--f-blue);
-  background: rgba(56, 189, 248, 0.05);
+  background: rgba(56, 189, 248, 0.06);
 }
 
 .apple-algo-icon {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   color: var(--f-blue);
 }
 
 .apple-algo-title {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-weight: 800;
   color: #ffffff;
 }
 
 .apple-algo-desc {
-  font-size: 0.84rem;
+  font-size: 0.86rem;
   color: var(--f-text-secondary);
   line-height: 1.5;
 }
 
 .apple-checkbox {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   accent-color: var(--f-blue);
   cursor: pointer;
 }
 
 .apple-icon-del-btn {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   border: none;
@@ -268,42 +349,6 @@ html, body {
 
 .apple-icon-del-btn:hover {
   background: rgba(239, 68, 68, 0.4);
-}
-
-.apple-glass-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: var(--f-radius-sm);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--f-border);
-  color: #ffffff;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.apple-glass-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.apple-mode-toggle {
-  padding: 6px 14px;
-  border-radius: var(--f-radius-full);
-  background: none;
-  border: none;
-  color: var(--f-text-secondary);
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.apple-mode-toggle.active {
-  background: var(--f-blue);
-  color: #0c0d10;
 }
 
 /* ==========================================================================
@@ -370,7 +415,7 @@ html, body {
   align-items: center;
   gap: 8px;
   background: var(--f-blue);
-  color: #090a0d;
+  color: #07080a;
   padding: 8px 18px;
   border-radius: var(--f-radius-full);
   font-size: 0.88rem;
@@ -403,7 +448,7 @@ html, body {
 }
 
 /* ==========================================================================
-   Breadcrumb & Action Bar (Screenshots 1, 2, 3, 4)
+   Breadcrumb & Action Bar
    ========================================================================== */
 
 .figma-action-header {
@@ -491,11 +536,11 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 22px;
+  padding: 11px 24px;
   border-radius: var(--f-radius-full);
   background: var(--f-blue);
-  color: #090a0d;
-  font-size: 0.92rem;
+  color: #07080a;
+  font-size: 0.95rem;
   font-weight: 800;
   border: none;
   cursor: pointer;
@@ -515,11 +560,11 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 24px;
+  padding: 12px 26px;
   border-radius: var(--f-radius-full);
   background: #ffffff;
-  color: #090a0d;
-  font-size: 0.95rem;
+  color: #07080a;
+  font-size: 0.98rem;
   font-weight: 800;
   border: none;
   cursor: pointer;
@@ -567,8 +612,8 @@ html, body {
 }
 
 .figma-deck-folder-icon {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 14px;
   display: flex;
   align-items: center;
@@ -577,21 +622,21 @@ html, body {
 }
 
 .figma-deck-title {
-  font-size: 1.18rem;
+  font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: 0.03em;
   color: #ffffff;
 }
 
 .figma-deck-subtext {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   color: var(--f-text-secondary);
   margin-top: 2px;
 }
 
 .figma-chevron {
   color: var(--f-text-muted);
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 600;
 }
 
@@ -607,13 +652,13 @@ html, body {
 }
 
 .figma-dash-title {
-  font-size: 1.85rem;
+  font-size: 1.95rem;
   font-weight: 800;
   color: #ffffff;
 }
 
 .figma-dash-subtitle {
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   color: var(--f-text-secondary);
   margin-top: 4px;
 }
@@ -622,7 +667,7 @@ html, body {
   background: var(--f-surface);
   border-radius: var(--f-radius-lg);
   border: 1px solid var(--f-border);
-  padding: 36px 28px;
+  padding: 38px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -631,7 +676,7 @@ html, body {
 }
 
 .figma-hero-large-number {
-  font-size: 4.4rem;
+  font-size: 4.6rem;
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -639,7 +684,7 @@ html, body {
 }
 
 .figma-hero-label {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--f-text-secondary);
   margin-top: 8px;
   margin-bottom: 26px;
@@ -649,9 +694,9 @@ html, body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   width: 100%;
-  max-width: 540px;
+  max-width: 560px;
   gap: 18px;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .figma-stat-pill {
@@ -665,23 +710,23 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 800;
 }
 
 .figma-stat-name {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: var(--f-text-secondary);
 }
 
 .figma-btn-study-large {
   width: 100%;
-  max-width: 600px;
-  padding: 16px;
+  max-width: 620px;
+  padding: 18px;
   border-radius: var(--f-radius-full);
   background: var(--f-blue);
-  color: #090a0d;
-  font-size: 1.1rem;
+  color: #07080a;
+  font-size: 1.15rem;
   font-weight: 800;
   border: none;
   cursor: pointer;
@@ -703,14 +748,14 @@ html, body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
 }
 
 .figma-segment-bar {
   width: 100%;
-  height: 9px;
-  background: #25262c;
+  height: 10px;
+  background: #202228;
   border-radius: var(--f-radius-full);
   overflow: hidden;
   display: flex;
@@ -724,8 +769,8 @@ html, body {
 .figma-bar-legend {
   display: flex;
   align-items: center;
-  gap: 20px;
-  font-size: 0.88rem;
+  gap: 22px;
+  font-size: 0.9rem;
   color: var(--f-text-secondary);
 }
 
@@ -736,8 +781,8 @@ html, body {
 }
 
 .f-dot {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
 }
 
@@ -745,7 +790,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 22px;
+  margin-top: 24px;
 }
 
 .figma-search-input-wrap {
@@ -763,12 +808,12 @@ html, body {
 
 .figma-search-input {
   width: 100%;
-  padding: 13px 18px 13px 46px;
+  padding: 14px 18px 14px 48px;
   background: var(--f-surface);
   border: 1px solid var(--f-border);
   border-radius: var(--f-radius-full);
   color: #ffffff;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   outline: none;
 }
 
@@ -784,10 +829,10 @@ html, body {
   background: var(--f-surface);
   border-radius: var(--f-radius-lg);
   border: 1px solid var(--f-border);
-  padding: 26px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 24px;
 }
 
 .figma-field-block {
@@ -797,14 +842,14 @@ html, body {
 }
 
 .figma-field-label {
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #ffffff;
 }
 
 .figma-editor-textarea {
   width: 100%;
-  min-height: 130px;
+  min-height: 140px;
   background: var(--f-input-bg);
   border: 1px solid var(--f-input-border);
   border-top-left-radius: var(--f-radius-md);
@@ -813,7 +858,7 @@ html, body {
   border-bottom-right-radius: 0;
   color: #ffffff;
   font-family: inherit;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   padding: 18px;
   resize: vertical;
   outline: none;
@@ -833,7 +878,7 @@ html, body {
   border-top: none;
   border-bottom-left-radius: var(--f-radius-md);
   border-bottom-right-radius: var(--f-radius-md);
-  padding: 10px 14px;
+  padding: 12px 16px;
   overflow-x: auto;
 }
 
@@ -841,20 +886,20 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 16px;
+  padding: 8px 18px;
   border-radius: var(--f-radius-sm);
   background: #18191d;
   border: 1.5px solid #ec4899;
   color: #ffffff;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .figma-tool-btn {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 8px;
   background: none;
   border: none;
@@ -862,7 +907,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -878,14 +923,14 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 12px;
+  padding-top: 14px;
 }
 
 .figma-toggle-left {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.98rem;
+  font-size: 1.02rem;
   font-weight: 600;
   color: #ffffff;
 }
@@ -894,8 +939,8 @@ html, body {
 .figma-switch {
   position: relative;
   display: inline-block;
-  width: 48px;
-  height: 26px;
+  width: 50px;
+  height: 28px;
 }
 
 .figma-switch input { display: none; }
@@ -912,8 +957,8 @@ html, body {
 .figma-slider::before {
   position: absolute;
   content: "";
-  height: 20px;
-  width: 20px;
+  height: 22px;
+  width: 22px;
   left: 3px;
   bottom: 3px;
   background-color: #ffffff;
@@ -937,17 +982,18 @@ html, body {
   background: var(--f-surface);
   border-radius: var(--f-radius-md);
   border: 1px solid var(--f-border);
-  padding: 20px 22px;
+  padding: 22px 24px;
   margin-bottom: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.12s;
 }
 
 .figma-card-item:hover {
   background: var(--f-surface-subtle);
+  transform: translateY(-1px);
 }
 
 .figma-card-top-tag-row {
@@ -960,18 +1006,18 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   color: var(--f-text-secondary);
 }
 
 .figma-card-title-bold {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #ffffff;
 }
 
 .figma-card-body-text {
-  font-size: 0.94rem;
+  font-size: 0.96rem;
   color: var(--f-text-secondary);
   line-height: 1.55;
 }
@@ -981,11 +1027,11 @@ html, body {
   position: fixed;
   bottom: calc(var(--sab) + 76px);
   right: 24px;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background: var(--f-blue);
-  color: #090a0d;
+  color: #07080a;
   border: none;
   display: flex;
   align-items: center;
@@ -1004,8 +1050,8 @@ html, body {
   position: fixed;
   bottom: calc(var(--sab) + 20px);
   right: 24px;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: var(--f-surface-subtle);
   border: 1px solid var(--f-border);
@@ -1013,7 +1059,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
   z-index: 90;
@@ -1032,7 +1078,7 @@ html, body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px);
   z-index: 300;
   display: flex;
   align-items: center;
@@ -1042,7 +1088,7 @@ html, body {
 
 .figma-occlusion-modal {
   width: 100%;
-  max-width: 860px;
+  max-width: 880px;
   max-height: 90vh;
   background: var(--f-surface);
   border-radius: var(--f-radius-lg);
@@ -1059,8 +1105,8 @@ html, body {
 }
 
 .apple-glass-icon-circle {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(56, 189, 248, 0.15);
   display: flex;
@@ -1072,7 +1118,7 @@ html, body {
   background: none;
   border: none;
   color: var(--f-text-secondary);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
   cursor: pointer;
   padding: 6px 12px;
@@ -1124,7 +1170,7 @@ html, body {
   position: absolute;
   background: rgba(239, 68, 68, 0.35);
   border: 2px dashed #ef4444;
-  border-radius: 4px;
+  border-radius: 6px;
   box-sizing: border-box;
   pointer-events: none;
 }
@@ -1150,8 +1196,8 @@ html, body {
   position: absolute;
   top: -8px;
   right: -8px;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #000000;
   color: #ffffff;
@@ -1167,14 +1213,14 @@ html, body {
 .figma-study-scene {
   perspective: 1200px;
   width: 100%;
-  min-height: 400px;
+  min-height: 420px;
   cursor: pointer;
   margin-bottom: 22px;
 }
 
 .figma-study-card {
   width: 100%;
-  min-height: 400px;
+  min-height: 420px;
   position: relative;
   transform-style: preserve-3d;
   transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
@@ -1202,7 +1248,7 @@ html, body {
 
 .figma-study-face.back {
   transform: rotateY(180deg);
-  background: #191a1e;
+  background: #15161a;
 }
 
 .figma-rating-grid {
@@ -1216,7 +1262,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px 8px;
+  padding: 18px 8px;
   border-radius: var(--f-radius-md);
   border: 1px solid var(--f-border);
   background: var(--f-surface);
@@ -1228,12 +1274,12 @@ html, body {
   transform: scale(0.96);
 }
 
-.f-rate-time { font-size: 1.1rem; font-weight: 800; }
-.f-rate-lbl { font-size: 0.76rem; font-weight: 700; text-transform: uppercase; margin-top: 4px; }
+.f-rate-time { font-size: 1.15rem; font-weight: 800; }
+.f-rate-lbl { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; margin-top: 4px; }
 
 .btn-again { color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
 .btn-hard { color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
-.btn-good { background: var(--f-blue); color: #090a0d; border: none; }
+.btn-good { background: var(--f-blue); color: #07080a; border: none; }
 .btn-easy { color: #4ade80; border-color: rgba(34, 197, 94, 0.3); }
 
 /* Toast */
@@ -1245,9 +1291,9 @@ html, body {
   background: #1c1d22;
   border: 1px solid var(--f-border);
   color: #ffffff;
-  padding: 12px 24px;
+  padding: 12px 26px;
   border-radius: var(--f-radius-full);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 700;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
   z-index: 400;

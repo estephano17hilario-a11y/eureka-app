@@ -7,11 +7,25 @@ import { renderFigmaSubdeckList, bindFigmaSubdeckEvents } from './components/Fig
 import { renderFigmaDeckDashboard, bindFigmaDashboardEvents } from './components/FigmaDeckDashboard';
 import { renderFigmaCardEditor, bindFigmaCardEditorEvents } from './components/FigmaCardEditor';
 import { renderFigmaLibraryView, bindFigmaLibraryEvents } from './components/FigmaLibraryView';
+import { renderFigmaDeckSettingsView, bindFigmaDeckSettingsViewEvents } from './components/FigmaDeckSettingsView';
+import { renderFigmaAdvancedDeckMenuView, bindFigmaAdvancedDeckMenuViewEvents } from './components/FigmaAdvancedDeckMenuView';
+import { renderFigmaAlgorithmSelectorView, bindFigmaAlgorithmSelectorViewEvents } from './components/FigmaAlgorithmSelectorView';
+import { renderFigmaLearningPhaseView, bindFigmaLearningPhaseViewEvents } from './components/FigmaLearningPhaseView';
 import { FigmaStudySession } from './components/FigmaStudySession';
-import { openFigmaDeckSettingsModal } from './components/FigmaDeckSettingsModal';
 import { openFigmaBatchImportModal } from './components/FigmaBatchImportModal';
+import { openFigmaAiBuilderModal } from './components/FigmaAiBuilderModal';
 
-type AppView = 'root' | 'subdeck' | 'dashboard' | 'editor' | 'library' | 'study';
+type AppView =
+  | 'root'
+  | 'subdeck'
+  | 'dashboard'
+  | 'deck_settings'
+  | 'advanced_menu'
+  | 'algorithm_selector'
+  | 'learning_phase'
+  | 'editor'
+  | 'library'
+  | 'study';
 
 class EurekaFigmaApp {
   private currentTab: FigmaMainTab = 'inicio';
@@ -58,11 +72,12 @@ class EurekaFigmaApp {
     }, 2400);
   }
 
-  private startStudy(deckId: string): void {
+  private startStudy(deckId: string, specificCardId?: string): void {
     nativeService.triggerHaptics('medium');
     this.currentView = 'study';
     this.activeStudySession = new FigmaStudySession({
       deckId,
+      specificCardId,
       onExit: () => {
         this.activeStudySession = null;
         this.currentView = 'dashboard';
@@ -78,21 +93,6 @@ class EurekaFigmaApp {
     if (mount) {
       this.activeStudySession.render(mount);
     }
-  }
-
-  private openSettings(deckId: string): void {
-    nativeService.triggerHaptics('light');
-    const deck = deckService.getDeckById(deckId);
-    if (!deck) return;
-
-    openFigmaDeckSettingsModal({
-      deck,
-      onSaved: () => {
-        this.showToast('Configuración del mazo guardada');
-        this.render();
-      },
-      onClose: () => {}
-    });
   }
 
   private openBatchImport(deckId: string): void {
@@ -128,6 +128,7 @@ class EurekaFigmaApp {
     const editCard = this.editingCardId ? deckService.getCardById(this.editingCardId) : undefined;
 
     let bodyHtml = '';
+    let showGlobalHeader = true;
 
     if (this.currentTab === 'biblioteca') {
       bodyHtml = renderFigmaLibraryView();
@@ -145,6 +146,27 @@ class EurekaFigmaApp {
           bodyHtml = renderFigmaDeckDashboard(subdeck, rootDeck.id !== subdeck.id ? rootDeck : undefined);
           break;
 
+        // Vistas Completas Nativas (Sin ventanas flotantes)
+        case 'deck_settings':
+          showGlobalHeader = false;
+          bodyHtml = renderFigmaDeckSettingsView(subdeck);
+          break;
+
+        case 'advanced_menu':
+          showGlobalHeader = false;
+          bodyHtml = renderFigmaAdvancedDeckMenuView(subdeck);
+          break;
+
+        case 'algorithm_selector':
+          showGlobalHeader = false;
+          bodyHtml = renderFigmaAlgorithmSelectorView(subdeck);
+          break;
+
+        case 'learning_phase':
+          showGlobalHeader = false;
+          bodyHtml = renderFigmaLearningPhaseView(subdeck);
+          break;
+
         case 'editor':
           bodyHtml = renderFigmaCardEditor(subdeck, rootDeck.id !== subdeck.id ? rootDeck : undefined, editCard);
           break;
@@ -157,7 +179,7 @@ class EurekaFigmaApp {
 
     this.appElement.innerHTML = `
       <div class="figma-app-layout" id="main-layout-mount">
-        ${renderFigmaHeader(this.currentTab)}
+        ${showGlobalHeader ? renderFigmaHeader(this.currentTab) : ''}
         <main>
           ${bodyHtml}
         </main>
@@ -199,7 +221,10 @@ class EurekaFigmaApp {
       this.showToast('Atajos: Espacio = Voltear | 1, 2, 3, 4 = Calificar');
     });
 
-    // View 1: Root Deck List (Screenshot 1)
+    const rootDeck = deckService.getDeckById(this.selectedRootDeckId) || deckService.getRootDecks()[0];
+    const subdeck = deckService.getDeckById(this.selectedSubdeckId) || rootDeck;
+
+    // View 1: Root Deck List
     if (this.currentTab === 'inicio' && this.currentView === 'root') {
       bindFigmaDeckListEvents(layout, {
         onSelectDeck: (deckId) => {
@@ -223,13 +248,15 @@ class EurekaFigmaApp {
         },
         onCreateDeck: () => this.promptCreateDeck(),
         onImportBatch: () => this.openBatchImport(this.selectedSubdeckId),
-        onManageDecks: () => this.openSettings(this.selectedRootDeckId)
+        onManageDecks: () => {
+          this.currentView = 'deck_settings';
+          this.render();
+        }
       });
     }
 
-    // View 2: Subdeck Explorer (Screenshot 2)
+    // View 2: Subdeck Explorer
     else if (this.currentTab === 'inicio' && this.currentView === 'subdeck') {
-      const rootDeck = deckService.getDeckById(this.selectedRootDeckId) || deckService.getRootDecks()[0];
       bindFigmaSubdeckEvents(layout, rootDeck, {
         onBack: () => {
           this.currentView = 'root';
@@ -247,13 +274,15 @@ class EurekaFigmaApp {
           this.render();
         },
         onImportBatch: (deckId) => this.openBatchImport(deckId),
-        onConfigureDeck: (id) => this.openSettings(id)
+        onConfigureDeck: () => {
+          this.currentView = 'deck_settings';
+          this.render();
+        }
       });
     }
 
-    // View 3: Dashboard (Screenshot 3)
+    // View 3: Dashboard
     else if (this.currentTab === 'inicio' && this.currentView === 'dashboard') {
-      const subdeck = deckService.getDeckById(this.selectedSubdeckId) || deckService.getRootDecks()[0];
       bindFigmaDashboardEvents(layout, subdeck, {
         onBackToSubdecks: () => {
           this.currentView = 'subdeck';
@@ -264,12 +293,18 @@ class EurekaFigmaApp {
           this.render();
         },
         onStudy: (id) => this.startStudy(id),
+        onStudySpecificCard: (deckId, cardId) => {
+          this.startStudy(deckId, cardId);
+        },
         onAddCard: () => {
           this.editingCardId = null;
           this.currentView = 'editor';
           this.render();
         },
-        onConfigureDeck: (id) => this.openSettings(id),
+        onConfigureDeck: () => {
+          this.currentView = 'deck_settings';
+          this.render();
+        },
         onEditCard: (cardId) => {
           this.editingCardId = cardId;
           this.currentView = 'editor';
@@ -278,9 +313,97 @@ class EurekaFigmaApp {
       });
     }
 
-    // View 4: Card Editor (Screenshot 4)
+    // View: Fullscreen Deck Settings (Foto 1)
+    else if (this.currentTab === 'inicio' && this.currentView === 'deck_settings') {
+      bindFigmaDeckSettingsViewEvents(layout, subdeck, {
+        onBack: () => {
+          this.currentView = 'dashboard';
+          this.render();
+        },
+        onOpenAlgorithmSelector: () => {
+          this.currentView = 'algorithm_selector';
+          this.render();
+        },
+        onOpenAdvancedMenu: () => {
+          this.currentView = 'advanced_menu';
+          this.render();
+        },
+        onSaved: () => {
+          this.showToast('Ajustes guardados');
+          this.render();
+        }
+      });
+    }
+
+    // View: Fullscreen Advanced Menu (Foto 2)
+    else if (this.currentTab === 'inicio' && this.currentView === 'advanced_menu') {
+      bindFigmaAdvancedDeckMenuViewEvents(layout, subdeck, {
+        onBack: () => {
+          this.currentView = 'deck_settings';
+          this.render();
+        },
+        onOpenAlgorithmSelector: () => {
+          this.currentView = 'algorithm_selector';
+          this.render();
+        },
+        onOpenAiBuilder: () => {
+          openFigmaAiBuilderModal({
+            deckId: subdeck.id,
+            onBatchAdded: () => {
+              this.showToast('Tarjetas añadidas');
+              this.currentView = 'dashboard';
+              this.render();
+            },
+            onClose: () => {}
+          });
+        },
+        onOpenBatchImport: () => {
+          this.openBatchImport(subdeck.id);
+        },
+        onActionCompleted: () => {
+          this.showToast('Acción completada');
+          this.currentView = 'dashboard';
+          this.render();
+        }
+      });
+    }
+
+    // View: Fullscreen Algorithm Selector (Foto 3)
+    else if (this.currentTab === 'inicio' && this.currentView === 'algorithm_selector') {
+      bindFigmaAlgorithmSelectorViewEvents(layout, subdeck, {
+        onBack: () => {
+          this.currentView = 'deck_settings';
+          this.render();
+        },
+        onOpenCustomLearningPhases: () => {
+          this.currentView = 'learning_phase';
+          this.render();
+        },
+        onSaved: () => {
+          this.showToast('Algoritmo actualizado');
+          this.currentView = 'deck_settings';
+          this.render();
+        }
+      });
+    }
+
+    // View: Fullscreen Learning Phase Step Editor (Foto 4)
+    else if (this.currentTab === 'inicio' && this.currentView === 'learning_phase') {
+      bindFigmaLearningPhaseViewEvents(layout, subdeck, {
+        onBack: () => {
+          this.currentView = 'algorithm_selector';
+          this.render();
+        },
+        onSaved: () => {
+          this.showToast('Escalera de 12 pasos guardada');
+          this.currentView = 'deck_settings';
+          this.render();
+        }
+      });
+    }
+
+    // View: Card Editor
     else if (this.currentTab === 'inicio' && this.currentView === 'editor') {
-      const subdeck = deckService.getDeckById(this.selectedSubdeckId) || deckService.getRootDecks()[0];
       const editCard = this.editingCardId ? deckService.getCardById(this.editingCardId) : undefined;
       bindFigmaCardEditorEvents(layout, subdeck, editCard, {
         onBack: () => {
@@ -297,7 +420,7 @@ class EurekaFigmaApp {
       });
     }
 
-    // View 5: Library (Screenshot 5)
+    // View: Library
     else if (this.currentTab === 'biblioteca') {
       bindFigmaLibraryEvents(layout, {
         onAddCard: () => {
@@ -311,6 +434,9 @@ class EurekaFigmaApp {
           this.currentTab = 'inicio';
           this.currentView = 'editor';
           this.render();
+        },
+        onStudySpecificCard: (deckId, cardId) => {
+          this.startStudy(deckId, cardId);
         }
       });
     }

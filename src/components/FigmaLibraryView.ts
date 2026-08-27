@@ -4,6 +4,7 @@ import { katexService } from '../services/katex.service';
 export interface FigmaLibraryCallbacks {
   onAddCard: () => void;
   onEditCard: (cardId: string) => void;
+  onStudySpecificCard: (deckId: string, cardId: string) => void;
 }
 
 export function renderFigmaLibraryView(): string {
@@ -11,10 +12,13 @@ export function renderFigmaLibraryView(): string {
 
   return `
     <div style="padding-bottom:90px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
-        <h2 style="font-size:1.6rem; font-weight:800; color:#ffffff;">Biblioteca de Tarjetas</h2>
-        <span style="font-size:0.9rem; color:var(--f-text-secondary); font-weight:700;">
-          ${allCards.length} tarjetas totales
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+        <div>
+          <h2 style="font-size:1.75rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Biblioteca de Tarjetas</h2>
+          <p style="font-size:0.85rem; color:var(--f-text-secondary);">Toca cualquier tarjeta para repasarla individualmente</p>
+        </div>
+        <span class="apple-badge-subpill" style="font-size:0.9rem; font-weight:800;">
+          ${allCards.length} tarjetas
         </span>
       </div>
 
@@ -31,7 +35,7 @@ export function renderFigmaLibraryView(): string {
           : allCards
               .map(
                 (c) => `
-        <div class="figma-card-item apple-glass-panel" data-card-id="${c.id}">
+        <div class="figma-card-item apple-glass-panel clickable-lib-card-row" data-card-id="${c.id}" data-deck-id="${c.deckId}" title="Toca para aprender esta tarjeta">
           <div class="figma-card-top-tag-row">
             <div class="figma-tag-invertido">
               ${
@@ -44,11 +48,12 @@ export function renderFigmaLibraryView(): string {
                   ? `<span>🖼️ Oclusión de Imagen</span>`
                   : `<span>Estándar</span>`
               }
+              <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px; margin-left:6px;">🎯 Estudiar</span>
             </div>
             
             <div style="display:flex; align-items:center; gap:8px;">
-              <button class="btn-lib-card-edit" data-edit-id="${c.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.85rem; font-weight:700;">✏️ Editar</button>
-              <button class="btn-lib-card-del" data-del-id="${c.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem; font-weight:700;">🗑️</button>
+              <button class="btn-lib-card-edit" data-edit-id="${c.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.88rem; font-weight:700;">✏️ Editar</button>
+              <button class="btn-lib-card-del" data-del-id="${c.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.88rem; font-weight:700;">🗑️</button>
             </div>
           </div>
 
@@ -77,7 +82,7 @@ export function renderFigmaLibraryView(): string {
 
       <!-- Floating Add Button -->
       <div class="figma-floating-add-btn-wrap">
-        <button class="figma-btn-white-pill" id="btn-library-floating-add" style="box-shadow:0 10px 32px rgba(0,0,0,0.6); padding:13px 30px;">
+        <button class="figma-btn-white-pill" id="btn-library-floating-add" style="box-shadow:0 10px 32px rgba(0,0,0,0.6); padding:14px 32px;">
           Agregar tarjetas
         </button>
       </div>
@@ -93,6 +98,20 @@ export function renderFigmaLibraryView(): string {
 export function bindFigmaLibraryEvents(container: HTMLElement, callbacks: FigmaLibraryCallbacks): void {
   container.querySelector('#btn-library-floating-add')?.addEventListener('click', () => callbacks.onAddCard());
   container.querySelector('#btn-library-empty-add')?.addEventListener('click', () => callbacks.onAddCard());
+
+  container.querySelectorAll('.clickable-lib-card-row').forEach((row) => {
+    row.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('btn-lib-card-edit') || target.classList.contains('btn-lib-card-del')) {
+        return;
+      }
+      const cardId = (row as HTMLElement).dataset.cardId;
+      const deckId = (row as HTMLElement).dataset.deckId;
+      if (cardId && deckId) {
+        callbacks.onStudySpecificCard(deckId, cardId);
+      }
+    });
+  });
 
   container.querySelectorAll<HTMLButtonElement>('.btn-lib-card-edit').forEach((btn) => {
     btn.addEventListener('click', (e) => {
