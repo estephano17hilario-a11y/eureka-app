@@ -1,6 +1,7 @@
 import './index.css';
 import { nativeService } from './services/native.service';
 import { deckService } from './services/deck.service';
+import { themeService } from './services/theme.service';
 import { renderFigmaHeader, type FigmaMainTab } from './components/FigmaHeader';
 import { renderFigmaDeckList, bindFigmaDeckListEvents } from './components/FigmaDeckList';
 import { renderFigmaSubdeckList, bindFigmaSubdeckEvents } from './components/FigmaSubdeckList';
@@ -11,6 +12,7 @@ import { renderFigmaDeckSettingsView, bindFigmaDeckSettingsViewEvents } from './
 import { renderFigmaAdvancedDeckMenuView, bindFigmaAdvancedDeckMenuViewEvents } from './components/FigmaAdvancedDeckMenuView';
 import { renderFigmaAlgorithmSelectorView, bindFigmaAlgorithmSelectorViewEvents } from './components/FigmaAlgorithmSelectorView';
 import { renderFigmaLearningPhaseView, bindFigmaLearningPhaseViewEvents } from './components/FigmaLearningPhaseView';
+import { renderFigmaAppSettingsView, bindFigmaAppSettingsViewEvents } from './components/FigmaAppSettingsView';
 import { FigmaStudySession } from './components/FigmaStudySession';
 import { openFigmaBatchImportModal } from './components/FigmaBatchImportModal';
 import { openFigmaAiBuilderModal } from './components/FigmaAiBuilderModal';
@@ -23,6 +25,7 @@ type AppView =
   | 'advanced_menu'
   | 'algorithm_selector'
   | 'learning_phase'
+  | 'app_settings'
   | 'editor'
   | 'library'
   | 'study';
@@ -44,6 +47,7 @@ class EurekaFigmaApp {
   }
 
   public async init(): Promise<void> {
+    themeService.applyTheme();
     await nativeService.initialize();
     deckService.subscribe(() => {
       if (this.currentView !== 'study') {
@@ -132,6 +136,8 @@ class EurekaFigmaApp {
 
     if (this.currentTab === 'biblioteca') {
       bodyHtml = renderFigmaLibraryView();
+    } else if (this.currentTab === 'ajustes') {
+      bodyHtml = renderFigmaAppSettingsView();
     } else {
       switch (this.currentView) {
         case 'root':
@@ -146,7 +152,7 @@ class EurekaFigmaApp {
           bodyHtml = renderFigmaDeckDashboard(subdeck, rootDeck.id !== subdeck.id ? rootDeck : undefined);
           break;
 
-        // Vistas Completas Nativas (Sin ventanas flotantes)
+        // Vistas Completas Nativas
         case 'deck_settings':
           showGlobalHeader = false;
           bodyHtml = renderFigmaDeckSettingsView(subdeck);
@@ -167,7 +173,12 @@ class EurekaFigmaApp {
           bodyHtml = renderFigmaLearningPhaseView(subdeck);
           break;
 
+        case 'app_settings':
+          bodyHtml = renderFigmaAppSettingsView();
+          break;
+
         case 'editor':
+          showGlobalHeader = false;
           bodyHtml = renderFigmaCardEditor(subdeck, rootDeck.id !== subdeck.id ? rootDeck : undefined, editCard);
           break;
 
@@ -212,6 +223,11 @@ class EurekaFigmaApp {
       this.render();
     });
 
+    layout.querySelector('#btn-header-avatar')?.addEventListener('click', () => {
+      this.currentTab = 'ajustes';
+      this.render();
+    });
+
     // Floating actions
     layout.querySelector('#btn-fab-gift')?.addEventListener('click', () => {
       this.showToast('🎁 ¡Racha de hoy completada! +50 XP');
@@ -223,6 +239,22 @@ class EurekaFigmaApp {
 
     const rootDeck = deckService.getDeckById(this.selectedRootDeckId) || deckService.getRootDecks()[0];
     const subdeck = deckService.getDeckById(this.selectedSubdeckId) || rootDeck;
+
+    // View: App Settings / Personalización
+    if (this.currentTab === 'ajustes' || this.currentView === 'app_settings') {
+      bindFigmaAppSettingsViewEvents(layout, {
+        onBack: () => {
+          this.currentTab = 'inicio';
+          this.currentView = 'root';
+          this.render();
+        },
+        onThemeChanged: () => {
+          this.showToast('Estilo visual aplicado');
+          this.render();
+        }
+      });
+      return;
+    }
 
     // View 1: Root Deck List
     if (this.currentTab === 'inicio' && this.currentView === 'root') {
@@ -402,7 +434,7 @@ class EurekaFigmaApp {
       });
     }
 
-    // View: Card Editor
+    // View: Card Editor (Matching Images 2 & 3)
     else if (this.currentTab === 'inicio' && this.currentView === 'editor') {
       const editCard = this.editingCardId ? deckService.getCardById(this.editingCardId) : undefined;
       bindFigmaCardEditorEvents(layout, subdeck, editCard, {

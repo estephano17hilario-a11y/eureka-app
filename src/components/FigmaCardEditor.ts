@@ -12,117 +12,179 @@ export interface FigmaCardEditorCallbacks {
 
 export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: Flashcard): string {
   return `
-    <div>
-      <!-- Action Header with Breadcrumbs -->
-      <div class="figma-action-header">
-        <div class="figma-breadcrumbs" style="font-size:1.1rem; flex-wrap:wrap;">
-          <button class="figma-icon-btn-dark" id="btn-card-edit-back" style="margin-right:6px;" title="Volver">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    <div class="ios-fullscreen-view">
+      
+      <!-- Top Action Navigation Header matching Reference Images 2 & 3 -->
+      <div class="ios-navbar" style="padding-bottom:12px; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:1.15rem; font-weight:700;">
+          <button class="ios-back-btn" id="btn-card-edit-back" style="padding:0; margin-right:4px;" title="Volver">
+            <span class="ios-back-chevron">‹</span>
           </button>
-          <span class="figma-crumb-link" id="crumb-e-inicio">Inicio</span>
+          <span class="figma-crumb-link" id="crumb-e-inicio" style="color:var(--f-text-secondary); cursor:pointer;">Inicio</span>
           ${
             parentDeck
               ? `
-            <span class="figma-crumb-sep">/</span>
-            <span class="figma-crumb-link" id="crumb-e-parent">${parentDeck.name}</span>
+            <span style="color:var(--f-text-muted);">/</span>
+            <span class="figma-crumb-link" id="crumb-e-parent" style="color:var(--f-text-secondary); cursor:pointer;">${parentDeck.name}</span>
           `
               : ''
           }
-          <span class="figma-crumb-sep">/</span>
-          <span class="figma-crumb-link" id="crumb-e-deck">${deck.name}</span>
-          <span class="figma-crumb-sep">/</span>
-          <span class="figma-crumb-current" style="font-weight:700;">${editCard ? 'Editar tarjeta' : 'Agregar nueva tarjeta'}</span>
+          <span style="color:var(--f-text-muted);">/</span>
+          <span class="figma-crumb-link" id="crumb-e-deck" style="color:var(--f-text-secondary); cursor:pointer;">${deck.name}</span>
+          <span style="color:var(--f-text-muted);">/</span>
+          <span style="color:#ffffff; font-weight:800;">${editCard ? 'Editar tarjeta' : 'Agregar nueva tarjeta'}</span>
         </div>
 
-        <div class="figma-header-actions-group">
-          <button class="figma-icon-btn-dark" id="btn-save-card-check" style="background:var(--f-blue); border-color:var(--f-blue); color:#090a0d;" title="Guardar tarjeta">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        <div style="display:flex; align-items:center; gap:10px; margin-left:auto;">
+          <button class="cupertino-icon-square" id="btn-toggle-editor-split" style="width:44px; height:44px;" title="Vista dividida">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+          </button>
+
+          <button class="cupertino-btn-check-save" id="btn-save-card-check" title="Guardar tarjeta">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#090a0d" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
           </button>
         </div>
       </div>
 
-      <!-- Editor Container -->
-      <div class="figma-editor-container apple-glass-panel">
+      <!-- Editor Container (Matching Images 2 & 3 Exactly) -->
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:18px;">
         
         <!-- ANVERSO -->
-        <div class="figma-field-block" id="drop-zone-anverso">
-          <label class="figma-field-label">Anverso (Pregunta / Imagen)</label>
-          <textarea 
-            id="f-anverso-input" 
-            class="figma-editor-textarea" 
-            placeholder="Introduce el texto aquí o arrastra/pega una imagen..."
-          >${editCard?.front || ''}</textarea>
+        <div class="cupertino-editor-block">
+          <label class="cupertino-editor-label">Anverso</label>
+          
+          <div class="cupertino-editor-card-box" id="drop-zone-anverso">
+            
+            <textarea 
+              id="f-anverso-input" 
+              class="cupertino-editor-textarea" 
+              placeholder="Introduce el texto aquí"
+            >${editCard?.front || ''}</textarea>
 
-          <!-- Rich Toolbar Anverso -->
-          <div class="figma-rich-toolbar">
-            <button type="button" class="figma-btn-ai-builder" id="btn-ai-anverso">
-              <span>✨ AI Builder</span>
-            </button>
+            <!-- Image Attachment Thumbnail Inside the Card (Matching Image 3) -->
+            <div id="f-anverso-img-preview" class="cupertino-thumbnail-box ${editCard?.frontImage || editCard?.occlusionImage ? '' : 'hidden'}">
+              <img src="${editCard?.frontImage || editCard?.occlusionImage || ''}" id="f-anverso-img-tag" alt="Anverso preview" class="cupertino-thumb-img" />
+              <button type="button" class="cupertino-thumb-del-badge" id="btn-del-anverso-img" title="Eliminar imagen">×</button>
+              <div class="cupertino-thumb-overlay" id="btn-manage-anverso-img" title="Opciones de imagen">
+                ${editCard?.type === 'image_occlusion' ? '🔲 Oclusión' : '🔍 Ver'}
+              </div>
+            </div>
 
-            <button type="button" class="figma-tool-btn" id="tool-img-anverso" title="Adjuntar Imagen">📷</button>
-            <input type="file" id="f-file-anverso" accept="image/*" style="display:none;" />
+            <!-- Toolbar Anverso (Matching Image 2 & 3) -->
+            <div class="cupertino-rich-toolbar-dock">
+              <button type="button" class="cupertino-btn-ai-pill" id="btn-ai-anverso">
+                <span>✨ AI Builder</span>
+              </button>
 
-            <button type="button" class="figma-tool-btn" id="tool-occlusion-btn" title="Oclusión de Imágenes" style="color:#50b5ff;">🔲 Oclusión</button>
-            <button type="button" class="figma-tool-btn" id="tool-audio-anverso" title="Audio TTS">🔊</button>
+              <button type="button" class="cupertino-tool-icon" id="tool-img-anverso" title="Adjuntar Imagen">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <input type="file" id="f-file-anverso" accept="image/*" style="display:none;" />
 
-            <span style="width:1px; height:18px; background:var(--f-border); margin:0 4px;"></span>
+              <button type="button" class="cupertino-tool-icon" id="tool-draw-anverso" title="Dibujo libre">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
+              </button>
 
-            <button type="button" class="figma-tool-btn" data-fmt="**" title="Negrita"><strong>B</strong></button>
-            <button type="button" class="figma-tool-btn" data-fmt="*" title="Cursiva"><em>I</em></button>
-            <button type="button" class="figma-tool-btn" data-fmt="__" title="Subrayado"><u>U</u></button>
-            <button type="button" class="figma-tool-btn" id="tool-katex-anverso" title="Fórmula LaTeX" style="color:#818cf8; font-weight:800;">fx</button>
-          </div>
+              <button type="button" class="cupertino-tool-icon" id="tool-occlusion-btn" title="Oclusión de Imagen" style="color:var(--f-blue);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+              </button>
 
-          <div id="f-anverso-img-preview" class="image-attach-preview ${editCard?.frontImage ? '' : 'hidden'}" style="margin-top:10px; position:relative; display:inline-block;">
-            <img src="${editCard?.frontImage || ''}" id="f-anverso-img-tag" alt="Adjunto anverso" style="max-height:200px; border-radius:12px; border:1px solid var(--f-border);" />
-            <button type="button" class="apple-icon-del-btn" id="btn-del-anverso-img" style="position:absolute; top:6px; right:6px;">×</button>
+              <button type="button" class="cupertino-tool-icon" id="tool-audio-anverso" title="Audio TTS">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+
+              <button type="button" class="cupertino-tool-icon" id="tool-a-anverso" title="Tamaño de Fuente" style="font-weight:800;">A</button>
+
+              <span class="cupertino-tool-divider"></span>
+
+              <button type="button" class="cupertino-tool-icon" data-fmt="**" title="Negrita"><strong>B</strong></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="*" title="Cursiva"><em>I</em></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="__" title="Subrayado"><u>U</u></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="~~" title="Tachado"><s>S</s></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="## " title="Encabezado">H</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="- " title="Lista con viñetas">≡</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="1. " title="Lista numerada">1≡</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="$_2$" title="Subíndice">X₂</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="$^2$" title="Superíndice">X²</button>
+              <button type="button" class="cupertino-tool-icon" id="tool-katex-anverso" title="Fórmula KaTeX" style="color:var(--f-blue); font-weight:800;">fx</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="\`\`\`" title="Bloque de código">&lt;/&gt;</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="[enlace](url)" title="Hipervínculo">🔗</button>
+            </div>
+
           </div>
         </div>
 
         <!-- REVERSO -->
-        <div class="figma-field-block" id="drop-zone-reverso">
-          <label class="figma-field-label">Reverso (Respuesta / Explicación)</label>
-          <textarea 
-            id="f-reverso-input" 
-            class="figma-editor-textarea" 
-            placeholder="Introduce la respuesta aquí..."
-          >${editCard?.back || ''}</textarea>
+        <div class="cupertino-editor-block">
+          <label class="cupertino-editor-label">Reverso</label>
+          
+          <div class="cupertino-editor-card-box" id="drop-zone-reverso">
+            
+            <textarea 
+              id="f-reverso-input" 
+              class="cupertino-editor-textarea" 
+              placeholder="Introduce el texto aquí"
+            >${editCard?.back || ''}</textarea>
 
-          <!-- Rich Toolbar Reverso -->
-          <div class="figma-rich-toolbar">
-            <button type="button" class="figma-btn-ai-builder" id="btn-ai-reverso">
-              <span>✨ AI Builder</span>
-            </button>
+            <!-- Image Attachment Thumbnail Inside the Card (Matching Image 3) -->
+            <div id="f-reverso-img-preview" class="cupertino-thumbnail-box ${editCard?.backImage ? '' : 'hidden'}">
+              <img src="${editCard?.backImage || ''}" id="f-reverso-img-tag" alt="Reverso preview" class="cupertino-thumb-img" />
+              <button type="button" class="cupertino-thumb-del-badge" id="btn-del-reverso-img" title="Eliminar imagen">×</button>
+              <div class="cupertino-thumb-overlay" id="btn-manage-reverso-img" title="Ver imagen">
+                🔍 Ver
+              </div>
+            </div>
 
-            <button type="button" class="figma-tool-btn" id="tool-img-reverso" title="Adjuntar Imagen">📷</button>
-            <input type="file" id="f-file-reverso" accept="image/*" style="display:none;" />
+            <!-- Toolbar Reverso (Matching Image 2 & 3) -->
+            <div class="cupertino-rich-toolbar-dock">
+              <button type="button" class="cupertino-btn-ai-pill" id="btn-ai-reverso">
+                <span>✨ AI Builder</span>
+              </button>
 
-            <button type="button" class="figma-tool-btn" id="tool-audio-reverso" title="Audio TTS">🔊</button>
-            <button type="button" class="figma-tool-btn" data-fmt-r="**" title="Negrita"><strong>B</strong></button>
-            <button type="button" class="figma-tool-btn" data-fmt-r="*" title="Cursiva"><em>I</em></button>
-            <button type="button" class="figma-tool-btn" id="tool-katex-reverso" title="Fórmula LaTeX" style="color:#818cf8; font-weight:800;">fx</button>
-          </div>
+              <button type="button" class="cupertino-tool-icon" id="tool-img-reverso" title="Adjuntar Imagen">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <input type="file" id="f-file-reverso" accept="image/*" style="display:none;" />
 
-          <div id="f-reverso-img-preview" class="image-attach-preview ${editCard?.backImage ? '' : 'hidden'}" style="margin-top:10px; position:relative; display:inline-block;">
-            <img src="${editCard?.backImage || ''}" id="f-reverso-img-tag" alt="Adjunto reverso" style="max-height:200px; border-radius:12px; border:1px solid var(--f-border);" />
-            <button type="button" class="apple-icon-del-btn" id="btn-del-reverso-img" style="position:absolute; top:6px; right:6px;">×</button>
+              <button type="button" class="cupertino-tool-icon" id="tool-audio-reverso" title="Audio TTS">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="**" title="Negrita"><strong>B</strong></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="*" title="Cursiva"><em>I</em></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="__" title="Subrayado"><u>U</u></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="~~" title="Tachado"><s>S</s></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="## " title="Encabezado">H</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="- " title="Lista">≡</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="1. " title="Lista numerada">1≡</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="$_2$" title="Subíndice">X₂</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="$^2$" title="Superíndice">X²</button>
+              <button type="button" class="cupertino-tool-icon" id="tool-katex-reverso" title="Fórmula KaTeX" style="color:var(--f-blue); font-weight:800;">fx</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="\`\`\`" title="Código">&lt;/&gt;</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="[enlace](url)" title="Hipervínculo">🔗</button>
+            </div>
+
           </div>
         </div>
 
-        <!-- Toggle Tarjetas Invertidas -->
-        <div class="figma-toggle-row">
-          <div class="figma-toggle-left">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            <span>Tarjetas invertidas (Anverso ⇄ Reverso)</span>
-          </div>
+        <!-- Toggle Tarjetas Invertidas (Matching Image 2) -->
+        <div class="apple-card-grouped" style="padding:18px 22px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+              <span style="font-size:1.05rem; font-weight:700; color:#fff;">Tarjetas invertidas</span>
+              <span style="color:var(--f-text-muted); cursor:pointer; font-size:1rem;" title="Genera dos tarjetas recíprocas (Anverso -> Reverso y Reverso -> Anverso)">ⓘ</span>
+            </div>
 
-          <label class="figma-switch">
-            <input type="checkbox" id="toggle-inverted-cards" />
-            <span class="figma-slider"></span>
-          </label>
+            <label class="figma-switch">
+              <input type="checkbox" id="toggle-inverted-cards" ${editCard?.isInverted ? 'checked' : ''} />
+              <span class="figma-slider"></span>
+            </label>
+          </div>
         </div>
 
       </div>
+
     </div>
   `;
 }
@@ -143,12 +205,13 @@ export function bindFigmaCardEditorEvents(
   let occlusionMasks: OcclusionMask[] = editCard?.occlusionMasks || [];
   let currentOcclusionMode: OcclusionMode = editCard?.occlusionMode || 'hide_all_reveal_one';
 
-  const updateImgPreviews = () => {
+  const updateThumbnailBoxes = () => {
     const prevA = container.querySelector('#f-anverso-img-preview') as HTMLElement | null;
     const tagA = container.querySelector('#f-anverso-img-tag') as HTMLImageElement | null;
+    const imgA = frontImage || occlusionImage;
     if (prevA && tagA) {
-      if (frontImage) {
-        tagA.src = frontImage;
+      if (imgA) {
+        tagA.src = imgA;
         prevA.classList.remove('hidden');
       } else {
         prevA.classList.add('hidden');
@@ -167,7 +230,7 @@ export function bindFigmaCardEditorEvents(
     }
   };
 
-  // Helper to handle File or Blob to DataURL
+  // Helper File -> DataURL
   const handleFileToDataUrl = (file: File | Blob, isFront: boolean) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -175,14 +238,14 @@ export function bindFigmaCardEditorEvents(
       if (res) {
         if (isFront) frontImage = res;
         else backImage = res;
-        updateImgPreviews();
+        updateThumbnailBoxes();
       }
     };
     reader.readAsDataURL(file);
   };
 
-  // Paste handler for images from clipboard
-  const setupPasteHandler = (input: HTMLTextAreaElement | null, isFront: boolean) => {
+  // Paste handler
+  const setupPaste = (input: HTMLTextAreaElement | null, isFront: boolean) => {
     input?.addEventListener('paste', (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -199,10 +262,10 @@ export function bindFigmaCardEditorEvents(
     });
   };
 
-  setupPasteHandler(anversoInput, true);
-  setupPasteHandler(reversoInput, false);
+  setupPaste(anversoInput, true);
+  setupPaste(reversoInput, false);
 
-  // Drag and drop handler on drop zones
+  // Drop zone handler
   const setupDropZone = (zoneId: string, isFront: boolean) => {
     const zone = container.querySelector(zoneId) as HTMLElement | null;
     if (!zone) return;
@@ -244,15 +307,46 @@ export function bindFigmaCardEditorEvents(
     if (fileR.files && fileR.files[0]) handleFileToDataUrl(fileR.files[0], false);
   });
 
-  container.querySelector('#btn-del-anverso-img')?.addEventListener('click', () => {
+  // Delete thumbnails
+  container.querySelector('#btn-del-anverso-img')?.addEventListener('click', (e) => {
+    e.stopPropagation();
     frontImage = undefined;
-    updateImgPreviews();
+    occlusionImage = undefined;
+    occlusionMasks = [];
+    updateThumbnailBoxes();
   });
 
-  container.querySelector('#btn-del-reverso-img')?.addEventListener('click', () => {
+  container.querySelector('#btn-del-reverso-img')?.addEventListener('click', (e) => {
+    e.stopPropagation();
     backImage = undefined;
-    updateImgPreviews();
+    updateThumbnailBoxes();
   });
+
+  // Manage Thumbnail click
+  const openOcclusionTool = () => {
+    openImageOcclusionModal({
+      deckId: deck.id,
+      initialImage: frontImage || occlusionImage || HEART_ANATOMY_SVG_URI,
+      initialMasks: occlusionMasks,
+      initialMode: currentOcclusionMode,
+      onConfirm: (img, masks, mode) => {
+        if (masks.length > 0) {
+          deckService.createOcclusionCards(deck.id, img, masks, mode);
+          callbacks.onSaved();
+        } else {
+          occlusionImage = img;
+          frontImage = img;
+          occlusionMasks = masks;
+          currentOcclusionMode = mode;
+          updateThumbnailBoxes();
+        }
+      },
+      onClose: () => {}
+    });
+  };
+
+  container.querySelector('#btn-manage-anverso-img')?.addEventListener('click', openOcclusionTool);
+  container.querySelector('#tool-occlusion-btn')?.addEventListener('click', openOcclusionTool);
 
   // Text formatting
   const insertFormatting = (textarea: HTMLTextAreaElement | null, prefix: string, suffix: string = '') => {
@@ -301,27 +395,6 @@ export function bindFigmaCardEditorEvents(
 
   container.querySelector('#btn-ai-anverso')?.addEventListener('click', openAi);
   container.querySelector('#btn-ai-reverso')?.addEventListener('click', openAi);
-
-  // Occlusion button opens modal with Multi-Card Split
-  container.querySelector('#tool-occlusion-btn')?.addEventListener('click', () => {
-    openImageOcclusionModal({
-      deckId: deck.id,
-      initialImage: frontImage || occlusionImage || HEART_ANATOMY_SVG_URI,
-      initialMasks: occlusionMasks,
-      initialMode: currentOcclusionMode,
-      onConfirm: (img, masks, mode) => {
-        if (masks.length > 0) {
-          deckService.createOcclusionCards(deck.id, img, masks, mode);
-          callbacks.onSaved();
-        } else {
-          occlusionImage = img;
-          occlusionMasks = masks;
-          currentOcclusionMode = mode;
-        }
-      },
-      onClose: () => {}
-    });
-  });
 
   // LaTeX shortcut
   container.querySelector('#tool-katex-anverso')?.addEventListener('click', () => {

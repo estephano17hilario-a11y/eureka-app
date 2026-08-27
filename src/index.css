@@ -16,6 +16,7 @@
   --f-text-muted: #64748b;
   
   --f-blue: #38bdf8;
+  --f-accent: #38bdf8;
   --f-blue-hover: #50b5ff;
   --f-green: #84cc16;
   --f-purple: #a855f7;
@@ -32,7 +33,10 @@
   --sab: env(safe-area-inset-bottom, 0px);
 }
 
-/* Themes Support */
+/* ==========================================================================
+   Dynamic Theme Personalization Classes
+   ========================================================================== */
+
 body.theme-oled {
   --f-bg: #000000;
   --f-surface: #0e0e11;
@@ -52,6 +56,45 @@ body.theme-emerald {
   --f-surface: #0d1e17;
   --f-surface-subtle: #142c22;
   --f-surface-glass: rgba(13, 30, 23, 0.85);
+}
+
+/* Radius Variations */
+body.radius-super_rounded .apple-card-grouped,
+body.radius-super_rounded .cupertino-flashcard-box,
+body.radius-super_rounded .cupertino-editor-card-box {
+  border-radius: 28px !important;
+}
+
+body.radius-standard .apple-card-grouped,
+body.radius-standard .cupertino-flashcard-box,
+body.radius-standard .cupertino-editor-card-box {
+  border-radius: 18px !important;
+}
+
+body.radius-sharp .apple-card-grouped,
+body.radius-sharp .cupertino-flashcard-box,
+body.radius-sharp .cupertino-editor-card-box {
+  border-radius: 10px !important;
+}
+
+/* Scale Variations (Comfortable / Larger Buttons) */
+body.scale-comfortable .figma-icon-btn-dark,
+body.scale-comfortable .cupertino-icon-square {
+  width: 50px !important;
+  height: 50px !important;
+}
+
+body.scale-comfortable .figma-btn-blue-pill,
+body.scale-comfortable .figma-btn-white-pill,
+body.scale-comfortable .apple-btn-secondary,
+body.scale-comfortable .cupertino-btn-show-answer {
+  padding: 18px 32px !important;
+  font-size: 1.1rem !important;
+  min-height: 54px !important;
+}
+
+body.scale-comfortable .cupertino-rate-pill {
+  padding: 20px 8px !important;
 }
 
 *, *::before, *::after {
@@ -78,7 +121,7 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   letter-spacing: -0.015em;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .hidden {
@@ -102,6 +145,198 @@ html, body {
   flex-direction: column;
   padding: calc(var(--sat) + 20px) 24px calc(var(--sab) + 50px) 24px;
   position: relative;
+}
+
+/* ==========================================================================
+   Cupertino Card Editor (Exact match to Reference Images 2 & 3)
+   ========================================================================== */
+
+.cupertino-editor-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cupertino-editor-label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-left: 4px;
+}
+
+.cupertino-editor-card-box {
+  background: var(--f-surface);
+  border: 1px solid var(--f-border);
+  border-radius: 22px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.cupertino-editor-textarea {
+  width: 100%;
+  min-height: 130px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1.15rem;
+  line-height: 1.55;
+  outline: none;
+  resize: vertical;
+}
+
+.cupertino-editor-textarea::placeholder {
+  color: var(--f-text-muted);
+}
+
+/* Embedded Image Thumbnail Box (Image 3) */
+.cupertino-thumbnail-box {
+  width: 76px;
+  height: 76px;
+  border-radius: 16px;
+  background: #1c1d22;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: visible;
+  transition: transform 0.12s;
+}
+
+.cupertino-thumbnail-box:hover {
+  transform: scale(1.04);
+}
+
+.cupertino-thumb-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 14px;
+}
+
+.cupertino-thumb-del-badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #000000;
+  color: #ffffff;
+  border: 1.5px solid #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.cupertino-thumb-del-badge:hover {
+  background: #ef4444;
+}
+
+.cupertino-thumb-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  border-radius: 14px;
+  transition: opacity 0.15s;
+}
+
+.cupertino-thumbnail-box:hover .cupertino-thumb-overlay {
+  opacity: 1;
+}
+
+/* Docked Toolbar matching Images 2 & 3 */
+.cupertino-rich-toolbar-dock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-x: auto;
+}
+
+.cupertino-btn-ai-pill {
+  padding: 8px 18px;
+  border-radius: var(--f-radius-full);
+  background: #18191d;
+  border: 1.5px solid #ec4899;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform 0.12s;
+}
+
+.cupertino-btn-ai-pill:active {
+  transform: scale(0.96);
+}
+
+.cupertino-tool-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: none;
+  border: none;
+  color: var(--f-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.cupertino-tool-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.cupertino-tool-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--f-border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.cupertino-btn-check-save {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: var(--f-blue);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+.cupertino-btn-check-save:active {
+  transform: scale(0.95);
 }
 
 /* ==========================================================================
@@ -173,7 +408,7 @@ html, body {
   width: 100%;
   min-height: 320px;
   max-height: 68vh;
-  background: #141417;
+  background: var(--f-surface);
   border: 1px solid var(--f-border);
   border-radius: 26px;
   padding: 32px 30px;
@@ -282,7 +517,7 @@ html, body {
   max-width: 100%;
 }
 
-/* Bottom Controls matching Images 3 & 5 */
+/* Bottom Controls */
 .cupertino-bottom-controls {
   margin-top: auto;
   padding-top: 24px;
@@ -401,6 +636,53 @@ html, body {
 }
 
 /* ==========================================================================
+   Theme Customization UI Tokens
+   ========================================================================== */
+
+.theme-color-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.theme-color-circle:hover {
+  transform: scale(1.1);
+}
+
+.theme-color-circle.active {
+  border-color: #ffffff;
+  transform: scale(1.15);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.4);
+}
+
+.theme-preset-box {
+  background: #1c1d22;
+  border: 1.5px solid var(--f-border);
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.theme-preset-box:hover {
+  background: #24252c;
+}
+
+.theme-preset-box.selected {
+  border-color: var(--f-blue);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.active-pill {
+  background: var(--f-blue) !important;
+  color: #07080a !important;
+  font-weight: 800 !important;
+}
+
+/* ==========================================================================
    iOS Cupertino Fullscreen Views & Navigation
    ========================================================================== */
 
@@ -502,7 +784,7 @@ html, body {
 }
 
 .apple-card-grouped {
-  background: #141417;
+  background: var(--f-surface);
   border-radius: 20px;
   border: 1px solid var(--f-border);
   overflow: hidden;
@@ -532,7 +814,7 @@ html, body {
 }
 
 .apple-badge-beta {
-  background: #38bdf8;
+  background: var(--f-blue);
   color: #07080a;
   font-size: 0.75rem;
   font-weight: 800;
@@ -544,7 +826,7 @@ html, body {
 .apple-badge-subpill {
   display: inline-block;
   background: rgba(56, 189, 248, 0.14);
-  color: #38bdf8;
+  color: var(--f-blue);
   font-size: 0.78rem;
   font-weight: 700;
   padding: 3px 10px;
@@ -617,7 +899,7 @@ html, body {
 
 /* Algorithm Card (Foto 3) */
 .apple-algo-card {
-  background: #141417;
+  background: var(--f-surface);
   border: 1.5px solid var(--f-border);
   border-radius: 20px;
   padding: 20px 22px;
@@ -761,8 +1043,8 @@ html, body {
 }
 
 .figma-avatar-circle {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #1c1d22;
   border: 1.5px solid var(--f-border);
@@ -771,7 +1053,8 @@ html, body {
   justify-content: center;
   color: var(--f-blue);
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  cursor: pointer;
 }
 
 /* ==========================================================================
@@ -1148,126 +1431,12 @@ html, body {
   border-color: var(--f-blue);
 }
 
-/* ==========================================================================
-   Card Editor with Full Toolbar
-   ========================================================================== */
-
-.figma-editor-container {
-  background: var(--f-surface);
-  border-radius: var(--f-radius-lg);
-  border: 1px solid var(--f-border);
-  padding: 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.figma-field-block {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.figma-field-label {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.figma-editor-textarea {
-  width: 100%;
-  min-height: 140px;
-  background: var(--f-input-bg);
-  border: 1px solid var(--f-input-border);
-  border-top-left-radius: var(--f-radius-md);
-  border-top-right-radius: var(--f-radius-md);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 1.08rem;
-  padding: 18px;
-  resize: vertical;
-  outline: none;
-}
-
-.figma-editor-textarea:focus {
-  border-color: var(--f-blue);
-}
-
-/* Toolbar */
-.figma-rich-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--f-surface-subtle);
-  border: 1px solid var(--f-input-border);
-  border-top: none;
-  border-bottom-left-radius: var(--f-radius-md);
-  border-bottom-right-radius: var(--f-radius-md);
-  padding: 12px 16px;
-  overflow-x: auto;
-}
-
-.figma-btn-ai-builder {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
-  border-radius: var(--f-radius-sm);
-  background: #18191d;
-  border: 1.5px solid #ec4899;
-  color: #ffffff;
-  font-size: 0.9rem;
-  font-weight: 800;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.figma-tool-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: none;
-  border: none;
-  color: var(--f-text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.05rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  flex-shrink: 0;
-}
-
-.figma-tool-btn:hover {
-  background: var(--f-input-bg);
-  color: #ffffff;
-}
-
-.figma-toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 14px;
-}
-
-.figma-toggle-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.02rem;
-  font-weight: 600;
-  color: #ffffff;
-}
-
 /* Switch */
 .figma-switch {
   position: relative;
   display: inline-block;
-  width: 50px;
-  height: 28px;
+  width: 52px;
+  height: 30px;
 }
 
 .figma-switch input { display: none; }
@@ -1284,8 +1453,8 @@ html, body {
 .figma-slider::before {
   position: absolute;
   content: "";
-  height: 22px;
-  width: 22px;
+  height: 24px;
+  width: 24px;
   left: 3px;
   bottom: 3px;
   background-color: #ffffff;
@@ -1354,8 +1523,8 @@ html, body {
   position: fixed;
   bottom: calc(var(--sab) + 76px);
   right: 24px;
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--f-blue);
   color: #07080a;
@@ -1377,8 +1546,8 @@ html, body {
   position: fixed;
   bottom: calc(var(--sab) + 20px);
   right: 24px;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--f-surface-subtle);
   border: 1px solid var(--f-border);
