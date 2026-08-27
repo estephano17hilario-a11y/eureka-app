@@ -76,6 +76,7 @@ export interface Deck {
   name: string;
   description: string;
   icon: string;
+  isFolder?: boolean; // true para carpetas organizadoras, false para mazos de flashcards
   color: string;
   settings: DeckSettings;
   createdAt: number;

@@ -504,7 +504,7 @@ export function bindFigmaDashboardEvents(
   container.querySelector('#btn-batch-move-action')?.addEventListener('click', () => {
     if (selectedCards.size === 0) return;
 
-    const allDecks = deckService.getAllDecks();
+    const allDecks = deckService.getOnlyDecks();
     const modal = document.createElement('div');
     modal.className = 'apple-modal-overlay';
     modal.innerHTML = `
@@ -514,7 +514,7 @@ export function bindFigmaDashboardEvents(
           <button id="btn-close-move-modal" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
         </div>
         <p style="color:var(--f-text-secondary); font-size:0.9rem; margin-bottom:16px;">
-          Selecciona el mazo o submazo de destino:
+          Selecciona el mazo de destino:
         </p>
 
         <div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; margin-bottom:18px;">
@@ -523,7 +523,7 @@ export function bindFigmaDashboardEvents(
               const isCurrent = d.id === deck.id;
               return `
               <button class="target-deck-btn ${isCurrent ? 'disabled' : ''}" data-target-id="${d.id}" style="text-align:left; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; cursor:${isCurrent ? 'not-allowed' : 'pointer'}; display:flex; align-items:center; justify-content:space-between;">
-                <span>${d.parentId ? '↳ ' : '📁 '} ${d.name}</span>
+                <span>🎴 ${d.name}</span>
                 ${isCurrent ? '<span style="font-size:0.75rem; color:var(--f-text-muted);">(Actual)</span>' : '<span style="color:var(--f-blue);">Mover aquí ›</span>'}
               </button>
             `;

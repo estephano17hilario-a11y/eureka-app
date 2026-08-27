@@ -42,6 +42,19 @@ export class DeckService {
       if (storedDecks && storedCards) {
         this.decks = JSON.parse(storedDecks);
         this.cards = JSON.parse(storedCards);
+
+        // Normalizar carpetas y mazos
+        this.decks.forEach(d => {
+          if (d.id === 'deck-mates-sub') {
+            d.isFolder = false;
+            d.icon = 'deck';
+          } else if (d.id === 'deck-mates' || d.id === 'deck-idioma') {
+            d.isFolder = true;
+            d.icon = 'folder';
+          } else if (d.isFolder === undefined) {
+            d.isFolder = (d.icon === 'folder' || d.icon === 'folder-sub' || d.icon === 'briefcase');
+          }
+        });
       } else {
         const demo = getInitialDemoDecks();
         this.decks = demo.decks;
@@ -66,8 +79,24 @@ export class DeckService {
 
   // --- GESTIÓN DE MAZOS Y SUBMAZOS ---
 
+  public isFolder(deckOrId?: Deck | string | null): boolean {
+    if (!deckOrId) return false;
+    const deck = typeof deckOrId === 'string' ? this.getDeckById(deckOrId) : deckOrId;
+    if (!deck) return false;
+    if (deck.isFolder !== undefined) return deck.isFolder;
+    return deck.icon === 'folder' || deck.icon === 'folder-sub' || deck.icon === 'briefcase';
+  }
+
   public getAllDecks(): Deck[] {
     return this.decks.filter(d => !d.isArchived);
+  }
+
+  public getOnlyDecks(): Deck[] {
+    return this.decks.filter(d => !d.isArchived && !this.isFolder(d));
+  }
+
+  public getOnlyFolders(): Deck[] {
+    return this.decks.filter(d => !d.isArchived && this.isFolder(d));
   }
 
   public getRootDecks(): Deck[] {
@@ -97,8 +126,13 @@ export class DeckService {
     parentId?: string | null;
     color?: string;
     icon?: string;
+    isFolder?: boolean;
     settings?: Partial<DeckSettings>;
   }): Deck {
+    const isFolder = params.isFolder !== undefined
+      ? params.isFolder
+      : (params.icon === 'folder' || params.icon === 'folder-sub');
+
     const parent = params.parentId ? this.getDeckById(params.parentId) : undefined;
     const defaultSettings: DeckSettings = parent?.settings || {
       algorithmType: 'custom',
@@ -117,8 +151,9 @@ export class DeckService {
       parentId: params.parentId || null,
       name: params.name.trim(),
       description: params.description?.trim() || '',
-      icon: params.icon || (params.parentId ? 'folder-sub' : 'folder'),
-      color: params.color || (params.parentId ? '#84cc16' : '#38bdf8'),
+      icon: params.icon || (isFolder ? (params.parentId ? 'folder-sub' : 'folder') : 'deck'),
+      isFolder,
+      color: params.color || (isFolder ? '#38bdf8' : '#a855f7'),
       settings: { ...defaultSettings, ...params.settings },
       createdAt: Date.now(),
       updatedAt: Date.now()

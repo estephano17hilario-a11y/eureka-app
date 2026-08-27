@@ -439,12 +439,12 @@ class EurekaFigmaApp {
       bindFigmaDeckListEvents(layout, {
         onSelectDeck: (deckId) => {
           nativeService.triggerHaptics('light');
-          this.selectedRootDeckId = deckId;
-          const subs = deckService.getSubdecks(deckId);
-          if (subs.length > 0) {
-            this.selectedSubdeckId = subs[0].id;
+          const targetDeck = deckService.getDeckById(deckId);
+          if (deckService.isFolder(targetDeck)) {
+            this.selectedRootDeckId = deckId;
             this.currentView = 'subdeck';
           } else {
+            this.selectedRootDeckId = targetDeck?.parentId || deckId;
             this.selectedSubdeckId = deckId;
             this.currentView = 'dashboard';
           }
@@ -463,8 +463,14 @@ class EurekaFigmaApp {
         },
         onSelectSubdeck: (subId) => {
           nativeService.triggerHaptics('light');
-          this.selectedSubdeckId = subId;
-          this.currentView = 'dashboard';
+          const targetSub = deckService.getDeckById(subId);
+          if (deckService.isFolder(targetSub)) {
+            this.selectedRootDeckId = subId;
+            this.currentView = 'subdeck';
+          } else {
+            this.selectedSubdeckId = subId;
+            this.currentView = 'dashboard';
+          }
           this.render();
         },
         onAdd: (parentId) => this.handleOpenAddMenu(parentId),

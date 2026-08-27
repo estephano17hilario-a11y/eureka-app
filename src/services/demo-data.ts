@@ -59,6 +59,7 @@ export function getInitialDemoDecks(): { decks: Deck[]; cards: Flashcard[] } {
     name: 'MATES',
     description: 'Matemáticas, Física & Química',
     icon: 'folder',
+    isFolder: true,
     color: '#84cc16', // Green
     settings: {
       algorithmType: 'custom',
@@ -80,7 +81,8 @@ export function getInitialDemoDecks(): { decks: Deck[]; cards: Flashcard[] } {
     parentId: 'deck-mates',
     name: 'Matemática, Física & Química',
     description: 'Cálculo, geometría no euclidiana, mecánica cuántica',
-    icon: 'folder-sub',
+    icon: 'deck',
+    isFolder: false,
     color: '#84cc16',
     settings: {
       algorithmType: 'custom',
@@ -103,6 +105,7 @@ export function getInitialDemoDecks(): { decks: Deck[]; cards: Flashcard[] } {
     name: 'IDIOMA',
     description: 'Inglés avanzado, fonética & phrasal verbs',
     icon: 'folder',
+    isFolder: true,
     color: '#8b5cf6', // Purple
     settings: {
       algorithmType: 'languages',
