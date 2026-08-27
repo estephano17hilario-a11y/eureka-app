@@ -3048,37 +3048,37 @@ option {
 
 .figma-card-stacked-wrapper {
   position: relative;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
 }
 
 .figma-card-stacked-wrapper::before {
   content: '';
   position: absolute;
-  bottom: -4px;
-  left: 8px;
-  right: 8px;
+  bottom: -6px;
+  left: 10px;
+  right: 10px;
   height: 100%;
-  background: #141622;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #141624;
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 16px;
   z-index: 0;
   pointer-events: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
 }
 
 .figma-card-stacked-wrapper::after {
   content: '';
   position: absolute;
-  bottom: -8px;
-  left: 16px;
-  right: 16px;
+  bottom: -12px;
+  left: 20px;
+  right: 20px;
   height: 100%;
-  background: #0e0f17;
+  background: #0d0e18;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   z-index: -1;
   pointer-events: none;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.6);
 }
 
 .figma-card-item {
