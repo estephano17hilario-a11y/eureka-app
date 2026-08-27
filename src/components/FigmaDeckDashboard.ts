@@ -41,98 +41,277 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
   const cards = deckService.getCardsByDeck(deck.id, true);
 
+  const renderedGroupIds = new Set<string>();
   const cardItemsHtml: string[] = [];
 
   for (const c of cards) {
-    const hasMedia = !!(c.frontImage || c.backImage || (c.type === 'image_occlusion' && c.occlusionImage));
-    const isOcclusion = c.type === 'image_occlusion';
-    const isInverted = c.isInverted;
+    if (c.groupId && c.type === 'image_occlusion') {
+      if (renderedGroupIds.has(c.groupId)) continue;
+      renderedGroupIds.add(c.groupId);
 
-    cardItemsHtml.push(`
-      <div class="figma-card-item apple-glass-panel selectable-card-target" data-card-id="${c.id}" title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; padding:14px 18px; border-radius:16px; margin-bottom:10px;">
-        
-        ${
-          isInverted
-            ? `
-          <!-- Top Row Invertido -->
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-            <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
-              <span style="font-size:0.95rem;">⇄</span>
-              <span>Invertido</span>
+      const groupCards = deckService.getCardsByGroupId(c.groupId);
+      const firstCard = groupCards[0] || c;
+      const hasMedia = !!(firstCard.frontImage || firstCard.backImage || firstCard.occlusionImage);
+
+      cardItemsHtml.push(`
+        <div class="figma-card-item apple-glass-panel selectable-card-target card-stacked-bottom-effect" data-group-id="${c.groupId}" style="cursor:pointer; padding:14px 18px; border-radius:16px; margin-bottom:18px;">
+          <div class="occlusion-group-header" data-toggle-group="${c.groupId}">
+            <!-- Top Row Oclu -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+              <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+                <span>Oclu</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button class="btn-toggle-group-accordion" data-group-id="${c.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.1rem; cursor:pointer; padding:0 2px; line-height:1;" title="Desplegar">
+                  ▸
+                </button>
+                <button class="btn-card-item-dots" data-card-id="${firstCard.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones">
+                  ⋮
+                </button>
+              </div>
             </div>
-            <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
-              ⋮
-            </button>
+
+            <!-- Front Title -->
+            <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
+              ${katexService.parseAndRender(firstCard.front)}
+            </div>
+
+            <!-- Back Description -->
+            ${
+              firstCard.back
+                ? `
+              <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                ${katexService.parseAndRender(firstCard.back)}
+              </div>
+            `
+                : ''
+            }
+
+            <!-- Attached Image SVG icon -->
+            ${
+              hasMedia
+                ? `
+              <div style="display:flex; align-items:center; gap:6px; margin-top:10px; color:var(--f-text-muted);">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+              </div>
+            `
+                : ''
+            }
           </div>
 
-          <!-- Front Title -->
-          <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
-            ${katexService.parseAndRender(c.front)}
+          <!-- Subtarjetas desglosadas al click (Ocultas por defecto) -->
+          <div class="occlusion-group-body" id="group-body-${c.groupId}" style="display:none; margin-top:12px; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.08); padding-top:10px;">
+            ${groupCards
+              .map(
+                (gc, idx) => `
+              <div class="figma-card-item apple-glass-panel selectable-card-target" data-card-id="${gc.id}" title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; padding:10px 14px; border-radius:12px; background:rgba(255,255,255,0.03); margin-bottom:0;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                  <span style="font-size:0.75rem; font-weight:800; color:var(--f-blue); background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:6px;">
+                    Máscara #${idx + 1}
+                  </span>
+                  <button class="btn-card-item-dots" data-card-id="${gc.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.2rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones">⋮</button>
+                </div>
+                <div class="figma-card-title-bold" style="font-size:0.92rem; font-weight:700; color:#fff; line-height:1.4;">
+                  ${katexService.parseAndRender(gc.front)}
+                </div>
+                ${
+                  gc.back
+                    ? `
+                  <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.84rem; line-height:1.4; margin-top:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                    ${katexService.parseAndRender(gc.back)}
+                  </div>
+                `
+                    : ''
+                }
+              </div>
+            `
+              )
+              .join('')}
           </div>
-        `
-            : isOcclusion
-            ? `
-          <!-- Top Row Oclu -->
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-            <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        </div>
+      `);
+    } else if (c.groupId && c.isInverted) {
+      if (renderedGroupIds.has(c.groupId)) continue;
+      renderedGroupIds.add(c.groupId);
+
+      const pairCards = deckService.getCardsByGroupId(c.groupId);
+      const firstCard = pairCards[0] || c;
+      const hasMedia = !!(firstCard.frontImage || firstCard.backImage);
+
+      cardItemsHtml.push(`
+        <div class="figma-card-item apple-glass-panel selectable-card-target card-stacked-bottom-effect" data-group-id="${c.groupId}" style="cursor:pointer; padding:14px 18px; border-radius:16px; margin-bottom:18px;">
+          <div class="occlusion-group-header" data-toggle-group="${c.groupId}">
+            <!-- Top Row Invertido -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+              <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
+                <span style="font-size:0.95rem;">⇄</span>
+                <span>Invertido</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button class="btn-toggle-group-accordion" data-group-id="${c.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.1rem; cursor:pointer; padding:0 2px; line-height:1;" title="Desplegar">
+                  ▸
+                </button>
+                <button class="btn-card-item-dots" data-card-id="${firstCard.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones">
+                  ⋮
+                </button>
+              </div>
+            </div>
+
+            <!-- Front Title -->
+            <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
+              ${katexService.parseAndRender(firstCard.front)}
+            </div>
+
+            <!-- Back Description -->
+            ${
+              firstCard.back
+                ? `
+              <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                ${katexService.parseAndRender(firstCard.back)}
+              </div>
+            `
+                : ''
+            }
+
+            <!-- Attached Image SVG icon -->
+            ${
+              hasMedia
+                ? `
+              <div style="display:flex; align-items:center; gap:6px; margin-top:10px; color:var(--f-text-muted);">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+              </div>
+            `
+                : ''
+            }
+          </div>
+
+          <!-- Subtarjetas del par invertido desglosadas al click (Ocultas por defecto) -->
+          <div class="occlusion-group-body" id="group-body-${c.groupId}" style="display:none; margin-top:12px; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.08); padding-top:10px;">
+            ${pairCards
+              .map(
+                (pc, idx) => `
+              <div class="figma-card-item apple-glass-panel selectable-card-target" data-card-id="${pc.id}" title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; padding:10px 14px; border-radius:12px; background:rgba(255,255,255,0.03); margin-bottom:0;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                  <span style="font-size:0.75rem; font-weight:800; color:#a855f7; background:rgba(168,85,247,0.14); padding:2px 8px; border-radius:6px;">
+                    ${idx === 0 ? 'Normal (A → R)' : 'Invertida (R → A)'}
+                  </span>
+                  <button class="btn-card-item-dots" data-card-id="${pc.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.2rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones">⋮</button>
+                </div>
+                <div class="figma-card-title-bold" style="font-size:0.92rem; font-weight:700; color:#fff; line-height:1.4;">
+                  ${katexService.parseAndRender(pc.front)}
+                </div>
+                ${
+                  pc.back
+                    ? `
+                  <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.84rem; line-height:1.4; margin-top:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                    ${katexService.parseAndRender(pc.back)}
+                  </div>
+                `
+                    : ''
+                }
+              </div>
+            `
+              )
+              .join('')}
+          </div>
+        </div>
+      `);
+    } else if (!c.groupId) {
+      // Tarjeta individual sin grupo
+      const hasMedia = !!(c.frontImage || c.backImage || (c.type === 'image_occlusion' && c.occlusionImage));
+      const isInverted = c.isInverted;
+      const isOcclusion = c.type === 'image_occlusion';
+
+      cardItemsHtml.push(`
+        <div class="figma-card-item apple-glass-panel selectable-card-target" data-card-id="${c.id}" title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; padding:14px 18px; border-radius:16px; margin-bottom:10px;">
+          
+          ${
+            isInverted
+              ? `
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+              <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
+                <span style="font-size:0.95rem;">⇄</span>
+                <span>Invertido</span>
+              </div>
+              <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
+                ⋮
+              </button>
+            </div>
+            <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
+              ${katexService.parseAndRender(c.front)}
+            </div>
+          `
+              : isOcclusion
+              ? `
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+              <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+                <span>Oclu</span>
+              </div>
+              <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
+                ⋮
+              </button>
+            </div>
+            <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
+              ${katexService.parseAndRender(c.front)}
+            </div>
+          `
+              : `
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+              <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42; flex:1;">
+                ${katexService.parseAndRender(c.front)}
+              </div>
+              <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1; flex-shrink:0; margin-top:-2px;" title="Opciones de tarjeta">
+                ⋮
+              </button>
+            </div>
+          `
+          }
+
+          ${
+            c.back
+              ? `
+            <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+              ${katexService.parseAndRender(c.back)}
+            </div>
+          `
+              : ''
+          }
+
+          ${
+            hasMedia
+              ? `
+            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; color:var(--f-text-muted);">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
                 <circle cx="9" cy="9" r="2"/>
                 <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
               </svg>
-              <span>Oclu</span>
             </div>
-            <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
-              ⋮
-            </button>
-          </div>
+          `
+              : ''
+          }
 
-          <!-- Front Title -->
-          <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42;">
-            ${katexService.parseAndRender(c.front)}
-          </div>
-        `
-            : `
-          <!-- Standard Title with 3-dots on the right (Zero empty space at top) -->
-          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
-            <div class="figma-card-title-bold" style="font-size:0.98rem; font-weight:700; color:#ffffff; line-height:1.42; flex:1;">
-              ${katexService.parseAndRender(c.front)}
-            </div>
-            <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1; flex-shrink:0; margin-top:-2px;" title="Opciones de tarjeta">
-              ⋮
-            </button>
-          </div>
-        `
-        }
-
-        <!-- Back Description (Grey Secondary Preview) -->
-        ${
-          c.back
-            ? `
-          <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
-            ${katexService.parseAndRender(c.back)}
-          </div>
-        `
-            : ''
-        }
-
-        <!-- Attached Image Indicator (SVG icon) -->
-        ${
-          hasMedia
-            ? `
-          <div style="display:flex; align-items:center; gap:6px; margin-top:10px; color:var(--f-text-muted);">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-              <circle cx="9" cy="9" r="2"/>
-              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-            </svg>
-          </div>
-        `
-            : ''
-        }
-
-      </div>
-    `);
+        </div>
+      `);
+    }
   }
 
   return `

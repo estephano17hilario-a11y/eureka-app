@@ -3064,6 +3064,47 @@ option {
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.14) !important;
 }
 
+/* ==========================================================================
+   STACKED BOTTOM CARD LAYER (BULTO DEBAJO PARA AGRUPACIONES)
+   ========================================================================== */
+
+.card-stacked-bottom-effect {
+  position: relative !important;
+  margin-bottom: 18px !important;
+}
+
+.card-stacked-bottom-effect::before {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 8px;
+  right: 8px;
+  height: 14px;
+  background: rgba(22, 24, 33, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  z-index: -1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.card-stacked-bottom-effect::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 16px;
+  right: 16px;
+  height: 12px;
+  background: rgba(16, 17, 24, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  z-index: -2;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
 
 
 
