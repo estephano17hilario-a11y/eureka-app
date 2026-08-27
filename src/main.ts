@@ -204,8 +204,8 @@ class EurekaFigmaApp {
     const layout = document.getElementById('main-layout-mount');
     if (!layout) return;
 
-    // Header tabs
-    layout.querySelectorAll<HTMLButtonElement>('.figma-nav-tab-btn').forEach((btn) => {
+    // Header tabs & Mobile Bottom Nav items
+    layout.querySelectorAll<HTMLButtonElement>('.figma-nav-tab-btn, .mobile-nav-item').forEach((btn) => {
       btn.addEventListener('click', () => {
         const tab = btn.dataset.tab as FigmaMainTab;
         if (tab && tab !== this.currentTab) {
@@ -224,6 +224,11 @@ class EurekaFigmaApp {
     });
 
     layout.querySelector('#btn-header-avatar')?.addEventListener('click', () => {
+      this.currentTab = 'ajustes';
+      this.render();
+    });
+
+    layout.querySelector('#btn-header-theme-mobile')?.addEventListener('click', () => {
       this.currentTab = 'ajustes';
       this.render();
     });
