@@ -6,8 +6,11 @@ export function renderFigmaHeader(activeTab: FigmaMainTab = 'inicio'): string {
     <header class="figma-global-nav">
       <div class="figma-nav-left">
         <div class="figma-logo-wrap" id="nav-brand-logo">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9.5 2C7.01 2 5 4.01 5 6.5C5 7.18 5.16 7.82 5.43 8.39C3.99 9.15 3 10.71 3 12.5C3 14.54 4.31 16.27 6.13 16.82C6.04 17.2 6 17.59 6 18C6 20.21 7.79 22 10 22C10.78 22 11.51 21.78 12 21.39" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14.5 2C16.99 2 19 4.01 19 6.5C19 7.18 18.84 7.82 18.57 8.39C20.01 9.15 21 10.71 21 12.5C21 14.54 19.69 16.27 17.87 16.82C17.96 17.2 18 17.59 18 18C18 20.21 16.21 22 14 22C13.22 22 12.49 21.78 12 21.39" stroke="#818cf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 4.5V20.5" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M8.5 7.5C7.5 8.5 7.5 10.5 8.5 11.5M15.5 7.5C16.5 8.5 16.5 10.5 15.5 11.5" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" opacity="0.8"/>
           </svg>
           <span class="figma-brand-name">Eureka</span>
         </div>

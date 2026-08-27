@@ -223,12 +223,6 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
         </div>
 
         <div class="figma-header-actions-group">
-          <button class="figma-icon-btn-dark" id="btn-dash-code" title="Exportar JSON">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-          </button>
-          <button class="figma-icon-btn-dark" id="btn-dash-share" title="Compartir Mazo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-          </button>
           <button class="figma-icon-btn-dark" id="btn-dash-menu" title="Ajustes del Mazo">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
           </button>
@@ -387,25 +381,6 @@ export function bindFigmaDashboardEvents(
   container.querySelector('#btn-dash-menu')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
   container.querySelector('#btn-open-algo-settings')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
   container.querySelector('#btn-deck-info-icon')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
-
-  // Export JSON
-  container.querySelector('#btn-dash-code')?.addEventListener('click', () => {
-    const json = deckService.exportDeck(deck.id);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${deck.name.toLowerCase().replace(/\s+/g, '_')}_cards.json`;
-    a.click();
-  });
-
-  // Share
-  container.querySelector('#btn-dash-share')?.addEventListener('click', () => {
-    dialogService.showAlert({
-      title: `Compartir "${deck.name}"`,
-      message: `Enlace para compartir este mazo:\nhttps://eureka.app/deck/${deck.id}`
-    });
-  });
 
   // Estado de Selección Múltiple (Activado por Long-Press)
   const selectedCards = new Set<string>();
