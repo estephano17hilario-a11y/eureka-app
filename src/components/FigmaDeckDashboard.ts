@@ -1,6 +1,7 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
+import { openImageOcclusionModal } from './ImageOcclusionModal';
 
 export interface FigmaDashboardCallbacks {
   onBackToSubdecks: () => void;
@@ -14,12 +15,17 @@ export interface FigmaDashboardCallbacks {
 
 export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string {
   const stats = deckService.getDeckStats(deck.id);
-  const dueCount = stats.dueCards > 0 ? stats.dueCards : 635;
-  const newCount = stats.newCards > 0 ? stats.newCards : 25;
-  const learningCount = stats.learningCards > 0 ? stats.learningCards : 609;
-  const masteredCount = stats.masteredCards > 0 ? stats.masteredCards : 1;
-  const totalInDeck = stats.totalCards > 0 ? stats.totalCards : 1127;
-  
+  const dueCount = stats.dueCards;
+  const newCount = stats.newCards;
+  const learningCount = stats.learningCards;
+  const masteredCount = stats.masteredCards;
+  const totalInDeck = stats.totalCards;
+
+  const totalCalculated = Math.max(1, newCount + learningCount + masteredCount);
+  const pctGray = Math.round((newCount / totalCalculated) * 100);
+  const pctGreen = Math.round((learningCount / totalCalculated) * 100);
+  const pctBlue = Math.round((masteredCount / totalCalculated) * 100);
+
   const algoLabel =
     deck.settings.algorithmType === 'fsrs'
       ? 'FSRS (Inteligente)'
@@ -34,6 +40,144 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
       : 'Personalizado';
 
   const cards = deckService.getCardsByDeck(deck.id, true);
+
+  // Agrupación inteligente de tarjetas por groupId (Oclusiones múltiples y pares invertidos)
+  const renderedGroupIds = new Set<string>();
+  const cardItemsHtml: string[] = [];
+
+  for (const c of cards) {
+    if (c.groupId && c.type === 'image_occlusion') {
+      if (renderedGroupIds.has(c.groupId)) continue;
+      renderedGroupIds.add(c.groupId);
+
+      const groupCards = deckService.getCardsByGroupId(c.groupId);
+      cardItemsHtml.push(`
+        <div class="occlusion-group-card apple-glass-panel" data-group-id="${c.groupId}">
+          <div class="occlusion-group-header">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="font-size:1.4rem;">🖼️</span>
+              <div>
+                <div style="font-size:1.1rem; font-weight:800; color:#fff;">
+                  Oclusión de Imagen (${groupCards.length} tarjetas contenidas)
+                </div>
+                <div style="font-size:0.82rem; color:var(--f-text-secondary); margin-top:2px;">
+                  Toca para desplegar sub-tarjetas o edita la imagen general
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+              <button class="apple-btn-outline-pill btn-edit-group-occlusion" data-group-id="${c.groupId}" style="padding:6px 14px; font-size:0.82rem; font-weight:700; color:var(--f-blue); border-color:var(--f-blue);">
+                ✏️ Editar Oclusión
+              </button>
+              <button class="btn-toggle-group-accordion" data-group-id="${c.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer; padding:4px 8px;">
+                ▾
+              </button>
+            </div>
+          </div>
+
+          <div class="occlusion-group-body" id="group-body-${c.groupId}" style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
+            ${groupCards
+              .map(
+                (gc, idx) => `
+              <div class="occlusion-child-card-row clickable-card-row" data-dash-card-id="${gc.id}" title="Estudiar máscara #${idx + 1}">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span style="font-size:0.82rem; font-weight:800; color:var(--f-blue); background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:6px;">
+                    #${idx + 1}
+                  </span>
+                  <span style="font-weight:700; color:#fff; font-size:0.95rem;">${gc.front}</span>
+                  <span style="color:var(--f-text-secondary); font-size:0.88rem;">➜ ${katexService.parseAndRender(gc.back)}</span>
+                </div>
+                
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px;">🎯 Estudiar</span>
+                  <button class="btn-card-del-action" data-del-id="${gc.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem;">🗑️</button>
+                </div>
+              </div>
+            `
+              )
+              .join('')}
+          </div>
+        </div>
+      `);
+    } else if (c.groupId && c.isInverted) {
+      if (renderedGroupIds.has(c.groupId)) continue;
+      renderedGroupIds.add(c.groupId);
+
+      const pairCards = deckService.getCardsByGroupId(c.groupId);
+      cardItemsHtml.push(`
+        <div class="occlusion-group-card apple-glass-panel" data-group-id="${c.groupId}">
+          <div class="occlusion-group-header">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="font-size:1.4rem;">⇄</span>
+              <div>
+                <div style="font-size:1.1rem; font-weight:800; color:#fff;">
+                  Par Invertido (2 tarjetas)
+                </div>
+                <div style="font-size:0.82rem; color:var(--f-text-secondary); margin-top:2px;">
+                  Anverso ⇄ Reverso recíproco
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+              <button class="btn-toggle-group-accordion" data-group-id="${c.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer; padding:4px 8px;">
+                ▾
+              </button>
+            </div>
+          </div>
+
+          <div class="occlusion-group-body" id="group-body-${c.groupId}" style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
+            ${pairCards
+              .map(
+                (pc, idx) => `
+              <div class="occlusion-child-card-row clickable-card-row" data-dash-card-id="${pc.id}">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span style="font-size:0.8rem; font-weight:800; color:#a855f7; background:rgba(168,85,247,0.14); padding:2px 8px; border-radius:6px;">
+                    ${idx === 0 ? 'Normal' : 'Invertida'}
+                  </span>
+                  <span style="font-weight:700; color:#fff; font-size:0.95rem;">${pc.front}</span>
+                  <span style="color:var(--f-text-secondary); font-size:0.88rem;">➜ ${katexService.parseAndRender(pc.back)}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px;">🎯 Estudiar</span>
+                  <button class="btn-card-edit-action" data-edit-id="${pc.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.85rem;">✏️</button>
+                  <button class="btn-card-del-action" data-del-id="${pc.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem;">🗑️</button>
+                </div>
+              </div>
+            `
+              )
+              .join('')}
+          </div>
+        </div>
+      `);
+    } else if (!c.groupId) {
+      cardItemsHtml.push(`
+        <div class="figma-card-item apple-glass-panel clickable-card-row" data-dash-card-id="${c.id}" title="Toca para aprender esta tarjeta en específico">
+          <div class="figma-card-top-tag-row">
+            <div class="figma-tag-invertido">
+              ${
+                c.isInverted
+                  ? `<span>⇄ Invertido</span>`
+                  : c.type === 'latex'
+                  ? `<span>📐 LaTeX</span>`
+                  : `<span>Estándar</span>`
+              }
+              <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px; margin-left:6px;">🎯 Estudiar</span>
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="btn-card-edit-action" data-edit-id="${c.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.88rem; font-weight:700;">✏️ Editar</button>
+              <button class="btn-card-del-action" data-del-id="${c.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.88rem; font-weight:700;">🗑️</button>
+            </div>
+          </div>
+
+          <div class="figma-card-title-bold">${c.front}</div>
+          <div class="figma-card-body-text">${katexService.parseAndRender(c.back)}</div>
+        </div>
+      `);
+    }
+  }
 
   return `
     <div>
@@ -93,7 +237,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           </div>
 
           <div class="figma-stat-pill">
-            <div class="figma-stat-val-badge" style="color:#84cc16;">
+            <div class="figma-stat-val-badge" style="color:#10b981;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               <span>${learningCount}</span>
             </div>
@@ -110,7 +254,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
         </div>
 
         <button class="figma-btn-study-large" id="btn-study-cards-main">
-          Estudiar tarjetas
+          ${dueCount > 0 ? 'Estudiar tarjetas' : '✨ Repasar mazo'}
         </button>
       </div>
 
@@ -122,23 +266,23 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
         </div>
 
         <div class="figma-segment-bar">
-          <div class="f-seg-gray" style="width: 44%;"></div>
-          <div class="f-seg-green" style="width: 54%;"></div>
-          <div class="f-seg-blue" style="width: 2%;"></div>
+          <div class="f-seg-gray" style="width: ${pctGray}%;"></div>
+          <div class="f-seg-green" style="width: ${pctGreen}%;"></div>
+          <div class="f-seg-blue" style="width: ${pctBlue}%;"></div>
         </div>
 
         <div class="figma-bar-legend">
           <div class="f-legend-item">
             <div class="f-dot" style="background:#64748b;"></div>
-            <span><strong>${newCount * 10 || 496}</strong> No estudiadas</span>
+            <span><strong>${newCount}</strong> No estudiadas</span>
           </div>
           <div class="f-legend-item">
-            <div class="f-dot" style="background:#84cc16;"></div>
-            <span><strong>${learningCount || 629}</strong> En aprendizaje</span>
+            <div class="f-dot" style="background:#10b981;"></div>
+            <span><strong>${learningCount}</strong> En aprendizaje</span>
           </div>
           <div class="f-legend-item">
             <div class="f-dot" style="background:#38bdf8;"></div>
-            <span><strong>${masteredCount || 2}</strong> Dominadas</span>
+            <span><strong>${masteredCount}</strong> Dominadas</span>
           </div>
         </div>
 
@@ -153,43 +297,13 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           </button>
         </div>
 
-        <!-- Cards List Container with Targeted Single-Card Study on click -->
+        <!-- Cards List Container with Accordions and Targeted Single-Card Study -->
         <div id="dash-cards-list-mount" style="margin-top:18px;">
-          ${cards
-            .map(
-              (c) => `
-            <div class="figma-card-item apple-glass-panel clickable-card-row" data-dash-card-id="${c.id}" title="Toca para aprender esta tarjeta en específico">
-              <div class="figma-card-top-tag-row">
-                <div class="figma-tag-invertido">
-                  ${
-                    c.isInverted
-                      ? `
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                    <span>Invertido</span>
-                  `
-                      : c.type === 'image_occlusion'
-                      ? `<span>🖼️ Oclusión</span>`
-                      : `<span>Estándar</span>`
-                  }
-                  <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px; margin-left:6px;">🎯 Estudiar</span>
-                </div>
-                
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <button class="btn-card-edit-action" data-edit-id="${c.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.85rem; font-weight:700;">✏️ Editar</button>
-                  <button class="btn-card-del-action" data-del-id="${c.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem; font-weight:700;">🗑️</button>
-                </div>
-              </div>
-
-              <div class="figma-card-title-bold">${c.front}</div>
-              <div class="figma-card-body-text">${katexService.parseAndRender(c.back)}</div>
-            </div>
-          `
-            )
-            .join('')}
+          ${cardItemsHtml.join('')}
         </div>
       </div>
 
-      <!-- Floating Buttons -->
+      <!-- Floating Action Buttons -->
       <button class="figma-fab-gift" id="btn-fab-gift" title="Recompensas">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
       </button>
@@ -234,8 +348,49 @@ export function bindFigmaDashboardEvents(
     alert(`Enlace para compartir mazo "${deck.name}":\nhttps://eureka.app/deck/${deck.id}`);
   });
 
-  // Targeted Single-Card Study on card row click!
-  const bindCardRowClicks = () => {
+  const bindCardEvents = () => {
+    // Accordion Toggle
+    container.querySelectorAll('.btn-toggle-group-accordion').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const groupId = (btn as HTMLElement).dataset.groupId;
+        if (groupId) {
+          const body = container.querySelector(`#group-body-${groupId}`) as HTMLElement | null;
+          if (body) {
+            const isHidden = body.style.display === 'none';
+            body.style.display = isHidden ? 'flex' : 'none';
+            btn.textContent = isHidden ? '▾' : '▸';
+          }
+        }
+      });
+    });
+
+    // Edit Complete Occlusion Group
+    container.querySelectorAll<HTMLButtonElement>('.btn-edit-group-occlusion').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const groupId = btn.dataset.groupId;
+        if (groupId) {
+          const groupCards = deckService.getCardsByGroupId(groupId);
+          const first = groupCards[0];
+          if (first && first.occlusionImage && first.occlusionMasks) {
+            openImageOcclusionModal({
+              deckId: deck.id,
+              initialImage: first.occlusionImage,
+              initialMasks: first.occlusionMasks,
+              initialMode: first.occlusionMode || 'hide_all_reveal_one',
+              onConfirm: (img, masks, mode) => {
+                deckService.deleteCardGroup(groupId);
+                deckService.createOcclusionCards(deck.id, img, masks, mode);
+              },
+              onClose: () => {}
+            });
+          }
+        }
+      });
+    });
+
+    // Targeted Single-Card Study on card row click!
     container.querySelectorAll('.clickable-card-row').forEach((row) => {
       row.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
@@ -249,6 +404,7 @@ export function bindFigmaDashboardEvents(
       });
     });
 
+    // Edit individual card
     container.querySelectorAll<HTMLButtonElement>('.btn-card-edit-action').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -257,6 +413,7 @@ export function bindFigmaDashboardEvents(
       });
     });
 
+    // Delete card
     container.querySelectorAll<HTMLButtonElement>('.btn-card-del-action').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -268,37 +425,5 @@ export function bindFigmaDashboardEvents(
     });
   };
 
-  bindCardRowClicks();
-
-  // Search filter
-  const searchInput = container.querySelector('#dash-search-input') as HTMLInputElement | null;
-  const cardsMount = container.querySelector('#dash-cards-list-mount');
-  searchInput?.addEventListener('input', () => {
-    const q = searchInput.value;
-    const filtered = deckService.searchCardsInDeck(deck.id, q);
-    if (cardsMount) {
-      cardsMount.innerHTML = filtered
-        .map(
-          (c) => `
-        <div class="figma-card-item apple-glass-panel clickable-card-row" data-dash-card-id="${c.id}" title="Toca para aprender esta tarjeta en específico">
-          <div class="figma-card-top-tag-row">
-            <div class="figma-tag-invertido">
-              ${c.isInverted ? `<span>Invertido</span>` : `<span>Estándar</span>`}
-              <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px; margin-left:6px;">🎯 Estudiar</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <button class="btn-card-edit-action" data-edit-id="${c.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-weight:700;">✏️ Editar</button>
-              <button class="btn-card-del-action" data-del-id="${c.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:700;">🗑️</button>
-            </div>
-          </div>
-          <div class="figma-card-title-bold">${c.front}</div>
-          <div class="figma-card-body-text">${katexService.parseAndRender(c.back)}</div>
-        </div>
-      `
-        )
-        .join('');
-
-      bindCardRowClicks();
-    }
-  });
+  bindCardEvents();
 }

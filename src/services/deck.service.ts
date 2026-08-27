@@ -2,8 +2,8 @@ import type { Deck, Flashcard, DeckStats, StudyRating, DeckSettings, CardType, O
 import { getInitialDemoDecks } from './demo-data';
 import { srsService } from './srs.service';
 
-const DECKS_STORAGE_KEY = 'eureka_flashcards_decks_v3';
-const CARDS_STORAGE_KEY = 'eureka_flashcards_cards_v3';
+const DECKS_STORAGE_KEY = 'eureka_flashcards_decks_v4';
+const CARDS_STORAGE_KEY = 'eureka_flashcards_cards_v4';
 
 export class DeckService {
   private static instance: DeckService;
@@ -118,7 +118,7 @@ export class DeckService {
       name: params.name.trim(),
       description: params.description?.trim() || '',
       icon: params.icon || (params.parentId ? 'folder-sub' : 'folder'),
-      color: params.color || (params.parentId ? '#84cc16' : '#50b5ff'),
+      color: params.color || (params.parentId ? '#84cc16' : '#38bdf8'),
       settings: { ...defaultSettings, ...params.settings },
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -220,14 +220,18 @@ export class DeckService {
     this.notify();
   }
 
-  // --- GESTIÓN DE TARJETAS ---
+  // --- GESTIÓN DE TARJETAS (ORDENADAS DE MÁS RECIENTE A MÁS VIEJA) ---
 
   public getCardsByDeck(deckId: string, includeSubdecks: boolean = true): Flashcard[] {
+    let list: Flashcard[];
     if (!includeSubdecks) {
-      return this.cards.filter(c => c.deckId === deckId);
+      list = this.cards.filter(c => c.deckId === deckId);
+    } else {
+      const deckIds = this.getDeckHierarchyIds(deckId);
+      list = this.cards.filter(c => deckIds.includes(c.deckId));
     }
-    const deckIds = this.getDeckHierarchyIds(deckId);
-    return this.cards.filter(c => deckIds.includes(c.deckId));
+    // Ordenar de más reciente a más vieja
+    return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   }
 
   public searchCardsInDeck(deckId: string, query: string): Flashcard[] {
@@ -237,14 +241,22 @@ export class DeckService {
     return all.filter(c => c.front.toLowerCase().includes(q) || c.back.toLowerCase().includes(q));
   }
 
+  /**
+   * Obtiene estrictamente las tarjetas pendientes para hoy (dueDate <= Date.now()).
+   * Si una tarjeta fue revisada y programada para dentro de 1 día (24h), no se mostrará hasta cumplirse dicho plazo.
+   */
   public getDueCardsByDeck(deckId: string, includeSubdecks: boolean = true): Flashcard[] {
     const allCards = this.getCardsByDeck(deckId, includeSubdecks);
     const now = Date.now();
-    return allCards.filter(c => c.dueDate <= now || c.state === 'new');
+    return allCards.filter(c => c.dueDate <= now);
   }
 
   public getCardById(cardId: string): Flashcard | undefined {
     return this.cards.find(c => c.id === cardId);
+  }
+
+  public getCardsByGroupId(groupId: string): Flashcard[] {
+    return this.cards.filter(c => c.groupId === groupId);
   }
 
   public createCard(
@@ -254,10 +266,13 @@ export class DeckService {
     const deck = this.getDeckById(params.deckId);
     const steps = deck?.settings.learningSteps || [4, 1440, 2880, 7200];
     const now = Date.now();
+    const groupId = createInvertedPair ? `grp-inv-${now}-${Math.random().toString(36).substr(2, 4)}` : params.groupId;
 
     const newCard: Flashcard = {
       ...params,
-      id: `card-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      id: `card-${now}-${Math.random().toString(36).substr(2, 4)}`,
+      groupId,
+      groupTitle: createInvertedPair ? 'Par Invertido' : params.groupTitle,
       isInverted: false,
       state: 'new',
       stepIndex: 0,
@@ -272,13 +287,17 @@ export class DeckService {
 
     this.cards.push(newCard);
 
-    // Si está activada la opción de Tarjetas Invertidas, crear automáticamente la tarjeta inversa (Reverso -> Anverso)
+    // Si está activada la opción de Tarjetas Invertidas, crear la segunda tarjeta inversa (Reverso -> Anverso)
     if (createInvertedPair && params.type !== 'image_occlusion') {
       const invertedCard: Flashcard = {
         ...params,
-        id: `card-${Date.now()}-inv-${Math.random().toString(36).substr(2, 4)}`,
+        id: `card-${now}-inv-${Math.random().toString(36).substr(2, 4)}`,
+        groupId,
+        groupTitle: 'Par Invertido',
         front: params.back,
         back: params.front,
+        frontImage: params.backImage,
+        backImage: params.frontImage,
         isInverted: true,
         state: 'new',
         stepIndex: 0,
@@ -298,7 +317,7 @@ export class DeckService {
   }
 
   /**
-   * Divide un lienzo de oclusión con N máscaras en N flashcards individuales e inteligentes.
+   * Divide un lienzo de oclusión con N máscaras en N flashcards individuales agrupadas bajo un groupId común.
    */
   public createOcclusionCards(
     deckId: string,
@@ -310,11 +329,14 @@ export class DeckService {
     const deck = this.getDeckById(deckId);
     const steps = deck?.settings.learningSteps || [4, 1440, 2880, 7200];
     const now = Date.now();
+    const groupId = `occ-grp-${now}-${Math.random().toString(36).substr(2, 4)}`;
 
     masks.forEach((mask, index) => {
       const card: Flashcard = {
-        id: `card-occ-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 4)}`,
+        id: `card-occ-${now}-${index}-${Math.random().toString(36).substr(2, 4)}`,
         deckId,
+        groupId,
+        groupTitle: `Oclusión (${masks.length} máscaras)`,
         type: 'image_occlusion',
         front: `Identifica la estructura anatómica #${index + 1}:`,
         back: mask.label ? `**${mask.label}**` : `Estructura #${index + 1} revelada.`,
@@ -389,6 +411,11 @@ export class DeckService {
     this.notify();
   }
 
+  public deleteCardGroup(groupId: string): void {
+    this.cards = this.cards.filter(c => c.groupId !== groupId);
+    this.notify();
+  }
+
   // --- CALIFICACIÓN Y ESTADÍSTICAS SRS ---
 
   public reviewCard(cardId: string, rating: StudyRating): Flashcard | undefined {
@@ -398,7 +425,7 @@ export class DeckService {
     const deck = this.getDeckById(card.deckId);
     const settings = deck?.settings || {
       algorithmType: 'custom',
-      learningSteps: [4, 1440, 2880, 7200],
+      learningSteps: [4, 1440, 2880, 7200, 15840, 25920, 41760, 82080, 146880, 246240, 400320, 633600],
       easyBonus: 1.35,
       hardIntervalMultiplier: 1.2,
       newCardsPerDay: 25,
@@ -426,15 +453,17 @@ export class DeckService {
     let masteredCards = 0;
 
     cards.forEach(c => {
+      // Estado para la barra de progreso
       if (c.state === 'new') {
         newCards++;
       } else if (c.state === 'learning' || c.state === 'relearning') {
         learningCards++;
-      } else if (c.intervalMinutes >= 10080) {
+      } else if (c.state === 'review' || c.intervalMinutes >= 10080) {
         masteredCards++;
       }
 
-      if (c.dueDate <= now || c.state === 'new') {
+      // Estrictamente pendientes para hoy (dueDate <= now)
+      if (c.dueDate <= now) {
         dueCards++;
       }
     });

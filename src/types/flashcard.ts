@@ -33,6 +33,11 @@ export interface Flashcard {
   audioText?: string;
   isInverted?: boolean; // True si es una tarjeta invertida (Reverso -> Anverso)
   
+  // Agrupación de Oclusiones Múltiples y Pares Invertidos
+  groupId?: string;
+  groupTitle?: string;
+  groupRole?: 'parent' | 'child';
+
   // SRS Properties
   state: CardReviewState;
   stepIndex: number;
@@ -58,7 +63,7 @@ export interface DeckSettings {
   ttsVoiceLang: string;
   cardStyle?: {
     fontSize?: 'sm' | 'md' | 'lg';
-    fontFamily?: string;
+    theme?: 'oled' | 'liquid_glass' | 'emerald_forest';
   };
 }
 
@@ -67,12 +72,12 @@ export interface Deck {
   parentId?: string | null;
   name: string;
   description: string;
-  icon?: string;
+  icon: string;
   color: string;
-  isArchived?: boolean;
   settings: DeckSettings;
   createdAt: number;
   updatedAt: number;
+  isArchived?: boolean;
 }
 
 export interface DeckStats {

@@ -8,6 +8,7 @@ import { ttsService } from '../services/tts.service';
 export interface FigmaStudyOptions {
   deckId: string;
   specificCardId?: string;
+  forceAllCards?: boolean;
   onExit: () => void;
 }
 
@@ -40,12 +41,13 @@ export class FigmaStudySession {
         this.queue = [specific];
         this.isSingleCardMode = true;
       }
+    } else if (options.forceAllCards) {
+      const all = deckService.getCardsByDeck(options.deckId, true);
+      this.queue = deck.settings.mixCards ? [...all].sort(() => Math.random() - 0.5) : [...all];
     } else {
-      let cards = deckService.getDueCardsByDeck(options.deckId, true);
-      if (cards.length === 0) {
-        cards = deckService.getCardsByDeck(options.deckId, true);
-      }
-      this.queue = deck.settings.mixCards ? [...cards].sort(() => Math.random() - 0.5) : [...cards];
+      // Filtrar estrictamente las tarjetas pendientes para hoy (dueDate <= Date.now())
+      const dueCards = deckService.getDueCardsByDeck(options.deckId, true);
+      this.queue = deck.settings.mixCards ? [...dueCards].sort(() => Math.random() - 0.5) : [...dueCards];
     }
   }
 
@@ -230,7 +232,7 @@ export class FigmaStudySession {
               .map((m) => {
                 const isActive = m.id === card.activeMaskId;
                 if (isActive) {
-                  return `<div class="figma-drawn-mask active-revealed-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:transparent; border:3px solid #84cc16; box-shadow:0 0 20px rgba(132,204,22,0.9);"></div>`;
+                  return `<div class="figma-drawn-mask active-revealed-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:transparent; border:3px solid #10b981; box-shadow:0 0 20px rgba(16,185,129,0.9);"></div>`;
                 }
                 return `<div class="figma-drawn-mask other-hidden-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#1c1d22; border:1px solid #3f3f46;"></div>`;
               })
@@ -387,7 +389,7 @@ export class FigmaStudySession {
             <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.hardCount}</strong>
           </div>
           <div class="apple-list-row" style="padding:14px 20px;">
-            <span style="color:#84cc16; font-weight:700;">🔵 Bien</span>
+            <span style="color:#10b981; font-weight:700;">🔵 Bien</span>
             <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.goodCount}</strong>
           </div>
           <div class="apple-list-row" style="padding:14px 20px;">
@@ -412,14 +414,31 @@ export class FigmaStudySession {
       <div class="cupertino-study-container" style="align-items:center; text-align:center; padding:60px 10px;">
         <div style="font-size:4rem; margin-bottom:12px;">🏆</div>
         <h2 style="font-size:2rem; font-weight:800; color:#ffffff; margin-bottom:8px;">¡Todo al día!</h2>
-        <p style="color:var(--f-text-secondary); margin-bottom:28px; font-size:1rem;">No tienes tarjetas pendientes en este mazo hoy.</p>
-        <button class="figma-btn-blue-pill" id="btn-study-finish-all" style="padding:16px 32px; font-size:1.05rem;">
-          Volver a Mis Mazos
-        </button>
+        <p style="color:var(--f-text-secondary); margin-bottom:28px; font-size:1.05rem; max-width:460px; line-height:1.5;">
+          Has repasado todas las tarjetas programadas para este momento. Tus próximas revisiones se habilitarán automáticamente al cumplirse sus intervalos espaciados.
+        </p>
+
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;">
+          <button class="figma-btn-blue-pill" id="btn-study-finish-all" style="padding:16px 32px; font-size:1.05rem;">
+            Volver a Mis Mazos
+          </button>
+          <button class="apple-btn-secondary" id="btn-study-force-all" style="padding:16px 26px; border-radius:9999px; font-weight:700;">
+            🎯 Repasar mazo completo
+          </button>
+        </div>
       </div>
     `;
+
     document.getElementById('btn-study-finish-all')?.addEventListener('click', () => {
       this.onExitCallback();
+    });
+
+    document.getElementById('btn-study-force-all')?.addEventListener('click', () => {
+      const all = deckService.getCardsByDeck(this.deck.id, true);
+      this.queue = this.deck.settings.mixCards ? [...all].sort(() => Math.random() - 0.5) : [...all];
+      this.currentCardIndex = 0;
+      this.isFlipped = false;
+      this.render(container);
     });
   }
 }
