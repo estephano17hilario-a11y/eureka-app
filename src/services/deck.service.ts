@@ -363,6 +363,85 @@ export class DeckService {
     return created;
   }
 
+  /**
+   * Sincroniza y actualiza un grupo de oclusión existente sin duplicar tarjetas:
+   * 1. Modifica las tarjetas existentes para que tengan la nueva imagen y máscaras.
+   * 2. Si se eliminaron máscaras, elimina las tarjetas sobrantes del grupo.
+   * 3. Si se agregaron nuevas máscaras, crea las tarjetas faltantes para esas máscaras.
+   */
+  public syncOcclusionCards(
+    deckId: string,
+    existingCard: Flashcard,
+    imageSrc: string,
+    masks: OcclusionMask[],
+    mode: OcclusionMode = 'hide_all_reveal_one',
+    frontText?: string
+  ): void {
+    const deck = this.getDeckById(deckId);
+    const steps = deck?.settings.learningSteps || [4, 1440, 2880, 7200];
+    const now = Date.now();
+
+    const groupId = existingCard.groupId || `occ-grp-${now}-${Math.random().toString(36).substr(2, 4)}`;
+    const groupCards = existingCard.groupId ? this.getCardsByGroupId(groupId) : [existingCard];
+
+    // 1. Actualizar o crear tarjetas para cada máscara
+    masks.forEach((mask, index) => {
+      const labelText = mask.label ? `**${mask.label}**` : `Estructura #${index + 1} revelada.`;
+      const front = frontText || `Identifica la estructura anatómica #${index + 1}:`;
+
+      if (index < groupCards.length) {
+        const target = groupCards[index];
+        this.updateCard(target.id, {
+          deckId,
+          groupId,
+          groupTitle: `Oclusión (${masks.length} máscaras)`,
+          type: 'image_occlusion',
+          front,
+          back: labelText,
+          occlusionImage: imageSrc,
+          occlusionMasks: masks,
+          activeMaskId: mask.id,
+          occlusionMode: mode,
+          updatedAt: now
+        });
+      } else {
+        const newCard: Flashcard = {
+          id: `card-occ-${now}-${index}-${Math.random().toString(36).substr(2, 4)}`,
+          deckId,
+          groupId,
+          groupTitle: `Oclusión (${masks.length} máscaras)`,
+          type: 'image_occlusion',
+          front,
+          back: labelText,
+          occlusionImage: imageSrc,
+          occlusionMasks: masks,
+          activeMaskId: mask.id,
+          occlusionMode: mode,
+          isInverted: false,
+          state: 'new',
+          stepIndex: 0,
+          intervalMinutes: steps[0] || 4,
+          easeFactor: 2.50,
+          lapses: 0,
+          reps: 0,
+          dueDate: now + index * 5,
+          createdAt: now + index,
+          updatedAt: now + index
+        };
+        this.cards.push(newCard);
+      }
+    });
+
+    // 2. Si se eliminaron máscaras en el editor, eliminar las tarjetas sobrantes del grupo
+    if (masks.length < groupCards.length) {
+      const cardsToDelete = groupCards.slice(masks.length).map(c => c.id);
+      const deleteSet = new Set(cardsToDelete);
+      this.cards = this.cards.filter(c => !deleteSet.has(c.id));
+    }
+
+    this.notify();
+  }
+
   public importBatchCards(deckId: string, rawText: string): number {
     const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
     let count = 0;

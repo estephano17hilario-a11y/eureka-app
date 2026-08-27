@@ -37,7 +37,7 @@ export function openImageOcclusionModal(options: ImageOcclusionModalOptions): vo
           <div style="display:flex; align-items:center; gap:12px;">
             <button class="figma-btn-ghost" id="btn-cancel-occlusion">Cancelar</button>
             <button class="figma-btn-blue-pill" id="btn-confirm-occlusion" style="padding:10px 22px;">
-              <span id="btn-confirm-text">✨ Generar ${masks.length || 1} Tarjetas</span>
+              <span id="btn-confirm-text">✓ Listo</span>
             </button>
           </div>
         </div>
@@ -110,7 +110,7 @@ export function openImageOcclusionModal(options: ImageOcclusionModalOptions): vo
 
   const updateHeaderInfo = () => {
     if (lblActive) lblActive.textContent = `Máscaras activas: ${masks.length}`;
-    if (btnConfirmText) btnConfirmText.textContent = `✨ Generar ${Math.max(1, masks.length)} Tarjetas`;
+    if (btnConfirmText) btnConfirmText.textContent = `✓ Listo (${masks.length} máscaras)`;
   };
 
   const renderMasks = () => {

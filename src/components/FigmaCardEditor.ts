@@ -40,8 +40,9 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
           </button>
 
-          <button class="cupertino-btn-check-save" id="btn-save-card-check" title="Guardar tarjeta">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#090a0d" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <button class="cupertino-btn-check-save" id="btn-save-card-check" style="width:auto; padding:0 20px; gap:8px; font-weight:800; font-size:0.95rem; color:#07080a;" title="${editCard ? 'Confirmar cambios' : 'Crear'}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#07080a" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>${editCard ? 'Confirmar cambios' : 'Crear'}</span>
           </button>
         </div>
       </div>
@@ -330,16 +331,11 @@ export function bindFigmaCardEditorEvents(
       initialMasks: occlusionMasks,
       initialMode: currentOcclusionMode,
       onConfirm: (img, masks, mode) => {
-        if (masks.length > 0) {
-          deckService.createOcclusionCards(deck.id, img, masks, mode);
-          callbacks.onSaved();
-        } else {
-          occlusionImage = img;
-          frontImage = img;
-          occlusionMasks = masks;
-          currentOcclusionMode = mode;
-          updateThumbnailBoxes();
-        }
+        occlusionImage = img;
+        frontImage = img;
+        occlusionMasks = masks;
+        currentOcclusionMode = mode;
+        updateThumbnailBoxes();
       },
       onClose: () => {}
     });
@@ -433,35 +429,55 @@ export function bindFigmaCardEditorEvents(
     const cardType = isOcclusion ? 'image_occlusion' : isLatex ? 'latex' : 'standard';
 
     if (editCard) {
-      deckService.updateCard(editCard.id, {
-        deckId: deck.id,
-        type: cardType,
-        front,
-        back,
-        frontImage,
-        backImage,
-        occlusionImage: isOcclusion ? occlusionImage : undefined,
-        occlusionMasks: isOcclusion ? occlusionMasks : undefined,
-        activeMaskId: isOcclusion && occlusionMasks[0] ? occlusionMasks[0].id : undefined,
-        occlusionMode: currentOcclusionMode
-      });
-      callbacks.onSaved();
-    } else {
-      deckService.createCard(
-        {
+      if (isOcclusion) {
+        deckService.syncOcclusionCards(
+          deck.id,
+          editCard,
+          occlusionImage || frontImage || '',
+          occlusionMasks,
+          currentOcclusionMode,
+          front
+        );
+      } else {
+        deckService.updateCard(editCard.id, {
           deckId: deck.id,
           type: cardType,
           front,
           back,
           frontImage,
           backImage,
-          occlusionImage: isOcclusion ? occlusionImage : undefined,
-          occlusionMasks: isOcclusion ? occlusionMasks : undefined,
-          activeMaskId: isOcclusion && occlusionMasks[0] ? occlusionMasks[0].id : undefined,
+          occlusionImage: undefined,
+          occlusionMasks: undefined,
+          activeMaskId: undefined,
           occlusionMode: currentOcclusionMode
-        },
-        createInverted
-      );
+        });
+      }
+      callbacks.onSaved();
+    } else {
+      if (isOcclusion) {
+        deckService.createOcclusionCards(
+          deck.id,
+          occlusionImage || frontImage || HEART_ANATOMY_SVG_URI,
+          occlusionMasks,
+          currentOcclusionMode
+        );
+      } else {
+        deckService.createCard(
+          {
+            deckId: deck.id,
+            type: cardType,
+            front,
+            back,
+            frontImage,
+            backImage,
+            occlusionImage: undefined,
+            occlusionMasks: undefined,
+            activeMaskId: undefined,
+            occlusionMode: currentOcclusionMode
+          },
+          createInverted
+        );
+      }
 
       // Solicitud #5: Mantenerse en el cuadro de creación al crear tarjeta
       // Mostrar feedback visual y limpiar campos para la siguiente tarjeta

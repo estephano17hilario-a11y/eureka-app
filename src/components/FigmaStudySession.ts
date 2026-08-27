@@ -22,6 +22,7 @@ export class FigmaStudySession {
   private isFlipped: boolean = false;
   private isSingleCardMode: boolean = false;
   private isTypeAnswerMode: boolean = false;
+  private isGameActive: boolean = false;
   private typedAnswer: string = '';
   private onExitCallback: () => void;
   private onEditCardCallback?: (cardId: string) => void;
@@ -43,11 +44,17 @@ export class FigmaStudySession {
     this.onEditCardCallback = options.onEditCard;
 
     if (options.specificCardId) {
-      const specific = deckService.getCardById(options.specificCardId);
-      if (specific) {
-        this.queue = [specific];
-        this.isSingleCardMode = true;
+      // Solicitud #2: Al dar clic a una flashcard específica en el mazo, cargar las tarjetas del mazo para poder rotar entre anteriores y siguientes
+      const allCards = deckService.getCardsByDeck(options.deckId, true);
+      const targetIdx = allCards.findIndex((c) => c.id === options.specificCardId);
+      if (targetIdx !== -1) {
+        this.queue = allCards;
+        this.currentCardIndex = targetIdx;
+      } else {
+        const specific = deckService.getCardById(options.specificCardId);
+        if (specific) this.queue = [specific];
       }
+      this.isSingleCardMode = false;
     } else if (options.forceAllCards) {
       const all = deckService.getCardsByDeck(options.deckId, true);
       this.queue = deck.settings.mixCards ? [...all].sort(() => Math.random() - 0.5) : [...all];
@@ -110,32 +117,42 @@ export class FigmaStudySession {
           </div>
         </div>
 
-        <!-- Main Card Canvas (Responsive, Auto-Height, No Cut-Off Images) -->
-        <div class="cupertino-flashcard-box" id="f-study-scene">
-          
-          <!-- Top 3-dots icon for Card Actions / Editing -->
-          <div class="cupertino-card-top-action">
-            <button class="cupertino-btn-card-menu" id="btn-card-more-action" title="Editar o gestionar tarjeta">⋮</button>
-          </div>
+        <!-- Main Card Canvas with Lateral Navigation Arrows -->
+        <div class="cupertino-study-arena-row">
+          <button class="cupertino-nav-arrow left" id="btn-nav-prev-card" title="Tarjeta anterior (←)" ${this.currentCardIndex === 0 ? 'style="opacity:0.25; pointer-events:none;"' : ''}>
+            ‹
+          </button>
 
-          <!-- Card Content (Front or Back) -->
-          <div class="cupertino-card-body-content">
+          <div class="cupertino-flashcard-box" id="f-study-scene">
+            
+            <!-- Top 3-dots icon for Card Actions / Editing -->
+            <div class="cupertino-card-top-action">
+              <button class="cupertino-btn-card-menu" id="btn-card-more-action" title="Editar o gestionar tarjeta">⋮</button>
+            </div>
+
+            <!-- Card Content (Front or Back) -->
+            <div class="cupertino-card-body-content">
+              ${
+                !this.isFlipped
+                  ? this.renderFrontContent(currentCard)
+                  : this.renderBackContent(currentCard)
+              }
+            </div>
+
             ${
-              !this.isFlipped
-                ? this.renderFrontContent(currentCard)
-                : this.renderBackContent(currentCard)
+              !this.isFlipped && !this.isTypeAnswerMode
+                ? `
+              <div class="cupertino-card-hint-text">
+                Toca la tarjeta o presiona Espacio para voltear
+              </div>
+            `
+                : ''
             }
           </div>
 
-          ${
-            !this.isFlipped && !this.isTypeAnswerMode
-              ? `
-            <div class="cupertino-card-hint-text">
-              Toca la tarjeta o presiona Espacio para voltear
-            </div>
-          `
-              : ''
-          }
+          <button class="cupertino-nav-arrow right" id="btn-nav-next-card" title="Siguiente tarjeta (→)" ${this.currentCardIndex >= this.queue.length - 1 ? 'style="opacity:0.25; pointer-events:none;"' : ''}>
+            ›
+          </button>
         </div>
 
         <!-- Bottom Controls matching Image 3 & Image 5 -->
@@ -143,7 +160,7 @@ export class FigmaStudySession {
           ${
             !this.isFlipped
               ? `
-            <!-- Control Bar Front: [⌨ Escribir respuesta] [Mostrar respuesta] [↶ Deshacer] -->
+            <!-- Control Bar Front: [⌨ Escribir respuesta] [Mostrar respuesta] -->
             <div class="cupertino-front-controls-row">
               <button class="cupertino-icon-square ${this.isTypeAnswerMode ? 'active-keyboard-mode' : ''}" id="btn-toggle-type-mode" title="Escribir la respuesta (Modo teclado)">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="18" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
@@ -151,10 +168,6 @@ export class FigmaStudySession {
 
               <button class="cupertino-btn-show-answer" id="btn-f-show-answer">
                 ${this.isTypeAnswerMode ? 'Comprobar respuesta' : 'Mostrar respuesta'}
-              </button>
-
-              <button class="cupertino-icon-square" id="btn-undo-card" title="Deshacer última tarjeta">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
               </button>
             </div>
           `
@@ -471,10 +484,21 @@ export class FigmaStudySession {
       }
     });
 
-    // Undo button
-    document.getElementById('btn-undo-card')?.addEventListener('click', () => {
+    // Solicitud #2: Flechas laterales para rotar entre flashcard y flashcards
+    document.getElementById('btn-nav-prev-card')?.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (this.currentCardIndex > 0) {
         this.currentCardIndex--;
+        this.isFlipped = false;
+        this.typedAnswer = '';
+        this.render(container);
+      }
+    });
+
+    document.getElementById('btn-nav-next-card')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (this.currentCardIndex < this.queue.length - 1) {
+        this.currentCardIndex++;
         this.isFlipped = false;
         this.typedAnswer = '';
         this.render(container);
@@ -497,11 +521,41 @@ export class FigmaStudySession {
       });
     });
 
-    // Keyboard controls (Solicitud #6)
+    // Keyboard controls (Solicitud #6 y Solicitud #3 de juego bloqueado)
     window.onkeydown = (e: KeyboardEvent) => {
-      // If typing in an input and pressing non-enter keys, allow normal typing
+      // Si el juego está activo o hay un modal abierto, bloquear completamente las teclas de fondo
+      if (
+        this.isGameActive ||
+        document.getElementById('modal-microgame-root') ||
+        document.querySelector('.apple-modal-overlay') ||
+        document.querySelector('.modal-backdrop')
+      ) {
+        return;
+      }
+
       const activeEl = document.activeElement;
       const isInputActive = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+
+      // Flechas del teclado para navegar entre flashcards
+      if (e.key === 'ArrowLeft') {
+        if (!isInputActive && this.currentCardIndex > 0) {
+          e.preventDefault();
+          this.currentCardIndex--;
+          this.isFlipped = false;
+          this.typedAnswer = '';
+          this.render(container);
+          return;
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (!isInputActive && this.currentCardIndex < this.queue.length - 1) {
+          e.preventDefault();
+          this.currentCardIndex++;
+          this.isFlipped = false;
+          this.typedAnswer = '';
+          this.render(container);
+          return;
+        }
+      }
 
       if (!this.isFlipped) {
         if (e.code === 'Space' || e.code === 'Enter') {
@@ -526,13 +580,6 @@ export class FigmaStudySession {
         } else if (e.code === 'Space' || e.code === 'Enter') {
           e.preventDefault();
           this.handleRating('good', container);
-        } else if (e.key === 'z' || e.key === 'Z') {
-          if (this.currentCardIndex > 0) {
-            this.currentCardIndex--;
-            this.isFlipped = false;
-            this.typedAnswer = '';
-            this.render(container);
-          }
         }
       }
     };
@@ -566,10 +613,12 @@ export class FigmaStudySession {
     const hasMoreCards = this.currentCardIndex < this.queue.length;
 
     if (isEnabled && interval > 0 && this.sessionStats.totalReviewed > 0 && this.sessionStats.totalReviewed % interval === 0 && hasMoreCards) {
+      this.isGameActive = true;
       openMicroGameModal({
         streakCount: this.sessionStats.totalReviewed,
         gameType: this.deck.settings.preferredMicroGame || 'all',
         onContinue: () => {
+          this.isGameActive = false;
           this.render(container);
         }
       });
