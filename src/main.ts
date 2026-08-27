@@ -129,19 +129,71 @@ class EurekaFigmaApp {
     });
   }
 
-  private promptCreateDeck(parentId?: string): void {
+  private handleOpenAddMenu(parentId?: string | null): void {
+    nativeService.triggerHaptics('light');
+    const parent = parentId ? deckService.getDeckById(parentId) : undefined;
+    dialogService.showCreateChoiceModal({
+      parentName: parent?.name,
+      onChoice: (choice) => {
+        if (choice === 'folder') {
+          this.promptCreateFolder(parentId || null);
+        } else {
+          this.promptCreateDeck(parentId || null);
+        }
+      }
+    });
+  }
+
+  private promptCreateFolder(parentId: string | null): void {
     const parent = parentId ? deckService.getDeckById(parentId) : undefined;
     dialogService.showPrompt({
-      title: parent ? `Nuevo Submazo en "${parent.name}"` : 'Crear Nuevo Mazo',
-      placeholder: 'Nombre del mazo...',
+      title: parent ? `Nueva Carpeta en "${parent.name}"` : 'Nueva Carpeta',
+      placeholder: 'Nombre de la carpeta (ej. Matemáticas, Anatomía)...',
+      confirmText: 'Crear Carpeta',
+      onConfirm: (name) => {
+        if (name && name.trim()) {
+          const newFolder = deckService.createDeck({
+            name: name.trim(),
+            parentId: parentId,
+            icon: 'folder',
+            color: '#38bdf8'
+          });
+          this.showToast(`📁 Carpeta "${name}" creada`);
+          if (parentId) {
+            this.selectedRootDeckId = parentId;
+            this.currentView = 'subdeck';
+          } else {
+            this.selectedRootDeckId = newFolder.id;
+            this.currentView = 'root';
+          }
+          this.render();
+        }
+      }
+    });
+  }
+
+  private promptCreateDeck(parentId: string | null): void {
+    const parent = parentId ? deckService.getDeckById(parentId) : undefined;
+    dialogService.showPrompt({
+      title: parent ? `Nuevo Mazo en "${parent.name}"` : 'Nuevo Mazo de Flashcards',
+      placeholder: 'Nombre del mazo (ej. Fórmulas, Huesos)...',
       confirmText: 'Crear Mazo',
       onConfirm: (name) => {
         if (name && name.trim()) {
-          deckService.createDeck({
+          const newDeck = deckService.createDeck({
             name: name.trim(),
-            parentId: parentId || null
+            parentId: parentId,
+            icon: 'deck',
+            color: '#a855f7'
           });
-          this.showToast(`Mazo "${name}" creado con éxito`);
+          this.showToast(`🎴 Mazo "${name}" creado`);
+          this.selectedSubdeckId = newDeck.id;
+          if (parentId) {
+            this.selectedRootDeckId = parentId;
+          } else {
+            this.selectedRootDeckId = newDeck.id;
+          }
+          this.currentView = 'dashboard';
           this.render();
         }
       }
@@ -398,18 +450,7 @@ class EurekaFigmaApp {
           }
           this.render();
         },
-        onAddCard: () => {
-          nativeService.triggerHaptics('light');
-          this.editingCardId = null;
-          this.currentView = 'editor';
-          this.render();
-        },
-        onCreateDeck: () => this.promptCreateDeck(),
-        onImportBatch: () => this.openBatchImport(this.selectedSubdeckId),
-        onManageDecks: () => {
-          this.currentView = 'deck_settings';
-          this.render();
-        }
+        onAdd: () => this.handleOpenAddMenu(null)
       });
     }
 
@@ -426,12 +467,7 @@ class EurekaFigmaApp {
           this.currentView = 'dashboard';
           this.render();
         },
-        onAddCard: () => {
-          this.editingCardId = null;
-          this.currentView = 'editor';
-          this.render();
-        },
-        onImportBatch: (deckId) => this.openBatchImport(deckId),
+        onAdd: (parentId) => this.handleOpenAddMenu(parentId),
         onConfigureDeck: () => {
           this.currentView = 'deck_settings';
           this.render();

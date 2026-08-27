@@ -364,6 +364,75 @@ export class DialogService {
       if (e.target === modal) closeModal();
     });
   }
+
+  /**
+   * Modal elegante para elegir agregar Carpeta o Mazo
+   */
+  public showCreateChoiceModal(options: {
+    parentName?: string;
+    onChoice: (choice: 'folder' | 'deck') => void;
+  }): void {
+    const modal = document.createElement('div');
+    modal.className = 'apple-modal-overlay';
+    modal.innerHTML = `
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <div>
+            <h3 style="font-size:1.3rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">
+              ¿Qué deseas agregar?
+            </h3>
+            <p style="font-size:0.85rem; color:var(--f-text-secondary); margin-top:2px;">
+              ${options.parentName ? `Dentro de "${options.parentName}"` : 'Selecciona el tipo de elemento'}
+            </p>
+          </div>
+          <button id="btn-choice-close-x" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.4rem; cursor:pointer; padding:4px;">✕</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:12px;">
+          <!-- Opción Carpeta -->
+          <div class="apple-glass-panel create-choice-card" id="btn-choice-folder" style="cursor:pointer; padding:16px; border-radius:14px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); display:flex; align-items:center; gap:14px; transition:all 0.18s ease;">
+            <div style="width:44px; height:44px; border-radius:12px; background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.25); color:#38bdf8; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:1rem; font-weight:800; color:#ffffff;">Carpeta</div>
+              <div style="font-size:0.82rem; color:var(--f-text-secondary); margin-top:2px;">Para organizar tus materias, temas o mazos</div>
+            </div>
+            <span style="color:var(--f-text-muted); font-size:1.3rem;">›</span>
+          </div>
+
+          <!-- Opción Mazo -->
+          <div class="apple-glass-panel create-choice-card" id="btn-choice-deck" style="cursor:pointer; padding:16px; border-radius:14px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); display:flex; align-items:center; gap:14px; transition:all 0.18s ease;">
+            <div style="width:44px; height:44px; border-radius:12px; background:rgba(168,85,247,0.14); border:1px solid rgba(168,85,247,0.25); color:#a855f7; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:1rem; font-weight:800; color:#ffffff;">Mazo</div>
+              <div style="font-size:0.82rem; color:var(--f-text-secondary); margin-top:2px;">Donde estarán las flashcards y el estudio</div>
+            </div>
+            <span style="color:var(--f-text-muted); font-size:1.3rem;">›</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () => modal.remove();
+
+    modal.querySelector('#btn-choice-close-x')?.addEventListener('click', closeModal);
+    modal.querySelector('#btn-choice-folder')?.addEventListener('click', () => {
+      closeModal();
+      options.onChoice('folder');
+    });
+    modal.querySelector('#btn-choice-deck')?.addEventListener('click', () => {
+      closeModal();
+      options.onChoice('deck');
+    });
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
 }
 
 export const dialogService = DialogService.getInstance();
