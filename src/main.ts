@@ -14,6 +14,7 @@ import { renderFigmaAlgorithmSelectorView, bindFigmaAlgorithmSelectorViewEvents 
 import { renderFigmaLearningPhaseView, bindFigmaLearningPhaseViewEvents } from './components/FigmaLearningPhaseView';
 import { renderFigmaAppSettingsView, bindFigmaAppSettingsViewEvents } from './components/FigmaAppSettingsView';
 import { FigmaStudySession } from './components/FigmaStudySession';
+import { dialogService } from './services/dialog.service';
 import { openFigmaBatchImportModal } from './components/FigmaBatchImportModal';
 import { openFigmaAiBuilderModal } from './components/FigmaAiBuilderModal';
 
@@ -119,15 +120,21 @@ class EurekaFigmaApp {
 
   private promptCreateDeck(parentId?: string): void {
     const parent = parentId ? deckService.getDeckById(parentId) : undefined;
-    const name = prompt(parent ? `Nuevo Submazo en "${parent.name}":` : 'Nombre del nuevo mazo:');
-    if (name && name.trim()) {
-      deckService.createDeck({
-        name: name.trim(),
-        parentId: parentId || null
-      });
-      this.showToast(`Mazo "${name}" creado`);
-      this.render();
-    }
+    dialogService.showPrompt({
+      title: parent ? `Nuevo Submazo en "${parent.name}"` : 'Crear Nuevo Mazo',
+      placeholder: 'Nombre del mazo...',
+      confirmText: 'Crear Mazo',
+      onConfirm: (name) => {
+        if (name && name.trim()) {
+          deckService.createDeck({
+            name: name.trim(),
+            parentId: parentId || null
+          });
+          this.showToast(`Mazo "${name}" creado con éxito`);
+          this.render();
+        }
+      }
+    });
   }
 
   public render(): void {

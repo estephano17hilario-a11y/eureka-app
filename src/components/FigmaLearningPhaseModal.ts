@@ -1,5 +1,7 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
+import { srsService } from '../services/srs.service';
+import { dialogService } from '../services/dialog.service';
 
 export interface FigmaLearningPhaseOptions {
   deck: Deck;
@@ -29,66 +31,69 @@ export function openFigmaLearningPhaseModal(options: FigmaLearningPhaseOptions):
     { label: '440 días', minutes: 633600 }
   ];
 
-  let currentSteps = [...default12Steps];
+  let currentSteps = deck.settings.learningSteps && deck.settings.learningSteps.length > 0
+    ? deck.settings.learningSteps.map((m) => ({
+        label: srsService.formatMinutesToHuman(m),
+        minutes: m
+      }))
+    : default12Steps;
 
-  const modalHtml = `
-    <div class="modal-backdrop figma-modal-backdrop" id="modal-learning-phase-root">
-      <div class="apple-glass-modal" style="max-width:620px; max-height:92vh; display:flex; flex-direction:column;">
-        
-        <!-- Header -->
-        <div class="figma-modal-header" style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.06);">
-          <div style="width:100%; display:flex; align-items:center; justify-content:space-between;">
-            <button class="apple-btn-outline-pill" id="btn-how-it-works">
-              ¿Cómo funciona el algoritmo?
-            </button>
-            <button class="figma-btn-ghost" id="btn-close-learning-phase">×</button>
-          </div>
-        </div>
-
-        <div style="padding:24px; overflow-y:auto; display:flex; flex-direction:column; gap:16px;">
-          
-          <div>
-            <h2 style="font-size:1.5rem; font-weight:800; color:#ffffff; margin-bottom:6px;">Fase de aprendizaje</h2>
-            <div style="font-size:0.95rem; font-weight:700; color:#fff; margin-bottom:4px;">Pasos del aprendizaje</div>
-            <p style="font-size:0.82rem; color:var(--f-text-secondary); line-height:1.45;">
-              Durante la fase de aprendizaje, una tarjeta progresa a través de una serie de pasos de longitud fija. Cuando presionas <strong>Bien</strong>, la tarjeta pasa al siguiente paso de aprendizaje hasta que se gradúa.
-            </p>
-          </div>
-
-          <!-- Steps List (Foto 4) -->
-          <div id="learning-steps-list-mount" style="display:flex; flex-direction:column; gap:4px; border-top:1px solid rgba(255,255,255,0.06); padding-top:12px;">
-          </div>
-
-          <!-- Add step button -->
-          <button class="apple-btn-secondary" id="btn-add-review-step" style="padding:12px; border-radius:12px; font-weight:700; font-size:0.9rem;">
-            + Agregar paso de revisión
+  const modal = document.createElement('div');
+  modal.id = 'modal-learning-phase-root';
+  modal.className = 'apple-modal-overlay';
+  modal.innerHTML = `
+    <div class="apple-modal-content apple-glass-panel" style="max-width:540px; width:92%; max-height:90vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+      
+      <!-- Modal Header (Foto 4) -->
+      <div style="padding:20px 24px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <button class="apple-btn-outline-pill" id="btn-how-it-works" style="font-size:0.75rem; padding:4px 12px; margin-bottom:6px;">
+            ¿Cómo funciona el algoritmo?
           </button>
-
+          <h2 style="font-size:1.5rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">Fase de aprendizaje</h2>
+          <div style="font-size:0.95rem; font-weight:700; color:#fff; margin-top:2px;">Pasos del aprendizaje</div>
         </div>
-
-        <!-- Footer -->
-        <div style="padding:16px 24px; border-top:1px solid rgba(255,255,255,0.06); background:var(--f-surface-subtle);">
-          <button class="apple-btn-primary" id="btn-save-learning-steps" style="width:100%; padding:14px; border-radius:14px; font-size:1.02rem; justify-content:center;">
-            🔒 Guardar los cambios
-          </button>
-        </div>
-
+        <button id="btn-close-learning-phase" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.5rem; cursor:pointer; padding:4px;">✕</button>
       </div>
+
+      <!-- Content Scrollable List -->
+      <div style="flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:16px;">
+        <p style="font-size:0.85rem; color:var(--f-text-secondary); line-height:1.4;">
+          Durante la fase de aprendizaje, una tarjeta progresa a través de una serie de pasos de longitud fija. Cuando presionas <strong style="color:var(--f-green);">Bien</strong>, la tarjeta pasa al siguiente paso de aprendizaje hasta que se gradúa.
+        </p>
+
+        <!-- Steps List (Foto 4) -->
+        <div id="learning-phase-steps-mount" class="apple-card-grouped" style="padding:4px 0;">
+        </div>
+
+        <!-- Add Step button -->
+        <button class="apple-btn-secondary" id="btn-add-review-step" style="padding:12px; border-radius:12px; font-weight:700;">
+          + Agregar paso de revisión
+        </button>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding:16px 24px 24px; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:flex-end;">
+        <button class="apple-btn-primary" id="btn-save-learning-steps" style="width:100%; padding:14px; border-radius:14px; font-size:1rem; justify-content:center; background:var(--f-blue); color:#07080a; font-weight:800;">
+          🔒 Guardar los cambios
+        </button>
+      </div>
+
     </div>
   `;
 
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.body.appendChild(modal);
 
-  const mount = document.getElementById('learning-steps-list-mount');
+  const mount = modal.querySelector('#learning-phase-steps-mount');
 
   const renderSteps = () => {
     if (!mount) return;
     mount.innerHTML = currentSteps
       .map(
         (step, idx) => `
-      <div class="apple-step-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 6px; border-bottom:1px solid rgba(255,255,255,0.03);">
-        <div style="font-size:0.98rem; font-weight:600; color:#ffffff;">
-          Revisión ${idx + 1}: <span style="color:var(--f-blue); font-weight:700; margin-left:4px;">${step.label}</span>
+      <div class="apple-list-row" style="padding:12px 16px;">
+        <div style="font-size:0.95rem; font-weight:600; color:#fff;">
+          Revisión ${idx + 1}: <span style="color:var(--f-blue); font-weight:800; margin-left:6px;">${step.label}</span>
         </div>
         ${
           idx > 0
@@ -111,21 +116,28 @@ export function openFigmaLearningPhaseModal(options: FigmaLearningPhaseOptions):
 
   renderSteps();
 
-  // Add step
+  // Add step with Custom Days/Hours/Minutes Picker
   document.getElementById('btn-add-review-step')?.addEventListener('click', () => {
-    const val = prompt('Nuevo intervalo (ej: 600 días, 30 días, 12 horas):', '600 días');
-    if (val && val.trim()) {
-      currentSteps.push({
-        label: val.trim(),
-        minutes: 600 * 1440
-      });
-      renderSteps();
-    }
+    dialogService.showIntervalPicker({
+      title: 'Nuevo Paso de Revisión',
+      subtitle: 'Configura el intervalo en días, horas o minutos:',
+      initialMinutes: 864000,
+      onConfirm: (totalMinutes) => {
+        currentSteps.push({
+          label: srsService.formatMinutesToHuman(totalMinutes),
+          minutes: totalMinutes
+        });
+        renderSteps();
+      }
+    });
   });
 
   // How it works
   document.getElementById('btn-how-it-works')?.addEventListener('click', () => {
-    alert('Algoritmo de intervalos fijos: Cada respuesta correcta ("Bien" o "Fácil") traslada la tarjeta a la siguiente etapa de revisión. Al responder "Muy Difícil", la tarjeta vuelve al paso 1.');
+    dialogService.showAlert({
+      title: 'Algoritmo de Intervalos Fijos',
+      message: 'Cada respuesta correcta ("Bien" o "Fácil") traslada la tarjeta a la siguiente etapa de revisión secuencial.\n\nAl responder "Muy Difícil", la tarjeta regresa al paso 1 para consolidar la memoria.'
+    });
   });
 
   // Save

@@ -2,6 +2,7 @@ import type { CardType, Flashcard } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
 import { ttsService } from '../services/tts.service';
+import { dialogService } from '../services/dialog.service';
 import { ImageOcclusionEditor } from './ImageOcclusionEditor';
 
 export function renderCardEditorModal(initialDeckId?: string, editCard?: Flashcard): string {
@@ -287,10 +288,18 @@ export function bindCardEditorModalEvents(
 
   // Delete card
   document.getElementById('btn-delete-card')?.addEventListener('click', () => {
-    if (editCard && confirm('¿Eliminar esta flashcard?')) {
-      deckService.deleteCard(editCard.id);
-      modal.remove();
-      onSave();
+    if (editCard) {
+      dialogService.showConfirm({
+        title: 'Eliminar Flashcard',
+        message: '¿Estás seguro de eliminar esta flashcard definitivamente?',
+        confirmText: 'Eliminar',
+        isDanger: true,
+        onConfirm: () => {
+          deckService.deleteCard(editCard.id);
+          modal.remove();
+          onSave();
+        }
+      });
     }
   });
 

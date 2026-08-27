@@ -1,6 +1,7 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { srsService } from '../services/srs.service';
+import { dialogService } from '../services/dialog.service';
 
 export interface FigmaLearningPhaseViewCallbacks {
   onBack: () => void;
@@ -48,7 +49,7 @@ export function renderFigmaLearningPhaseView(deck: Deck): string {
 
         <!-- Save button -->
         <div style="margin-top:12px; padding-bottom:30px;">
-          <button class="apple-btn-primary" id="btn-view-save-steps" style="width:100%; padding:16px; border-radius:16px; font-size:1.05rem; justify-content:center; background:#475569;">
+          <button class="apple-btn-primary" id="btn-view-save-steps" style="width:100%; padding:16px; border-radius:16px; font-size:1.05rem; justify-content:center; background:var(--f-blue); color:#07080a; font-weight:800;">
             🔒 Guardar los cambios
           </button>
         </div>
@@ -95,18 +96,20 @@ export function bindFigmaLearningPhaseViewEvents(
       )
       .join('');
 
-    // Inline edit step click
+    // Inline edit step click with Custom Days/Hours/Minutes Picker
     mount.querySelectorAll('.apple-step-editable-row').forEach((row) => {
       row.addEventListener('click', (e) => {
         if ((e.target as HTMLElement).classList.contains('btn-del-step')) return;
         const idx = parseInt((row as HTMLElement).dataset.stepIndex || '0', 10);
-        const currentHuman = srsService.formatMinutesToHuman(steps[idx]);
-        const val = prompt(`Modificar tiempo para Revisión ${idx + 1} (ej: 4m, 1d, 2 días, 5 días, 1 mes):`, currentHuman);
-        if (val && val.trim()) {
-          const newMin = srsService.parseTimeToMinutes(val);
-          steps[idx] = newMin;
-          renderStepsList();
-        }
+        dialogService.showIntervalPicker({
+          title: `Modificar Revisión ${idx + 1}`,
+          subtitle: 'Ajusta el tiempo exacto en días, horas y minutos:',
+          initialMinutes: steps[idx],
+          onConfirm: (newMinutes) => {
+            steps[idx] = newMinutes;
+            renderStepsList();
+          }
+        });
       });
     });
 
@@ -123,19 +126,25 @@ export function bindFigmaLearningPhaseViewEvents(
 
   renderStepsList();
 
-  // Add step
+  // Add step with Custom Days/Hours/Minutes Picker
   container.querySelector('#btn-view-add-step')?.addEventListener('click', () => {
-    const val = prompt('Nuevo intervalo de revisión (ej: 600 días, 30 días, 12 horas, 10 min):', '600 días');
-    if (val && val.trim()) {
-      const newMin = srsService.parseTimeToMinutes(val);
-      steps.push(newMin);
-      renderStepsList();
-    }
+    dialogService.showIntervalPicker({
+      title: 'Agregar Nuevo Paso de Revisión',
+      subtitle: 'Configura el intervalo para el nuevo escalón:',
+      initialMinutes: 864000, // 600 días
+      onConfirm: (newMinutes) => {
+        steps.push(newMinutes);
+        renderStepsList();
+      }
+    });
   });
 
   // How it works
   container.querySelector('#btn-view-how-it-works')?.addEventListener('click', () => {
-    alert('Algoritmo de Fases de Aprendizaje Noji / Anki:\n\n1. Cada tarjeta inicia en el paso 1.\n2. Al calificar "Bien" o "Fácil", avanza secuencialmente a la siguiente revisión.\n3. Al calificar "Muy Difícil", regresa al paso 1 para consolidar la memoria.\n4. Puedes editar cualquiera de los 12 pasos tocando sobre él.');
+    dialogService.showAlert({
+      title: '¿Cómo funciona el algoritmo?',
+      message: '1. Cada tarjeta inicia en la Revisión 1.\n2. Al calificar "Bien" o "Fácil", la tarjeta avanza secuencialmente al siguiente escalón de repaso.\n3. Al responder "Muy Difícil", regresa al paso 1 para consolidar la retención.\n4. Puedes personalizar cualquiera de los pasos tocando sobre él y ajustando días, horas o minutos.'
+    });
   });
 
   // Save changes

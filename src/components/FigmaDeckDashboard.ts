@@ -1,6 +1,7 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
+import { dialogService } from '../services/dialog.service';
 
 export interface FigmaDashboardCallbacks {
   onBackToSubdecks: () => void;
@@ -401,7 +402,10 @@ export function bindFigmaDashboardEvents(
 
   // Share
   container.querySelector('#btn-dash-share')?.addEventListener('click', () => {
-    alert(`Enlace para compartir mazo "${deck.name}":\nhttps://eureka.app/deck/${deck.id}`);
+    dialogService.showAlert({
+      title: `Compartir "${deck.name}"`,
+      message: `Enlace para compartir este mazo:\nhttps://eureka.app/deck/${deck.id}`
+    });
   });
 
   // Estado de Selección Múltiple (Activado por Long-Press)
@@ -475,11 +479,17 @@ export function bindFigmaDashboardEvents(
   // Batch Delete
   container.querySelector('#btn-batch-delete-action')?.addEventListener('click', () => {
     if (selectedCards.size === 0) return;
-    if (confirm(`¿Estás seguro de eliminar ${selectedCards.size} tarjeta(s) definitivamente?`)) {
-      deckService.deleteCards(Array.from(selectedCards));
-      selectedCards.clear();
-      updateBatchDock();
-    }
+    dialogService.showConfirm({
+      title: 'Eliminar Tarjetas',
+      message: `¿Estás seguro de eliminar ${selectedCards.size} tarjeta(s) definitivamente? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      isDanger: true,
+      onConfirm: () => {
+        deckService.deleteCards(Array.from(selectedCards));
+        selectedCards.clear();
+        updateBatchDock();
+      }
+    });
   });
 
   // Batch Invert / Toggle Reverse

@@ -1,5 +1,6 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
+import { dialogService } from '../services/dialog.service';
 
 export interface FigmaDeckSettingsViewCallbacks {
   onBack: () => void;
@@ -71,26 +72,55 @@ export function renderFigmaDeckSettingsView(deck: Deck): string {
               <span style="color:var(--f-blue); font-weight:800; font-size:1.05rem;" id="val-view-max-cards">${deck.settings.maxReviewsPerDay}</span>
               <span class="apple-chevron">›</span>
             </div>
+        <button class="ios-back-btn" id="btn-deck-settings-back">
+          <span class="ios-back-chevron">‹</span> Mazo
+        </button>
+        <h1 class="ios-nav-title">Opciones</h1>
+        <button class="ios-action-btn" id="btn-open-advanced-sheet">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </button>
+      </div>
+
+      <!-- Scrollable Settings List -->
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:20px;">
+
+        <!-- Group 1: General & Algoritmo -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="row-view-algo-selector">
+            <span class="apple-list-label">Algoritmo de aprendizaje</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="apple-list-value" id="val-view-algo-label">${algoLabel}</span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
           </div>
 
-          <!-- Row 4: Mezclar tarjetas -->
           <div class="apple-list-row">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <span style="font-size:1.1rem; color:var(--f-text-secondary);">🔀</span>
-              <span style="font-size:1rem; font-weight:600; color:#fff;">Mezclar tarjetas</span>
-            </div>
-            <label class="figma-switch">
+            <span class="apple-list-label">Mezclar tarjetas</span>
+            <label class="apple-switch">
               <input type="checkbox" id="toggle-view-mix-cards" ${deck.settings.mixCards ? 'checked' : ''} />
-              <span class="figma-slider"></span>
+              <span class="apple-slider"></span>
             </label>
           </div>
-
         </div>
 
-        <!-- Botón: Configuraciones avanzadas -->
-        <button class="apple-btn-secondary" id="btn-view-advanced-menu" style="width:100%; padding:16px; border-radius:16px; font-weight:700; font-size:1.02rem;">
-          Configuraciones avanzadas
-        </button>
+        <!-- Group 2: Límites Diarios -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="row-view-new-cards">
+            <span class="apple-list-label">Tarjetas nuevas por día</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="apple-list-value" id="val-view-new-cards">${deck.settings.newCardsPerDay}</span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+
+          <div class="apple-list-row" id="row-view-max-cards">
+            <span class="apple-list-label">Máximo de tarjetas por día</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="apple-list-value" id="val-view-max-cards">${deck.settings.maxReviewsPerDay}</span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+        </div>
 
       </div>
 
@@ -103,10 +133,11 @@ export function bindFigmaDeckSettingsViewEvents(
   deck: Deck,
   callbacks: FigmaDeckSettingsViewCallbacks
 ): void {
-  container.querySelector('#btn-settings-back')?.addEventListener('click', () => callbacks.onBack());
-  container.querySelector('#row-view-select-algo')?.addEventListener('click', () => callbacks.onOpenAlgorithmSelector());
-  container.querySelector('#btn-view-advanced-menu')?.addEventListener('click', () => callbacks.onOpenAdvancedMenu());
+  container.querySelector('#btn-deck-settings-back')?.addEventListener('click', () => callbacks.onBack());
+  container.querySelector('#btn-open-advanced-sheet')?.addEventListener('click', () => callbacks.onOpenAdvancedMenu());
+  container.querySelector('#row-view-algo-selector')?.addEventListener('click', () => callbacks.onOpenAlgorithmSelector());
 
+  // Toggle mix cards
   const mixToggle = container.querySelector('#toggle-view-mix-cards') as HTMLInputElement | null;
   mixToggle?.addEventListener('change', () => {
     deckService.updateDeck(deck.id, {
@@ -116,27 +147,41 @@ export function bindFigmaDeckSettingsViewEvents(
 
   // Edit new cards
   container.querySelector('#row-view-new-cards')?.addEventListener('click', () => {
-    const val = prompt('Tarjetas nuevas por día:', String(deck.settings.newCardsPerDay));
-    if (val && !isNaN(Number(val))) {
-      const num = Math.max(1, parseInt(val, 10));
-      deckService.updateDeck(deck.id, {
-        settings: { ...deck.settings, newCardsPerDay: num }
-      });
-      const el = container.querySelector('#val-view-new-cards');
-      if (el) el.textContent = String(num);
-    }
+    dialogService.showPrompt({
+      title: 'Tarjetas Nuevas por Día',
+      defaultValue: String(deck.settings.newCardsPerDay),
+      inputType: 'number',
+      confirmText: 'Guardar',
+      onConfirm: (val) => {
+        if (val && !isNaN(Number(val))) {
+          const num = Math.max(1, parseInt(val, 10));
+          deckService.updateDeck(deck.id, {
+            settings: { ...deck.settings, newCardsPerDay: num }
+          });
+          const el = container.querySelector('#val-view-new-cards');
+          if (el) el.textContent = String(num);
+        }
+      }
+    });
   });
 
   // Edit max cards
   container.querySelector('#row-view-max-cards')?.addEventListener('click', () => {
-    const val = prompt('Máximo de tarjetas por día:', String(deck.settings.maxReviewsPerDay));
-    if (val && !isNaN(Number(val))) {
-      const num = Math.max(1, parseInt(val, 10));
-      deckService.updateDeck(deck.id, {
-        settings: { ...deck.settings, maxReviewsPerDay: num }
-      });
-      const el = container.querySelector('#val-view-max-cards');
-      if (el) el.textContent = String(num);
-    }
+    dialogService.showPrompt({
+      title: 'Máximo de Tarjetas por Día',
+      defaultValue: String(deck.settings.maxReviewsPerDay),
+      inputType: 'number',
+      confirmText: 'Guardar',
+      onConfirm: (val) => {
+        if (val && !isNaN(Number(val))) {
+          const num = Math.max(1, parseInt(val, 10));
+          deckService.updateDeck(deck.id, {
+            settings: { ...deck.settings, maxReviewsPerDay: num }
+          });
+          const el = container.querySelector('#val-view-max-cards');
+          if (el) el.textContent = String(num);
+        }
+      }
+    });
   });
 }

@@ -4,6 +4,7 @@ import { deckService } from '../services/deck.service';
 import { srsService } from '../services/srs.service';
 import { katexService } from '../services/katex.service';
 import { ttsService } from '../services/tts.service';
+import { dialogService } from '../services/dialog.service';
 
 export interface FigmaStudyOptions {
   deckId: string;
@@ -371,13 +372,19 @@ export class FigmaStudySession {
     });
 
     modal.querySelector('#btn-menu-delete-card')?.addEventListener('click', () => {
-      if (confirm('¿Eliminar esta tarjeta definitivamente?')) {
-        deckService.deleteCard(currentCard.id);
-        closeModal();
-        this.queue.splice(this.currentCardIndex, 1);
-        this.isFlipped = false;
-        this.render(container);
-      }
+      dialogService.showConfirm({
+        title: 'Eliminar Tarjeta',
+        message: '¿Estás seguro de eliminar esta tarjeta definitivamente?',
+        confirmText: 'Eliminar',
+        isDanger: true,
+        onConfirm: () => {
+          deckService.deleteCard(currentCard.id);
+          closeModal();
+          this.queue.splice(this.currentCardIndex, 1);
+          this.isFlipped = false;
+          this.render(container);
+        }
+      });
     });
   }
 

@@ -1,5 +1,6 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
+import { dialogService } from '../services/dialog.service';
 
 export interface FigmaAdvancedDeckMenuViewCallbacks {
   onBack: () => void;
@@ -202,11 +203,17 @@ export function bindFigmaAdvancedDeckMenuViewEvents(
 
   // Rename
   container.querySelector('#adv-view-row-rename')?.addEventListener('click', () => {
-    const name = prompt('Nuevo nombre del mazo:', deck.name);
-    if (name && name.trim()) {
-      deckService.renameDeck(deck.id, name);
-      callbacks.onActionCompleted();
-    }
+    dialogService.showPrompt({
+      title: 'Renombrar Mazo',
+      defaultValue: deck.name,
+      confirmText: 'Guardar',
+      onConfirm: (name) => {
+        if (name && name.trim()) {
+          deckService.renameDeck(deck.id, name.trim());
+          callbacks.onActionCompleted();
+        }
+      }
+    });
   });
 
   // Duplicate
@@ -217,18 +224,29 @@ export function bindFigmaAdvancedDeckMenuViewEvents(
 
   // Reset Progress
   container.querySelector('#adv-view-row-reset')?.addEventListener('click', () => {
-    if (confirm(`¿Restablecer todo el progreso de estudio en "${deck.name}"?`)) {
-      deckService.resetDeckProgress(deck.id);
-      callbacks.onActionCompleted();
-    }
+    dialogService.showConfirm({
+      title: 'Restablecer Progreso',
+      message: `¿Estás seguro de restablecer todo el progreso de estudio en "${deck.name}"? Todas las tarjetas volverán al estado nuevo.`,
+      confirmText: 'Restablecer',
+      isDanger: true,
+      onConfirm: () => {
+        deckService.resetDeckProgress(deck.id);
+        callbacks.onActionCompleted();
+      }
+    });
   });
 
   // Archive
   container.querySelector('#adv-view-row-archive')?.addEventListener('click', () => {
-    if (confirm(`¿Archivar el mazo "${deck.name}"?`)) {
-      deckService.archiveDeck(deck.id);
-      callbacks.onActionCompleted();
-    }
+    dialogService.showConfirm({
+      title: 'Archivar Mazo',
+      message: `¿Deseas archivar el mazo "${deck.name}"?`,
+      confirmText: 'Archivar',
+      onConfirm: () => {
+        deckService.archiveDeck(deck.id);
+        callbacks.onActionCompleted();
+      }
+    });
   });
 
   // Export
@@ -244,20 +262,33 @@ export function bindFigmaAdvancedDeckMenuViewEvents(
 
   // Delete
   container.querySelector('#adv-view-row-delete')?.addEventListener('click', () => {
-    if (confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE el mazo "${deck.name}" y todas sus tarjetas? Esta acción no se puede deshacer.`)) {
-      deckService.deleteDeck(deck.id);
-      callbacks.onActionCompleted();
-    }
+    dialogService.showConfirm({
+      title: 'Eliminar Mazo Definitivamente',
+      message: `¿ELIMINAR DEFINITIVAMENTE el mazo "${deck.name}" y todas sus tarjetas? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar Mazo',
+      isDanger: true,
+      onConfirm: () => {
+        deckService.deleteDeck(deck.id);
+        callbacks.onActionCompleted();
+      }
+    });
   });
 
   // Voice TTS
   container.querySelector('#adv-view-row-tts')?.addEventListener('click', () => {
-    const lang = prompt('Código de idioma de voz TTS (ej: es-ES, en-US, fr-FR, de-DE):', deck.settings.ttsVoiceLang);
-    if (lang && lang.trim()) {
-      deckService.updateDeck(deck.id, {
-        settings: { ...deck.settings, ttsVoiceLang: lang.trim() }
-      });
-      callbacks.onActionCompleted();
-    }
+    dialogService.showPrompt({
+      title: 'Voz y Pronunciación (TTS)',
+      message: 'Código de idioma de voz (ej: es-ES, en-US, fr-FR, de-DE, ja-JP):',
+      defaultValue: deck.settings.ttsVoiceLang || 'es-ES',
+      confirmText: 'Guardar Idioma',
+      onConfirm: (lang) => {
+        if (lang && lang.trim()) {
+          deckService.updateDeck(deck.id, {
+            settings: { ...deck.settings, ttsVoiceLang: lang.trim() }
+          });
+          callbacks.onActionCompleted();
+        }
+      }
+    });
   });
 }

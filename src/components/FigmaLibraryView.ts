@@ -1,5 +1,6 @@
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
+import { dialogService } from '../services/dialog.service';
 
 export interface FigmaLibraryCallbacks {
   onAddCard: () => void;
@@ -14,99 +15,74 @@ export function renderFigmaLibraryView(): string {
     <div style="padding-bottom:90px;">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
         <div>
-          <h2 style="font-size:1.75rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Biblioteca de Tarjetas</h2>
-          <p style="font-size:0.85rem; color:var(--f-text-secondary);">Toca cualquier tarjeta para repasarla individualmente</p>
+          <h2 class="figma-dash-title">Biblioteca de Tarjetas</h2>
+          <p class="figma-dash-subtitle">Explora y busca en todas las flashcards del sistema</p>
         </div>
-        <span class="apple-badge-subpill" style="font-size:0.9rem; font-weight:800;">
-          ${allCards.length} tarjetas
-        </span>
+        <button class="figma-btn-white-pill" id="btn-lib-add-card">+ Nueva Tarjeta</button>
       </div>
 
-      ${
-        allCards.length === 0
-          ? `
-        <div style="padding:60px 20px; text-align:center;">
-          <p style="color:var(--f-text-secondary); margin-bottom:16px;">No hay tarjetas en tu biblioteca.</p>
-          <button class="figma-btn-blue-pill" id="btn-library-empty-add" style="margin:0 auto;">
-            + Crear Primera Tarjeta
-          </button>
-        </div>
-      `
-          : allCards
-              .map(
-                (c) => `
-        <div class="figma-card-item apple-glass-panel clickable-lib-card-row" data-card-id="${c.id}" data-deck-id="${c.deckId}" title="Toca para aprender esta tarjeta">
-          <div class="figma-card-top-tag-row">
-            <div class="figma-tag-invertido">
-              ${
-                c.isInverted
-                  ? `
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                <span>Invertido</span>
-              `
-                  : c.type === 'image_occlusion'
-                  ? `<span>🖼️ Oclusión de Imagen</span>`
-                  : `<span>Estándar</span>`
-              }
-              <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px; margin-left:6px;">🎯 Estudiar</span>
-            </div>
-            
-            <div style="display:flex; align-items:center; gap:8px;">
-              <button class="btn-lib-card-edit" data-edit-id="${c.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.88rem; font-weight:700;">✏️ Editar</button>
-              <button class="btn-lib-card-del" data-del-id="${c.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.88rem; font-weight:700;">🗑️</button>
-            </div>
-          </div>
-
-          <div class="figma-card-title-bold">
-            ${c.front}
-          </div>
-
-          <div class="figma-card-body-text">
-            ${katexService.parseAndRender(c.back)}
-          </div>
-
-          ${
-            c.type === 'image_occlusion' || c.frontImage || c.backImage
-              ? `
-            <div style="color:var(--f-text-muted); margin-top:4px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            </div>
-          `
-              : ''
-          }
-        </div>
-      `
-              )
-              .join('')
-      }
-
-      <!-- Floating Add Button -->
-      <div class="figma-floating-add-btn-wrap">
-        <button class="figma-btn-white-pill" id="btn-library-floating-add" style="box-shadow:0 10px 32px rgba(0,0,0,0.6); padding:14px 32px;">
-          Agregar tarjetas
-        </button>
+      <!-- Search Input -->
+      <div class="figma-search-input-wrap" style="margin-bottom:20px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="figma-search-input" placeholder="Buscar por anverso, reverso o etiquetas..." id="lib-search-input" />
       </div>
 
-      <!-- Floating Help -->
-      <button class="figma-fab-help" id="btn-fab-help" title="Ayuda">
-        ?
-      </button>
+      <!-- Cards Counter -->
+      <div style="font-size:0.88rem; font-weight:700; color:var(--f-text-secondary); margin-bottom:14px;">
+        Total: <strong style="color:#fff;">${allCards.length}</strong> tarjetas registradas
+      </div>
+
+      <!-- Cards Grid -->
+      <div style="display:flex; flex-direction:column; gap:12px;" id="lib-cards-mount">
+        ${allCards
+          .map(
+            (c) => `
+          <div class="figma-card-item apple-glass-panel selectable-card-target" data-lib-card-id="${c.id}" data-lib-deck-id="${c.deckId}" style="cursor:pointer;" title="Toca para estudiar esta tarjeta">
+            <div class="figma-card-top-tag-row" style="margin-bottom:6px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="figma-tag-invertido" style="font-size:0.75rem; padding:2px 8px;">
+                  ${
+                    c.isInverted
+                      ? '<span>⇄ Invertida</span>'
+                      : c.type === 'latex'
+                      ? '<span>📐 LaTeX</span>'
+                      : '<span>Estándar</span>'
+                  }
+                </div>
+                <span class="micro-study-badge" title="Estudiar">🎯</span>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button class="btn-lib-card-edit" data-edit-id="${c.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.85rem; font-weight:700;">✏️</button>
+                <button class="btn-lib-card-del" data-del-id="${c.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem; font-weight:700;">🗑️</button>
+              </div>
+            </div>
+
+            <div class="figma-card-title-bold" style="font-size:1.02rem;">${c.front}</div>
+            <div class="figma-card-body-text" style="font-size:0.88rem; margin-top:4px;">${katexService.parseAndRender(c.back)}</div>
+          </div>
+        `
+          )
+          .join('')}
+      </div>
     </div>
   `;
 }
 
-export function bindFigmaLibraryEvents(container: HTMLElement, callbacks: FigmaLibraryCallbacks): void {
-  container.querySelector('#btn-library-floating-add')?.addEventListener('click', () => callbacks.onAddCard());
-  container.querySelector('#btn-library-empty-add')?.addEventListener('click', () => callbacks.onAddCard());
+export function bindFigmaLibraryEvents(
+  container: HTMLElement,
+  callbacks: FigmaLibraryCallbacks
+): void {
+  container.querySelector('#btn-lib-add-card')?.addEventListener('click', () => callbacks.onAddCard());
 
-  container.querySelectorAll('.clickable-lib-card-row').forEach((row) => {
-    row.addEventListener('click', (e) => {
+  container.querySelectorAll('.selectable-card-target').forEach((card) => {
+    card.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       if (target.classList.contains('btn-lib-card-edit') || target.classList.contains('btn-lib-card-del')) {
         return;
       }
-      const cardId = (row as HTMLElement).dataset.cardId;
-      const deckId = (row as HTMLElement).dataset.deckId;
+      const cardId = (card as HTMLElement).dataset.libCardId;
+      const deckId = (card as HTMLElement).dataset.libDeckId;
       if (cardId && deckId) {
         callbacks.onStudySpecificCard(deckId, cardId);
       }
@@ -125,8 +101,16 @@ export function bindFigmaLibraryEvents(container: HTMLElement, callbacks: FigmaL
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = btn.dataset.delId;
-      if (id && confirm('¿Eliminar esta tarjeta definitivamente?')) {
-        deckService.deleteCard(id);
+      if (id) {
+        dialogService.showConfirm({
+          title: 'Eliminar Tarjeta',
+          message: '¿Estás seguro de eliminar esta tarjeta definitivamente?',
+          confirmText: 'Eliminar',
+          isDanger: true,
+          onConfirm: () => {
+            deckService.deleteCard(id);
+          }
+        });
       }
     });
   });

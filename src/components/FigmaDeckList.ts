@@ -1,4 +1,5 @@
 import { deckService } from '../services/deck.service';
+import { dialogService } from '../services/dialog.service';
 
 export interface FigmaDeckListCallbacks {
   onSelectDeck: (deckId: string) => void;
@@ -72,21 +73,14 @@ export function renderFigmaDeckList(): string {
       </div>
 
       <!-- Floating Action Buttons (Desktop only, mobile uses bottom nav) -->
-      <button class="figma-fab-gift desktop-only" id="btn-fab-gift" title="Recompensas y rachas">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-      </button>
-
-      <button class="figma-fab-help desktop-only" id="btn-fab-help" title="Ayuda">
-        ?
-      </button>
     </div>
   `;
 }
 
 export function bindFigmaDeckListEvents(container: HTMLElement, callbacks: FigmaDeckListCallbacks): void {
-  container.querySelectorAll<HTMLElement>('.figma-deck-row').forEach((row) => {
-    row.addEventListener('click', () => {
-      const id = row.dataset.deckId;
+  container.querySelectorAll('.figma-deck-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const id = (card as HTMLElement).dataset.deckId;
       if (id) callbacks.onSelectDeck(id);
     });
   });
@@ -99,19 +93,36 @@ export function bindFigmaDeckListEvents(container: HTMLElement, callbacks: Figma
   container.querySelector('#btn-trash-decks')?.addEventListener('click', () => {
     const rootDecks = deckService.getRootDecks();
     if (rootDecks.length <= 1) {
-      alert('Debes mantener al menos un mazo principal.');
+      dialogService.showAlert({
+        title: 'Atención',
+        message: 'Debes mantener al menos un mazo principal.'
+      });
       return;
     }
     const deckNames = rootDecks.map((d, i) => `${i + 1}. ${d.name}`).join('\n');
-    const input = prompt(`Elige el número de mazo que deseas eliminar:\n${deckNames}`);
-    if (input) {
-      const idx = parseInt(input) - 1;
-      if (idx >= 0 && idx < rootDecks.length) {
-        const toDel = rootDecks[idx];
-        if (confirm(`¿Eliminar mazo "${toDel.name}" y todas sus tarjetas?`)) {
-          deckService.deleteDeck(toDel.id);
+    dialogService.showPrompt({
+      title: 'Eliminar Mazo',
+      message: `Elige el número de mazo que deseas eliminar:\n${deckNames}`,
+      placeholder: 'Número de mazo (ej: 1)',
+      inputType: 'number',
+      confirmText: 'Continuar',
+      onConfirm: (input) => {
+        if (input) {
+          const idx = parseInt(input, 10) - 1;
+          if (idx >= 0 && idx < rootDecks.length) {
+            const toDel = rootDecks[idx];
+            dialogService.showConfirm({
+              title: 'Eliminar Mazo',
+              message: `¿Eliminar mazo "${toDel.name}" y todas sus tarjetas? Esta acción no se puede deshacer.`,
+              confirmText: 'Eliminar',
+              isDanger: true,
+              onConfirm: () => {
+                deckService.deleteDeck(toDel.id);
+              }
+            });
+          }
         }
       }
-    }
+    });
   });
 }

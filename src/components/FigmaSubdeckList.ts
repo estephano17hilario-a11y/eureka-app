@@ -1,5 +1,6 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
+import { dialogService } from '../services/dialog.service';
 import { openFigmaDeckSettingsModal } from './FigmaDeckSettingsModal';
 
 export interface FigmaSubdeckCallbacks {
@@ -76,27 +77,22 @@ export function renderFigmaSubdeckList(deck: Deck): string {
             </div>
           `;
                 })
-                .join('')
-        }
+          })
+          .join('')}
       </div>
-
-      <!-- Floating Action Buttons -->
-      <button class="figma-fab-gift" id="btn-fab-gift" title="Recompensas">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-      </button>
-
-      <button class="figma-fab-help" id="btn-fab-help" title="Ayuda">
-        ?
-      </button>
     </div>
   `;
 }
 
-export function bindFigmaSubdeckEvents(container: HTMLElement, deck: Deck, callbacks: FigmaSubdeckCallbacks): void {
-  container.querySelector('#btn-back-to-inicio')?.addEventListener('click', () => callbacks.onBack());
+export function bindFigmaSubdeckEvents(
+  container: HTMLElement,
+  deck: Deck,
+  callbacks: FigmaSubdeckCallbacks
+): void {
+  container.querySelector('#btn-subdeck-back')?.addEventListener('click', () => callbacks.onBack());
   container.querySelector('#crumb-inicio')?.addEventListener('click', () => callbacks.onBack());
 
-  container.querySelectorAll('.figma-deck-row').forEach((row) => {
+  container.querySelectorAll('.figma-deck-card').forEach((row) => {
     row.addEventListener('click', () => {
       const id = (row as HTMLElement).dataset.subdeckId;
       if (id) callbacks.onSelectSubdeck(id);
@@ -118,13 +114,19 @@ export function bindFigmaSubdeckEvents(container: HTMLElement, deck: Deck, callb
   container.querySelector('#btn-sub-import')?.addEventListener('click', () => callbacks.onImportBatch(deck.id));
 
   container.querySelector('#btn-create-child-subdeck')?.addEventListener('click', () => {
-    const name = prompt(`Nombre del nuevo submazo en "${deck.name}":`);
-    if (name && name.trim()) {
-      deckService.createDeck({
-        name: name.trim(),
-        parentId: deck.id
-      });
-      callbacks.onConfigureDeck(deck.id);
-    }
+    dialogService.showPrompt({
+      title: `Nuevo Submazo en "${deck.name}"`,
+      placeholder: 'Nombre del submazo...',
+      confirmText: 'Crear',
+      onConfirm: (name) => {
+        if (name && name.trim()) {
+          deckService.createDeck({
+            name: name.trim(),
+            parentId: deck.id
+          });
+          callbacks.onConfigureDeck(deck.id);
+        }
+      }
+    });
   });
 }

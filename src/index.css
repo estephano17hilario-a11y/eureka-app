@@ -2342,4 +2342,187 @@ html, body {
   border: 1px solid rgba(56, 189, 248, 0.4);
 }
 
+/* ==========================================================================
+   UNIFORM FLASHCARD PREVIEWS (EXACT SAME HEIGHT ACROSS ALL CARDS)
+   ========================================================================== */
+
+.figma-card-item {
+  height: 118px !important;
+  min-height: 118px !important;
+  max-height: 118px !important;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 14px 18px !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  overflow: hidden !important;
+  position: relative;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.figma-card-top-tag-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.figma-card-title-bold {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.figma-card-body-text {
+  font-size: 0.88rem;
+  color: var(--f-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.38;
+  max-height: 2.76em;
+  word-break: break-word;
+}
+
+.occlusion-group-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.occlusion-child-card-row {
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   CUSTOM APPLE GLASSMORPHISM DIALOGS (NO HTML/NATIVE POPUPS)
+   ========================================================================== */
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cupertino-dialog-input {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: #ffffff;
+  padding: 10px 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  outline: none;
+  box-sizing: border-box;
+  text-align: center;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  width: 100%;
+}
+
+.cupertino-dialog-input:focus {
+  border-color: var(--f-blue);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.preset-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.preset-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: var(--f-blue);
+  color: var(--f-blue);
+  transform: translateY(-1px);
+}
+
+.preset-btn:active {
+  transform: scale(0.95);
+}
+
+.dialog-btn {
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s, opacity 0.15s;
+}
+
+.dialog-btn:active {
+  transform: scale(0.96);
+}
+
+.dialog-btn-primary {
+  background: var(--f-blue);
+  color: #07080a;
+  font-weight: 800;
+}
+
+.dialog-btn-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--f-text-secondary);
+}
+
+.dialog-btn-cancel:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.dialog-btn-danger {
+  background: #ef4444;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.dialog-btn-danger:hover {
+  background: #dc2626;
+}
+
+
 

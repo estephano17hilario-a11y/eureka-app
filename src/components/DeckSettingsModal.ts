@@ -1,6 +1,7 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { srsService } from '../services/srs.service';
+import { dialogService } from '../services/dialog.service';
 
 export function renderDeckSettingsModal(deck: Deck): string {
   const stepsString = srsService.formatStepsToString(deck.settings.learningSteps);
@@ -15,53 +16,41 @@ export function renderDeckSettingsModal(deck: Deck): string {
           <button type="button" class="modal-btn-text" id="btn-save-settings-top" style="font-weight:700;">Guardar</button>
         </div>
 
-        <form id="form-deck-settings" class="modal-body">
+        <div class="modal-body">
           
-          <div class="form-group">
-            <label class="form-label">Nombre</label>
-            <input type="text" id="setting-deck-name" class="form-input" value="${deck.name}" required />
+          <div class="input-group">
+            <label class="input-label">Nombre del Mazo</label>
+            <input type="text" class="input-text" id="settings-deck-name" value="${deck.name}" />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Descripción</label>
-            <input type="text" id="setting-deck-desc" class="form-input" value="${deck.description}" />
+          <div class="input-group">
+            <label class="input-label">Descripción</label>
+            <textarea class="input-textarea" id="settings-deck-desc" rows="2">${deck.description || ''}</textarea>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">
-              Intervalos de Repetición Espaciada (SRS)
-            </label>
-            <input 
-              type="text" 
-              id="setting-learning-steps" 
-              class="form-input" 
-              value="${stepsString}" 
-              placeholder="5m, 1d, 3d, 7d"
-              required 
-            />
-            <span style="font-size:0.75rem; color:var(--ios-secondary-label); display:block; margin-top:4px;">
-              Configura tus peldaños de tiempo (ej: 5m, 1d, 3d, 7d). La opción "Normal" avanzará por estos pasos.
-            </span>
+          <div class="input-group">
+            <label class="input-label">Nuevas tarjetas por día</label>
+            <input type="number" class="input-text" id="settings-new-cards" value="${deck.settings.newCardsPerDay}" min="1" max="500" />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Idioma de Voz (TTS)</label>
-            <select id="setting-tts-lang" class="form-input">
-              <option value="es-ES" ${deck.settings.ttsVoiceLang === 'es-ES' ? 'selected' : ''}>Español (España)</option>
-              <option value="es-MX" ${deck.settings.ttsVoiceLang === 'es-MX' ? 'selected' : ''}>Español (México)</option>
-              <option value="en-US" ${deck.settings.ttsVoiceLang === 'en-US' ? 'selected' : ''}>Inglés (EE.UU.)</option>
-              <option value="fr-FR" ${deck.settings.ttsVoiceLang === 'fr-FR' ? 'selected' : ''}>Francés</option>
-              <option value="de-DE" ${deck.settings.ttsVoiceLang === 'de-DE' ? 'selected' : ''}>Alemán</option>
-            </select>
+          <div class="input-group">
+            <label class="input-label">Máximo de revisiones por día</label>
+            <input type="number" class="input-text" id="settings-max-reviews" value="${deck.settings.maxReviewsPerDay}" min="1" max="1000" />
           </div>
 
-          <div style="margin-top:24px;">
-            <button type="button" class="btn-apple-mini" id="btn-delete-deck" style="width:100%; color:var(--ios-red); padding:10px;">
+          <div class="input-group">
+            <label class="input-label">Pasos de aprendizaje (separados por coma)</label>
+            <input type="text" class="input-text" id="settings-learning-steps" value="${stepsString}" />
+          </div>
+
+          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+            <button type="button" class="btn btn-danger btn-block" id="btn-delete-deck">
               Eliminar Mazo
             </button>
           </div>
 
-        </form>
+        </div>
+
       </div>
     </div>
   `;
@@ -77,20 +66,22 @@ export function bindDeckSettingsModalEvents(deck: Deck, onClose: () => void): vo
   });
 
   const saveHandler = () => {
-    const name = (document.getElementById('setting-deck-name') as HTMLInputElement).value;
-    const description = (document.getElementById('setting-deck-desc') as HTMLInputElement).value;
-    const stepsStr = (document.getElementById('setting-learning-steps') as HTMLInputElement).value;
-    const ttsVoiceLang = (document.getElementById('setting-tts-lang') as HTMLSelectElement).value;
+    const nameInput = document.getElementById('settings-deck-name') as HTMLInputElement;
+    const descInput = document.getElementById('settings-deck-desc') as HTMLTextAreaElement;
+    const newCardsInput = document.getElementById('settings-new-cards') as HTMLInputElement;
+    const maxReviewsInput = document.getElementById('settings-max-reviews') as HTMLInputElement;
+    const stepsInput = document.getElementById('settings-learning-steps') as HTMLInputElement;
 
-    const learningSteps = srsService.parseStepsString(stepsStr);
+    const newSteps = srsService.parseStepsString(stepsInput.value);
 
     deckService.updateDeck(deck.id, {
-      name,
-      description,
+      name: nameInput.value.trim() || deck.name,
+      description: descInput.value.trim(),
       settings: {
         ...deck.settings,
-        learningSteps,
-        ttsVoiceLang
+        newCardsPerDay: parseInt(newCardsInput.value, 10) || 20,
+        maxReviewsPerDay: parseInt(maxReviewsInput.value, 10) || 100,
+        learningSteps: newSteps.length > 0 ? newSteps : deck.settings.learningSteps
       }
     });
 
@@ -101,10 +92,16 @@ export function bindDeckSettingsModalEvents(deck: Deck, onClose: () => void): vo
   document.getElementById('btn-save-settings-top')?.addEventListener('click', saveHandler);
 
   document.getElementById('btn-delete-deck')?.addEventListener('click', () => {
-    if (confirm(`¿Eliminar el mazo "${deck.name}"?`)) {
-      deckService.deleteDeck(deck.id);
-      modal.remove();
-      onClose();
-    }
+    dialogService.showConfirm({
+      title: 'Eliminar Mazo',
+      message: `¿Eliminar el mazo "${deck.name}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      isDanger: true,
+      onConfirm: () => {
+        deckService.deleteDeck(deck.id);
+        modal.remove();
+        onClose();
+      }
+    });
   });
 }

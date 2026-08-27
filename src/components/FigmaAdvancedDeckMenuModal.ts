@@ -1,5 +1,6 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
+import { dialogService } from '../services/dialog.service';
 import { openFigmaAlgorithmSelectorModal } from './FigmaAlgorithmSelectorModal';
 import { openFigmaAiBuilderModal } from './FigmaAiBuilderModal';
 import { openFigmaBatchImportModal } from './FigmaBatchImportModal';
@@ -173,12 +174,18 @@ export function openFigmaAdvancedDeckMenuModal(options: FigmaAdvancedDeckMenuOpt
 
   // Rename
   document.getElementById('adv-row-rename')?.addEventListener('click', () => {
-    const name = prompt('Nuevo nombre del mazo:', deck.name);
-    if (name && name.trim()) {
-      deckService.renameDeck(deck.id, name);
-      document.getElementById('modal-adv-menu-root')?.remove();
-      options.onActionCompleted();
-    }
+    dialogService.showPrompt({
+      title: 'Renombrar Mazo',
+      defaultValue: deck.name,
+      confirmText: 'Guardar',
+      onConfirm: (name) => {
+        if (name && name.trim()) {
+          deckService.renameDeck(deck.id, name.trim());
+          document.getElementById('modal-adv-menu-root')?.remove();
+          options.onActionCompleted();
+        }
+      }
+    });
   });
 
   // Duplicate
@@ -190,20 +197,31 @@ export function openFigmaAdvancedDeckMenuModal(options: FigmaAdvancedDeckMenuOpt
 
   // Reset Progress
   document.getElementById('adv-row-reset')?.addEventListener('click', () => {
-    if (confirm(`¿Restablecer todo el progreso de estudio en "${deck.name}"?`)) {
-      deckService.resetDeckProgress(deck.id);
-      document.getElementById('modal-adv-menu-root')?.remove();
-      options.onActionCompleted();
-    }
+    dialogService.showConfirm({
+      title: 'Restablecer Progreso',
+      message: `¿Estás seguro de restablecer todo el progreso de estudio en "${deck.name}"? Todas las tarjetas volverán al estado nuevo.`,
+      confirmText: 'Restablecer',
+      isDanger: true,
+      onConfirm: () => {
+        deckService.resetDeckProgress(deck.id);
+        document.getElementById('modal-adv-menu-root')?.remove();
+        options.onActionCompleted();
+      }
+    });
   });
 
   // Archive
   document.getElementById('adv-row-archive')?.addEventListener('click', () => {
-    if (confirm(`¿Archivar el mazo "${deck.name}"?`)) {
-      deckService.archiveDeck(deck.id);
-      document.getElementById('modal-adv-menu-root')?.remove();
-      options.onActionCompleted();
-    }
+    dialogService.showConfirm({
+      title: 'Archivar Mazo',
+      message: `¿Deseas archivar el mazo "${deck.name}"?`,
+      confirmText: 'Archivar',
+      onConfirm: () => {
+        deckService.archiveDeck(deck.id);
+        document.getElementById('modal-adv-menu-root')?.remove();
+        options.onActionCompleted();
+      }
+    });
   });
 
   // Export
@@ -219,11 +237,17 @@ export function openFigmaAdvancedDeckMenuModal(options: FigmaAdvancedDeckMenuOpt
 
   // Delete
   document.getElementById('adv-row-delete')?.addEventListener('click', () => {
-    if (confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE el mazo "${deck.name}" y todas sus tarjetas? Esta acción no se puede deshacer.`)) {
-      deckService.deleteDeck(deck.id);
-      document.getElementById('modal-adv-menu-root')?.remove();
-      options.onActionCompleted();
-    }
+    dialogService.showConfirm({
+      title: 'Eliminar Mazo Definitivamente',
+      message: `¿ELIMINAR DEFINITIVAMENTE el mazo "${deck.name}" y todas sus tarjetas? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar Mazo',
+      isDanger: true,
+      onConfirm: () => {
+        deckService.deleteDeck(deck.id);
+        document.getElementById('modal-adv-menu-root')?.remove();
+        options.onActionCompleted();
+      }
+    });
   });
 
   // AI Generator
