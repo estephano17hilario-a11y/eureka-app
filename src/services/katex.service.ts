@@ -29,7 +29,7 @@ export class KatexService {
   }
 
   /**
-   * Parsea un texto buscando delimitadores $$ (bloque) y $ (inline) y los reemplaza por HTML KaTeX.
+   * Parsea un texto buscando delimitadores $$ (bloque) y $ (inline), así como markdown y saltos de línea.
    */
   public parseAndRender(content: string): string {
     if (!content) return '';
@@ -43,6 +43,15 @@ export class KatexService {
     result = result.replace(/\$([^\$\n]+?)\$/g, (_, math) => {
       return `<span class="katex-inline-container">${this.renderMath(math.trim(), false)}</span>`;
     });
+
+    // Formatear markdown **negrita**
+    result = result.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+    // Formatear markdown *cursiva*
+    result = result.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+
+    // Formatear saltos de línea
+    result = result.replace(/\n/g, '<br/>');
 
     return result;
   }

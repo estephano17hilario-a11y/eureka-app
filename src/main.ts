@@ -89,8 +89,19 @@ class EurekaFigmaApp {
         this.render();
       },
       onEditCard: (cardId) => {
+        const card = deckService.getCardById(cardId);
+        if (card) {
+          this.selectedSubdeckId = card.deckId;
+          const targetDeck = deckService.getDeckById(card.deckId);
+          if (targetDeck?.parentId) {
+            this.selectedRootDeckId = targetDeck.parentId;
+          } else {
+            this.selectedRootDeckId = card.deckId;
+          }
+        }
         this.activeStudySession = null;
         this.editingCardId = cardId;
+        this.currentTab = 'inicio';
         this.currentView = 'editor';
         this.render();
       }
@@ -147,9 +158,24 @@ class EurekaFigmaApp {
     let bodyHtml = '';
     let showGlobalHeader = true;
 
-    if (this.currentTab === 'biblioteca') {
+    if (this.currentView === 'editor') {
+      showGlobalHeader = false;
+      bodyHtml = renderFigmaCardEditor(subdeck, rootDeck.id !== subdeck.id ? rootDeck : undefined, editCard);
+    } else if (this.currentView === 'deck_settings') {
+      showGlobalHeader = false;
+      bodyHtml = renderFigmaDeckSettingsView(subdeck);
+    } else if (this.currentView === 'advanced_menu') {
+      showGlobalHeader = false;
+      bodyHtml = renderFigmaAdvancedDeckMenuView(subdeck);
+    } else if (this.currentView === 'algorithm_selector') {
+      showGlobalHeader = false;
+      bodyHtml = renderFigmaAlgorithmSelectorView(subdeck);
+    } else if (this.currentView === 'learning_phase') {
+      showGlobalHeader = false;
+      bodyHtml = renderFigmaLearningPhaseView(subdeck);
+    } else if (this.currentTab === 'biblioteca') {
       bodyHtml = renderFigmaLibraryView();
-    } else if (this.currentTab === 'ajustes') {
+    } else if (this.currentTab === 'ajustes' || this.currentView === 'app_settings') {
       bodyHtml = renderFigmaAppSettingsView();
     } else {
       switch (this.currentView) {
@@ -163,36 +189,6 @@ class EurekaFigmaApp {
 
         case 'dashboard':
           bodyHtml = renderFigmaDeckDashboard(subdeck, rootDeck.id !== subdeck.id ? rootDeck : undefined);
-          break;
-
-        // Vistas Completas Nativas
-        case 'deck_settings':
-          showGlobalHeader = false;
-          bodyHtml = renderFigmaDeckSettingsView(subdeck);
-          break;
-
-        case 'advanced_menu':
-          showGlobalHeader = false;
-          bodyHtml = renderFigmaAdvancedDeckMenuView(subdeck);
-          break;
-
-        case 'algorithm_selector':
-          showGlobalHeader = false;
-          bodyHtml = renderFigmaAlgorithmSelectorView(subdeck);
-          break;
-
-        case 'learning_phase':
-          showGlobalHeader = false;
-          bodyHtml = renderFigmaLearningPhaseView(subdeck);
-          break;
-
-        case 'app_settings':
-          bodyHtml = renderFigmaAppSettingsView();
-          break;
-
-        case 'editor':
-          showGlobalHeader = false;
-          bodyHtml = renderFigmaCardEditor(subdeck, rootDeck.id !== subdeck.id ? rootDeck : undefined, editCard);
           break;
 
         default:
@@ -257,6 +253,118 @@ class EurekaFigmaApp {
 
     const rootDeck = deckService.getDeckById(this.selectedRootDeckId) || deckService.getRootDecks()[0];
     const subdeck = deckService.getDeckById(this.selectedSubdeckId) || rootDeck;
+
+    // View: Card Editor (Top Priority)
+    if (this.currentView === 'editor') {
+      const editCard = this.editingCardId ? deckService.getCardById(this.editingCardId) : undefined;
+      bindFigmaCardEditorEvents(layout, subdeck, editCard, {
+        onBack: () => {
+          this.editingCardId = null;
+          this.currentView = 'dashboard';
+          this.render();
+        },
+        onSaved: () => {
+          this.showToast('¡Tarjeta guardada con éxito!');
+          this.editingCardId = null;
+          this.currentView = 'dashboard';
+          this.render();
+        }
+      });
+      return;
+    }
+
+    // View: Fullscreen Deck Settings
+    if (this.currentView === 'deck_settings') {
+      bindFigmaDeckSettingsViewEvents(layout, subdeck, {
+        onBack: () => {
+          this.currentView = 'dashboard';
+          this.render();
+        },
+        onOpenAlgorithmSelector: () => {
+          this.currentView = 'algorithm_selector';
+          this.render();
+        },
+        onOpenAdvancedMenu: () => {
+          this.currentView = 'advanced_menu';
+          this.render();
+        },
+        onSaved: () => {
+          this.showToast('Ajustes guardados');
+          this.render();
+        }
+      });
+      return;
+    }
+
+    // View: Fullscreen Advanced Menu
+    if (this.currentView === 'advanced_menu') {
+      bindFigmaAdvancedDeckMenuViewEvents(layout, subdeck, {
+        onBack: () => {
+          this.currentView = 'deck_settings';
+          this.render();
+        },
+        onOpenAlgorithmSelector: () => {
+          this.currentView = 'algorithm_selector';
+          this.render();
+        },
+        onOpenAiBuilder: () => {
+          openFigmaAiBuilderModal({
+            deckId: subdeck.id,
+            onBatchAdded: () => {
+              this.showToast('Tarjetas añadidas');
+              this.currentView = 'dashboard';
+              this.render();
+            },
+            onClose: () => {}
+          });
+        },
+        onOpenBatchImport: () => {
+          this.openBatchImport(subdeck.id);
+        },
+        onActionCompleted: () => {
+          this.showToast('Acción completada');
+          this.currentView = 'dashboard';
+          this.render();
+        }
+      });
+      return;
+    }
+
+    // View: Fullscreen Algorithm Selector
+    if (this.currentView === 'algorithm_selector') {
+      bindFigmaAlgorithmSelectorViewEvents(layout, subdeck, {
+        onBack: () => {
+          this.currentView = 'deck_settings';
+          this.render();
+        },
+        onOpenCustomLearningPhases: () => {
+          this.currentView = 'learning_phase';
+          this.render();
+        },
+        onSaved: () => {
+          this.showToast('Algoritmo actualizado');
+          this.currentView = 'deck_settings';
+          this.render();
+        }
+      });
+      return;
+    }
+
+    // View: Fullscreen Learning Phase Step Editor
+    if (this.currentView === 'learning_phase') {
+      bindFigmaLearningPhaseViewEvents(layout, subdeck, {
+        onBack: () => {
+          this.currentView = 'algorithm_selector';
+          this.render();
+        },
+        onSaved: () => {
+          this.showToast('Escalera de 12 pasos guardada');
+          this.currentView = 'deck_settings';
+          this.render();
+        }
+      });
+      return;
+    }
 
     // View: App Settings / Personalización
     if (this.currentTab === 'ajustes' || this.currentView === 'app_settings') {
@@ -362,113 +470,6 @@ class EurekaFigmaApp {
         onEditCard: (cardId) => {
           this.editingCardId = cardId;
           this.currentView = 'editor';
-          this.render();
-        }
-      });
-    }
-
-    // View: Fullscreen Deck Settings (Foto 1)
-    else if (this.currentTab === 'inicio' && this.currentView === 'deck_settings') {
-      bindFigmaDeckSettingsViewEvents(layout, subdeck, {
-        onBack: () => {
-          this.currentView = 'dashboard';
-          this.render();
-        },
-        onOpenAlgorithmSelector: () => {
-          this.currentView = 'algorithm_selector';
-          this.render();
-        },
-        onOpenAdvancedMenu: () => {
-          this.currentView = 'advanced_menu';
-          this.render();
-        },
-        onSaved: () => {
-          this.showToast('Ajustes guardados');
-          this.render();
-        }
-      });
-    }
-
-    // View: Fullscreen Advanced Menu (Foto 2)
-    else if (this.currentTab === 'inicio' && this.currentView === 'advanced_menu') {
-      bindFigmaAdvancedDeckMenuViewEvents(layout, subdeck, {
-        onBack: () => {
-          this.currentView = 'deck_settings';
-          this.render();
-        },
-        onOpenAlgorithmSelector: () => {
-          this.currentView = 'algorithm_selector';
-          this.render();
-        },
-        onOpenAiBuilder: () => {
-          openFigmaAiBuilderModal({
-            deckId: subdeck.id,
-            onBatchAdded: () => {
-              this.showToast('Tarjetas añadidas');
-              this.currentView = 'dashboard';
-              this.render();
-            },
-            onClose: () => {}
-          });
-        },
-        onOpenBatchImport: () => {
-          this.openBatchImport(subdeck.id);
-        },
-        onActionCompleted: () => {
-          this.showToast('Acción completada');
-          this.currentView = 'dashboard';
-          this.render();
-        }
-      });
-    }
-
-    // View: Fullscreen Algorithm Selector (Foto 3)
-    else if (this.currentTab === 'inicio' && this.currentView === 'algorithm_selector') {
-      bindFigmaAlgorithmSelectorViewEvents(layout, subdeck, {
-        onBack: () => {
-          this.currentView = 'deck_settings';
-          this.render();
-        },
-        onOpenCustomLearningPhases: () => {
-          this.currentView = 'learning_phase';
-          this.render();
-        },
-        onSaved: () => {
-          this.showToast('Algoritmo actualizado');
-          this.currentView = 'deck_settings';
-          this.render();
-        }
-      });
-    }
-
-    // View: Fullscreen Learning Phase Step Editor (Foto 4)
-    else if (this.currentTab === 'inicio' && this.currentView === 'learning_phase') {
-      bindFigmaLearningPhaseViewEvents(layout, subdeck, {
-        onBack: () => {
-          this.currentView = 'algorithm_selector';
-          this.render();
-        },
-        onSaved: () => {
-          this.showToast('Escalera de 12 pasos guardada');
-          this.currentView = 'deck_settings';
-          this.render();
-        }
-      });
-    }
-
-    // View: Card Editor (Matching Images 2 & 3)
-    else if (this.currentTab === 'inicio' && this.currentView === 'editor') {
-      const editCard = this.editingCardId ? deckService.getCardById(this.editingCardId) : undefined;
-      bindFigmaCardEditorEvents(layout, subdeck, editCard, {
-        onBack: () => {
-          this.editingCardId = null;
-          this.currentView = 'dashboard';
-          this.render();
-        },
-        onSaved: () => {
-          this.showToast('¡Tarjeta guardada con éxito!');
-          this.editingCardId = null;
-          this.currentView = 'dashboard';
           this.render();
         }
       });

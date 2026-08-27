@@ -2410,6 +2410,45 @@ html, body {
    FAST FRENETIC ARCADE REFLEX MICRO-GAMES
    ========================================================================== */
 
+.cyber-crystal-core {
+  width: 120px;
+  height: 120px;
+  border-radius: 28px;
+  background: radial-gradient(circle at 35% 35%, rgba(56,189,248,0.35), rgba(15,23,42,0.9));
+  border: 2px solid rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 35px rgba(56, 189, 248, 0.5), inset 0 0 20px rgba(56, 189, 248, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: crystalFloat 2.5s ease-in-out infinite alternate;
+  transition: transform 0.08s ease, box-shadow 0.1s ease;
+}
+
+.cyber-crystal-core:active {
+  transform: scale(0.88);
+  box-shadow: 0 0 50px #38bdf8, inset 0 0 30px #ffffff;
+}
+
+@keyframes crystalFloat {
+  0% { transform: translateY(0px) rotate(0deg); }
+  100% { transform: translateY(-8px) rotate(4deg); }
+}
+
+.crystal-hp-bar {
+  width: 44px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crystal-hp-bar.active {
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+}
+
 .turbo-tap-btn {
   width: 170px;
   height: 170px;
@@ -2683,6 +2722,245 @@ html, body {
 
 .menu-action-item-btn:active {
   transform: scale(0.97);
+}
+
+/* ==========================================================================
+   CUPERTINO LUXURY CARD EDITOR STYLES (NO RAW HTML)
+   ========================================================================== */
+
+.cupertino-btn-check-save {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--f-green);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(132, 204, 22, 0.45);
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+.cupertino-btn-check-save:hover {
+  transform: scale(1.06);
+  filter: brightness(1.1);
+}
+
+.cupertino-btn-check-save:active {
+  transform: scale(0.94);
+}
+
+.cupertino-icon-square {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--f-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cupertino-icon-square:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.cupertino-editor-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cupertino-editor-label {
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--f-text-secondary);
+  padding-left: 4px;
+}
+
+.cupertino-editor-card-box {
+  background: rgba(20, 21, 28, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cupertino-editor-card-box:focus-within {
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 24px rgba(56, 189, 248, 0.18);
+}
+
+.cupertino-editor-textarea {
+  width: 100%;
+  min-height: 110px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 1.12rem;
+  line-height: 1.55;
+  font-family: inherit;
+  resize: vertical;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.cupertino-editor-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.cupertino-thumbnail-box {
+  position: relative;
+  display: inline-block;
+  max-width: 160px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+}
+
+.cupertino-thumb-img {
+  width: 100%;
+  max-height: 110px;
+  object-fit: cover;
+  display: block;
+}
+
+.cupertino-thumb-del-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+  border: none;
+  font-size: 1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cupertino-thumb-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.cupertino-rich-toolbar-dock {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cupertino-btn-ai-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(56, 189, 248, 0.25));
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  color: #c084fc;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cupertino-btn-ai-pill:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(56, 189, 248, 0.4));
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
+}
+
+.cupertino-tool-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--f-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.12s ease;
+}
+
+.cupertino-tool-icon:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.cupertino-tool-icon:active {
+  transform: scale(0.92);
+}
+
+.cupertino-tool-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 4px;
+}
+
+/* ==========================================================================
+   LUXURY FORM ELEMENTS (NO NATIVE/RAW BROWSER UI)
+   ========================================================================== */
+
+select,
+.form-input,
+.input-textarea {
+  background: rgba(20, 21, 28, 0.9) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 14px !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 0.98rem !important;
+  padding: 12px 16px !important;
+  outline: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+select:focus,
+.form-input:focus,
+.input-textarea:focus {
+  border-color: var(--f-blue) !important;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25) !important;
+}
+
+option {
+  background: #12131a !important;
+  color: #ffffff !important;
 }
 
 
