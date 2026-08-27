@@ -3043,66 +3043,58 @@ option {
 }
 
 /* ==========================================================================
-   CLEAN CARD SHADOW & DEPTH (IDÉNTICO A LA IMAGEN 2)
+   STACKED DECK EFFECT & CLEAN CARDS (IDÉNTICO A LA IMAGEN 2)
    ========================================================================== */
 
-.figma-card-item {
-  background: rgba(22, 24, 33, 0.72) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 16px !important;
-  padding: 14px 18px !important;
-  margin-bottom: 10px !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.6) !important;
-  transition: all 0.15s ease !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
+.figma-card-stacked-wrapper {
+  position: relative;
+  margin-bottom: 16px;
 }
 
-.figma-card-item:hover {
-  border-color: rgba(56, 189, 248, 0.35) !important;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.14) !important;
-}
-
-/* ==========================================================================
-   STACKED BOTTOM CARD LAYER (BULTO DEBAJO PARA AGRUPACIONES)
-   ========================================================================== */
-
-.card-stacked-bottom-effect {
-  position: relative !important;
-  margin-bottom: 18px !important;
-}
-
-.card-stacked-bottom-effect::before {
+.figma-card-stacked-wrapper::before {
   content: '';
   position: absolute;
   bottom: -4px;
   left: 8px;
   right: 8px;
-  height: 14px;
-  background: rgba(22, 24, 33, 0.95);
+  height: 100%;
+  background: #141622;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: none;
-  border-radius: 0 0 16px 16px;
-  z-index: -1;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  border-radius: 16px;
+  z-index: 0;
   pointer-events: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
-.card-stacked-bottom-effect::after {
+.figma-card-stacked-wrapper::after {
   content: '';
   position: absolute;
   bottom: -8px;
   left: 16px;
   right: 16px;
-  height: 12px;
-  background: rgba(16, 17, 24, 0.85);
+  height: 100%;
+  background: #0e0f17;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-top: none;
-  border-radius: 0 0 14px 14px;
-  z-index: -2;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
+  border-radius: 16px;
+  z-index: -1;
   pointer-events: none;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.55);
+}
+
+.figma-card-item {
+  position: relative;
+  z-index: 1;
+  background: #1a1c29 !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-radius: 16px !important;
+  padding: 14px 18px !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+.figma-card-item:hover {
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 0 16px rgba(56, 189, 248, 0.12) !important;
 }
 
 
