@@ -205,7 +205,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
     <div>
       <!-- Action Header with 3-level Breadcrumb -->
       <div class="figma-action-header">
-        <div class="figma-breadcrumbs" style="font-size:1.2rem;">
+        <div class="figma-breadcrumbs">
           <button class="figma-icon-btn-dark" id="btn-dash-back" style="margin-right:6px;" title="Volver">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           </button>
