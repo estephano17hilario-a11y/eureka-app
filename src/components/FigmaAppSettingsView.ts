@@ -20,20 +20,20 @@ export function renderFigmaAppSettingsView(): string {
         <div style="width:60px;"></div>
       </div>
 
-      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:22px; padding-bottom:40px;">
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:20px; padding-bottom:40px;">
         
         <div>
           <h2 style="font-size:1.8rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Atmósfera & Estilo Visual</h2>
-          <p style="font-size:0.92rem; color:var(--f-text-secondary);">Diseño moderno futurista con gradientes y mallas cromáticas</p>
+          <p style="font-size:0.92rem; color:var(--f-text-secondary); margin-top:4px;">Diseño moderno futurista con gradientes y mallas cromáticas</p>
         </div>
 
-        <!-- 1. Atmósferas y Fondos Futuristas (Inspirados en las Imágenes) -->
+        <!-- 1. Atmósferas y Fondos Futuristas -->
         <div class="apple-card-grouped" style="padding:22px;">
-          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:14px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
             Atmósfera y Fondo de la App
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
             
             <div class="theme-preset-card ${t.bgTheme === 'modern_black' ? 'selected' : ''}" data-bg="modern_black">
               <div class="theme-preview-box preview-modern-black">
@@ -90,7 +90,7 @@ export function renderFigmaAppSettingsView(): string {
 
         <!-- 2. Color de Acento -->
         <div class="apple-card-grouped" style="padding:22px;">
-          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:14px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
             Color de Acento de Botones y Resaltados
           </div>
 
@@ -106,18 +106,18 @@ export function renderFigmaAppSettingsView(): string {
 
         <!-- 3. Formas y Bordes de las Tarjetas -->
         <div class="apple-card-grouped" style="padding:22px;">
-          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:14px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
             Formas y Bordes de las Flashcards
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
-            <button class="apple-btn-outline-pill ${t.cardRadius === 'super_rounded' ? 'active-pill' : ''}" data-radius="super_rounded" style="padding:16px 10px; font-weight:800; text-align:center;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px;">
+            <button class="apple-btn-outline-pill ${t.cardRadius === 'super_rounded' ? 'active-pill' : ''}" data-radius="super_rounded" style="padding:16px 12px; font-weight:800; text-align:center;">
               Super Redondo (28px)
             </button>
-            <button class="apple-btn-outline-pill ${t.cardRadius === 'standard' ? 'active-pill' : ''}" data-radius="standard" style="padding:16px 10px; font-weight:800; text-align:center;">
+            <button class="apple-btn-outline-pill ${t.cardRadius === 'standard' ? 'active-pill' : ''}" data-radius="standard" style="padding:16px 12px; font-weight:800; text-align:center;">
               Estándar iOS (18px)
             </button>
-            <button class="apple-btn-outline-pill ${t.cardRadius === 'sharp' ? 'active-pill' : ''}" data-radius="sharp" style="padding:16px 10px; font-weight:800; text-align:center;">
+            <button class="apple-btn-outline-pill ${t.cardRadius === 'sharp' ? 'active-pill' : ''}" data-radius="sharp" style="padding:16px 12px; font-weight:800; text-align:center;">
               Futurista Recto (10px)
             </button>
           </div>
@@ -125,11 +125,11 @@ export function renderFigmaAppSettingsView(): string {
 
         <!-- 4. Escala Táctil de Botones Grandes -->
         <div class="apple-card-grouped" style="padding:22px;">
-          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:14px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
             Tamaño de Botones y Ergonomía Táctil
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:14px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
             <button class="apple-btn-secondary ${t.uiScale === 'comfortable' ? 'active-pill' : ''}" data-scale="comfortable" style="padding:18px; border-radius:18px; font-weight:800; font-size:1.05rem;">
               ✨ Cómodo y Grande (Recomendado)
             </button>
@@ -164,39 +164,39 @@ export function bindFigmaAppSettingsViewEvents(
     });
   });
 
-  // Background presets
+  // Background Theme Preset Cards
   container.querySelectorAll<HTMLElement>('.theme-preset-card').forEach((card) => {
     card.addEventListener('click', () => {
       const bg = card.dataset.bg as BgThemeType;
       if (bg) {
         themeService.setTheme({ bgTheme: bg });
-        container.querySelectorAll('.theme-preset-card').forEach((b) => b.classList.remove('selected'));
+        container.querySelectorAll('.theme-preset-card').forEach((c) => c.classList.remove('selected'));
         card.classList.add('selected');
         callbacks.onThemeChanged();
       }
     });
   });
 
-  // Radius
-  container.querySelectorAll<HTMLButtonElement>('[data-radius]').forEach((btn) => {
+  // Card Radius buttons
+  container.querySelectorAll<HTMLButtonElement>('button[data-radius]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const r = btn.dataset.radius as AppCustomizationTheme['cardRadius'];
-      if (r) {
-        themeService.setTheme({ cardRadius: r });
-        container.querySelectorAll('[data-radius]').forEach((b) => b.classList.remove('active-pill'));
+      const rad = btn.dataset.radius as AppCustomizationTheme['cardRadius'];
+      if (rad) {
+        themeService.setTheme({ cardRadius: rad });
+        container.querySelectorAll('button[data-radius]').forEach((b) => b.classList.remove('active-pill'));
         btn.classList.add('active-pill');
         callbacks.onThemeChanged();
       }
     });
   });
 
-  // Scale
-  container.querySelectorAll<HTMLButtonElement>('[data-scale]').forEach((btn) => {
+  // UI Scale buttons
+  container.querySelectorAll<HTMLButtonElement>('button[data-scale]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const s = btn.dataset.scale as AppCustomizationTheme['uiScale'];
-      if (s) {
-        themeService.setTheme({ uiScale: s });
-        container.querySelectorAll('[data-scale]').forEach((b) => b.classList.remove('active-pill'));
+      const sc = btn.dataset.scale as AppCustomizationTheme['uiScale'];
+      if (sc) {
+        themeService.setTheme({ uiScale: sc });
+        container.querySelectorAll('button[data-scale]').forEach((b) => b.classList.remove('active-pill'));
         btn.classList.add('active-pill');
         callbacks.onThemeChanged();
       }

@@ -1,5 +1,6 @@
 /* ==========================================================================
-   EUREKA - 100% RESPONSIVE DESIGN SYSTEM (WEB, DESKTOP, MOBILE & APK)
+   EUREKA - COMPREHENSIVE NATIVE APPLE / FIGMA DESIGN SYSTEM
+   Supports: Web Desktop, Tablets, Mobile Responsive, and Android/iOS APK
    ========================================================================== */
 
 :root {
@@ -43,7 +44,7 @@
   display: none !important;
 }
 
-/* Fixed Background Atmosphere (Inamovible) */
+/* Fixed Inamovible Background Atmosphere */
 body {
   margin: 0;
   padding: 0;
@@ -70,7 +71,7 @@ body::before {
   transition: background-image 0.4s ease, background-color 0.4s ease;
 }
 
-/* 1. Modern Lead Black (Default) */
+/* Theme Presets */
 body.theme-modern_black::before {
   background-color: #0e0f14;
   background-image: 
@@ -78,7 +79,6 @@ body.theme-modern_black::before {
     radial-gradient(at 90% 80%, rgba(168, 85, 247, 0.07) 0px, transparent 50%);
 }
 
-/* 2. Holo Prism Chrome */
 body.theme-holo_cyber::before {
   background-color: #0c0d12;
   background-image: 
@@ -87,7 +87,6 @@ body.theme-holo_cyber::before {
     radial-gradient(at 50% 85%, rgba(168, 85, 247, 0.15) 0px, transparent 60%);
 }
 
-/* 3. Vision Emerald */
 body.theme-emerald_vision::before {
   background-color: #0a110e;
   background-image: 
@@ -95,7 +94,6 @@ body.theme-emerald_vision::before {
     radial-gradient(at 20% 80%, rgba(6, 182, 212, 0.12) 0px, transparent 50%);
 }
 
-/* 4. Digital Technology Blue */
 body.theme-digital_blue::before {
   background-color: #090e17;
   background-image: 
@@ -103,7 +101,6 @@ body.theme-digital_blue::before {
     radial-gradient(at 20% 70%, rgba(56, 189, 248, 0.16) 0px, transparent 50%);
 }
 
-/* 5. Sunset Magenta */
 body.theme-sunset_magenta::before {
   background-color: #120b14;
   background-image: 
@@ -489,6 +486,14 @@ html, body {
   transform: scale(0.97);
 }
 
+.figma-floating-add-btn-wrap {
+  position: fixed;
+  bottom: calc(var(--sab) + 76px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
 /* ==========================================================================
    Deck Main Container & List Rows
    ========================================================================== */
@@ -757,7 +762,7 @@ html, body {
 }
 
 /* ==========================================================================
-   CRITICAL: Flashcard Items in Deck Dashboard and Library
+   Flashcard Items in Deck Dashboard and Library
    ========================================================================== */
 
 .figma-card-item {
@@ -806,7 +811,13 @@ html, body {
   line-height: 1.55;
 }
 
-/* Apple Panels and Grouped Cards */
+/* Apple Panels, Chevrons and Grouped Cards */
+.apple-chevron {
+  color: var(--f-text-muted);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
 .apple-glass-panel {
   background: var(--f-surface);
   border: 1px solid var(--f-border);
@@ -820,6 +831,7 @@ html, body {
   border: 1px solid var(--f-border);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08);
   overflow: hidden;
+  margin-bottom: 16px;
 }
 
 .apple-list-row {
@@ -828,10 +840,25 @@ html, body {
   justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.15s;
 }
 
 .apple-list-row:last-child {
   border-bottom: none;
+}
+
+.apple-list-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.apple-badge-beta {
+  background: var(--f-blue);
+  color: #07080a;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
 }
 
 .apple-badge-subpill {
@@ -844,6 +871,41 @@ html, body {
   border-radius: var(--f-radius-full);
 }
 
+.apple-tab-pill {
+  background: none;
+  border: none;
+  color: var(--f-text-secondary);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: var(--f-radius-full);
+  transition: all 0.15s;
+}
+
+.apple-tab-pill.active {
+  background: var(--f-blue);
+  color: #07080a;
+}
+
+.apple-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--f-blue);
+  color: #07080a;
+  font-size: 1rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+  transition: transform 0.12s, background 0.15s;
+}
+
+.apple-btn-primary:active {
+  transform: scale(0.97);
+}
+
 .apple-btn-secondary {
   display: flex;
   align-items: center;
@@ -853,7 +915,7 @@ html, body {
   border: 1px solid var(--f-border);
   color: #ffffff;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .apple-btn-secondary:hover {
@@ -869,11 +931,238 @@ html, body {
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .apple-btn-outline-pill:hover {
   background: rgba(255, 255, 255, 0.12);
+}
+
+.active-pill {
+  background: var(--f-blue) !important;
+  color: #07080a !important;
+  font-weight: 800 !important;
+  border-color: var(--f-blue) !important;
+}
+
+.apple-icon-circle-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+/* Switch & Controls */
+.figma-switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 30px;
+}
+
+.figma-switch input { display: none; }
+
+.figma-slider {
+  position: absolute;
+  inset: 0;
+  background-color: #383a42;
+  border-radius: 34px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.figma-slider::before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.figma-switch input:checked + .figma-slider {
+  background-color: var(--f-blue);
+}
+
+.figma-switch input:checked + .figma-slider::before {
+  transform: translateX(22px);
+}
+
+/* Algorithm Card Styles */
+.apple-algo-card {
+  background: var(--f-surface);
+  border: 1.5px solid var(--f-border);
+  border-radius: 22px;
+  padding: 20px 22px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.apple-algo-card:hover {
+  background: var(--f-surface-subtle);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.apple-algo-card.selected {
+  border-color: var(--f-blue);
+  background: rgba(56, 189, 248, 0.06);
+}
+
+.apple-algo-icon {
+  font-size: 1.3rem;
+  color: var(--f-blue);
+}
+
+.apple-algo-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.apple-algo-desc {
+  font-size: 0.86rem;
+  color: var(--f-text-secondary);
+  line-height: 1.5;
+}
+
+.apple-checkbox {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--f-blue);
+  cursor: pointer;
+}
+
+.apple-icon-del-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #ffffff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.apple-icon-del-btn:hover {
+  background: rgba(239, 68, 68, 0.4);
+}
+
+/* ==========================================================================
+   Theme Customization Settings UI Tokens (Personalización de la App)
+   ========================================================================== */
+
+.theme-preset-card {
+  background: var(--f-surface) !important;
+  border: 1.5px solid var(--f-border) !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35) !important;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s !important;
+}
+
+.theme-preset-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.theme-preset-card.selected {
+  border-color: var(--f-blue) !important;
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.28) !important;
+}
+
+.theme-preview-box {
+  height: 90px !important;
+  width: 100% !important;
+  position: relative !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-end !important;
+  padding: 10px !important;
+  border-bottom: 1px solid var(--f-border);
+}
+
+.preview-modern-black {
+  background: #0e0f14 radial-gradient(at 10% 20%, rgba(56, 189, 248, 0.25) 0px, transparent 55%) !important;
+}
+
+.preview-holo-cyber {
+  background: linear-gradient(135deg, #ff007a 0%, #7928ca 40%, #0070f3 80%, #00dfd8 100%) !important;
+}
+
+.preview-digital-blue {
+  background: radial-gradient(circle at 80% 30%, #38bdf8 0%, #0051cb 60%, #080f1d 100%) !important;
+}
+
+.preview-emerald-vision {
+  background: radial-gradient(circle at 50% 50%, #10b981 0%, #064e3b 50%, #0a110e 100%) !important;
+}
+
+.preview-sunset-magenta {
+  background: radial-gradient(circle at 20% 30%, #ec4899 0%, #7e22ce 60%, #120b14 100%) !important;
+}
+
+.theme-badge-glow {
+  font-size: 0.74rem !important;
+  font-weight: 800 !important;
+  color: #07080a !important;
+  background: #ffffff !important;
+  padding: 3px 10px !important;
+  border-radius: var(--f-radius-full) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.theme-card-info {
+  padding: 16px !important;
+}
+
+.theme-card-title {
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+}
+
+.theme-card-desc {
+  font-size: 0.82rem !important;
+  color: var(--f-text-secondary) !important;
+  margin-top: 4px !important;
+  line-height: 1.4 !important;
+}
+
+.theme-color-circle {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: 50% !important;
+  border: 3px solid transparent !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  transition: transform 0.15s, border-color 0.15s !important;
+}
+
+.theme-color-circle:hover {
+  transform: scale(1.1);
+}
+
+.theme-color-circle.active {
+  border-color: #ffffff !important;
+  transform: scale(1.15) !important;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.45) !important;
 }
 
 /* ==========================================================================
