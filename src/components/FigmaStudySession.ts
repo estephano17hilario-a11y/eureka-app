@@ -10,6 +10,7 @@ export interface FigmaStudyOptions {
   specificCardId?: string;
   forceAllCards?: boolean;
   onExit: () => void;
+  onEditCard?: (cardId: string) => void;
 }
 
 export class FigmaStudySession {
@@ -18,7 +19,10 @@ export class FigmaStudySession {
   private currentCardIndex: number = 0;
   private isFlipped: boolean = false;
   private isSingleCardMode: boolean = false;
+  private isTypeAnswerMode: boolean = false;
+  private typedAnswer: string = '';
   private onExitCallback: () => void;
+  private onEditCardCallback?: (cardId: string) => void;
   private historyStack: { cardIndex: number; isFlipped: boolean }[] = [];
   private sessionStats = {
     startTime: Date.now(),
@@ -34,6 +38,7 @@ export class FigmaStudySession {
     if (!deck) throw new Error(`Deck not found: ${options.deckId}`);
     this.deck = deck;
     this.onExitCallback = options.onExit;
+    this.onEditCardCallback = options.onEditCard;
 
     if (options.specificCardId) {
       const specific = deckService.getCardById(options.specificCardId);
@@ -64,7 +69,7 @@ export class FigmaStudySession {
 
     const currentCard = this.queue[this.currentCardIndex];
     const totalCount = this.queue.length;
-    const currentNum = this.currentCardIndex;
+    const currentNum = this.currentCardIndex + 1;
     const progressPercent = totalCount > 0 ? Math.round((currentNum / totalCount) * 100) : 0;
     const intervalProjections = srsService.projectIntervals(currentCard, this.deck.settings);
 
@@ -76,14 +81,14 @@ export class FigmaStudySession {
     container.innerHTML = `
       <div class="cupertino-study-container">
         
-        <!-- Header exact matching Reference Image 3 & 5 -->
+        <!-- Header matching Reference Image 3 & 5 -->
         <div class="cupertino-study-header">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <button class="ios-back-btn" id="btn-study-exit" style="padding:0; font-size:1.1rem; color:#fff;">
+            <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+              <button class="ios-back-btn" id="btn-study-exit" style="padding:0; font-size:1.1rem; color:#fff; flex-shrink:0;">
                 <span class="ios-back-chevron">‹</span> Salir
               </button>
-              <h2 style="font-size:1.55rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">
+              <h2 style="font-size:1.45rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                 ${this.deck.name}
               </h2>
             </div>
@@ -93,7 +98,7 @@ export class FigmaStudySession {
             </button>
           </div>
 
-          <!-- Progress track matching Image 3 (Pill 0/10 + Green Dot Track) -->
+          <!-- Progress track matching Image 3 (Pill 1/10 + Green Dot Track) -->
           <div class="cupertino-progress-row">
             <div class="cupertino-progress-pill">${currentNum}/${totalCount}</div>
             <div class="cupertino-track-bar">
@@ -106,9 +111,9 @@ export class FigmaStudySession {
         <!-- Main Card Canvas (Responsive, Auto-Height, No Cut-Off Images) -->
         <div class="cupertino-flashcard-box" id="f-study-scene">
           
-          <!-- Top 3-dots icon -->
+          <!-- Top 3-dots icon for Card Actions / Editing -->
           <div class="cupertino-card-top-action">
-            <button class="cupertino-btn-card-menu" id="btn-card-more-action" title="Opciones">⋮</button>
+            <button class="cupertino-btn-card-menu" id="btn-card-more-action" title="Editar o gestionar tarjeta">⋮</button>
           </div>
 
           <!-- Card Content (Front or Back) -->
@@ -121,7 +126,7 @@ export class FigmaStudySession {
           </div>
 
           ${
-            !this.isFlipped
+            !this.isFlipped && !this.isTypeAnswerMode
               ? `
             <div class="cupertino-card-hint-text">
               Toca la tarjeta o presiona Espacio para voltear
@@ -136,14 +141,14 @@ export class FigmaStudySession {
           ${
             !this.isFlipped
               ? `
-            <!-- Control Bar Front (Image 3): [⌨] [Mostrar respuesta] [↶] -->
+            <!-- Control Bar Front: [⌨ Escribir respuesta] [Mostrar respuesta] [↶ Deshacer] -->
             <div class="cupertino-front-controls-row">
-              <button class="cupertino-icon-square" id="btn-show-shortcuts" title="Atajos de teclado">
+              <button class="cupertino-icon-square ${this.isTypeAnswerMode ? 'active-keyboard-mode' : ''}" id="btn-toggle-type-mode" title="Escribir la respuesta (Modo teclado)">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="18" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
               </button>
 
               <button class="cupertino-btn-show-answer" id="btn-f-show-answer">
-                Mostrar respuesta
+                ${this.isTypeAnswerMode ? 'Comprobar respuesta' : 'Mostrar respuesta'}
               </button>
 
               <button class="cupertino-icon-square" id="btn-undo-card" title="Deshacer última tarjeta">
@@ -154,22 +159,22 @@ export class FigmaStudySession {
               : `
             <!-- Rating Bar Back (Image 5): 4 Frosted Cupertino Buttons -->
             <div class="cupertino-rating-row">
-              <button class="cupertino-rate-pill rate-again" data-rating="again">
+              <button class="cupertino-rate-pill rate-again" data-rating="again" title="Presiona [1]">
                 <span class="c-rate-title">De nuevo</span>
                 <span class="c-rate-subtitle">${intervalProjections[0].displayTime}</span>
               </button>
 
-              <button class="cupertino-rate-pill rate-hard" data-rating="hard">
+              <button class="cupertino-rate-pill rate-hard" data-rating="hard" title="Presiona [2]">
                 <span class="c-rate-title">Difícil</span>
                 <span class="c-rate-subtitle">${intervalProjections[1].displayTime}</span>
               </button>
 
-              <button class="cupertino-rate-pill rate-good" data-rating="good">
+              <button class="cupertino-rate-pill rate-good" data-rating="good" title="Presiona [3]">
                 <span class="c-rate-title">Bien</span>
                 <span class="c-rate-subtitle">${intervalProjections[2].displayTime}</span>
               </button>
 
-              <button class="cupertino-rate-pill rate-easy" data-rating="easy">
+              <button class="cupertino-rate-pill rate-easy" data-rating="easy" title="Presiona [4]">
                 <span class="c-rate-title">Fácil</span>
                 <span class="c-rate-subtitle">${intervalProjections[3].displayTime}</span>
               </button>
@@ -185,9 +190,10 @@ export class FigmaStudySession {
   }
 
   private renderFrontContent(card: Flashcard): string {
+    let mediaHtml = '';
     if (card.type === 'image_occlusion' && card.occlusionImage) {
       const mode = card.occlusionMode || 'hide_all_reveal_one';
-      return `
+      mediaHtml = `
         <div class="cupertino-occlusion-wrap">
           <div class="cupertino-occlusion-img-box">
             <img src="${card.occlusionImage}" alt="Oclusión" draggable="false" class="cupertino-responsive-img" />
@@ -205,26 +211,44 @@ export class FigmaStudySession {
               })
               .join('')}
           </div>
-          <div class="cupertino-card-main-title" style="margin-top:16px;">
-            ${katexService.parseAndRender(card.front)}
-          </div>
         </div>
       `;
+    } else if (card.frontImage) {
+      mediaHtml = `<img src="${card.frontImage}" class="cupertino-responsive-img" alt="Front Attachment" />`;
     }
 
+    const typeAnswerInputHtml = this.isTypeAnswerMode
+      ? `
+      <div class="cupertino-type-answer-box" style="margin-top:16px; width:100%; max-width:440px;">
+        <input 
+          type="text" 
+          id="study-typed-answer-input" 
+          class="cupertino-typed-input" 
+          placeholder="Escribe la respuesta aquí..." 
+          value="${this.typedAnswer}" 
+          autocomplete="off" 
+          autocorrect="off" 
+          spellcheck="false" 
+        />
+      </div>
+    `
+      : '';
+
     return `
-      <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; width:100%;">
-        ${card.frontImage ? `<img src="${card.frontImage}" class="cupertino-responsive-img" alt="Front Attachment" />` : ''}
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; width:100%;">
+        ${mediaHtml}
         <div class="cupertino-card-main-title">
           ${katexService.parseAndRender(card.front)}
         </div>
+        ${typeAnswerInputHtml}
       </div>
     `;
   }
 
   private renderBackContent(card: Flashcard): string {
+    let mediaHtml = '';
     if (card.type === 'image_occlusion' && card.occlusionImage) {
-      return `
+      mediaHtml = `
         <div class="cupertino-occlusion-wrap">
           <div class="cupertino-occlusion-img-box">
             <img src="${card.occlusionImage}" alt="Oclusión Revelada" draggable="false" class="cupertino-responsive-img" />
@@ -232,18 +256,37 @@ export class FigmaStudySession {
               .map((m) => {
                 const isActive = m.id === card.activeMaskId;
                 if (isActive) {
-                  return `<div class="figma-drawn-mask active-revealed-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:transparent; border:3px solid #10b981; box-shadow:0 0 20px rgba(16,185,129,0.9);"></div>`;
+                  // Solicitud #4: Eliminar recuadro pintado y borde verde neón. El área revelada se muestra totalmente limpia y transparente
+                  return '';
                 }
                 return `<div class="figma-drawn-mask other-hidden-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#1c1d22; border:1px solid #3f3f46;"></div>`;
               })
               .join('')}
           </div>
-          <div class="cupertino-card-main-title" style="margin-top:14px;">
-            ${katexService.parseAndRender(card.front)}
+        </div>
+      `;
+    } else if (card.backImage) {
+      mediaHtml = `<img src="${card.backImage}" class="cupertino-responsive-img" style="margin-bottom:14px;" alt="Back Attachment" />`;
+    }
+
+    let typedComparisonHtml = '';
+    if (this.isTypeAnswerMode && this.typedAnswer.trim()) {
+      const cleanExpected = card.back.replace(/<[^>]*>?/gm, '').replace(/[*_#`$]/g, '').trim().toLowerCase();
+      const cleanUser = this.typedAnswer.trim().toLowerCase();
+      const isExactMatch = cleanUser === cleanExpected;
+
+      typedComparisonHtml = `
+        <div class="cupertino-typed-comparison-card apple-glass-panel" style="margin-bottom:14px; width:100%; max-width:440px; padding:12px 16px; border-radius:14px; text-align:left;">
+          <div style="font-size:0.78rem; font-weight:800; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">
+            Tu respuesta escrita:
           </div>
-          <div class="cupertino-card-divider"></div>
-          <div class="cupertino-card-answer-text">
-            ${katexService.parseAndRender(card.back)}
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <span style="font-size:1.05rem; font-weight:700; color:${isExactMatch ? '#10b981' : '#f87171'};">
+              ${this.typedAnswer}
+            </span>
+            <span class="apple-badge-subpill" style="font-size:0.75rem; background:${isExactMatch ? 'rgba(16,185,129,0.18)' : 'rgba(239,68,68,0.18)'}; color:${isExactMatch ? '#10b981' : '#f87171'}; border:1px solid ${isExactMatch ? '#10b981' : '#ef4444'};">
+              ${isExactMatch ? '✓ Exacto' : 'Discrepancia'}
+            </span>
           </div>
         </div>
       `;
@@ -251,13 +294,14 @@ export class FigmaStudySession {
 
     return `
       <div style="display:flex; flex-direction:column; align-items:center; text-align:center; width:100%;">
-        <div class="cupertino-card-main-title" style="color:var(--f-text-secondary); font-size:1.2rem;">
+        ${mediaHtml}
+        <div class="cupertino-card-main-title" style="color:var(--f-text-secondary); font-size:1.15rem;">
           ${katexService.parseAndRender(card.front)}
         </div>
         
         <div class="cupertino-card-divider"></div>
 
-        ${card.backImage ? `<img src="${card.backImage}" class="cupertino-responsive-img" style="margin-bottom:14px;" alt="Back Attachment" />` : ''}
+        ${typedComparisonHtml}
 
         <div class="cupertino-card-answer-text">
           ${katexService.parseAndRender(card.back)}
@@ -266,24 +310,142 @@ export class FigmaStudySession {
     `;
   }
 
+  private openCardMenu(currentCard: Flashcard, container: HTMLElement): void {
+    const modal = document.createElement('div');
+    modal.className = 'apple-modal-overlay';
+    modal.innerHTML = `
+      <div class="apple-modal-content apple-glass-panel" style="max-width:380px; width:90%; padding:20px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <h3 style="font-size:1.15rem; font-weight:800; color:#fff;">Opciones de la Tarjeta</h3>
+          <button id="btn-close-card-menu" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="menu-action-item-btn" id="btn-menu-edit-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:left;">
+            <span style="font-size:1.2rem;">✏️</span>
+            <div>
+              <div>Editar esta tarjeta</div>
+              <div style="font-size:0.75rem; color:var(--f-text-secondary); font-weight:500;">Modificar anverso, reverso o multimedia</div>
+            </div>
+          </button>
+
+          <button class="menu-action-item-btn" id="btn-menu-reset-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:left;">
+            <span style="font-size:1.2rem;">🔄</span>
+            <div>
+              <div>Reiniciar progreso</div>
+              <div style="font-size:0.75rem; color:var(--f-text-secondary); font-weight:500;">Restablecer a tarjeta nueva</div>
+            </div>
+          </button>
+
+          <button class="menu-action-item-btn" id="btn-menu-delete-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); color:#f87171; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:left;">
+            <span style="font-size:1.2rem;">🗑️</span>
+            <div>
+              <div>Eliminar tarjeta</div>
+              <div style="font-size:0.75rem; color:#fca5a5; font-weight:500;">Borrar definitivamente del mazo</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () => modal.remove();
+    modal.querySelector('#btn-close-card-menu')?.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    modal.querySelector('#btn-menu-edit-card')?.addEventListener('click', () => {
+      closeModal();
+      window.onkeydown = null;
+      if (this.onEditCardCallback) {
+        this.onEditCardCallback(currentCard.id);
+      }
+    });
+
+    modal.querySelector('#btn-menu-reset-card')?.addEventListener('click', () => {
+      deckService.resetCardProgress(currentCard.id);
+      closeModal();
+      this.render(container);
+    });
+
+    modal.querySelector('#btn-menu-delete-card')?.addEventListener('click', () => {
+      if (confirm('¿Eliminar esta tarjeta definitivamente?')) {
+        deckService.deleteCard(currentCard.id);
+        closeModal();
+        this.queue.splice(this.currentCardIndex, 1);
+        this.isFlipped = false;
+        this.render(container);
+      }
+    });
+  }
+
   private bindEvents(container: HTMLElement): void {
+    const currentCard = this.queue[this.currentCardIndex];
+
     document.getElementById('btn-study-exit')?.addEventListener('click', () => {
+      window.onkeydown = null;
       ttsService.stop();
       this.onExitCallback();
     });
 
+    // Top 3-dots Card Menu (Solicitud #3)
+    document.getElementById('btn-card-more-action')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.openCardMenu(currentCard, container);
+    });
+
+    // Focus typed answer input if active
+    if (this.isTypeAnswerMode && !this.isFlipped) {
+      const input = document.getElementById('study-typed-answer-input') as HTMLInputElement | null;
+      if (input) {
+        input.focus();
+        input.addEventListener('input', (e) => {
+          this.typedAnswer = (e.target as HTMLInputElement).value;
+        });
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            triggerFlip();
+          }
+        });
+      }
+    }
+
     const triggerFlip = () => {
       if (!this.isFlipped) {
+        // Save typed answer from input if exists
+        const input = document.getElementById('study-typed-answer-input') as HTMLInputElement | null;
+        if (input) {
+          this.typedAnswer = input.value;
+        }
         this.historyStack.push({ cardIndex: this.currentCardIndex, isFlipped: false });
         this.isFlipped = true;
         this.render(container);
       }
     };
 
+    // Toggle Type Answer Mode Button (Solicitud #5)
+    document.getElementById('btn-toggle-type-mode')?.addEventListener('click', () => {
+      this.isTypeAnswerMode = !this.isTypeAnswerMode;
+      this.typedAnswer = '';
+      this.render(container);
+    });
+
     document.getElementById('btn-f-show-answer')?.addEventListener('click', triggerFlip);
     document.getElementById('f-study-scene')?.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).id === 'btn-card-more-action') return;
-      triggerFlip();
+      const target = e.target as HTMLElement;
+      if (
+        target.id === 'btn-card-more-action' ||
+        target.tagName === 'INPUT' ||
+        target.tagName === 'BUTTON'
+      ) {
+        return;
+      }
+      if (!this.isTypeAnswerMode) {
+        triggerFlip();
+      }
     });
 
     // Undo button
@@ -291,19 +453,14 @@ export class FigmaStudySession {
       if (this.currentCardIndex > 0) {
         this.currentCardIndex--;
         this.isFlipped = false;
+        this.typedAnswer = '';
         this.render(container);
       }
-    });
-
-    // Shortcuts button
-    document.getElementById('btn-show-shortcuts')?.addEventListener('click', () => {
-      alert('⌨️ Atajos de Teclado:\n\n• [Espacio] o [Enter] = Mostrar respuesta / Voltear\n• [1] = De nuevo (Muy difícil)\n• [2] = Difícil\n• [3] = Bien\n• [4] = Fácil\n• [Z] = Deshacer');
     });
 
     // Audio
     document.getElementById('btn-study-audio')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      const currentCard = this.queue[this.currentCardIndex];
       const text = this.isFlipped ? currentCard.back : currentCard.front;
       ttsService.speak(text, currentCard.audioLang || this.deck.settings.ttsVoiceLang);
     });
@@ -317,23 +474,42 @@ export class FigmaStudySession {
       });
     });
 
-    // Keyboard controls
+    // Keyboard controls (Solicitud #6)
     window.onkeydown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' || e.code === 'Enter') {
-        if (!this.isFlipped) {
+      // If typing in an input and pressing non-enter keys, allow normal typing
+      const activeEl = document.activeElement;
+      const isInputActive = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+
+      if (!this.isFlipped) {
+        if (e.code === 'Space' || e.code === 'Enter') {
           e.preventDefault();
           triggerFlip();
         }
-      } else if (this.isFlipped) {
-        if (e.key === '1') this.handleRating('again', container);
-        else if (e.key === '2') this.handleRating('hard', container);
-        else if (e.key === '3') this.handleRating('good', container);
-        else if (e.key === '4') this.handleRating('easy', container);
-      } else if (e.key === 'z' || e.key === 'Z') {
-        if (this.currentCardIndex > 0) {
-          this.currentCardIndex--;
-          this.isFlipped = false;
-          this.render(container);
+      } else {
+        if (isInputActive) return;
+
+        if (e.key === '1' || e.code === 'Numpad1') {
+          e.preventDefault();
+          this.handleRating('again', container);
+        } else if (e.key === '2' || e.code === 'Numpad2') {
+          e.preventDefault();
+          this.handleRating('hard', container);
+        } else if (e.key === '3' || e.code === 'Numpad3') {
+          e.preventDefault();
+          this.handleRating('good', container);
+        } else if (e.key === '4' || e.code === 'Numpad4') {
+          e.preventDefault();
+          this.handleRating('easy', container);
+        } else if (e.code === 'Space' || e.code === 'Enter') {
+          e.preventDefault();
+          this.handleRating('good', container);
+        } else if (e.key === 'z' || e.key === 'Z') {
+          if (this.currentCardIndex > 0) {
+            this.currentCardIndex--;
+            this.isFlipped = false;
+            this.typedAnswer = '';
+            this.render(container);
+          }
         }
       }
     };
@@ -359,6 +535,7 @@ export class FigmaStudySession {
 
     this.currentCardIndex++;
     this.isFlipped = false;
+    this.typedAnswer = '';
     this.render(container);
   }
 

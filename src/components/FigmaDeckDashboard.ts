@@ -1,7 +1,6 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
-import { openImageOcclusionModal } from './ImageOcclusionModal';
 
 export interface FigmaDashboardCallbacks {
   onBackToSubdecks: () => void;
@@ -11,6 +10,33 @@ export interface FigmaDashboardCallbacks {
   onAddCard: (deckId: string) => void;
   onConfigureDeck: (deckId: string) => void;
   onEditCard: (cardId: string) => void;
+}
+
+function formatDueDateBadge(dueDate: number, state: string): string {
+  if (state === 'new') {
+    return `<span class="figma-due-badge due-new">✨ Nueva</span>`;
+  }
+  const now = Date.now();
+  if (dueDate <= now) {
+    return `<span class="figma-due-badge due-now">⚡ Pendiente</span>`;
+  }
+  const due = new Date(dueDate);
+  const nowDate = new Date(now);
+  const isToday = due.toDateString() === nowDate.toDateString();
+  const tomorrow = new Date(now + 86400000);
+  const isTomorrow = due.toDateString() === tomorrow.toDateString();
+
+  const timeStr = due.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  let dayStr = '';
+  if (isToday) {
+    dayStr = 'Hoy';
+  } else if (isTomorrow) {
+    dayStr = 'Mañana';
+  } else {
+    dayStr = due.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  return `<span class="figma-due-badge due-future" title="Repaso programado: ${due.toLocaleString('es-ES')}">🕒 ${dayStr}, ${timeStr}</span>`;
 }
 
 export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string {
@@ -52,46 +78,44 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
       const groupCards = deckService.getCardsByGroupId(c.groupId);
       cardItemsHtml.push(`
-        <div class="occlusion-group-card apple-glass-panel" data-group-id="${c.groupId}">
-          <div class="occlusion-group-header">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <span style="font-size:1.4rem;">🖼️</span>
-              <div>
-                <div style="font-size:1.1rem; font-weight:800; color:#fff;">
-                  Oclusión de Imagen (${groupCards.length} tarjetas contenidas)
+        <div class="occlusion-group-card apple-glass-panel selectable-card-target" data-group-id="${c.groupId}">
+          <div class="occlusion-group-header" data-toggle-group="${c.groupId}" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+              <span style="font-size:1.35rem; flex-shrink:0;">🖼️</span>
+              <div style="min-width:0;">
+                <div style="font-size:1.02rem; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  Oclusión de Imagen (${groupCards.length} máscaras)
                 </div>
-                <div style="font-size:0.82rem; color:var(--f-text-secondary); margin-top:2px;">
-                  Toca para desplegar sub-tarjetas o edita la imagen general
+                <div style="font-size:0.78rem; color:var(--f-text-secondary); margin-top:2px;">
+                  Toca para desplegar • Mantén presionado para seleccionar
                 </div>
               </div>
             </div>
 
-            <div style="display:flex; align-items:center; gap:10px;">
-              <button class="apple-btn-outline-pill btn-edit-group-occlusion" data-group-id="${c.groupId}" style="padding:6px 14px; font-size:0.82rem; font-weight:700; color:var(--f-blue); border-color:var(--f-blue);">
-                ✏️ Editar Oclusión
-              </button>
-              <button class="btn-toggle-group-accordion" data-group-id="${c.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer; padding:4px 8px;">
-                ▾
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+              <button class="btn-toggle-group-accordion" data-group-id="${c.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.2rem; cursor:pointer; padding:4px 6px;">
+                ▸
               </button>
             </div>
           </div>
 
-          <div class="occlusion-group-body" id="group-body-${c.groupId}" style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
+          <!-- Subtarjetas desglosadas al click (Ocultas por defecto) -->
+          <div class="occlusion-group-body" id="group-body-${c.groupId}" style="display:none; margin-top:10px; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.06); padding-top:10px;">
             ${groupCards
               .map(
                 (gc, idx) => `
-              <div class="occlusion-child-card-row clickable-card-row" data-dash-card-id="${gc.id}" title="Estudiar máscara #${idx + 1}">
-                <div style="display:flex; align-items:center; gap:10px;">
-                  <span style="font-size:0.82rem; font-weight:800; color:var(--f-blue); background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:6px;">
+              <div class="occlusion-child-card-row selectable-card-target" data-card-id="${gc.id}" title="Toca para estudiar • Mantén presionado para seleccionar">
+                <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                  <span style="font-size:0.76rem; font-weight:800; color:var(--f-blue); background:rgba(56,189,248,0.12); padding:2px 7px; border-radius:6px; flex-shrink:0;">
                     #${idx + 1}
                   </span>
-                  <span style="font-weight:700; color:#fff; font-size:0.95rem;">${gc.front}</span>
-                  <span style="color:var(--f-text-secondary); font-size:0.88rem;">➜ ${katexService.parseAndRender(gc.back)}</span>
+                  <span style="font-weight:700; color:#fff; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${gc.front}</span>
+                  <span style="color:var(--f-text-secondary); font-size:0.84rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">➜ ${katexService.parseAndRender(gc.back)}</span>
                 </div>
                 
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px;">🎯 Estudiar</span>
-                  <button class="btn-card-del-action" data-del-id="${gc.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem;">🗑️</button>
+                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                  ${formatDueDateBadge(gc.dueDate, gc.state)}
+                  <span class="micro-study-badge" title="Estudiar">🎯</span>
                 </div>
               </div>
             `
@@ -106,43 +130,43 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
       const pairCards = deckService.getCardsByGroupId(c.groupId);
       cardItemsHtml.push(`
-        <div class="occlusion-group-card apple-glass-panel" data-group-id="${c.groupId}">
-          <div class="occlusion-group-header">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <span style="font-size:1.4rem;">⇄</span>
-              <div>
-                <div style="font-size:1.1rem; font-weight:800; color:#fff;">
+        <div class="occlusion-group-card apple-glass-panel selectable-card-target" data-group-id="${c.groupId}">
+          <div class="occlusion-group-header" data-toggle-group="${c.groupId}" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+              <span style="font-size:1.35rem; flex-shrink:0;">⇄</span>
+              <div style="min-width:0;">
+                <div style="font-size:1.02rem; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                   Par Invertido (2 tarjetas)
                 </div>
-                <div style="font-size:0.82rem; color:var(--f-text-secondary); margin-top:2px;">
-                  Anverso ⇄ Reverso recíproco
+                <div style="font-size:0.78rem; color:var(--f-text-secondary); margin-top:2px;">
+                  Anverso ⇄ Reverso • Mantén presionado para seleccionar
                 </div>
               </div>
             </div>
 
-            <div style="display:flex; align-items:center; gap:10px;">
-              <button class="btn-toggle-group-accordion" data-group-id="${c.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer; padding:4px 8px;">
-                ▾
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+              <button class="btn-toggle-group-accordion" data-group-id="${c.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.2rem; cursor:pointer; padding:4px 6px;">
+                ▸
               </button>
             </div>
           </div>
 
-          <div class="occlusion-group-body" id="group-body-${c.groupId}" style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
+          <!-- Subtarjetas desglosadas al click (Ocultas por defecto) -->
+          <div class="occlusion-group-body" id="group-body-${c.groupId}" style="display:none; margin-top:10px; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.06); padding-top:10px;">
             ${pairCards
               .map(
                 (pc, idx) => `
-              <div class="occlusion-child-card-row clickable-card-row" data-dash-card-id="${pc.id}">
-                <div style="display:flex; align-items:center; gap:10px;">
-                  <span style="font-size:0.8rem; font-weight:800; color:#a855f7; background:rgba(168,85,247,0.14); padding:2px 8px; border-radius:6px;">
+              <div class="occlusion-child-card-row selectable-card-target" data-card-id="${pc.id}">
+                <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                  <span style="font-size:0.74rem; font-weight:800; color:#a855f7; background:rgba(168,85,247,0.14); padding:2px 7px; border-radius:6px; flex-shrink:0;">
                     ${idx === 0 ? 'Normal' : 'Invertida'}
                   </span>
-                  <span style="font-weight:700; color:#fff; font-size:0.95rem;">${pc.front}</span>
-                  <span style="color:var(--f-text-secondary); font-size:0.88rem;">➜ ${katexService.parseAndRender(pc.back)}</span>
+                  <span style="font-weight:700; color:#fff; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pc.front}</span>
+                  <span style="color:var(--f-text-secondary); font-size:0.84rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">➜ ${katexService.parseAndRender(pc.back)}</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px;">🎯 Estudiar</span>
-                  <button class="btn-card-edit-action" data-edit-id="${pc.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.85rem;">✏️</button>
-                  <button class="btn-card-del-action" data-del-id="${pc.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem;">🗑️</button>
+                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                  ${formatDueDateBadge(pc.dueDate, pc.state)}
+                  <span class="micro-study-badge" title="Estudiar">🎯</span>
                 </div>
               </div>
             `
@@ -153,27 +177,28 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
       `);
     } else if (!c.groupId) {
       cardItemsHtml.push(`
-        <div class="figma-card-item apple-glass-panel clickable-card-row" data-dash-card-id="${c.id}" title="Toca para aprender esta tarjeta en específico">
-          <div class="figma-card-top-tag-row">
-            <div class="figma-tag-invertido">
-              ${
-                c.isInverted
-                  ? `<span>⇄ Invertido</span>`
-                  : c.type === 'latex'
-                  ? `<span>📐 LaTeX</span>`
-                  : `<span>Estándar</span>`
-              }
-              <span class="apple-badge-subpill" style="font-size:0.72rem; padding:1px 6px; margin-left:6px;">🎯 Estudiar</span>
+        <div class="figma-card-item apple-glass-panel selectable-card-target" data-card-id="${c.id}" title="Toca para estudiar • Mantén presionado para seleccionar">
+          <div class="figma-card-top-tag-row" style="margin-bottom:6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div class="figma-tag-invertido" style="font-size:0.75rem; padding:2px 8px;">
+                ${
+                  c.isInverted
+                    ? `<span>⇄ Invertido</span>`
+                    : c.type === 'latex'
+                    ? `<span>📐 LaTeX</span>`
+                    : `<span>Estándar</span>`
+                }
+              </div>
             </div>
             
-            <div style="display:flex; align-items:center; gap:8px;">
-              <button class="btn-card-edit-action" data-edit-id="${c.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.88rem; font-weight:700;">✏️ Editar</button>
-              <button class="btn-card-del-action" data-del-id="${c.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.88rem; font-weight:700;">🗑️</button>
+            <div style="display:flex; align-items:center; gap:6px;">
+              ${formatDueDateBadge(c.dueDate, c.state)}
+              <span class="micro-study-badge" title="Estudiar">🎯</span>
             </div>
           </div>
 
-          <div class="figma-card-title-bold">${c.front}</div>
-          <div class="figma-card-body-text">${katexService.parseAndRender(c.back)}</div>
+          <div class="figma-card-title-bold" style="font-size:1.02rem;">${c.front}</div>
+          <div class="figma-card-body-text" style="font-size:0.88rem; margin-top:4px;">${katexService.parseAndRender(c.back)}</div>
         </div>
       `);
     }
@@ -286,20 +311,51 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           </div>
         </div>
 
-        <div class="figma-search-bar-row">
-          <div class="figma-search-input-wrap">
+        <!-- Search and Action Bar -->
+        <div class="figma-search-bar-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div class="figma-search-input-wrap" style="flex:1; min-width:180px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" class="figma-search-input" placeholder="Buscar tarjetas en el mazo..." id="dash-search-input" />
           </div>
 
-          <button class="figma-btn-white-pill" id="btn-dash-add-card">
-            Agregar tarjetas
+          <button class="figma-btn-white-pill" id="btn-dash-add-card" style="padding:10px 18px; font-size:0.88rem;">
+            + Agregar tarjetas
           </button>
         </div>
 
-        <!-- Cards List Container with Accordions and Targeted Single-Card Study -->
+        <!-- Cards List Container with Accordions and Long-Press Multi-Selection -->
         <div id="dash-cards-list-mount" style="margin-top:18px;">
-          ${cardItemsHtml.join('')}
+          ${cardItemsHtml.length > 0 ? cardItemsHtml.join('') : `
+            <div style="text-align:center; padding:36px 16px; color:var(--f-text-muted);">
+              No hay tarjetas en este mazo todavía. ¡Agrega una con el botón de arriba!
+            </div>
+          `}
+        </div>
+      </div>
+
+      <!-- Floating Batch Actions Bar (Visible when cards are selected) -->
+      <div id="figma-batch-dock" class="figma-batch-actions-dock" style="display:none;">
+        <div class="batch-info">
+          <span class="batch-count-badge" id="batch-selected-count">0 seleccionadas</span>
+          <button class="batch-text-btn" id="btn-batch-select-all">Todas</button>
+        </div>
+
+        <div class="batch-actions-btns">
+          <button class="batch-action-btn btn-batch-edit" id="btn-batch-edit-action" title="Editar tarjeta" style="display:none;">
+            ✏️ Editar
+          </button>
+          <button class="batch-action-btn btn-batch-move" id="btn-batch-move-action" title="Mover a otra carpeta/mazo">
+            📁 Mover
+          </button>
+          <button class="batch-action-btn btn-batch-invert" id="btn-batch-invert-action" title="Revertir o desrevertir">
+            ⇄ Revertir
+          </button>
+          <button class="batch-action-btn btn-batch-delete" id="btn-batch-delete-action" title="Eliminar seleccionadas">
+            🗑️ Borrar
+          </button>
+          <button class="batch-action-btn btn-batch-close" id="btn-batch-close-action" title="Cancelar selección">
+            ✕
+          </button>
         </div>
       </div>
 
@@ -327,7 +383,7 @@ export function bindFigmaDashboardEvents(
   container.querySelector('#btn-study-cards-main')?.addEventListener('click', () => callbacks.onStudy(deck.id));
   container.querySelector('#btn-dash-add-card')?.addEventListener('click', () => callbacks.onAddCard(deck.id));
 
-  // Open Settings View (Foto 1)
+  // Open Settings View
   container.querySelector('#btn-dash-menu')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
   container.querySelector('#btn-open-algo-settings')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
   container.querySelector('#btn-deck-info-icon')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
@@ -348,78 +404,276 @@ export function bindFigmaDashboardEvents(
     alert(`Enlace para compartir mazo "${deck.name}":\nhttps://eureka.app/deck/${deck.id}`);
   });
 
+  // Estado de Selección Múltiple (Activado por Long-Press)
+  const selectedCards = new Set<string>();
+  const batchDock = container.querySelector('#figma-batch-dock') as HTMLElement | null;
+  const countBadge = container.querySelector('#batch-selected-count') as HTMLElement | null;
+  const btnBatchEdit = container.querySelector('#btn-batch-edit-action') as HTMLElement | null;
+
+  const updateBatchDock = () => {
+    if (!batchDock || !countBadge) return;
+    if (selectedCards.size > 0) {
+      batchDock.style.display = 'flex';
+      countBadge.textContent = `${selectedCards.size} sel.`;
+      if (btnBatchEdit) {
+        btnBatchEdit.style.display = selectedCards.size === 1 ? 'inline-flex' : 'none';
+      }
+    } else {
+      batchDock.style.display = 'none';
+    }
+
+    // Actualizar clases visuales de selección en los elementos
+    container.querySelectorAll('.selectable-card-target').forEach((el) => {
+      const cardId = (el as HTMLElement).dataset.cardId;
+      const groupId = (el as HTMLElement).dataset.groupId;
+
+      let isSelected = false;
+      if (cardId && selectedCards.has(cardId)) {
+        isSelected = true;
+      } else if (groupId) {
+        const groupCards = deckService.getCardsByGroupId(groupId);
+        if (groupCards.length > 0 && groupCards.every((c) => selectedCards.has(c.id))) {
+          isSelected = true;
+        }
+      }
+
+      if (isSelected) {
+        el.classList.add('card-selected-active');
+      } else {
+        el.classList.remove('card-selected-active');
+      }
+    });
+  };
+
+  // Edit single card from batch selection
+  btnBatchEdit?.addEventListener('click', () => {
+    if (selectedCards.size === 1) {
+      const cardId = Array.from(selectedCards)[0];
+      selectedCards.clear();
+      updateBatchDock();
+      callbacks.onEditCard(cardId);
+    }
+  });
+
+  // Select all / unselect all inside batch dock
+  container.querySelector('#btn-batch-select-all')?.addEventListener('click', () => {
+    const allCards = deckService.getCardsByDeck(deck.id, true);
+    if (selectedCards.size === allCards.length) {
+      selectedCards.clear();
+    } else {
+      allCards.forEach((c) => selectedCards.add(c.id));
+    }
+    updateBatchDock();
+  });
+
+  // Close batch dock
+  container.querySelector('#btn-batch-close-action')?.addEventListener('click', () => {
+    selectedCards.clear();
+    updateBatchDock();
+  });
+
+  // Batch Delete
+  container.querySelector('#btn-batch-delete-action')?.addEventListener('click', () => {
+    if (selectedCards.size === 0) return;
+    if (confirm(`¿Estás seguro de eliminar ${selectedCards.size} tarjeta(s) definitivamente?`)) {
+      deckService.deleteCards(Array.from(selectedCards));
+      selectedCards.clear();
+      updateBatchDock();
+    }
+  });
+
+  // Batch Invert / Toggle Reverse
+  container.querySelector('#btn-batch-invert-action')?.addEventListener('click', () => {
+    if (selectedCards.size === 0) return;
+    deckService.toggleInvertCards(Array.from(selectedCards));
+    selectedCards.clear();
+    updateBatchDock();
+  });
+
+  // Batch Move to Folder / Deck Modal
+  container.querySelector('#btn-batch-move-action')?.addEventListener('click', () => {
+    if (selectedCards.size === 0) return;
+
+    const allDecks = deckService.getAllDecks();
+    const modal = document.createElement('div');
+    modal.className = 'apple-modal-overlay';
+    modal.innerHTML = `
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <h3 style="font-size:1.25rem; font-weight:800; color:#fff;">Mover ${selectedCards.size} tarjeta(s)</h3>
+          <button id="btn-close-move-modal" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+        <p style="color:var(--f-text-secondary); font-size:0.9rem; margin-bottom:16px;">
+          Selecciona el mazo o submazo de destino:
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; margin-bottom:18px;">
+          ${allDecks
+            .map((d) => {
+              const isCurrent = d.id === deck.id;
+              return `
+              <button class="target-deck-btn ${isCurrent ? 'disabled' : ''}" data-target-id="${d.id}" style="text-align:left; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; cursor:${isCurrent ? 'not-allowed' : 'pointer'}; display:flex; align-items:center; justify-content:space-between;">
+                <span>${d.parentId ? '↳ ' : '📁 '} ${d.name}</span>
+                ${isCurrent ? '<span style="font-size:0.75rem; color:var(--f-text-muted);">(Actual)</span>' : '<span style="color:var(--f-blue);">Mover aquí ›</span>'}
+              </button>
+            `;
+            })
+            .join('')}
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelector('#btn-close-move-modal')?.addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+
+    modal.querySelectorAll<HTMLButtonElement>('.target-deck-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.targetId;
+        if (targetId && targetId !== deck.id) {
+          deckService.moveCards(Array.from(selectedCards), targetId);
+          selectedCards.clear();
+          modal.remove();
+          updateBatchDock();
+        }
+      });
+    });
+  });
+
   const bindCardEvents = () => {
-    // Accordion Toggle
-    container.querySelectorAll('.btn-toggle-group-accordion').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const groupId = (btn as HTMLElement).dataset.groupId;
+    // Accordion Toggle on Group Header Click
+    container.querySelectorAll('[data-toggle-group]').forEach((header) => {
+      header.addEventListener('click', () => {
+        if (selectedCards.size > 0) return; // In selection mode, long-press handles selection
+        const groupId = (header as HTMLElement).dataset.toggleGroup;
         if (groupId) {
           const body = container.querySelector(`#group-body-${groupId}`) as HTMLElement | null;
+          const chevron = header.querySelector('.btn-toggle-group-accordion');
           if (body) {
             const isHidden = body.style.display === 'none';
             body.style.display = isHidden ? 'flex' : 'none';
-            btn.textContent = isHidden ? '▾' : '▸';
+            if (chevron) chevron.textContent = isHidden ? '▾' : '▸';
           }
         }
       });
     });
 
-    // Edit Complete Occlusion Group
-    container.querySelectorAll<HTMLButtonElement>('.btn-edit-group-occlusion').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const groupId = btn.dataset.groupId;
-        if (groupId) {
-          const groupCards = deckService.getCardsByGroupId(groupId);
-          const first = groupCards[0];
-          if (first && first.occlusionImage && first.occlusionMasks) {
-            openImageOcclusionModal({
-              deckId: deck.id,
-              initialImage: first.occlusionImage,
-              initialMasks: first.occlusionMasks,
-              initialMode: first.occlusionMode || 'hide_all_reveal_one',
-              onConfirm: (img, masks, mode) => {
-                deckService.deleteCardGroup(groupId);
-                deckService.createOcclusionCards(deck.id, img, masks, mode);
-              },
-              onClose: () => {}
-            });
-          }
-        }
-      });
-    });
+    // LONG-PRESS (Mantener presionado) y Click Handling para selección y estudio
+    container.querySelectorAll<HTMLElement>('.selectable-card-target').forEach((el) => {
+      let pressTimer: number | null = null;
+      let isLongPress = false;
+      let startX = 0;
+      let startY = 0;
 
-    // Targeted Single-Card Study on card row click!
-    container.querySelectorAll('.clickable-card-row').forEach((row) => {
-      row.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        if (target.classList.contains('btn-card-edit-action') || target.classList.contains('btn-card-del-action')) {
+      const startPress = (x: number, y: number) => {
+        isLongPress = false;
+        startX = x;
+        startY = y;
+        pressTimer = window.setTimeout(() => {
+          isLongPress = true;
+          try {
+            if (navigator.vibrate) navigator.vibrate(40);
+          } catch {}
+
+          const cardId = (el as HTMLElement).dataset.cardId;
+          const groupId = (el as HTMLElement).dataset.groupId;
+
+          if (cardId) {
+            if (selectedCards.has(cardId)) {
+              selectedCards.delete(cardId);
+            } else {
+              selectedCards.add(cardId);
+            }
+          } else if (groupId) {
+            const groupCards = deckService.getCardsByGroupId(groupId);
+            const allSelected = groupCards.every((c) => selectedCards.has(c.id));
+            if (allSelected) {
+              groupCards.forEach((c) => selectedCards.delete(c.id));
+            } else {
+              groupCards.forEach((c) => selectedCards.add(c.id));
+            }
+          }
+          updateBatchDock();
+        }, 450);
+      };
+
+      const cancelPress = () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      };
+
+      // Mouse Events
+      el.addEventListener('mousedown', (e: MouseEvent) => {
+        if (e.button === 0) startPress(e.clientX, e.clientY);
+      });
+      el.addEventListener('mouseup', cancelPress);
+      el.addEventListener('mouseleave', cancelPress);
+
+      // Touch Events (Mobile)
+      el.addEventListener(
+        'touchstart',
+        (e: TouchEvent) => {
+          if (e.touches.length === 1) {
+            startPress(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        },
+        { passive: true }
+      );
+      el.addEventListener(
+        'touchmove',
+        (e: TouchEvent) => {
+          if (e.touches.length === 1) {
+            const dx = Math.abs(e.touches[0].clientX - startX);
+            const dy = Math.abs(e.touches[0].clientY - startY);
+            if (dx > 10 || dy > 10) cancelPress();
+          }
+        },
+        { passive: true }
+      );
+      el.addEventListener('touchend', cancelPress);
+      el.addEventListener('touchcancel', cancelPress);
+
+      // Normal Click: Si está en modo selección, conmuta; si no, estudia la tarjeta
+      el.addEventListener('click', (e) => {
+        if (isLongPress) {
+          e.preventDefault();
+          e.stopPropagation();
+          isLongPress = false;
           return;
         }
-        const cardId = (row as HTMLElement).dataset.dashCardId;
+
+        const cardId = (el as HTMLElement).dataset.cardId;
+        const groupId = (el as HTMLElement).dataset.groupId;
+
+        if (selectedCards.size > 0) {
+          e.stopPropagation();
+          if (cardId) {
+            if (selectedCards.has(cardId)) {
+              selectedCards.delete(cardId);
+            } else {
+              selectedCards.add(cardId);
+            }
+          } else if (groupId) {
+            const groupCards = deckService.getCardsByGroupId(groupId);
+            const allSelected = groupCards.every((c) => selectedCards.has(c.id));
+            if (allSelected) {
+              groupCards.forEach((c) => selectedCards.delete(c.id));
+            } else {
+              groupCards.forEach((c) => selectedCards.add(c.id));
+            }
+          }
+          updateBatchDock();
+          return;
+        }
+
+        // Si es una tarjeta individual o subtarjeta, estudiar directamente
         if (cardId) {
           callbacks.onStudySpecificCard(deck.id, cardId);
-        }
-      });
-    });
-
-    // Edit individual card
-    container.querySelectorAll<HTMLButtonElement>('.btn-card-edit-action').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.editId;
-        if (id) callbacks.onEditCard(id);
-      });
-    });
-
-    // Delete card
-    container.querySelectorAll<HTMLButtonElement>('.btn-card-del-action').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.delId;
-        if (id && confirm('¿Eliminar esta tarjeta definitivamente?')) {
-          deckService.deleteCard(id);
         }
       });
     });

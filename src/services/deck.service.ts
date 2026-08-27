@@ -416,6 +416,71 @@ export class DeckService {
     this.notify();
   }
 
+  /**
+   * Operaciones en Lote (Batch Actions)
+   */
+  public moveCards(cardIds: string[], targetDeckId: string): void {
+    const idSet = new Set(cardIds);
+    const now = Date.now();
+    this.cards = this.cards.map(c => {
+      if (idSet.has(c.id)) {
+        return {
+          ...c,
+          deckId: targetDeckId,
+          updatedAt: now
+        };
+      }
+      return c;
+    });
+    this.notify();
+  }
+
+  public deleteCards(cardIds: string[]): void {
+    const idSet = new Set(cardIds);
+    this.cards = this.cards.filter(c => !idSet.has(c.id));
+    this.notify();
+  }
+
+  /**
+   * Revertir / Desrevertir tarjetas:
+   * Para tarjetas normales invierte anverso y reverso; para tarjetas de pares invertidos conmuta o des-invierte el estado.
+   */
+  public toggleInvertCards(cardIds: string[]): void {
+    const idSet = new Set(cardIds);
+    const now = Date.now();
+    this.cards = this.cards.map(c => {
+      if (idSet.has(c.id)) {
+        return {
+          ...c,
+          front: c.back,
+          back: c.front,
+          frontImage: c.backImage,
+          backImage: c.frontImage,
+          isInverted: !c.isInverted,
+          updatedAt: now
+        };
+      }
+      return c;
+    });
+    this.notify();
+  }
+
+  public resetCardProgress(cardId: string): Flashcard | undefined {
+    const card = this.getCardById(cardId);
+    if (!card) return undefined;
+    const now = Date.now();
+    return this.updateCard(cardId, {
+      state: 'new',
+      stepIndex: 0,
+      intervalMinutes: 4,
+      easeFactor: 2.50,
+      lapses: 0,
+      reps: 0,
+      dueDate: now,
+      updatedAt: now
+    });
+  }
+
   // --- CALIFICACIÓN Y ESTADÍSTICAS SRS ---
 
   public reviewCard(cardId: string, rating: StudyRating): Flashcard | undefined {

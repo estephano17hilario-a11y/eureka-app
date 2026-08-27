@@ -86,6 +86,12 @@ class EurekaFigmaApp {
         this.activeStudySession = null;
         this.currentView = 'dashboard';
         this.render();
+      },
+      onEditCard: (cardId) => {
+        this.activeStudySession = null;
+        this.editingCardId = cardId;
+        this.currentView = 'editor';
+        this.render();
       }
     });
 

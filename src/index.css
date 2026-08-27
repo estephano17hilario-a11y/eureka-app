@@ -1984,3 +1984,362 @@ html, body {
     padding: 14px 14px;
   }
 }
+
+/* ==========================================================================
+   FLOATING ACTION BUTTONS (FABS)
+   ========================================================================== */
+
+.figma-fab-gift {
+  position: fixed;
+  bottom: calc(var(--sab) + 78px);
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  color: #07080a;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+  cursor: pointer;
+  z-index: 99;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.figma-fab-gift:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.5);
+}
+
+.figma-fab-gift:active {
+  transform: scale(0.94);
+}
+
+.figma-fab-help {
+  position: fixed;
+  bottom: calc(var(--sab) + 134px);
+  right: 22px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--f-surface);
+  color: var(--f-text-secondary);
+  border: 1px solid var(--f-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 99;
+  transition: transform 0.15s ease;
+}
+
+.figma-fab-help:hover {
+  transform: scale(1.08);
+  color: #fff;
+}
+
+/* ==========================================================================
+   CARD MULTI-SELECTION & BATCH ACTIONS DOCK
+   ========================================================================== */
+
+.figma-card-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  position: relative;
+  outline: none;
+}
+
+.figma-card-checkbox:hover {
+  border-color: var(--f-blue);
+}
+
+.figma-card-checkbox:checked {
+  background: var(--f-blue);
+  border-color: var(--f-blue);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+.figma-card-checkbox:checked::after {
+  content: "✓";
+  color: #07080a;
+  font-size: 0.82rem;
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.figma-batch-actions-dock {
+  position: fixed;
+  bottom: calc(var(--sab) + 74px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 680px;
+  background: rgba(23, 24, 31, 0.96);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  border-radius: 20px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  z-index: 210;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.75), 0 0 24px rgba(56, 189, 248, 0.2);
+  animation: slideUpFade 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.batch-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.batch-count-badge {
+  background: rgba(56, 189, 248, 0.16);
+  color: var(--f-blue);
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.batch-text-btn {
+  background: none;
+  border: none;
+  color: var(--f-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.batch-text-btn:hover {
+  color: #fff;
+}
+
+.batch-actions-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.batch-action-btn {
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.1s, opacity 0.15s;
+  white-space: nowrap;
+}
+
+.batch-action-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-batch-move {
+  background: var(--f-blue);
+  color: #07080a;
+}
+
+.btn-batch-invert {
+  background: rgba(168, 85, 247, 0.18);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.btn-batch-delete {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-batch-close {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+/* ==========================================================================
+   TYPE-IN ANSWER & COMPARISON STYLES
+   ========================================================================== */
+
+.active-keyboard-mode {
+  background: var(--f-blue) !important;
+  color: #07080a !important;
+  border-color: var(--f-blue) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
+}
+
+.cupertino-type-answer-box {
+  width: 100%;
+}
+
+.cupertino-typed-input {
+  width: 100%;
+  padding: 13px 18px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  border-radius: 14px;
+  color: #ffffff;
+  font-size: 1.02rem;
+  font-weight: 600;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.cupertino-typed-input:focus {
+  border-color: var(--f-blue);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.cupertino-typed-comparison-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Accordion transition for groups */
+.occlusion-group-body {
+  transition: all 0.2s ease-in-out;
+}
+
+@media (max-width: 600px) {
+  .figma-batch-actions-dock {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 18px;
+  }
+
+  .batch-actions-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 6px;
+  }
+
+  .batch-action-btn {
+    padding: 8px 6px;
+    font-size: 0.76rem;
+    justify-content: center;
+  }
+}
+
+/* Selected Card Highlight */
+.selectable-card-target {
+  transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.selectable-card-target:active {
+  transform: scale(0.985);
+}
+
+.card-selected-active {
+  border-color: var(--f-blue) !important;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 12px rgba(56, 189, 248, 0.12) !important;
+  background: rgba(56, 189, 248, 0.08) !important;
+}
+
+/* Micro Study Tag (Minimalist & Compact) */
+.micro-study-badge {
+  font-size: 0.8rem;
+  line-height: 1;
+  opacity: 0.75;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.selectable-card-target:hover .micro-study-badge {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* Review Due Date Badge */
+.figma-due-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.due-new {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.due-now {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.due-future {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.btn-batch-edit {
+  background: rgba(56, 189, 248, 0.2);
+  color: var(--f-blue);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+
