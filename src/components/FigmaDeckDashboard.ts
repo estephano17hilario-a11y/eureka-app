@@ -51,7 +51,6 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
       const groupCards = deckService.getCardsByGroupId(c.groupId);
       const firstCard = groupCards[0] || c;
-      const hasMedia = !!(firstCard.frontImage || firstCard.backImage || firstCard.occlusionImage);
 
       cardItemsHtml.push(`
         <div class="figma-card-stacked-wrapper" data-group-id="${c.groupId}">
@@ -88,21 +87,6 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
                 : ''
             }
 
-            <!-- Attached Image SVG icon -->
-            ${
-              hasMedia
-                ? `
-              <div style="display:flex; align-items:center; gap:6px; margin-top:10px; color:var(--f-text-muted);">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                  <circle cx="9" cy="9" r="2"/>
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                </svg>
-              </div>
-            `
-                : ''
-            }
-
           </div>
         </div>
       `);
@@ -112,7 +96,6 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
       const pairCards = deckService.getCardsByGroupId(c.groupId);
       const firstCard = pairCards[0] || c;
-      const hasMedia = !!(firstCard.frontImage || firstCard.backImage);
 
       cardItemsHtml.push(`
         <div class="figma-card-stacked-wrapper" data-group-id="${c.groupId}">
@@ -145,27 +128,11 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
                 : ''
             }
 
-            <!-- Attached Image SVG icon -->
-            ${
-              hasMedia
-                ? `
-              <div style="display:flex; align-items:center; gap:6px; margin-top:10px; color:var(--f-text-muted);">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                  <circle cx="9" cy="9" r="2"/>
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                </svg>
-              </div>
-            `
-                : ''
-            }
-
           </div>
         </div>
       `);
     } else if (!c.groupId) {
       // Tarjeta individual sin grupo
-      const hasMedia = !!(c.frontImage || c.backImage || (c.type === 'image_occlusion' && c.occlusionImage));
       const isInverted = c.isInverted;
       const isOcclusion = c.type === 'image_occlusion';
 
@@ -224,20 +191,6 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
               ? `
             <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
               ${katexService.parseAndRender(c.back)}
-            </div>
-          `
-              : ''
-          }
-
-          ${
-            hasMedia
-              ? `
-            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; color:var(--f-text-muted);">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                <circle cx="9" cy="9" r="2"/>
-                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-              </svg>
             </div>
           `
               : ''
