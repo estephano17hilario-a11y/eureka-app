@@ -2964,28 +2964,30 @@ option {
 }
 
 /* ==========================================================================
-   LATERAL FLASHCARD NAVIGATION ARROWS (ROTAR ENTRE FLASHCARDS)
+   LATERAL FLASHCARD NAVIGATION ARROWS (ROTAR ENTRE FLASHCARDS - POSICIÓN FIJA SUPERIOR)
    ========================================================================== */
 
 .cupertino-study-arena-row {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 12px;
   width: 100%;
   position: relative;
+  min-height: 220px;
 }
 
 .cupertino-nav-arrow {
-  width: 44px;
-  height: 44px;
+  position: absolute;
+  top: 18px;
+  z-index: 25;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(22, 24, 33, 0.88);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   color: #ffffff;
-  font-size: 1.65rem;
+  font-size: 1.75rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -2993,30 +2995,50 @@ option {
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
-  flex-shrink: 0;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+}
+
+.cupertino-nav-arrow.left {
+  left: -58px;
+}
+
+.cupertino-nav-arrow.right {
+  right: -58px;
 }
 
 .cupertino-nav-arrow:hover {
-  background: rgba(56, 189, 248, 0.22);
+  background: rgba(56, 189, 248, 0.28);
   border-color: var(--f-blue);
   color: var(--f-blue);
-  transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+  transform: scale(1.12);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.5);
 }
 
 .cupertino-nav-arrow:active {
   transform: scale(0.92);
 }
 
-@media (max-width: 600px) {
-  .cupertino-study-arena-row {
-    gap: 6px;
+@media (max-width: 768px) {
+  .cupertino-nav-arrow.left {
+    left: -10px;
   }
+  .cupertino-nav-arrow.right {
+    right: -10px;
+  }
+}
+
+@media (max-width: 540px) {
   .cupertino-nav-arrow {
-    width: 36px;
-    height: 36px;
-    font-size: 1.35rem;
+    width: 38px;
+    height: 38px;
+    font-size: 1.4rem;
+    top: 12px;
+  }
+  .cupertino-nav-arrow.left {
+    left: -4px;
+  }
+  .cupertino-nav-arrow.right {
+    right: -4px;
   }
 }
 

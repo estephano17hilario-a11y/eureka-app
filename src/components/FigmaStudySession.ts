@@ -11,6 +11,7 @@ export interface FigmaStudyOptions {
   deckId: string;
   specificCardId?: string;
   forceAllCards?: boolean;
+  isPreviewMode?: boolean;
   onExit: () => void;
   onEditCard?: (cardId: string) => void;
 }
@@ -21,6 +22,7 @@ export class FigmaStudySession {
   private currentCardIndex: number = 0;
   private isFlipped: boolean = false;
   private isSingleCardMode: boolean = false;
+  private isPreviewMode: boolean = false;
   private isTypeAnswerMode: boolean = false;
   private isGameActive: boolean = false;
   private typedAnswer: string = '';
@@ -42,6 +44,7 @@ export class FigmaStudySession {
     this.deck = deck;
     this.onExitCallback = options.onExit;
     this.onEditCardCallback = options.onEditCard;
+    this.isPreviewMode = !!options.isPreviewMode || !!options.specificCardId;
 
     if (options.specificCardId) {
       // Solicitud #2: Al dar clic a una flashcard específica en el mazo, cargar las tarjetas del mazo para poder rotar entre anteriores y siguientes
@@ -97,9 +100,12 @@ export class FigmaStudySession {
               <button class="ios-back-btn" id="btn-study-exit" style="padding:0; font-size:1.1rem; color:#fff; flex-shrink:0;">
                 <span class="ios-back-chevron">‹</span> Salir
               </button>
-              <h2 style="font-size:1.45rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                ${this.deck.name}
-              </h2>
+              <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+                <h2 style="font-size:1.45rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  ${this.deck.name}
+                </h2>
+                ${this.isPreviewMode ? '<span class="apple-badge-subpill" style="font-size:0.75rem; background:rgba(56,189,248,0.15); color:var(--f-blue); border:1px solid rgba(56,189,248,0.3); flex-shrink:0;">🔍 Vista Previa</span>' : ''}
+              </div>
             </div>
 
             <button class="cupertino-icon-square" id="btn-study-audio" title="Pronunciación TTS">
@@ -158,7 +164,16 @@ export class FigmaStudySession {
         <!-- Bottom Controls matching Image 3 & Image 5 -->
         <div class="cupertino-bottom-controls">
           ${
-            !this.isFlipped
+            this.isPreviewMode
+              ? `
+            <!-- Modo Vista Previa: Sin modificadores ni calificaciones -->
+            <div class="cupertino-front-controls-row" style="justify-content:center;">
+              <button class="cupertino-btn-show-answer" id="btn-f-show-answer" style="max-width:320px; font-weight:800;">
+                ${!this.isFlipped ? '👁️ Voltear al Reverso' : '🔄 Voltear al Anverso'}
+              </button>
+            </div>
+          `
+              : !this.isFlipped
               ? `
             <!-- Control Bar Front: [⌨ Escribir respuesta] [Mostrar respuesta] -->
             <div class="cupertino-front-controls-row">
@@ -432,7 +447,79 @@ export class FigmaStudySession {
       this.openCardMenu(currentCard, container);
     });
 
-    // Focus typed answer input if active
+    // Solicitud #2: Si se accede manualmente a la tarjeta (Modo Vista Previa), no interactuar con modificadores SRS ni calificar
+    if (this.isPreviewMode) {
+      const toggleFlip = () => {
+        this.isFlipped = !this.isFlipped;
+        this.render(container);
+      };
+
+      document.getElementById('btn-f-show-answer')?.addEventListener('click', toggleFlip);
+      document.getElementById('f-study-scene')?.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.id === 'btn-card-more-action' || target.tagName === 'BUTTON') return;
+        toggleFlip();
+      });
+
+      document.getElementById('btn-nav-prev-card')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.currentCardIndex > 0) {
+          this.currentCardIndex--;
+          this.isFlipped = false;
+          this.render(container);
+        }
+      });
+
+      document.getElementById('btn-nav-next-card')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.currentCardIndex < this.queue.length - 1) {
+          this.currentCardIndex++;
+          this.isFlipped = false;
+          this.render(container);
+        }
+      });
+
+      // Audio
+      document.getElementById('btn-study-audio')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const text = this.isFlipped ? currentCard.back : currentCard.front;
+        ttsService.speak(text, currentCard.audioLang || this.deck.settings.ttsVoiceLang);
+      });
+
+      window.onkeydown = (e: KeyboardEvent) => {
+        if (
+          this.isGameActive ||
+          document.getElementById('modal-microgame-root') ||
+          document.querySelector('.apple-modal-overlay') ||
+          document.querySelector('.modal-backdrop')
+        ) {
+          return;
+        }
+
+        if (e.key === 'ArrowLeft') {
+          if (this.currentCardIndex > 0) {
+            e.preventDefault();
+            this.currentCardIndex--;
+            this.isFlipped = false;
+            this.render(container);
+          }
+        } else if (e.key === 'ArrowRight') {
+          if (this.currentCardIndex < this.queue.length - 1) {
+            e.preventDefault();
+            this.currentCardIndex++;
+            this.isFlipped = false;
+            this.render(container);
+          }
+        } else if (e.code === 'Space' || e.code === 'Enter') {
+          e.preventDefault();
+          toggleFlip();
+        }
+      };
+
+      return;
+    }
+
+    // Focus typed answer input if active (Modo Estudio Normal)
     if (this.isTypeAnswerMode && !this.isFlipped) {
       const input = document.getElementById('study-typed-answer-input') as HTMLInputElement | null;
       if (input) {
