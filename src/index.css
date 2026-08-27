@@ -2605,5 +2605,76 @@ html, body {
   background: #dc2626;
 }
 
+/* ==========================================================================
+   FULL-SCREEN FIXED MODAL OVERLAYS & CENTERING (CRITICAL FIX)
+   ========================================================================== */
+
+.apple-modal-overlay,
+.modal-backdrop,
+.figma-modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  background: rgba(0, 0, 0, 0.76) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  animation: fadeInOverlay 0.16s ease-out !important;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.apple-modal-content,
+.apple-glass-modal,
+.modal-container {
+  background: rgba(18, 19, 26, 0.96) !important;
+  backdrop-filter: blur(36px) !important;
+  -webkit-backdrop-filter: blur(36px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.9), 0 0 32px rgba(56, 189, 248, 0.16) !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  max-height: 90vh !important;
+  max-height: 90dvh !important;
+  overflow-y: auto !important;
+  margin: auto !important;
+  animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.menu-action-item-btn {
+  transition: transform 0.1s ease, filter 0.15s ease, background 0.15s ease;
+  user-select: none;
+}
+
+.menu-action-item-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.menu-action-item-btn:active {
+  transform: scale(0.97);
+}
+
+
 
 
