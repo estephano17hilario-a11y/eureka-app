@@ -1,6 +1,7 @@
 import type { Deck, Flashcard, DeckStats, StudyRating, DeckSettings, CardType, OcclusionMask, OcclusionMode } from '../types/flashcard';
 import { getInitialDemoDecks } from './demo-data';
 import { srsService } from './srs.service';
+import { eurekaSupabase } from './supabase.service';
 
 const DECKS_STORAGE_KEY = 'eureka_flashcards_decks_v4';
 const CARDS_STORAGE_KEY = 'eureka_flashcards_cards_v4';
@@ -13,6 +14,7 @@ export class DeckService {
 
   private constructor() {
     this.loadFromStorage();
+    this.syncWithCloud();
   }
 
   public static getInstance(): DeckService {
@@ -72,8 +74,39 @@ export class DeckService {
     try {
       localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(this.decks));
       localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(this.cards));
+      
+      // Sincronización instantánea a la nube en el VPS (Eureka Database)
+      eurekaSupabase.syncDecks(this.decks);
+      eurekaSupabase.syncCards(this.cards);
     } catch (err) {
       console.warn('Error guardando en almacenamiento:', err);
+    }
+  }
+
+  public async syncWithCloud(): Promise<void> {
+    try {
+      const [remoteDecks, remoteCards] = await Promise.all([
+        eurekaSupabase.fetchDecks(),
+        eurekaSupabase.fetchCards()
+      ]);
+
+      if (remoteDecks && remoteDecks.length > 0) {
+        this.decks = remoteDecks;
+        if (remoteCards && remoteCards.length > 0) {
+          this.cards = remoteCards;
+        }
+        localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(this.decks));
+        localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(this.cards));
+        this.listeners.forEach(fn => fn());
+      } else if (this.decks.length > 0) {
+        // Subida inicial a la base de datos de Eureka
+        await Promise.all([
+          eurekaSupabase.syncDecks(this.decks),
+          eurekaSupabase.syncCards(this.cards)
+        ]);
+      }
+    } catch (err) {
+      console.warn('[EUREKA SYNC] Error sincronizando con la nube:', err);
     }
   }
 
@@ -656,6 +689,15 @@ export class DeckService {
     };
 
     const nextState = srsService.calculateNextState(card, rating, settings);
+
+    // Registrar analítica de estudio en Eureka Cloud
+    eurekaSupabase.logStudyReview({
+      deckId: card.deckId,
+      cardId: card.id,
+      rating,
+      intervalMinutes: nextState.intervalMinutes,
+      easeFactor: nextState.easeFactor
+    });
 
     return this.updateCard(cardId, {
       ...nextState,
