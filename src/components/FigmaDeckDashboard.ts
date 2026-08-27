@@ -110,8 +110,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
                   <span style="font-size:0.76rem; font-weight:800; color:var(--f-blue); background:rgba(56,189,248,0.12); padding:2px 7px; border-radius:6px; flex-shrink:0;">
                     #${idx + 1}
                   </span>
-                  <span style="font-weight:700; color:#fff; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${gc.front}</span>
-                  <span style="color:var(--f-text-secondary); font-size:0.84rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">➜ ${katexService.parseAndRender(gc.back)}</span>
+                  <span style="font-weight:700; color:#fff; font-size:0.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${gc.front}</span>
                 </div>
                 
                 <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
@@ -162,8 +161,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
                   <span style="font-size:0.74rem; font-weight:800; color:#a855f7; background:rgba(168,85,247,0.14); padding:2px 7px; border-radius:6px; flex-shrink:0;">
                     ${idx === 0 ? 'Normal' : 'Invertida'}
                   </span>
-                  <span style="font-weight:700; color:#fff; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pc.front}</span>
-                  <span style="color:var(--f-text-secondary); font-size:0.84rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">➜ ${katexService.parseAndRender(pc.back)}</span>
+                  <span style="font-weight:700; color:#fff; font-size:0.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pc.front}</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                   ${formatDueDateBadge(pc.dueDate, pc.state)}
@@ -179,7 +177,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
     } else if (!c.groupId) {
       cardItemsHtml.push(`
         <div class="figma-card-item apple-glass-panel selectable-card-target" data-card-id="${c.id}" title="Toca para estudiar • Mantén presionado para seleccionar">
-          <div class="figma-card-top-tag-row" style="margin-bottom:6px;">
+          <div class="figma-card-top-tag-row">
             <div style="display:flex; align-items:center; gap:8px;">
               <div class="figma-tag-invertido" style="font-size:0.75rem; padding:2px 8px;">
                 ${
@@ -198,8 +196,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
             </div>
           </div>
 
-          <div class="figma-card-title-bold" style="font-size:1.02rem;">${c.front}</div>
-          <div class="figma-card-body-text" style="font-size:0.88rem; margin-top:4px;">${katexService.parseAndRender(c.back)}</div>
+          <div class="figma-card-title-bold">${katexService.parseAndRender(c.front)}</div>
         </div>
       `);
     }

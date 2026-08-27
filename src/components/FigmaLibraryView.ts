@@ -58,8 +58,7 @@ export function renderFigmaLibraryView(): string {
               </div>
             </div>
 
-            <div class="figma-card-title-bold" style="font-size:1.02rem;">${c.front}</div>
-            <div class="figma-card-body-text" style="font-size:0.88rem; margin-top:4px;">${katexService.parseAndRender(c.back)}</div>
+            <div class="figma-card-title-bold">${katexService.parseAndRender(c.front)}</div>
           </div>
         `
           )

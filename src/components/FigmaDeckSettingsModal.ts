@@ -84,6 +84,30 @@ export function openFigmaDeckSettingsModal(options: FigmaDeckSettingsModalOption
           </div>
         </div>
 
+        <!-- Neuro-Ergonomic Micro-Games Section -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row">
+            <div>
+              <div style="font-size:0.95rem; font-weight:600; color:#fff;">🎮 Minijuegos de descanso</div>
+              <div style="font-size:0.75rem; color:var(--f-text-muted);">Sin carga alostática ni fatiga</div>
+            </div>
+            <label class="apple-switch">
+              <input type="checkbox" id="toggle-microgames" ${deck.settings.enableMicroGames !== false ? 'checked' : ''} />
+              <span class="apple-slider"></span>
+            </label>
+          </div>
+
+          <div class="apple-list-row" id="row-microgame-freq" style="cursor:pointer;">
+            <div style="font-size:0.95rem; font-weight:600; color:#fff;">Frecuencia de juego</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="color:var(--f-blue); font-weight:800; font-size:0.95rem;" id="val-microgame-freq">
+                ${(deck.settings.microGameInterval || 5) === 0 ? 'Desactivado' : `Cada ${deck.settings.microGameInterval || 5} tarjetas`}
+              </span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Advanced settings button -->
         <button class="apple-btn-secondary" id="btn-open-advanced-menu" style="padding:14px; border-radius:14px; font-weight:700; font-size:0.95rem;">
           Configuraciones avanzadas
@@ -110,6 +134,34 @@ export function openFigmaDeckSettingsModal(options: FigmaDeckSettingsModalOption
   mixToggle?.addEventListener('change', () => {
     deckService.updateDeck(deck.id, {
       settings: { ...deck.settings, mixCards: mixToggle.checked }
+    });
+  });
+
+  const microToggle = modal.querySelector('#toggle-microgames') as HTMLInputElement | null;
+  microToggle?.addEventListener('change', () => {
+    deckService.updateDeck(deck.id, {
+      settings: { ...deck.settings, enableMicroGames: microToggle.checked }
+    });
+  });
+
+  // Frequency selector
+  modal.querySelector('#row-microgame-freq')?.addEventListener('click', () => {
+    dialogService.showPrompt({
+      title: 'Frecuencia de Minijuegos',
+      message: '¿Cada cuántas tarjetas deseas una pausa de minijuego? (ej: 5, 10, 15, 20 o 0 para desactivar)',
+      defaultValue: String(deck.settings.microGameInterval !== undefined ? deck.settings.microGameInterval : 5),
+      inputType: 'number',
+      confirmText: 'Guardar',
+      onConfirm: (val) => {
+        if (val !== null && !isNaN(Number(val))) {
+          const num = Math.max(0, parseInt(val, 10));
+          deckService.updateDeck(deck.id, {
+            settings: { ...deck.settings, microGameInterval: num, enableMicroGames: num > 0 }
+          });
+          const el = modal.querySelector('#val-microgame-freq');
+          if (el) el.textContent = num === 0 ? 'Desactivado' : `Cada ${num} tarjetas`;
+        }
+      }
     });
   });
 

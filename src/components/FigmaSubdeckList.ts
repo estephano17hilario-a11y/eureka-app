@@ -77,8 +77,8 @@ export function renderFigmaSubdeckList(deck: Deck): string {
             </div>
           `;
                 })
-          })
-          .join('')}
+                .join('')
+        }
       </div>
     </div>
   `;

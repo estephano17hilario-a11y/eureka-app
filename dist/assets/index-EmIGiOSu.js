@@ -1,0 +1,2592 @@
+var Qi=Object.defineProperty;var _i=(r,e,t)=>e in r?Qi(r,e,{enumerable:!0,configurable:!0,writable:!0,value:t}):r[e]=t;var ce=(r,e,t)=>_i(r,typeof e!="symbol"?e+"":e,t);(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))a(i);new MutationObserver(i=>{for(const s of i)if(s.type==="childList")for(const o of s.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&a(o)}).observe(document,{childList:!0,subtree:!0});function t(i){const s={};return i.integrity&&(s.integrity=i.integrity),i.referrerPolicy&&(s.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?s.credentials="include":i.crossOrigin==="anonymous"?s.credentials="omit":s.credentials="same-origin",s}function a(i){if(i.ep)return;i.ep=!0;const s=t(i);fetch(i.href,s)}})();/*! Capacitor: https://capacitorjs.com/ - MIT License */const es=r=>{const e=new Map;e.set("web",{name:"web"});const t=r.CapacitorPlatforms||{currentPlatform:{name:"web"},platforms:e},a=(s,o)=>{t.platforms.set(s,o)},i=s=>{t.platforms.has(s)&&(t.currentPlatform=t.platforms.get(s))};return t.addPlatform=a,t.setPlatform=i,t},ts=r=>r.CapacitorPlatforms=es(r),J0=ts(typeof globalThis<"u"?globalThis:typeof self<"u"?self:typeof window<"u"?window:typeof global<"u"?global:{});J0.addPlatform;J0.setPlatform;var $t;(function(r){r.Unimplemented="UNIMPLEMENTED",r.Unavailable="UNAVAILABLE"})($t||($t={}));class Fr extends Error{constructor(e,t,a){super(e),this.message=e,this.code=t,this.data=a}}const rs=r=>{var e,t;return r!=null&&r.androidBridge?"android":!((t=(e=r==null?void 0:r.webkit)===null||e===void 0?void 0:e.messageHandlers)===null||t===void 0)&&t.bridge?"ios":"web"},as=r=>{var e,t,a,i,s;const o=r.CapacitorCustomPlatform||null,d=r.Capacitor||{},c=d.Plugins=d.Plugins||{},m=r.CapacitorPlatforms,h=()=>o!==null?o.name:rs(r),f=((e=m==null?void 0:m.currentPlatform)===null||e===void 0?void 0:e.getPlatform)||h,b=()=>f()!=="web",x=((t=m==null?void 0:m.currentPlatform)===null||t===void 0?void 0:t.isNativePlatform)||b,z=X=>{const q=W.get(X);return!!(q!=null&&q.platforms.has(f())||A(X))},S=((a=m==null?void 0:m.currentPlatform)===null||a===void 0?void 0:a.isPluginAvailable)||z,M=X=>{var q;return(q=d.PluginHeaders)===null||q===void 0?void 0:q.find(O=>O.name===X)},A=((i=m==null?void 0:m.currentPlatform)===null||i===void 0?void 0:i.getPluginHeader)||M,T=X=>r.console.error(X),F=(X,q,O)=>Promise.reject(`${O} does not have an implementation of "${q}".`),W=new Map,K=(X,q={})=>{const O=W.get(X);if(O)return console.warn(`Capacitor plugin "${X}" already registered. Cannot register plugins twice.`),O.proxy;const ae=f(),_=A(X);let J;const Z=async()=>(!J&&ae in q?J=typeof q[ae]=="function"?J=await q[ae]():J=q[ae]:o!==null&&!J&&"web"in q&&(J=typeof q.web=="function"?J=await q.web():J=q.web),J),te=(k,y)=>{var N,C;if(_){const R=_==null?void 0:_.methods.find(L=>y===L.name);if(R)return R.rtype==="promise"?L=>d.nativePromise(X,y.toString(),L):(L,G)=>d.nativeCallback(X,y.toString(),L,G);if(k)return(N=k[y])===null||N===void 0?void 0:N.bind(k)}else{if(k)return(C=k[y])===null||C===void 0?void 0:C.bind(k);throw new Fr(`"${X}" plugin is not implemented on ${ae}`,$t.Unimplemented)}},U=k=>{let y;const N=(...C)=>{const R=Z().then(L=>{const G=te(L,k);if(G){const P=G(...C);return y=P==null?void 0:P.remove,P}else throw new Fr(`"${X}.${k}()" is not implemented on ${ae}`,$t.Unimplemented)});return k==="addListener"&&(R.remove=async()=>y()),R};return N.toString=()=>`${k.toString()}() { [capacitor code] }`,Object.defineProperty(N,"name",{value:k,writable:!1,configurable:!1}),N},se=U("addListener"),de=U("removeListener"),pe=(k,y)=>{const N=se({eventName:k},y),C=async()=>{const L=await N;de({eventName:k,callbackId:L},y)},R=new Promise(L=>N.then(()=>L({remove:C})));return R.remove=async()=>{console.warn("Using addListener() without 'await' is deprecated."),await C()},R},we=new Proxy({},{get(k,y){switch(y){case"$$typeof":return;case"toJSON":return()=>({});case"addListener":return _?pe:se;case"removeListener":return de;default:return U(y)}}});return c[X]=we,W.set(X,{name:X,proxy:we,platforms:new Set([...Object.keys(q),..._?[ae]:[]])}),we},Q=((s=m==null?void 0:m.currentPlatform)===null||s===void 0?void 0:s.registerPlugin)||K;return d.convertFileSrc||(d.convertFileSrc=X=>X),d.getPlatform=f,d.handleError=T,d.isNativePlatform=x,d.isPluginAvailable=S,d.pluginMethodNoop=F,d.registerPlugin=Q,d.Exception=Fr,d.DEBUG=!!d.DEBUG,d.isLoggingEnabled=!!d.isLoggingEnabled,d.platform=d.getPlatform(),d.isNative=d.isNativePlatform(),d},is=r=>r.Capacitor=as(r),Et=is(typeof globalThis<"u"?globalThis:typeof self<"u"?self:typeof window<"u"?window:typeof global<"u"?global:{}),Tt=Et.registerPlugin;Et.Plugins;class Q0{constructor(e){this.listeners={},this.retainedEventArguments={},this.windowListeners={},e&&(console.warn(`Capacitor WebPlugin "${e.name}" config object was deprecated in v3 and will be removed in v4.`),this.config=e)}addListener(e,t){let a=!1;this.listeners[e]||(this.listeners[e]=[],a=!0),this.listeners[e].push(t);const s=this.windowListeners[e];s&&!s.registered&&this.addWindowListener(s),a&&this.sendRetainedArgumentsForEvent(e);const o=async()=>this.removeListener(e,t);return Promise.resolve({remove:o})}async removeAllListeners(){this.listeners={};for(const e in this.windowListeners)this.removeWindowListener(this.windowListeners[e]);this.windowListeners={}}notifyListeners(e,t,a){const i=this.listeners[e];if(!i){if(a){let s=this.retainedEventArguments[e];s||(s=[]),s.push(t),this.retainedEventArguments[e]=s}return}i.forEach(s=>s(t))}hasListeners(e){return!!this.listeners[e].length}registerWindowListener(e,t){this.windowListeners[t]={registered:!1,windowEventName:e,pluginEventName:t,handler:a=>{this.notifyListeners(t,a)}}}unimplemented(e="not implemented"){return new Et.Exception(e,$t.Unimplemented)}unavailable(e="not available"){return new Et.Exception(e,$t.Unavailable)}async removeListener(e,t){const a=this.listeners[e];if(!a)return;const i=a.indexOf(t);this.listeners[e].splice(i,1),this.listeners[e].length||this.removeWindowListener(this.windowListeners[e])}addWindowListener(e){window.addEventListener(e.windowEventName,e.handler),e.registered=!0}removeWindowListener(e){e&&(window.removeEventListener(e.windowEventName,e.handler),e.registered=!1)}sendRetainedArgumentsForEvent(e){const t=this.retainedEventArguments[e];t&&(delete this.retainedEventArguments[e],t.forEach(a=>{this.notifyListeners(e,a)}))}}const e0=r=>encodeURIComponent(r).replace(/%(2[346B]|5E|60|7C)/g,decodeURIComponent).replace(/[()]/g,escape),t0=r=>r.replace(/(%[\dA-F]{2})+/gi,decodeURIComponent);class ss extends Q0{async getCookies(){const e=document.cookie,t={};return e.split(";").forEach(a=>{if(a.length<=0)return;let[i,s]=a.replace(/=/,"CAP_COOKIE").split("CAP_COOKIE");i=t0(i).trim(),s=t0(s).trim(),t[i]=s}),t}async setCookie(e){try{const t=e0(e.key),a=e0(e.value),i=`; expires=${(e.expires||"").replace("expires=","")}`,s=(e.path||"/").replace("path=",""),o=e.url!=null&&e.url.length>0?`domain=${e.url}`:"";document.cookie=`${t}=${a||""}${i}; path=${s}; ${o};`}catch(t){return Promise.reject(t)}}async deleteCookie(e){try{document.cookie=`${e.key}=; Max-Age=0`}catch(t){return Promise.reject(t)}}async clearCookies(){try{const e=document.cookie.split(";")||[];for(const t of e)document.cookie=t.replace(/^ +/,"").replace(/=.*/,`=;expires=${new Date().toUTCString()};path=/`)}catch(e){return Promise.reject(e)}}async clearAllCookies(){try{await this.clearCookies()}catch(e){return Promise.reject(e)}}}Tt("CapacitorCookies",{web:()=>new ss});const ns=async r=>new Promise((e,t)=>{const a=new FileReader;a.onload=()=>{const i=a.result;e(i.indexOf(",")>=0?i.split(",")[1]:i)},a.onerror=i=>t(i),a.readAsDataURL(r)}),os=(r={})=>{const e=Object.keys(r);return Object.keys(r).map(i=>i.toLocaleLowerCase()).reduce((i,s,o)=>(i[s]=r[e[o]],i),{})},ls=(r,e=!0)=>r?Object.entries(r).reduce((a,i)=>{const[s,o]=i;let d,c;return Array.isArray(o)?(c="",o.forEach(m=>{d=e?encodeURIComponent(m):m,c+=`${s}=${d}&`}),c.slice(0,-1)):(d=e?encodeURIComponent(o):o,c=`${s}=${d}`),`${a}&${c}`},"").substr(1):null,ds=(r,e={})=>{const t=Object.assign({method:r.method||"GET",headers:r.headers},e),i=os(r.headers)["content-type"]||"";if(typeof r.data=="string")t.body=r.data;else if(i.includes("application/x-www-form-urlencoded")){const s=new URLSearchParams;for(const[o,d]of Object.entries(r.data||{}))s.set(o,d);t.body=s.toString()}else if(i.includes("multipart/form-data")||r.data instanceof FormData){const s=new FormData;if(r.data instanceof FormData)r.data.forEach((d,c)=>{s.append(c,d)});else for(const d of Object.keys(r.data))s.append(d,r.data[d]);t.body=s;const o=new Headers(t.headers);o.delete("content-type"),t.headers=o}else(i.includes("application/json")||typeof r.data=="object")&&(t.body=JSON.stringify(r.data));return t};class cs extends Q0{async request(e){const t=ds(e,e.webFetchExtra),a=ls(e.params,e.shouldEncodeUrlParams),i=a?`${e.url}?${a}`:e.url,s=await fetch(i,t),o=s.headers.get("content-type")||"";let{responseType:d="text"}=s.ok?e:{};o.includes("application/json")&&(d="json");let c,m;switch(d){case"arraybuffer":case"blob":m=await s.blob(),c=await ns(m);break;case"json":c=await s.json();break;case"document":case"text":default:c=await s.text()}const h={};return s.headers.forEach((f,b)=>{h[b]=f}),{data:c,headers:h,status:s.status,url:s.url}}async get(e){return this.request(Object.assign(Object.assign({},e),{method:"GET"}))}async post(e){return this.request(Object.assign(Object.assign({},e),{method:"POST"}))}async put(e){return this.request(Object.assign(Object.assign({},e),{method:"PUT"}))}async patch(e){return this.request(Object.assign(Object.assign({},e),{method:"PATCH"}))}async delete(e){return this.request(Object.assign(Object.assign({},e),{method:"DELETE"}))}}Tt("CapacitorHttp",{web:()=>new cs});const us="modulepreload",ms=function(r){return"/"+r},r0={},xr=function(e,t,a){let i=Promise.resolve();if(t&&t.length>0){let o=function(m){return Promise.all(m.map(h=>Promise.resolve(h).then(f=>({status:"fulfilled",value:f}),f=>({status:"rejected",reason:f}))))};document.getElementsByTagName("link");const d=document.querySelector("meta[property=csp-nonce]"),c=(d==null?void 0:d.nonce)||(d==null?void 0:d.getAttribute("nonce"));i=o(t.map(m=>{if(m=ms(m),m in r0)return;r0[m]=!0;const h=m.endsWith(".css"),f=h?'[rel="stylesheet"]':"";if(document.querySelector(`link[href="${m}"]${f}`))return;const b=document.createElement("link");if(b.rel=h?"stylesheet":us,h||(b.as="script"),b.crossOrigin="",b.href=m,c&&b.setAttribute("nonce",c),document.head.appendChild(b),h)return new Promise((x,z)=>{b.addEventListener("load",x),b.addEventListener("error",()=>z(new Error(`Unable to preload CSS for ${m}`)))})}))}function s(o){const d=new Event("vite:preloadError",{cancelable:!0});if(d.payload=o,window.dispatchEvent(d),!d.defaultPrevented)throw o}return i.then(o=>{for(const d of o||[])d.status==="rejected"&&s(d.reason);return e().catch(s)})},a0=Tt("Device",{web:()=>xr(()=>import("./web-DNFq2VdY.js"),[]).then(r=>new r.DeviceWeb)});var Wt;(function(r){r.Heavy="HEAVY",r.Medium="MEDIUM",r.Light="LIGHT"})(Wt||(Wt={}));var ia;(function(r){r.Success="SUCCESS",r.Warning="WARNING",r.Error="ERROR"})(ia||(ia={}));const i0=Tt("Haptics",{web:()=>xr(()=>import("./web-CqLVCP8S.js"),[]).then(r=>new r.HapticsWeb)});var sa;(function(r){r.Dark="DARK",r.Light="LIGHT",r.Default="DEFAULT"})(sa||(sa={}));var s0;(function(r){r.None="NONE",r.Slide="SLIDE",r.Fade="FADE"})(s0||(s0={}));const n0=Tt("StatusBar"),o0=Tt("Preferences",{web:()=>xr(()=>import("./web-VZYnTWtv.js"),[]).then(r=>new r.PreferencesWeb)}),ps=Tt("SplashScreen",{web:()=>xr(()=>import("./web-Cv_F4kNa.js"),[]).then(r=>new r.SplashScreenWeb)}),xt=class xt{constructor(){}static getInstance(){return xt.instance||(xt.instance=new xt),xt.instance}async initialize(){try{Et.isNativePlatform()&&(await n0.setStyle({style:sa.Dark}),await n0.setBackgroundColor({color:"#090d16"}),await ps.hide())}catch(e){console.warn("NativeService: Initialization running in web fallback mode",e)}}async getDeviceInfo(){const e=Et.getPlatform(),t=Et.isNativePlatform();try{const a=await a0.getInfo();let i,s;try{const o=await a0.getBatteryInfo();i=o.batteryLevel?Math.round(o.batteryLevel*100):void 0,s=o.isCharging}catch{}return{platform:e,isNative:t,model:a.model||(t?"Dispositivo Nativo":"Navegador Web"),osVersion:`${a.operatingSystem} ${a.osVersion}`,batteryLevel:i,isCharging:s}}catch{return{platform:e,isNative:t,model:t?"Dispositivo Nativo":"Navegador Web",osVersion:navigator.userAgent.includes("Windows")?"Windows":"Web Engine"}}}async triggerHaptics(e="medium"){try{if(e==="success")await i0.notification({type:ia.Success});else{const t=e==="light"?Wt.Light:e==="heavy"?Wt.Heavy:Wt.Medium;await i0.impact({style:t})}}catch{"vibrate"in navigator&&navigator.vibrate(e==="heavy"?40:20)}}async setStorage(e,t){await o0.set({key:e,value:t})}async getStorage(e){return(await o0.get({key:e})).value}};ce(xt,"instance");let na=xt;const Ze=na.getInstance(),hr=`data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" width="600" height="450" style="background:#111216; font-family:-apple-system, BlinkMacSystemFont, sans-serif;">
+  <defs>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="70%" stop-color="#991b1b"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="aortaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f87171"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+    <linearGradient id="venaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="0%" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+
+  <text x="300" y="34" fill="#ffffff" font-size="16" font-weight="700" text-anchor="middle" letter-spacing="0.5">ANATOMÍA DEL CORAZÓN HUMANO</text>
+  <text x="300" y="52" fill="#94a3b8" font-size="11" text-anchor="middle">Esquema de Cámaras y Grandes Vasos</text>
+
+  <g transform="translate(140, 65)">
+    <!-- Vena Cava -->
+    <path d="M70,30 L70,120 C70,140 85,155 105,155 L105,30 Z" fill="url(#venaGrad)" stroke="#38bdf8" stroke-width="2"/>
+    <!-- Aorta -->
+    <path d="M120,40 C120,-10 200,-10 200,60 L180,90 C170,50 145,50 140,80 Z" fill="url(#aortaGrad)" stroke="#fca5a5" stroke-width="2"/>
+    <!-- Pulmonary Artery -->
+    <path d="M150,55 L220,95 L205,115 L145,85 Z" fill="#818cf8" opacity="0.85"/>
+    <!-- Ventricles Body -->
+    <path d="M50,130 C30,220 120,320 160,330 C210,320 280,210 250,130 C230,80 180,100 150,115 C120,100 70,80 50,130 Z" fill="url(#heartGrad)" stroke="#f87171" stroke-width="3"/>
+    <!-- Septum separator -->
+    <path d="M150,125 C145,200 155,270 160,330" stroke="#fecaca" stroke-width="2.5" stroke-dasharray="4,4" fill="none"/>
+  </g>
+
+  <!-- Labels -->
+  <rect x="25" y="100" width="150" height="32" rx="8" fill="#1e1f24" stroke="#38bdf8" stroke-width="1.5"/>
+  <text x="100" y="121" fill="#38bdf8" font-size="12" font-weight="600" text-anchor="middle">Vena Cava Superior</text>
+
+  <rect x="420" y="70" width="150" height="32" rx="8" fill="#1e1f24" stroke="#f87171" stroke-width="1.5"/>
+  <text x="495" y="91" fill="#f87171" font-size="12" font-weight="600" text-anchor="middle">Cayado de la Aorta</text>
+
+  <rect x="25" y="195" width="150" height="32" rx="8" fill="#1e1f24" stroke="#818cf8" stroke-width="1.5"/>
+  <text x="100" y="216" fill="#818cf8" font-size="12" font-weight="600" text-anchor="middle">Aurícula Derecha</text>
+
+  <rect x="420" y="275" width="155" height="32" rx="8" fill="#1e1f24" stroke="#ec4899" stroke-width="1.5"/>
+  <text x="497" y="296" fill="#ec4899" font-size="12" font-weight="600" text-anchor="middle">Ventrículo Izquierdo</text>
+</svg>
+`)}`;function Nr(){const r=Date.now(),e={id:"deck-mates",parentId:null,name:"MATES",description:"Matemáticas, Física & Química",icon:"folder",color:"#84cc16",settings:{algorithmType:"custom",learningSteps:[4,1440,2880,7200,15840,25920,41760,82080,146880,246240,400320,633600],easyBonus:1.35,hardIntervalMultiplier:1.2,newCardsPerDay:25,maxReviewsPerDay:3e3,mixCards:!0,autoPlayAudio:!1,ttsVoiceLang:"es-ES"},createdAt:r-864e5*5,updatedAt:r},t={id:"deck-mates-sub",parentId:"deck-mates",name:"Matemática, Física & Química",description:"Cálculo, geometría no euclidiana, mecánica cuántica",icon:"folder-sub",color:"#84cc16",settings:{algorithmType:"custom",learningSteps:[4,1440,2880,7200,15840,25920,41760,82080,146880,246240,400320,633600],easyBonus:1.35,hardIntervalMultiplier:1.2,newCardsPerDay:25,maxReviewsPerDay:3e3,mixCards:!0,autoPlayAudio:!1,ttsVoiceLang:"es-ES"},createdAt:r-864e5*4,updatedAt:r},a={id:"deck-idioma",parentId:null,name:"IDIOMA",description:"Inglés avanzado, fonética & phrasal verbs",icon:"folder",color:"#8b5cf6",settings:{algorithmType:"languages",learningSteps:[4,1440,2880,7200],easyBonus:1.4,hardIntervalMultiplier:1.2,newCardsPerDay:20,maxReviewsPerDay:3e3,mixCards:!0,autoPlayAudio:!0,ttsVoiceLang:"en-US"},createdAt:r-864e5*3,updatedAt:r},i={id:"deck-humans",parentId:null,name:"HUMANS",description:"Anatomía humana, fisiología y medicina clínica",icon:"folder",color:"#f59e0b",settings:{algorithmType:"medical",learningSteps:[4,1440,2880,7200],easyBonus:1.35,hardIntervalMultiplier:1.2,newCardsPerDay:20,maxReviewsPerDay:3e3,mixCards:!0,autoPlayAudio:!1,ttsVoiceLang:"es-ES"},createdAt:r-864e5*2,updatedAt:r},s={id:"deck-tools",parentId:null,name:"TOOLS",description:"Algoritmos, arquitecturas y herramientas",icon:"briefcase",color:"#ec4899",settings:{algorithmType:"fsrs",learningSteps:[4,1440,2880,7200],easyBonus:1.35,hardIntervalMultiplier:1.2,newCardsPerDay:20,maxReviewsPerDay:3e3,mixCards:!0,autoPlayAudio:!1,ttsVoiceLang:"es-ES"},createdAt:r-864e5,updatedAt:r},o=[{id:"card-figma-1",deckId:"deck-mates-sub",type:"latex",front:"Geometría Hiperbólica (Lobachevskiana)",back:"Curvatura $$K < 0$$. La suma de los ángulos del triángulo $$< 180^\\circ$$. Fey: Dibujar sobre una papa frita Pringles (silla de montar). Las paralelas se repelen hacia afuera.",audioLang:"es-ES",audioText:"Geometría Hiperbólica. Curvatura K menor que cero.",state:"learning",stepIndex:1,intervalMinutes:1440,easeFactor:2.5,lapses:0,reps:2,dueDate:r-1e3,createdAt:r-864e5*3,updatedAt:r},{id:"card-figma-2",deckId:"deck-mates-sub",type:"latex",front:"Geometría Elíptica (Riemanniana)",back:"Curvatura $$K > 0$$. La suma de los ángulos del triángulo $$> 180^\\circ$$. Fey: Dibujar sobre un globo terráqueo. Las líneas que crees paralelas siempre chocarán en los polos.",audioLang:"es-ES",audioText:"Geometría Elíptica. Curvatura K mayor que cero.",state:"learning",stepIndex:2,intervalMinutes:4320,easeFactor:2.5,lapses:0,reps:3,dueDate:r-2e3,createdAt:r-864e5*2,updatedAt:r},{id:"card-figma-3",deckId:"deck-mates-sub",type:"standard",front:"Ortocentro:",back:"Intersección de las alturas. Fey: El foco de tensión. Donde colisionan todas las plomadas gravitacionales de la estructura (enfocado en los ángulos).",audioLang:"es-ES",audioText:"Ortocentro. Intersección de las alturas.",state:"new",stepIndex:0,intervalMinutes:4,easeFactor:2.5,lapses:0,reps:0,dueDate:r,createdAt:r-864e5,updatedAt:r},{id:"card-figma-4",deckId:"deck-mates-sub",type:"standard",front:"Circuncentro:",back:"Intersección de las mediatrices. Centro geométrico del círculo circunscrito. Fey: El domo del escudo. Un campo de fuerza que encapsula la base tocando solo las esquinas exteriores.",audioLang:"es-ES",audioText:"Circuncentro. Intersección de las mediatrices.",state:"new",stepIndex:0,intervalMinutes:4,easeFactor:2.5,lapses:0,reps:0,dueDate:r,createdAt:r-864e5,updatedAt:r},{id:"card-figma-occlusion",deckId:"deck-humans",type:"image_occlusion",front:"Identifica la estructura anatómica señalada con la máscara luminosa:",back:"La **Vena Cava Superior** transporta sangre desoxigenada desde la parte superior del cuerpo hacia la aurícula derecha.",occlusionImage:hr,occlusionMasks:[{id:"mask-1",x:4.1,y:22.2,width:25,height:7.2,label:"Vena Cava Superior"},{id:"mask-2",x:70,y:15.5,width:25,height:7.2,label:"Cayado de la Aorta"},{id:"mask-3",x:4.1,y:43.3,width:25,height:7.2,label:"Aurícula Derecha"},{id:"mask-4",x:70,y:61.1,width:25.8,height:7.2,label:"Ventrículo Izquierdo"}],activeMaskId:"mask-1",occlusionMode:"hide_all_reveal_one",audioLang:"es-ES",audioText:"Vena Cava Superior.",state:"new",stepIndex:0,intervalMinutes:4,easeFactor:2.5,lapses:0,reps:0,dueDate:r,createdAt:r-864e5,updatedAt:r}];return{decks:[e,t,a,i,s],cards:o}}const wt=class wt{constructor(){}static getInstance(){return wt.instance||(wt.instance=new wt),wt.instance}formatMinutesToHuman(e){if(e<60)return`${Math.round(e)} min`;const t=e/60;if(t<24)return`${Math.round(t)} h`;const a=e/1440;if(a<30)return a===1?"1 día":`${Math.round(a)} días`;const i=e/43200;if(i<12)return i===1?"1 mes":`${Math.round(i)} meses`;const s=e/525600;return s===1?"1 año":`${Number(s.toFixed(1))} años`}parseTimeToMinutes(e){const t=e.trim().toLowerCase(),a=parseFloat(t);return isNaN(a)?1440:t.includes("m")&&!t.includes("mes")&&!t.includes("min")||t.includes("min")?Math.round(a):t.includes("h")||t.includes("hora")?Math.round(a*60):t.includes("d")||t.includes("día")||t.includes("dia")?Math.round(a*1440):t.includes("mes")||t.includes("mo")?Math.round(a*43200):t.includes("a")||t.includes("año")||t.includes("year")?Math.round(a*525600):Math.round(a*1440)}calculateNextState(e,t,a){const i=Date.now(),s=a.learningSteps&&a.learningSteps.length>0?a.learningSteps:[4,1440,2880,7200,15840,25920,41760,82080,146880,246240,400320,633600],o=e.stepIndex||0;let d=o,c=e.intervalMinutes||s[0],m=e.easeFactor||2.5,h=e.lapses||0,f=(e.reps||0)+1,b=e.state;switch(t){case"again":{d=0,c=s[0],m=Math.max(1.3,m-.2),h+=1,b="relearning";break}case"hard":{c=Math.round(c*(a.hardIntervalMultiplier||1.2)),m=Math.max(1.3,m-.15),b="learning";break}case"good":{o<s.length-1?(d=o+1,c=s[d],b="learning"):(c=Math.round(c*m),b="review");break}case"easy":{o<s.length-2?(d=o+2,c=Math.round(s[d]*(a.easyBonus||1.35))):(d=s.length-1,c=Math.round(c*m*(a.easyBonus||1.35))),m=Math.min(3.5,m+.15),b="review";break}}const x=i+c*60*1e3;return{state:b,stepIndex:d,intervalMinutes:c,easeFactor:Number(m.toFixed(2)),lapses:h,reps:f,dueDate:x}}projectIntervals(e,t){const a=t.learningSteps&&t.learningSteps.length>0?t.learningSteps:[4,1440,2880,7200,15840,25920,41760,82080,146880,246240,400320,633600],i=e.stepIndex||0,s=Date.now(),o=a[0],d=Math.round((e.intervalMinutes||a[0])*(t.hardIntervalMultiplier||1.2)),c=i<a.length-1?a[i+1]:Math.round((e.intervalMinutes||a[0])*e.easeFactor),m=i<a.length-2?Math.round(a[i+2]*(t.easyBonus||1.35)):Math.round((e.intervalMinutes||a[0])*e.easeFactor*(t.easyBonus||1.35));return[{rating:"again",label:"Muy Difícil",intervalMinutes:o,displayTime:`< ${this.formatMinutesToHuman(o)}`,nextDueDate:s+o*6e4},{rating:"hard",label:"Difícil",intervalMinutes:d,displayTime:this.formatMinutesToHuman(d),nextDueDate:s+d*6e4},{rating:"good",label:"Bien",intervalMinutes:c,displayTime:this.formatMinutesToHuman(c),nextDueDate:s+c*6e4},{rating:"easy",label:"Fácil",intervalMinutes:m,displayTime:this.formatMinutesToHuman(m),nextDueDate:s+m*6e4}]}parseStepsString(e){return e.split(",").map(t=>this.parseTimeToMinutes(t)).filter(t=>t>0)}formatStepsToString(e){return e.map(t=>this.formatMinutesToHuman(t)).join(", ")}};ce(wt,"instance");let oa=wt;const Kt=oa.getInstance(),l0="eureka_flashcards_decks_v4",d0="eureka_flashcards_cards_v4",kt=class kt{constructor(){ce(this,"decks",[]);ce(this,"cards",[]);ce(this,"listeners",[]);this.loadFromStorage()}static getInstance(){return kt.instance||(kt.instance=new kt),kt.instance}subscribe(e){return this.listeners.push(e),()=>{this.listeners=this.listeners.filter(t=>t!==e)}}notify(){this.saveToStorage(),this.listeners.forEach(e=>e())}loadFromStorage(){try{const e=localStorage.getItem(l0),t=localStorage.getItem(d0);if(e&&t)this.decks=JSON.parse(e),this.cards=JSON.parse(t);else{const a=Nr();this.decks=a.decks,this.cards=a.cards,this.saveToStorage()}}catch{const e=Nr();this.decks=e.decks,this.cards=e.cards}}saveToStorage(){try{localStorage.setItem(l0,JSON.stringify(this.decks)),localStorage.setItem(d0,JSON.stringify(this.cards))}catch(e){console.warn("Error guardando en almacenamiento:",e)}}getAllDecks(){return this.decks.filter(e=>!e.isArchived)}getRootDecks(){return this.decks.filter(e=>!e.parentId&&!e.isArchived)}getSubdecks(e){return this.decks.filter(t=>t.parentId===e&&!t.isArchived)}getDeckById(e){return this.decks.find(t=>t.id===e)}getDeckHierarchyIds(e){const t=[e],a=this.getSubdecks(e);for(const i of a)t.push(...this.getDeckHierarchyIds(i.id));return t}createDeck(e){var s;const t=e.parentId?this.getDeckById(e.parentId):void 0,a=(t==null?void 0:t.settings)||{algorithmType:"custom",learningSteps:[4,1440,2880,7200,15840,25920,41760,82080,146880,246240,400320,633600],easyBonus:1.35,hardIntervalMultiplier:1.2,newCardsPerDay:25,maxReviewsPerDay:3e3,mixCards:!0,autoPlayAudio:!1,ttsVoiceLang:"es-ES"},i={id:`deck-${Date.now()}-${Math.random().toString(36).substr(2,4)}`,parentId:e.parentId||null,name:e.name.trim(),description:((s=e.description)==null?void 0:s.trim())||"",icon:e.icon||(e.parentId?"folder-sub":"folder"),color:e.color||(e.parentId?"#84cc16":"#38bdf8"),settings:{...a,...e.settings},createdAt:Date.now(),updatedAt:Date.now()};return this.decks.push(i),this.notify(),i}updateDeck(e,t){const a=this.decks.findIndex(i=>i.id===e);if(a!==-1)return this.decks[a]={...this.decks[a],...t,updatedAt:Date.now()},this.notify(),this.decks[a]}renameDeck(e,t){return this.updateDeck(e,{name:t.trim()})}duplicateDeck(e){const t=this.getDeckById(e);if(!t)return;const a=this.createDeck({name:`${t.name} (Copia)`,description:t.description,parentId:t.parentId,color:t.color,icon:t.icon,settings:{...t.settings}});return this.getCardsByDeck(e,!1).forEach(s=>{this.createCard({deckId:a.id,type:s.type,front:s.front,back:s.back,frontImage:s.frontImage,backImage:s.backImage,occlusionImage:s.occlusionImage,occlusionMasks:s.occlusionMasks?[...s.occlusionMasks]:void 0,activeMaskId:s.activeMaskId,occlusionMode:s.occlusionMode,audioLang:s.audioLang,audioText:s.audioText})}),a}resetDeckProgress(e){const t=this.getDeckHierarchyIds(e),a=Date.now();this.cards=this.cards.map(i=>t.includes(i.deckId)?{...i,state:"new",stepIndex:0,intervalMinutes:4,easeFactor:2.5,lapses:0,reps:0,dueDate:a,updatedAt:a}:i),this.notify()}archiveDeck(e){this.updateDeck(e,{isArchived:!0})}exportDeck(e){const t=this.getDeckById(e),a=this.getCardsByDeck(e,!0);return JSON.stringify({deck:t,cards:a},null,2)}deleteDeck(e){const t=this.getDeckHierarchyIds(e);this.decks=this.decks.filter(a=>!t.includes(a.id)),this.cards=this.cards.filter(a=>!t.includes(a.deckId)),this.notify()}getCardsByDeck(e,t=!0){let a;if(!t)a=this.cards.filter(i=>i.deckId===e);else{const i=this.getDeckHierarchyIds(e);a=this.cards.filter(s=>i.includes(s.deckId))}return a.sort((i,s)=>(s.createdAt||0)-(i.createdAt||0))}searchCardsInDeck(e,t){const a=this.getCardsByDeck(e,!0);if(!t.trim())return a;const i=t.toLowerCase();return a.filter(s=>s.front.toLowerCase().includes(i)||s.back.toLowerCase().includes(i))}getDueCardsByDeck(e,t=!0){const a=this.getCardsByDeck(e,t),i=Date.now();return a.filter(s=>s.dueDate<=i)}getCardById(e){return this.cards.find(t=>t.id===e)}getCardsByGroupId(e){return this.cards.filter(t=>t.groupId===e)}createCard(e,t=!1){const a=this.getDeckById(e.deckId),i=(a==null?void 0:a.settings.learningSteps)||[4,1440,2880,7200],s=Date.now(),o=t?`grp-inv-${s}-${Math.random().toString(36).substr(2,4)}`:e.groupId,d={...e,id:`card-${s}-${Math.random().toString(36).substr(2,4)}`,groupId:o,groupTitle:t?"Par Invertido":e.groupTitle,isInverted:!1,state:"new",stepIndex:0,intervalMinutes:i[0]||4,easeFactor:2.5,lapses:0,reps:0,dueDate:s,createdAt:s,updatedAt:s};if(this.cards.push(d),t&&e.type!=="image_occlusion"){const c={...e,id:`card-${s}-inv-${Math.random().toString(36).substr(2,4)}`,groupId:o,groupTitle:"Par Invertido",front:e.back,back:e.front,frontImage:e.backImage,backImage:e.frontImage,isInverted:!0,state:"new",stepIndex:0,intervalMinutes:i[0]||4,easeFactor:2.5,lapses:0,reps:0,dueDate:s,createdAt:s+1,updatedAt:s+1};this.cards.push(c)}return this.notify(),d}createOcclusionCards(e,t,a,i="hide_all_reveal_one"){const s=[],o=this.getDeckById(e),d=(o==null?void 0:o.settings.learningSteps)||[4,1440,2880,7200],c=Date.now(),m=`occ-grp-${c}-${Math.random().toString(36).substr(2,4)}`;return a.forEach((h,f)=>{const b={id:`card-occ-${c}-${f}-${Math.random().toString(36).substr(2,4)}`,deckId:e,groupId:m,groupTitle:`Oclusión (${a.length} máscaras)`,type:"image_occlusion",front:`Identifica la estructura anatómica #${f+1}:`,back:h.label?`**${h.label}**`:`Estructura #${f+1} revelada.`,occlusionImage:t,occlusionMasks:a,activeMaskId:h.id,occlusionMode:i,isInverted:!1,state:"new",stepIndex:0,intervalMinutes:d[0]||4,easeFactor:2.5,lapses:0,reps:0,dueDate:c+f*5,createdAt:c+f,updatedAt:c+f};this.cards.push(b),s.push(b)}),this.notify(),s}importBatchCards(e,t){const a=t.split(`
+`).map(s=>s.trim()).filter(Boolean);let i=0;for(const s of a){let o=[];if(s.includes(";")?o=s.split(";"):s.includes("	")?o=s.split("	"):s.includes(":::")?o=s.split(":::"):s.includes("|")&&(o=s.split("|")),o.length>=2){const d=o[0].trim(),c=o.slice(1).join(";").trim(),m=d.includes("$")||c.includes("$")?"latex":"standard";this.createCard({deckId:e,type:m,front:d,back:c}),i++}}return i}updateCard(e,t){const a=this.cards.findIndex(i=>i.id===e);if(a!==-1)return this.cards[a]={...this.cards[a],...t,updatedAt:Date.now()},this.notify(),this.cards[a]}deleteCard(e){this.cards=this.cards.filter(t=>t.id!==e),this.notify()}deleteCardGroup(e){this.cards=this.cards.filter(t=>t.groupId!==e),this.notify()}moveCards(e,t){const a=new Set(e),i=Date.now();this.cards=this.cards.map(s=>a.has(s.id)?{...s,deckId:t,updatedAt:i}:s),this.notify()}deleteCards(e){const t=new Set(e);this.cards=this.cards.filter(a=>!t.has(a.id)),this.notify()}toggleInvertCards(e){const t=new Set(e),a=Date.now();this.cards=this.cards.map(i=>t.has(i.id)?{...i,front:i.back,back:i.front,frontImage:i.backImage,backImage:i.frontImage,isInverted:!i.isInverted,updatedAt:a}:i),this.notify()}resetCardProgress(e){if(!this.getCardById(e))return;const a=Date.now();return this.updateCard(e,{state:"new",stepIndex:0,intervalMinutes:4,easeFactor:2.5,lapses:0,reps:0,dueDate:a,updatedAt:a})}reviewCard(e,t){const a=this.getCardById(e);if(!a)return;const i=this.getDeckById(a.deckId),s=(i==null?void 0:i.settings)||{algorithmType:"custom",learningSteps:[4,1440,2880,7200,15840,25920,41760,82080,146880,246240,400320,633600],easyBonus:1.35,hardIntervalMultiplier:1.2,newCardsPerDay:25,maxReviewsPerDay:3e3,mixCards:!0,autoPlayAudio:!1,ttsVoiceLang:"es-ES"},o=Kt.calculateNextState(a,t,s);return this.updateCard(e,{...o,lastReviewDate:Date.now()})}getDeckStats(e){const t=this.getCardsByDeck(e,!0),a=Date.now();let i=0,s=0,o=0,d=0;return t.forEach(c=>{c.state==="new"?i++:c.state==="learning"||c.state==="relearning"?s++:(c.state==="review"||c.intervalMinutes>=10080)&&d++,c.dueDate<=a&&o++}),{totalCards:t.length,newCards:i,learningCards:s,dueCards:o,masteredCards:d}}resetAllToDemo(){const e=Nr();this.decks=e.decks,this.cards=e.cards,this.notify()}};ce(kt,"instance");let la=kt;const j=la.getInstance(),c0="eureka_customization_theme_v2",jr={accentColor:"#38bdf8",accentName:"blue",bgTheme:"modern_black",cardRadius:"super_rounded",cardSurface:"glass",uiScale:"comfortable"},St=class St{constructor(){ce(this,"currentTheme");const e=localStorage.getItem(c0);if(e)try{this.currentTheme={...jr,...JSON.parse(e)}}catch{this.currentTheme={...jr}}else this.currentTheme={...jr};this.applyTheme()}static getInstance(){return St.instance||(St.instance=new St),St.instance}getTheme(){return{...this.currentTheme}}setTheme(e){this.currentTheme={...this.currentTheme,...e},localStorage.setItem(c0,JSON.stringify(this.currentTheme)),this.applyTheme()}applyTheme(){const e=document.documentElement,t=document.body,i={blue:"#38bdf8",green:"#10b981",purple:"#a855f7",amber:"#f59e0b",pink:"#ec4899",red:"#ef4444"}[this.currentTheme.accentName]||this.currentTheme.accentColor||"#38bdf8";e.style.setProperty("--f-blue",i),e.style.setProperty("--f-accent",i),t.className="",t.classList.add(`theme-${this.currentTheme.bgTheme}`),t.classList.add(`radius-${this.currentTheme.cardRadius}`),t.classList.add(`surface-${this.currentTheme.cardSurface}`),t.classList.add(`scale-${this.currentTheme.uiScale}`)}};ce(St,"instance");let da=St;const Lt=da.getInstance();function hs(r="inicio"){return`
+    <!-- Top Nav Header (Responsive for Desktop & Mobile APK) -->
+    <header class="figma-global-nav">
+      <div class="figma-nav-left">
+        <div class="figma-logo-wrap" id="nav-brand-logo">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          <span class="figma-brand-name">Eureka</span>
+        </div>
+
+        <!-- Desktop Navigation Tabs (Hidden on Mobile) -->
+        <nav class="figma-nav-tabs desktop-only">
+          <button class="figma-nav-tab-btn ${r==="inicio"?"active":""}" data-tab="inicio">
+            Inicio
+          </button>
+          <button class="figma-nav-tab-btn ${r==="biblioteca"?"active":""}" data-tab="biblioteca">
+            Biblioteca
+          </button>
+          <button class="figma-nav-tab-btn ${r==="ajustes"?"active":""}" data-tab="ajustes">
+            🎨 Personalización
+          </button>
+        </nav>
+      </div>
+
+      <div class="figma-nav-right">
+        <!-- Timer Capsule (Desktop only) -->
+        <button class="figma-timer-capsule desktop-only" id="btn-header-premium" style="border:none; cursor:pointer;" title="Rachas y repetición diaria">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>12:00:00</span>
+        </button>
+
+        <!-- Streak Badge -->
+        <div class="figma-streak-badge" title="Racha activa">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          <span>0</span>
+        </div>
+
+        <!-- Quick Theme Switcher Button (Mobile) -->
+        <button class="figma-icon-btn-dark mobile-only" id="btn-header-theme-mobile" style="width:38px; height:38px; border-radius:50%;" title="Personalización">
+          🎨
+        </button>
+
+        <!-- Profile Avatar -->
+        <button class="figma-avatar-circle" id="btn-header-avatar" title="Ajustes de la App">
+          <span>E</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile Native Bottom Navigation Bar (iOS & Android APK) -->
+    <nav class="mobile-bottom-nav mobile-only">
+      <button class="mobile-nav-item ${r==="inicio"?"active":""}" data-tab="inicio">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Inicio</span>
+      </button>
+
+      <button class="mobile-nav-item ${r==="biblioteca"?"active":""}" data-tab="biblioteca">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span>Biblioteca</span>
+      </button>
+
+      <button class="mobile-nav-item ${r==="ajustes"?"active":""}" data-tab="ajustes">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Estilo</span>
+      </button>
+    </nav>
+  `}const Mt=class Mt{constructor(){}static getInstance(){return Mt.instance||(Mt.instance=new Mt),Mt.instance}showIntervalPicker(e){var z,S,M;const t=Math.max(1,e.initialMinutes||4);let a=Math.floor(t/1440),i=t%1440,s=Math.floor(i/60),o=i%60;const d=document.createElement("div");d.className="apple-modal-overlay",d.innerHTML=`
+      <div class="apple-modal-content apple-glass-panel" style="max-width:460px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <div>
+            <h3 style="font-size:1.3rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">
+              ${e.title||"Modificar Intervalo"}
+            </h3>
+            ${e.subtitle?`<p style="font-size:0.85rem; color:var(--f-text-secondary); margin-top:2px;">${e.subtitle}</p>`:""}
+          </div>
+          <button id="btn-dialog-close-x" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.4rem; cursor:pointer; padding:4px;">✕</button>
+        </div>
+
+        <!-- 3 Inputs: Días, Horas, Minutos -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:16px;">
+          <div class="interval-input-group">
+            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); display:block; margin-bottom:6px;">Días</label>
+            <input type="number" id="picker-days" min="0" max="3650" value="${a}" class="cupertino-dialog-input" />
+          </div>
+
+          <div class="interval-input-group">
+            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); display:block; margin-bottom:6px;">Horas</label>
+            <input type="number" id="picker-hours" min="0" max="23" value="${s}" class="cupertino-dialog-input" />
+          </div>
+
+          <div class="interval-input-group">
+            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); display:block; margin-bottom:6px;">Minutos</label>
+            <input type="number" id="picker-minutes" min="0" max="59" value="${o}" class="cupertino-dialog-input" />
+          </div>
+        </div>
+
+        <!-- Live Calculation Preview -->
+        <div id="picker-live-preview" style="background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:0.88rem; font-weight:700; color:var(--f-blue); text-align:center;">
+          ⏱️ Total calculado: ${this.formatReadableDuration(a,s,o)}
+        </div>
+
+        <!-- Quick Presets -->
+        <div style="margin-bottom:20px;">
+          <span style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:8px;">
+            Atajos rápidos:
+          </span>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="preset-btn" data-days="0" data-hours="0" data-mins="4">4 min</button>
+            <button class="preset-btn" data-days="0" data-hours="0" data-mins="10">10 min</button>
+            <button class="preset-btn" data-days="0" data-hours="1" data-mins="0">1 hora</button>
+            <button class="preset-btn" data-days="1" data-hours="0" data-mins="0">1 día</button>
+            <button class="preset-btn" data-days="2" data-hours="0" data-mins="0">2 días</button>
+            <button class="preset-btn" data-days="5" data-hours="0" data-mins="0">5 días</button>
+            <button class="preset-btn" data-days="15" data-hours="0" data-mins="0">15 días</button>
+            <button class="preset-btn" data-days="30" data-hours="0" data-mins="0">1 mes</button>
+            <button class="preset-btn" data-days="600" data-hours="0" data-mins="0">600 días</button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+          <button class="dialog-btn dialog-btn-cancel" id="btn-dialog-cancel">
+            Cancelar
+          </button>
+          <button class="dialog-btn dialog-btn-primary" id="btn-dialog-save-interval">
+            Guardar Intervalo
+          </button>
+        </div>
+      </div>
+    `,document.body.appendChild(d);const c=d.querySelector("#picker-days"),m=d.querySelector("#picker-hours"),h=d.querySelector("#picker-minutes"),f=d.querySelector("#picker-live-preview"),b=()=>{const A=Math.max(0,parseInt(c.value,10)||0),T=Math.max(0,parseInt(m.value,10)||0),F=Math.max(0,parseInt(h.value,10)||0),W=A*1440+T*60+F;f.textContent=`⏱️ Total: ${this.formatReadableDuration(A,T,F)} (${W} minutos)`};[c,m,h].forEach(A=>{A.addEventListener("input",b)}),d.querySelectorAll(".preset-btn").forEach(A=>{A.addEventListener("click",()=>{c.value=A.dataset.days||"0",m.value=A.dataset.hours||"0",h.value=A.dataset.mins||"0",b()})});const x=()=>d.remove();(z=d.querySelector("#btn-dialog-close-x"))==null||z.addEventListener("click",()=>{x(),e.onCancel&&e.onCancel()}),(S=d.querySelector("#btn-dialog-cancel"))==null||S.addEventListener("click",()=>{x(),e.onCancel&&e.onCancel()}),d.addEventListener("click",A=>{A.target===d&&(x(),e.onCancel&&e.onCancel())}),(M=d.querySelector("#btn-dialog-save-interval"))==null||M.addEventListener("click",()=>{const A=Math.max(0,parseInt(c.value,10)||0),T=Math.max(0,parseInt(m.value,10)||0),F=Math.max(0,parseInt(h.value,10)||0),W=Math.max(1,A*1440+T*60+F);x(),e.onConfirm(W)})}formatReadableDuration(e,t,a){const i=[];return e>0&&i.push(e===1?"1 día":`${e} días`),t>0&&i.push(t===1?"1 hora":`${t} horas`),(a>0||i.length===0)&&i.push(`${a} min`),i.join(", ")}showPrompt(e){var o,d,c;const t=document.createElement("div");t.className="apple-modal-overlay",t.innerHTML=`
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <h3 style="font-size:1.25rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">
+            ${e.title}
+          </h3>
+          <button id="btn-prompt-close-x" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+
+        ${e.message?`<p style="font-size:0.9rem; color:var(--f-text-secondary); margin-bottom:14px; line-height:1.4;">${e.message}</p>`:""}
+
+        <input 
+          type="${e.inputType||"text"}" 
+          id="prompt-modal-input" 
+          value="${e.defaultValue||""}" 
+          placeholder="${e.placeholder||""}" 
+          class="cupertino-dialog-input" 
+          style="width:100%; margin-bottom:18px;" 
+        />
+
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+          <button class="dialog-btn dialog-btn-cancel" id="btn-prompt-cancel">
+            ${e.cancelText||"Cancelar"}
+          </button>
+          <button class="dialog-btn dialog-btn-primary" id="btn-prompt-confirm">
+            ${e.confirmText||"Aceptar"}
+          </button>
+        </div>
+      </div>
+    `,document.body.appendChild(t);const a=t.querySelector("#prompt-modal-input");a.focus(),a.select();const i=()=>t.remove(),s=()=>{const m=a.value.trim();i(),e.onConfirm(m)};a.addEventListener("keydown",m=>{m.key==="Enter"&&s(),m.key==="Escape"&&(i(),e.onCancel&&e.onCancel())}),(o=t.querySelector("#btn-prompt-close-x"))==null||o.addEventListener("click",()=>{i(),e.onCancel&&e.onCancel()}),(d=t.querySelector("#btn-prompt-cancel"))==null||d.addEventListener("click",()=>{i(),e.onCancel&&e.onCancel()}),(c=t.querySelector("#btn-prompt-confirm"))==null||c.addEventListener("click",s),t.addEventListener("click",m=>{m.target===t&&(i(),e.onCancel&&e.onCancel())})}showConfirm(e){var i,s,o;const t=document.createElement("div");t.className="apple-modal-overlay",t.innerHTML=`
+      <div class="apple-modal-content apple-glass-panel" style="max-width:420px; width:90%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <h3 style="font-size:1.25rem; font-weight:800; color:${e.isDanger?"#f87171":"#fff"}; letter-spacing:-0.02em;">
+            ${e.isDanger?"⚠️ ":""}${e.title}
+          </h3>
+          <button id="btn-confirm-close-x" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+
+        <p style="font-size:0.92rem; color:var(--f-text-secondary); margin-bottom:20px; line-height:1.5;">
+          ${e.message}
+        </p>
+
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+          <button class="dialog-btn dialog-btn-cancel" id="btn-confirm-cancel">
+            ${e.cancelText||"Cancelar"}
+          </button>
+          <button class="dialog-btn ${e.isDanger?"dialog-btn-danger":"dialog-btn-primary"}" id="btn-confirm-ok">
+            ${e.confirmText||"Aceptar"}
+          </button>
+        </div>
+      </div>
+    `,document.body.appendChild(t);const a=()=>t.remove();(i=t.querySelector("#btn-confirm-close-x"))==null||i.addEventListener("click",()=>{a(),e.onCancel&&e.onCancel()}),(s=t.querySelector("#btn-confirm-cancel"))==null||s.addEventListener("click",()=>{a(),e.onCancel&&e.onCancel()}),(o=t.querySelector("#btn-confirm-ok"))==null||o.addEventListener("click",()=>{a(),e.onConfirm()}),t.addEventListener("click",d=>{d.target===t&&(a(),e.onCancel&&e.onCancel())})}showAlert(e){var i,s;const t=document.createElement("div");t.className="apple-modal-overlay",t.innerHTML=`
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:90%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <h3 style="font-size:1.25rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">
+            ${e.title}
+          </h3>
+          <button id="btn-alert-close-x" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+
+        <p style="font-size:0.92rem; color:var(--f-text-secondary); margin-bottom:20px; line-height:1.5; white-space:pre-line;">
+          ${e.message}
+        </p>
+
+        <div style="display:flex; align-items:center; justify-content:flex-end;">
+          <button class="dialog-btn dialog-btn-primary" id="btn-alert-ok" style="min-width:110px;">
+            ${e.buttonText||"Entendido"}
+          </button>
+        </div>
+      </div>
+    `,document.body.appendChild(t);const a=()=>{t.remove(),e.onConfirm&&e.onConfirm()};(i=t.querySelector("#btn-alert-close-x"))==null||i.addEventListener("click",a),(s=t.querySelector("#btn-alert-ok"))==null||s.addEventListener("click",a),t.addEventListener("click",o=>{o.target===t&&a()})}};ce(Mt,"instance");let ca=Mt;const he=ca.getInstance();function u0(){return`
+    <div>
+      <!-- Responsive Action Header -->
+      <div class="figma-action-header">
+        <h2 class="figma-view-title">Inicio</h2>
+
+        <div class="figma-header-actions-group">
+          <div class="figma-actions-mini-group">
+            <button class="figma-icon-btn-dark" id="btn-trash-decks" title="Eliminar mazo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+
+            <button class="figma-icon-btn-dark" id="btn-create-deck-top" title="Crear Carpeta / Mazo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+            </button>
+
+            <button class="figma-icon-btn-dark" id="btn-edit-decks" title="Ajustes de Mazos">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          </div>
+
+          <button class="figma-btn-outline" id="btn-batch-import">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Importar</span>
+          </button>
+
+          <button class="figma-btn-blue-pill" id="btn-manual-add">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Agregar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Deck List Container -->
+      <div class="figma-card-container apple-glass-panel">
+        ${j.getRootDecks().map(e=>`
+          <div class="figma-deck-row" data-deck-id="${e.id}">
+            <div class="figma-deck-left">
+              <div class="figma-deck-folder-icon" style="background:${e.color}15; border-color:${e.color}; color:${e.color};">
+                ${e.icon==="briefcase"?'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>':'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>'}
+              </div>
+              <div class="figma-deck-info-wrap">
+                <span class="figma-deck-title">${e.name}</span>
+                <div class="figma-deck-subtext">${e.description||"Toca para abrir submazos"}</div>
+              </div>
+            </div>
+
+            <span class="figma-chevron">›</span>
+          </div>
+        `).join("")}
+      </div>
+
+      <!-- Floating Action Buttons (Desktop only, mobile uses bottom nav) -->
+    </div>
+  `}function fs(r,e){var t,a,i,s,o;r.querySelectorAll(".figma-deck-row").forEach(d=>{d.addEventListener("click",()=>{const c=d.dataset.deckId;c&&e.onSelectDeck(c)})}),(t=r.querySelector("#btn-manual-add"))==null||t.addEventListener("click",()=>e.onAddCard()),(a=r.querySelector("#btn-create-deck-top"))==null||a.addEventListener("click",()=>e.onCreateDeck()),(i=r.querySelector("#btn-batch-import"))==null||i.addEventListener("click",()=>e.onImportBatch()),(s=r.querySelector("#btn-edit-decks"))==null||s.addEventListener("click",()=>e.onManageDecks()),(o=r.querySelector("#btn-trash-decks"))==null||o.addEventListener("click",()=>{const d=j.getRootDecks();if(d.length<=1){he.showAlert({title:"Atención",message:"Debes mantener al menos un mazo principal."});return}const c=d.map((m,h)=>`${h+1}. ${m.name}`).join(`
+`);he.showPrompt({title:"Eliminar Mazo",message:`Elige el número de mazo que deseas eliminar:
+${c}`,placeholder:"Número de mazo (ej: 1)",inputType:"number",confirmText:"Continuar",onConfirm:m=>{if(m){const h=parseInt(m,10)-1;if(h>=0&&h<d.length){const f=d[h];he.showConfirm({title:"Eliminar Mazo",message:`¿Eliminar mazo "${f.name}" y todas sus tarjetas? Esta acción no se puede deshacer.`,confirmText:"Eliminar",isDanger:!0,onConfirm:()=>{j.deleteDeck(f.id)}})}}}})})}function vs(r){var m,h,f,b;const e=document.getElementById("modal-learning-phase-root");e&&e.remove();const t=r.deck,a=[{label:"4 min",minutes:4},{label:"1 día",minutes:1440},{label:"2 días",minutes:2880},{label:"5 días",minutes:7200},{label:"11 días",minutes:15840},{label:"18 días",minutes:25920},{label:"29 días",minutes:41760},{label:"57 días",minutes:82080},{label:"102 días",minutes:146880},{label:"171 días",minutes:246240},{label:"278 días",minutes:400320},{label:"440 días",minutes:633600}];let i=t.settings.learningSteps&&t.settings.learningSteps.length>0?t.settings.learningSteps.map(x=>({label:Kt.formatMinutesToHuman(x),minutes:x})):a;const s=document.createElement("div");s.id="modal-learning-phase-root",s.className="apple-modal-overlay",s.innerHTML=`
+    <div class="apple-modal-content apple-glass-panel" style="max-width:540px; width:92%; max-height:90vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+      
+      <!-- Modal Header (Foto 4) -->
+      <div style="padding:20px 24px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <button class="apple-btn-outline-pill" id="btn-how-it-works" style="font-size:0.75rem; padding:4px 12px; margin-bottom:6px;">
+            ¿Cómo funciona el algoritmo?
+          </button>
+          <h2 style="font-size:1.5rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">Fase de aprendizaje</h2>
+          <div style="font-size:0.95rem; font-weight:700; color:#fff; margin-top:2px;">Pasos del aprendizaje</div>
+        </div>
+        <button id="btn-close-learning-phase" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.5rem; cursor:pointer; padding:4px;">✕</button>
+      </div>
+
+      <!-- Content Scrollable List -->
+      <div style="flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:16px;">
+        <p style="font-size:0.85rem; color:var(--f-text-secondary); line-height:1.4;">
+          Durante la fase de aprendizaje, una tarjeta progresa a través de una serie de pasos de longitud fija. Cuando presionas <strong style="color:var(--f-green);">Bien</strong>, la tarjeta pasa al siguiente paso de aprendizaje hasta que se gradúa.
+        </p>
+
+        <!-- Steps List (Foto 4) -->
+        <div id="learning-phase-steps-mount" class="apple-card-grouped" style="padding:4px 0;">
+        </div>
+
+        <!-- Add Step button -->
+        <button class="apple-btn-secondary" id="btn-add-review-step" style="padding:12px; border-radius:12px; font-weight:700;">
+          + Agregar paso de revisión
+        </button>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding:16px 24px 24px; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:flex-end;">
+        <button class="apple-btn-primary" id="btn-save-learning-steps" style="width:100%; padding:14px; border-radius:14px; font-size:1rem; justify-content:center; background:var(--f-blue); color:#07080a; font-weight:800;">
+          🔒 Guardar los cambios
+        </button>
+      </div>
+
+    </div>
+  `,document.body.appendChild(s);const o=s.querySelector("#learning-phase-steps-mount"),d=()=>{o&&(o.innerHTML=i.map((x,z)=>`
+      <div class="apple-list-row" style="padding:12px 16px;">
+        <div style="font-size:0.95rem; font-weight:600; color:#fff;">
+          Revisión ${z+1}: <span style="color:var(--f-blue); font-weight:800; margin-left:6px;">${x.label}</span>
+        </div>
+        ${z>0?`<button class="apple-icon-del-btn" data-step-idx="${z}" title="Eliminar paso">×</button>`:'<span style="width:24px;"></span>'}
+      </div>
+    `).join(""),o.querySelectorAll(".apple-icon-del-btn").forEach(x=>{x.addEventListener("click",()=>{const z=parseInt(x.dataset.stepIdx||"0",10);i.splice(z,1),d()})}))};d(),(m=document.getElementById("btn-add-review-step"))==null||m.addEventListener("click",()=>{he.showIntervalPicker({title:"Nuevo Paso de Revisión",subtitle:"Configura el intervalo en días, horas o minutos:",initialMinutes:864e3,onConfirm:x=>{i.push({label:Kt.formatMinutesToHuman(x),minutes:x}),d()}})}),(h=document.getElementById("btn-how-it-works"))==null||h.addEventListener("click",()=>{he.showAlert({title:"Algoritmo de Intervalos Fijos",message:`Cada respuesta correcta ("Bien" o "Fácil") traslada la tarjeta a la siguiente etapa de revisión secuencial.
+
+Al responder "Muy Difícil", la tarjeta regresa al paso 1 para consolidar la memoria.`})}),(f=document.getElementById("btn-save-learning-steps"))==null||f.addEventListener("click",()=>{var z;const x=i.map(S=>S.minutes);j.updateDeck(t.id,{settings:{...t.settings,algorithmType:"custom",learningSteps:x}}),(z=document.getElementById("modal-learning-phase-root"))==null||z.remove(),r.onSaved()});const c=()=>{var x;(x=document.getElementById("modal-learning-phase-root"))==null||x.remove(),r.onClose()};(b=document.getElementById("btn-close-learning-phase"))==null||b.addEventListener("click",c)}function qa(r){var o,d;const e=document.getElementById("modal-algo-selector-root");e&&e.remove();const t=r.deck,a=t.settings.algorithmType||"custom",i=`
+    <div class="modal-backdrop figma-modal-backdrop" id="modal-algo-selector-root">
+      <div class="apple-glass-modal" style="max-width:580px; max-height:90vh; display:flex; flex-direction:column;">
+        
+        <!-- Header -->
+        <div class="figma-modal-header" style="padding:16px 22px; border-bottom:1px solid rgba(255,255,255,0.06);">
+          <h3 style="font-size:1.15rem; font-weight:800; color:#fff;">Elegir algoritmo</h3>
+          <button class="figma-btn-ghost" id="btn-close-algo-sel">×</button>
+        </div>
+
+        <div style="padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:14px;">
+          
+          <!-- Option 1: FSRS -->
+          <div class="apple-algo-card ${a==="fsrs"?"selected":""}" data-algo-key="fsrs">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span class="apple-algo-icon">🗎</span>
+                <span class="apple-algo-title">Repetición espaciada inteligente (FSRS)</span>
+                <span class="apple-badge-beta">Beta</span>
+              </div>
+              <input type="checkbox" class="apple-checkbox" ${a==="fsrs"?"checked":""} readonly />
+            </div>
+            <p class="apple-algo-desc">
+              El algoritmo de programación más reciente y avanzado: aprende tus patrones de memoria personales y programa cada repaso justo para el momento en que estás a punto de olvidar, para que recuerdes más con menos repasos.
+            </p>
+          </div>
+
+          <!-- Option 2: Revisión rápida -->
+          <div class="apple-algo-card ${a==="quick"?"selected":""}" data-algo-key="quick">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span class="apple-algo-icon">🗎</span>
+                <span class="apple-algo-title">Revisión rápida</span>
+              </div>
+              <input type="checkbox" class="apple-checkbox" ${a==="quick"?"checked":""} readonly />
+            </div>
+            <p class="apple-algo-desc">
+              Revisa tarjetas sin ningún horario, solo una por una. Las tarjetas siempre están disponibles para estudiar cuando lo desees, lo que te permite repasar el material a tu propio ritmo sin seguir los intervalos de repaso espaciado.
+            </p>
+          </div>
+
+          <!-- Option 3: Repaso espaciado general -->
+          <div class="apple-algo-card ${a==="general"?"selected":""}" data-algo-key="general">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span class="apple-algo-icon">🗎</span>
+                <span class="apple-algo-title">Repaso espaciado general</span>
+              </div>
+              <input type="checkbox" class="apple-checkbox" ${a==="general"?"checked":""} readonly />
+            </div>
+            <p class="apple-algo-desc">
+              Un sistema inteligente que programa las revisiones según qué tan bien recuerdas cada tarjeta. Las tarjetas fáciles aparecen con menos frecuencia, mientras que las más difíciles se muestran más seguido, ayudándote a aprender de forma eficiente y a retener el conocimiento a largo plazo.
+            </p>
+          </div>
+
+          <!-- Option 4: Aprendizaje de idiomas -->
+          <div class="apple-algo-card ${a==="languages"?"selected":""}" data-algo-key="languages">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span class="apple-algo-icon" style="color:#38bdf8;">🔤</span>
+                <span class="apple-algo-title">Aprendizaje de idiomas</span>
+              </div>
+              <span style="font-size:0.88rem; color:var(--f-blue);">🔓</span>
+            </div>
+            <div style="margin-bottom:8px;">
+              <span class="apple-badge-subpill">+ Repaso espaciado</span>
+            </div>
+            <p class="apple-algo-desc">
+              Una variación de repaso espaciado diseñada para aprender palabras nuevas. Las nuevas tarjetas se muestran con frecuencia al principio y luego se repasan en intervalos más largos para ayudarte a recordarlas a largo plazo.
+            </p>
+          </div>
+
+          <!-- Option 5: Aprendizaje médico -->
+          <div class="apple-algo-card ${a==="medical"?"selected":""}" data-algo-key="medical">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span class="apple-algo-icon" style="color:#38bdf8;">⚕️</span>
+                <span class="apple-algo-title">Aprendizaje médico</span>
+              </div>
+              <span style="font-size:0.88rem; color:var(--f-blue);">🔓</span>
+            </div>
+            <div style="margin-bottom:8px;">
+              <span class="apple-badge-subpill">+ Repaso espaciado</span>
+            </div>
+            <p class="apple-algo-desc">
+              Este ajuste predeterminado de repaso espaciado se basa en técnicas utilizadas por estudiantes de medicina de alto rendimiento. Elimina los límites diarios y evita la repetición excesiva de tarjetas, ayudándote a cubrir grandes volúmenes de material de manera eficiente a corto plazo.
+            </p>
+          </div>
+
+          <!-- Button to customize exact 12 steps (Foto 4) -->
+          <button class="apple-btn-secondary" id="btn-open-custom-learning-phases" style="width:100%; padding:14px; border-radius:14px; margin-top:8px; font-weight:700;">
+            ⚙️ Personalizar Escalera de Fases (12 Pasos)
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+  `;document.body.insertAdjacentHTML("beforeend",i),document.querySelectorAll(".apple-algo-card").forEach(c=>{c.addEventListener("click",()=>{var h;const m=c.dataset.algoKey;m&&(j.updateDeck(t.id,{settings:{...t.settings,algorithmType:m}}),(h=document.getElementById("modal-algo-selector-root"))==null||h.remove(),r.onSaved())})}),(o=document.getElementById("btn-open-custom-learning-phases"))==null||o.addEventListener("click",()=>{var c;(c=document.getElementById("modal-algo-selector-root"))==null||c.remove(),vs({deck:t,onSaved:()=>r.onSaved(),onClose:()=>qa(r)})});const s=()=>{var c;(c=document.getElementById("modal-algo-selector-root"))==null||c.remove(),r.onClose()};(d=document.getElementById("btn-close-algo-sel"))==null||d.addEventListener("click",s)}const zt=class zt{constructor(){}static getInstance(){return zt.instance||(zt.instance=new zt),zt.instance}generateCards(e,t=3){const a=e.trim().toLowerCase(),i=[];if(a.includes("matemática")||a.includes("física")||a.includes("cálculo")||a.includes("cuántica"))i.push({front:"¿Cuál es el Principio de Incertidumbre de Heisenberg?",back:`Establece la imposibilidad de medir simultáneamente y con precisión absoluta la posición y el momento lineal de una partícula:
+
+$$\\Delta x \\cdot \\Delta p \\ge \\frac{\\hbar}{2}$$`,type:"latex"},{front:"¿Qué es la Derivada direccional de una función multivariable?",back:`Representa la tasa de cambio de $f(x,y)$ en la dirección de un vector unitario $\\mathbf{u}$:
+
+$$D_{\\mathbf{u}}f = \\nabla f \\cdot \\mathbf{u}$$`,type:"latex"},{front:"¿Qué describe la Ley de Gauss para el campo eléctrico?",back:`El flujo eléctrico total a través de cualquier superficie cerrada es proporcional a la carga eléctrica neta encerrada:
+
+$$\\oint \\mathbf{E} \\cdot d\\mathbf{A} = \\frac{Q_{\\text{enc}}}{\\varepsilon_0}$$`,type:"latex"});else if(a.includes("corazón")||a.includes("anatomía")||a.includes("medicina")||a.includes("humans"))i.push({front:"¿Cuál es la función principal de la Válvula Mitral (bicúspide)?",back:"Permite el flujo unidireccional de sangre oxigenada desde la aurícula izquierda hacia el ventrículo izquierdo, impidiendo el reflujo retrógrado durante la sístole.",type:"standard"},{front:"¿Dónde se origina el impulso eléctrico cardíaco normal?",back:"En el **Nodo Sinoauricular (SA)**, ubicado en la parte superior de la aurícula derecha, actuando como el marcapasos natural.",type:"standard"},{front:"¿Qué diferencia a la circulación sistémica de la pulmonar?",back:`**Circulación pulmonar**: Transporta sangre desoxigenada a los pulmones para intercambio gaseoso.
+**Circulación sistémica**: Distribuye sangre rica en $O_2$ a todos los tejidos del organismo.`,type:"standard"});else if(a.includes("inglés")||a.includes("idioma")||a.includes("english"))i.push({front:'Phrasal Verb: "To call it a day"',back:`**Meaning:** To stop working on something for the rest of the day.
+
+*Example:* "We have made good progress, let's call it a day."`,type:"standard"},{front:'Idiom: "Bite the bullet"',back:"**Meaning:** To face a difficult or unpleasant situation with courage and resolve.",type:"standard"},{front:'Word: "Eloquent" /ˌel.ə.kwənt/',back:`**Definition:** Fluent or persuasive in speaking or writing.
+
+*Synonyms:* Articulate, expressive, fluent.`,type:"standard"});else{const s=e.split(`
+`).filter(o=>o.trim().length>5);if(s.length>=2)for(let o=0;o<Math.min(t,Math.floor(s.length/2));o++)i.push({front:s[o*2].trim(),back:s[o*2+1].trim(),type:"standard"});else i.push({front:`Concepto Clave: ${e.slice(0,40)}...`,back:`Definición detallada y aplicación fundamental de ${e}.`,type:"standard"},{front:`¿Cuál es el objetivo principal de ${e.slice(0,30)}?`,back:"Consolidar el conocimiento activo mediante la práctica espaciada y el recuerdo activo.",type:"standard"})}return i.slice(0,t)}};ce(zt,"instance");let ua=zt;const gs=ua.getInstance();function $a(r){var d,c,m;const e=document.getElementById("modal-ai-builder-root");e&&e.remove(),document.body.insertAdjacentHTML("beforeend",`
+    <div class="modal-backdrop figma-modal-backdrop" id="modal-ai-builder-root">
+      <div class="modal-container" style="max-width:600px; background:var(--f-surface); border:1px solid var(--f-border); border-radius:var(--f-radius-lg);">
+        
+        <div class="figma-modal-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, #ec4899, #8b5cf6); display:flex; align-items:center; justify-content:center; color:#fff;">
+              ✨
+            </div>
+            <div>
+              <h3 style="font-size:1.15rem; font-weight:800; color:#fff;">AI Builder Flashcards</h3>
+              <p style="font-size:0.75rem; color:var(--f-text-secondary);">Genera tarjetas automáticamente a partir de un tema o notas</p>
+            </div>
+          </div>
+          <button class="figma-btn-ghost" id="btn-close-ai-modal">×</button>
+        </div>
+
+        <div class="modal-body" style="padding:20px;">
+          
+          <div class="form-group">
+            <label class="form-label" style="color:var(--f-text-secondary);">Tema o Texto de Estudio</label>
+            <textarea 
+              id="ai-prompt-input" 
+              class="figma-editor-textarea" 
+              style="min-height:90px; border-radius:var(--f-radius-sm);" 
+              placeholder="Ej: Mecánica Cuántica, Anatomía Cardíaca, Phrasal Verbs en Inglés o pega tus apuntes aquí..."
+            ></textarea>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="btn-preset-chip" data-ai-topic="Mecánica Cuántica y Fórmulas">⚛️ Cuántica</button>
+              <button type="button" class="btn-preset-chip" data-ai-topic="Anatomía del Corazón Humano">🫀 Corazón</button>
+              <button type="button" class="btn-preset-chip" data-ai-topic="Vocabulario Avanzado Inglés">🌍 Inglés</button>
+            </div>
+
+            <button class="figma-btn-blue-pill" id="btn-trigger-ai-gen">
+              <span>✨ Generar</span>
+            </button>
+          </div>
+
+          <div id="ai-results-container" class="hidden" style="margin-top:16px; border-top:1px solid var(--f-border); padding-top:16px;">
+            <h4 style="font-size:0.95rem; font-weight:700; margin-bottom:10px; color:#fff;">Tarjetas Generadas</h4>
+            <div id="ai-cards-list" style="display:flex; flex-direction:column; gap:10px; max-height:240px; overflow-y:auto;"></div>
+            
+            <div style="margin-top:16px; display:flex; justify-content:flex-end; gap:10px;">
+              <button class="figma-btn-blue-pill" id="btn-add-all-ai-cards" style="width:100%; justify-content:center;">
+                Añadir Todas al Mazo
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  `);const a=document.getElementById("ai-prompt-input"),i=document.getElementById("ai-results-container"),s=document.getElementById("ai-cards-list");let o=[];document.querySelectorAll("[data-ai-topic]").forEach(h=>{h.addEventListener("click",()=>{a&&(a.value=h.dataset.aiTopic||"")})}),(d=document.getElementById("btn-trigger-ai-gen"))==null||d.addEventListener("click",()=>{const h=(a==null?void 0:a.value.trim())||"Conceptos Generales";o=gs.generateCards(h,3),s&&i&&(s.innerHTML=o.map((f,b)=>`
+        <div style="background:var(--f-input-bg); border:1px solid var(--f-border); border-radius:10px; padding:12px;">
+          <div style="font-size:0.88rem; font-weight:700; color:#fff; margin-bottom:4px;">#${b+1}: ${f.front}</div>
+          <div style="font-size:0.8rem; color:var(--f-text-secondary); line-height:1.4;">${f.back}</div>
+        </div>
+      `).join(""),i.classList.remove("hidden"))}),(c=document.getElementById("btn-add-all-ai-cards"))==null||c.addEventListener("click",()=>{var h,f;o.forEach(b=>{j.createCard({deckId:r.deckId,type:b.type,front:b.front,back:b.back})}),(h=r.onBatchAdded)==null||h.call(r,o.length),(f=document.getElementById("modal-ai-builder-root"))==null||f.remove()}),(m=document.getElementById("btn-close-ai-modal"))==null||m.addEventListener("click",()=>{var h;(h=document.getElementById("modal-ai-builder-root"))==null||h.remove(),r.onClose()})}function _0(r){var s,o,d;const e=document.getElementById("modal-batch-import-root");e&&e.remove(),document.body.insertAdjacentHTML("beforeend",`
+    <div class="modal-backdrop figma-modal-backdrop" id="modal-batch-import-root">
+      <div class="modal-container" style="max-width:580px; background:var(--f-surface); border:1px solid var(--f-border); border-radius:var(--f-radius-lg);">
+        
+        <div class="figma-modal-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="figma-icon-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#50b5ff" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+            <div>
+              <h3 style="font-size:1.15rem; font-weight:800; color:#fff;">Importar Tarjetas en Lote</h3>
+              <p style="font-size:0.75rem; color:var(--f-text-secondary);">Pega tus pares de Pregunta y Respuesta</p>
+            </div>
+          </div>
+          <button class="figma-btn-ghost" id="btn-close-batch-modal">×</button>
+        </div>
+
+        <div class="modal-body" style="padding:20px;">
+          <div class="form-group">
+            <label class="form-label">Formato admitido: <code>Pregunta;Respuesta</code> o separado por tabulaciones (CSV/TSV)</label>
+            <textarea 
+              id="batch-raw-textarea" 
+              class="figma-editor-textarea" 
+              style="min-height:160px; border-radius:var(--f-radius-sm); font-size:0.88rem;"
+              placeholder="¿Qué es el ortocentro?;Punto de intersección de las alturas de un triángulo&#10;¿Qué es la Vena Cava?;Vaso que transporta sangre desoxigenada al corazón&#10;Identidad de Euler;$$e^{i\\pi} + 1 = 0$$"
+            ></textarea>
+          </div>
+
+          <div style="margin-top:16px; display:flex; justify-content:flex-end; gap:10px;">
+            <button class="figma-btn-ghost" id="btn-cancel-batch">Cancelar</button>
+            <button class="figma-btn-blue-pill" id="btn-confirm-batch-import">
+              Importar Tarjetas
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `);const a=document.getElementById("batch-raw-textarea");(s=document.getElementById("btn-confirm-batch-import"))==null||s.addEventListener("click",()=>{var h;const c=(a==null?void 0:a.value)||"",m=j.importBatchCards(r.deckId,c);(h=document.getElementById("modal-batch-import-root"))==null||h.remove(),r.onImported(m)});const i=()=>{var c;(c=document.getElementById("modal-batch-import-root"))==null||c.remove(),r.onClose()};(o=document.getElementById("btn-close-batch-modal"))==null||o.addEventListener("click",i),(d=document.getElementById("btn-cancel-batch"))==null||d.addEventListener("click",i)}function bs(r){var s,o,d,c,m,h,f,b,x,z;const e=document.getElementById("modal-adv-menu-root");e&&e.remove();const t=r.deck,a=`
+    <div class="modal-backdrop figma-modal-backdrop" id="modal-adv-menu-root">
+      <div class="apple-glass-modal" style="max-width:580px; max-height:88vh; display:flex; flex-direction:column;">
+        
+        <!-- Header -->
+        <div class="figma-modal-header" style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.06);">
+          <h3 style="font-size:1.15rem; font-weight:800; color:#fff;">Opciones de Mazo</h3>
+          <button class="figma-btn-ghost" id="btn-close-adv-menu">×</button>
+        </div>
+
+        <div style="padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:14px;">
+          
+          <!-- Group 1: Algoritmo -->
+          <div class="apple-card-grouped">
+            <div class="apple-list-row" id="adv-row-algo" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--f-blue)" stroke-width="2.5"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="10" y2="21"/></svg>
+                <div>
+                  <div style="font-size:0.98rem; font-weight:700; color:#fff;">Personalizado</div>
+                  <div style="font-size:0.75rem; color:var(--f-text-secondary);">Ajustes predeterminados del algoritmo</div>
+                </div>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+
+          <!-- Group 2: Audio y Estilo -->
+          <div class="apple-card-grouped">
+            <div class="apple-list-row" id="adv-row-tts" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">🔊</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Texto a voz</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="color:var(--f-text-secondary); font-size:0.85rem;">${t.settings.ttsVoiceLang}</span>
+                <span class="apple-chevron">›</span>
+              </div>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-style" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">🗂</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Estilo de la tarjeta</span>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+
+          <!-- Group 3: Compartir y Biblioteca -->
+          <div class="apple-card-grouped">
+            <div class="apple-list-row" id="adv-row-share" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">⬆</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Compartir mazo</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="color:var(--f-text-secondary); font-size:0.85rem;">Off</span>
+                <span class="apple-chevron">›</span>
+              </div>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-publish" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">🖫</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Publicar en la biblioteca</span>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+
+          <!-- Group 4: Acciones Avanzadas -->
+          <div class="apple-card-grouped">
+            <div class="apple-list-row" id="adv-row-ai" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem; color:#ec4899;">✨</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Generar tarjetas con IA</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="apple-badge-beta">Beta</span>
+                <span class="apple-chevron">›</span>
+              </div>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-import" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">⬇</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Importar tarjetas</span>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-rename" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">✏️</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Cambiar el nombre del mazo</span>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-move" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">↪</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Mover mazo</span>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-duplicate" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">🗎</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Duplicar mazo</span>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-reset" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">↺</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Restablecer progreso</span>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-archive" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">📥</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Archivar mazo</span>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-export" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem;">⬆</span>
+                <span style="font-size:0.98rem; font-weight:600; color:#fff;">Exportar mazo</span>
+              </div>
+              <span class="apple-chevron">›</span>
+            </div>
+
+            <div class="apple-list-row" id="adv-row-delete" style="cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.1rem; color:#ef4444;">🗑️</span>
+                <span style="font-size:0.98rem; font-weight:700; color:#ef4444;">Eliminar mazo</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  `;document.body.insertAdjacentHTML("beforeend",a),(s=document.getElementById("adv-row-rename"))==null||s.addEventListener("click",()=>{he.showPrompt({title:"Renombrar Mazo",defaultValue:t.name,confirmText:"Guardar",onConfirm:S=>{var M;S&&S.trim()&&(j.renameDeck(t.id,S.trim()),(M=document.getElementById("modal-adv-menu-root"))==null||M.remove(),r.onActionCompleted())}})}),(o=document.getElementById("adv-row-duplicate"))==null||o.addEventListener("click",()=>{var S;j.duplicateDeck(t.id),(S=document.getElementById("modal-adv-menu-root"))==null||S.remove(),r.onActionCompleted()}),(d=document.getElementById("adv-row-reset"))==null||d.addEventListener("click",()=>{he.showConfirm({title:"Restablecer Progreso",message:`¿Estás seguro de restablecer todo el progreso de estudio en "${t.name}"? Todas las tarjetas volverán al estado nuevo.`,confirmText:"Restablecer",isDanger:!0,onConfirm:()=>{var S;j.resetDeckProgress(t.id),(S=document.getElementById("modal-adv-menu-root"))==null||S.remove(),r.onActionCompleted()}})}),(c=document.getElementById("adv-row-archive"))==null||c.addEventListener("click",()=>{he.showConfirm({title:"Archivar Mazo",message:`¿Deseas archivar el mazo "${t.name}"?`,confirmText:"Archivar",onConfirm:()=>{var S;j.archiveDeck(t.id),(S=document.getElementById("modal-adv-menu-root"))==null||S.remove(),r.onActionCompleted()}})}),(m=document.getElementById("adv-row-export"))==null||m.addEventListener("click",()=>{const S=j.exportDeck(t.id),M=new Blob([S],{type:"application/json"}),A=URL.createObjectURL(M),T=document.createElement("a");T.href=A,T.download=`${t.name.toLowerCase().replace(/\s+/g,"_")}_backup.json`,T.click()}),(h=document.getElementById("adv-row-delete"))==null||h.addEventListener("click",()=>{he.showConfirm({title:"Eliminar Mazo Definitivamente",message:`¿ELIMINAR DEFINITIVAMENTE el mazo "${t.name}" y todas sus tarjetas? Esta acción no se puede deshacer.`,confirmText:"Eliminar Mazo",isDanger:!0,onConfirm:()=>{var S;j.deleteDeck(t.id),(S=document.getElementById("modal-adv-menu-root"))==null||S.remove(),r.onActionCompleted()}})}),(f=document.getElementById("adv-row-ai"))==null||f.addEventListener("click",()=>{var S;(S=document.getElementById("modal-adv-menu-root"))==null||S.remove(),$a({deckId:t.id,onBatchAdded:()=>r.onActionCompleted(),onClose:()=>{}})}),(b=document.getElementById("adv-row-import"))==null||b.addEventListener("click",()=>{var S;(S=document.getElementById("modal-adv-menu-root"))==null||S.remove(),_0({deckId:t.id,onImported:()=>r.onActionCompleted(),onClose:()=>{}})}),(x=document.getElementById("adv-row-algo"))==null||x.addEventListener("click",()=>{var S;(S=document.getElementById("modal-adv-menu-root"))==null||S.remove(),qa({deck:t,onSaved:()=>r.onActionCompleted(),onClose:()=>{}})});const i=()=>{var S;(S=document.getElementById("modal-adv-menu-root"))==null||S.remove(),r.onClose()};(z=document.getElementById("btn-close-adv-menu"))==null||z.addEventListener("click",i)}function ur(r){var c,m,h,f,b,x;const e=document.getElementById("modal-deck-settings-root");e&&e.remove();const t=r.deck,a=t.settings.algorithmType==="fsrs"?"FSRS (Inteligente)":t.settings.algorithmType==="quick"?"Revisión rápida":t.settings.algorithmType==="languages"?"Aprendizaje de idiomas":t.settings.algorithmType==="medical"?"Aprendizaje médico":t.settings.algorithmType==="general"?"Repaso espaciado general":"Personalizado",i=document.createElement("div");i.id="modal-deck-settings-root",i.className="apple-modal-overlay",i.innerHTML=`
+    <div class="apple-modal-content apple-glass-panel" style="max-width:520px; width:92%; padding:0; overflow:hidden;">
+      
+      <!-- Header -->
+      <div style="padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <span style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase;">Ajustes de Mazo</span>
+          <h2 style="font-size:1.4rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">${t.name}</h2>
+        </div>
+        <button id="btn-close-deck-settings" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.4rem; cursor:pointer; padding:4px;">✕</button>
+      </div>
+
+      <!-- Body Rows -->
+      <div style="padding:20px 24px; display:flex; flex-direction:column; gap:16px;">
+        
+        <!-- Algorithm Selector Row -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="row-select-algo" style="cursor:pointer;">
+            <div style="font-size:0.95rem; font-weight:600; color:#fff;">Algoritmo de aprendizaje</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="color:var(--f-blue); font-weight:800; font-size:0.95rem;" id="val-algo-label">${a}</span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+
+          <div class="apple-list-row">
+            <div style="font-size:0.95rem; font-weight:600; color:#fff;">Mezclar tarjetas</div>
+            <label class="apple-switch">
+              <input type="checkbox" id="toggle-mix-cards" ${t.settings.mixCards?"checked":""} />
+              <span class="apple-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Limits -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="row-new-cards-day" style="cursor:pointer;">
+            <div style="font-size:0.95rem; font-weight:600; color:#fff;">Tarjetas nuevas por día</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="color:var(--f-blue); font-weight:800; font-size:1.05rem;" id="val-new-cards">${t.settings.newCardsPerDay}</span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+
+          <div class="apple-list-row" id="row-max-cards-day" style="cursor:pointer;">
+            <div style="font-size:0.95rem; font-weight:600; color:#fff;">Máximo de tarjetas por día</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="color:var(--f-blue); font-weight:800; font-size:1.05rem;" id="val-max-cards">${t.settings.maxReviewsPerDay}</span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Neuro-Ergonomic Micro-Games Section -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row">
+            <div>
+              <div style="font-size:0.95rem; font-weight:600; color:#fff;">🎮 Minijuegos de descanso</div>
+              <div style="font-size:0.75rem; color:var(--f-text-muted);">Sin carga alostática ni fatiga</div>
+            </div>
+            <label class="apple-switch">
+              <input type="checkbox" id="toggle-microgames" ${t.settings.enableMicroGames!==!1?"checked":""} />
+              <span class="apple-slider"></span>
+            </label>
+          </div>
+
+          <div class="apple-list-row" id="row-microgame-freq" style="cursor:pointer;">
+            <div style="font-size:0.95rem; font-weight:600; color:#fff;">Frecuencia de juego</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="color:var(--f-blue); font-weight:800; font-size:0.95rem;" id="val-microgame-freq">
+                ${(t.settings.microGameInterval||5)===0?"Desactivado":`Cada ${t.settings.microGameInterval||5} tarjetas`}
+              </span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced settings button -->
+        <button class="apple-btn-secondary" id="btn-open-advanced-menu" style="padding:14px; border-radius:14px; font-weight:700; font-size:0.95rem;">
+          Configuraciones avanzadas
+        </button>
+
+      </div>
+
+    </div>
+  `,document.body.appendChild(i);const s=()=>{i.remove(),r.onClose()};(c=i.querySelector("#btn-close-deck-settings"))==null||c.addEventListener("click",s),i.addEventListener("click",z=>{z.target===i&&s()});const o=i.querySelector("#toggle-mix-cards");o==null||o.addEventListener("change",()=>{j.updateDeck(t.id,{settings:{...t.settings,mixCards:o.checked}})});const d=i.querySelector("#toggle-microgames");d==null||d.addEventListener("change",()=>{j.updateDeck(t.id,{settings:{...t.settings,enableMicroGames:d.checked}})}),(m=i.querySelector("#row-microgame-freq"))==null||m.addEventListener("click",()=>{he.showPrompt({title:"Frecuencia de Minijuegos",message:"¿Cada cuántas tarjetas deseas una pausa de minijuego? (ej: 5, 10, 15, 20 o 0 para desactivar)",defaultValue:String(t.settings.microGameInterval!==void 0?t.settings.microGameInterval:5),inputType:"number",confirmText:"Guardar",onConfirm:z=>{if(z!==null&&!isNaN(Number(z))){const S=Math.max(0,parseInt(z,10));j.updateDeck(t.id,{settings:{...t.settings,microGameInterval:S,enableMicroGames:S>0}});const M=i.querySelector("#val-microgame-freq");M&&(M.textContent=S===0?"Desactivado":`Cada ${S} tarjetas`)}}})}),(h=i.querySelector("#row-new-cards-day"))==null||h.addEventListener("click",()=>{he.showPrompt({title:"Tarjetas Nuevas por Día",defaultValue:String(t.settings.newCardsPerDay),inputType:"number",confirmText:"Guardar",onConfirm:z=>{if(z&&!isNaN(Number(z))){const S=Math.max(1,parseInt(z,10));j.updateDeck(t.id,{settings:{...t.settings,newCardsPerDay:S}});const M=i.querySelector("#val-new-cards");M&&(M.textContent=String(S))}}})}),(f=i.querySelector("#row-max-cards-day"))==null||f.addEventListener("click",()=>{he.showPrompt({title:"Máximo de Tarjetas por Día",defaultValue:String(t.settings.maxReviewsPerDay),inputType:"number",confirmText:"Guardar",onConfirm:z=>{if(z&&!isNaN(Number(z))){const S=Math.max(1,parseInt(z,10));j.updateDeck(t.id,{settings:{...t.settings,maxReviewsPerDay:S}});const M=i.querySelector("#val-max-cards");M&&(M.textContent=String(S))}}})}),(b=i.querySelector("#row-select-algo"))==null||b.addEventListener("click",()=>{i.remove(),qa({deck:t,onSaved:()=>{ur(r),r.onSaved()},onClose:()=>{ur(r)}})}),(x=i.querySelector("#btn-open-advanced-menu"))==null||x.addEventListener("click",()=>{i.remove(),bs({deck:t,onActionCompleted:()=>{r.onSaved()},onClose:()=>{ur(r)}})})}function ys(r){const e=j.getSubdecks(r.id);return`
+    <div>
+      <!-- Action Header with Breadcrumbs -->
+      <div class="figma-action-header">
+        <div class="figma-breadcrumbs">
+          <button class="figma-icon-btn-dark" id="btn-back-to-inicio" style="margin-right:6px;" title="Volver a Inicio">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </button>
+          <span class="figma-crumb-link" id="crumb-inicio">Inicio</span>
+          <span class="figma-crumb-sep">/</span>
+          <span class="figma-crumb-current">${r.name}</span>
+        </div>
+
+        <div class="figma-header-actions-group">
+          <button class="figma-icon-btn-dark" id="btn-edit-subdeck" title="Ajustes de Mazo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+
+          <button class="figma-btn-outline" id="btn-sub-import">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Importar en lote
+          </button>
+
+          <button class="figma-btn-white-pill" id="btn-sub-manual-add">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Agregar manualmente
+          </button>
+
+          <button class="figma-icon-btn-dark" id="btn-subdeck-menu" title="Ajustes del Mazo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Subdecks Container -->
+      <div class="figma-card-container apple-glass-panel">
+        ${e.length===0?`
+          <div style="padding:40px 20px; text-align:center;">
+            <p style="color:var(--f-text-secondary); margin-bottom:14px;">No hay submazos en ${r.name}.</p>
+            <button class="figma-btn-blue-pill" id="btn-create-child-subdeck" style="margin: 0 auto;">
+              + Crear Submazo
+            </button>
+          </div>
+        `:e.map(t=>{const a=j.getDeckStats(t.id);return`
+            <div class="figma-deck-row" data-subdeck-id="${t.id}">
+              <div class="figma-deck-left">
+                <div style="color:var(--f-text-muted); font-size:1.3rem; font-weight:700;">+</div>
+                <div>
+                  <div class="figma-deck-title" style="font-size:1.15rem;">${t.name}</div>
+                  <div class="figma-deck-subtext">Tarjetas para hoy: ${a.dueCards>0?a.dueCards:a.totalCards}</div>
+                </div>
+              </div>
+
+              <span class="figma-chevron">›</span>
+            </div>
+          `}).join("")}
+      </div>
+    </div>
+  `}function xs(r,e,t){var i,s,o,d,c,m,h,f;(i=r.querySelector("#btn-subdeck-back"))==null||i.addEventListener("click",()=>t.onBack()),(s=r.querySelector("#btn-back-to-inicio"))==null||s.addEventListener("click",()=>t.onBack()),(o=r.querySelector("#crumb-inicio"))==null||o.addEventListener("click",()=>t.onBack()),r.querySelectorAll(".figma-deck-row").forEach(b=>{b.addEventListener("click",()=>{const x=b.dataset.subdeckId;x&&t.onSelectSubdeck(x)})});const a=()=>{ur({deck:e,onSaved:()=>t.onConfigureDeck(e.id),onClose:()=>{}})};(d=r.querySelector("#btn-edit-subdeck"))==null||d.addEventListener("click",a),(c=r.querySelector("#btn-subdeck-menu"))==null||c.addEventListener("click",a),(m=r.querySelector("#btn-sub-manual-add"))==null||m.addEventListener("click",()=>t.onAddCard(e.id)),(h=r.querySelector("#btn-sub-import"))==null||h.addEventListener("click",()=>t.onImportBatch(e.id)),(f=r.querySelector("#btn-create-child-subdeck"))==null||f.addEventListener("click",()=>{he.showPrompt({title:`Nuevo Submazo en "${e.name}"`,placeholder:"Nombre del submazo...",confirmText:"Crear",onConfirm:b=>{b&&b.trim()&&(j.createDeck({name:b.trim(),parentId:e.id}),t.onConfigureDeck(e.id))}})})}class D extends Error{constructor(e,t){var a="KaTeX parse error: "+e,i,s,o=t&&t.loc;if(o&&o.start<=o.end){var d=o.lexer.input;i=o.start,s=o.end,i===d.length?a+=" at end of input: ":a+=" at position "+(i+1)+": ";var c=d.slice(i,s).replace(/[^]/g,"$&̲"),m;i>15?m="…"+d.slice(i-15,i):m=d.slice(0,i);var h;s+15<d.length?h=d.slice(s,s+15)+"…":h=d.slice(s),a+=m+c+h}super(a),this.name="ParseError",this.position=void 0,this.length=void 0,this.rawMessage=void 0,Object.setPrototypeOf(this,D.prototype),this.position=i,i!=null&&s!=null&&(this.length=s-i),this.rawMessage=e}}var ws=/([A-Z])/g,ks=r=>r.replace(ws,"-$1").toLowerCase(),Ss={"&":"&amp;",">":"&gt;","<":"&lt;",'"':"&quot;","'":"&#x27;"},Ms=/[&><"']/g,Be=r=>String(r).replace(Ms,e=>Ss[e]),mr=r=>r.type==="ordgroup"||r.type==="color"?r.body.length===1?mr(r.body[0]):r:r.type==="font"?mr(r.body):r,zs=new Set(["mathord","textord","atom"]),st=r=>zs.has(mr(r).type),As=r=>{var e=/^[\x00-\x20]*([^\\/#?]*?)(:|&#0*58|&#x0*3a|&colon)/i.exec(r);return e?e[2]!==":"||!/^[a-zA-Z][a-zA-Z0-9+\-.]*$/.test(e[1])?null:e[1].toLowerCase():"_relative"},ma={displayMode:{type:"boolean",description:"Render math in display mode, which puts the math in display style (so \\int and \\sum are large, for example), and centers the math on the page on its own line.",cli:"-d, --display-mode"},output:{type:{enum:["htmlAndMathml","html","mathml"]},description:"Determines the markup language of the output.",cli:"-F, --format <type>"},leqno:{type:"boolean",description:"Render display math in leqno style (left-justified tags)."},fleqn:{type:"boolean",description:"Render display math flush left."},throwOnError:{type:"boolean",default:!0,cli:"-t, --no-throw-on-error",cliDescription:"Render errors (in the color given by --error-color) instead of throwing a ParseError exception when encountering an error."},errorColor:{type:"string",default:"#cc0000",cli:"-c, --error-color <color>",cliDescription:"A color string given in the format 'rgb' or 'rrggbb' (no #). This option determines the color of errors rendered by the -t option.",cliProcessor:r=>"#"+r},macros:{type:"object",cli:"-m, --macro <def>",cliDescription:"Define custom macro of the form '\\foo:expansion' (use multiple -m arguments for multiple macros).",cliDefault:[],cliProcessor:(r,e)=>(e.push(r),e)},minRuleThickness:{type:"number",description:"Specifies a minimum thickness, in ems, for fraction lines, `\\sqrt` top lines, `{array}` vertical lines, `\\hline`, `\\hdashline`, `\\underline`, `\\overline`, and the borders of `\\fbox`, `\\boxed`, and `\\fcolorbox`.",processor:r=>Math.max(0,r),cli:"--min-rule-thickness <size>",cliProcessor:parseFloat},colorIsTextColor:{type:"boolean",description:"Makes \\color behave like LaTeX's 2-argument \\textcolor, instead of LaTeX's one-argument \\color mode change.",cli:"-b, --color-is-text-color"},strict:{type:[{enum:["warn","ignore","error"]},"boolean","function"],description:"Turn on strict / LaTeX faithfulness mode, which throws an error if the input uses features that are not supported by LaTeX.",cli:"-S, --strict",cliDefault:!1},trust:{type:["boolean","function"],description:"Trust the input, enabling all HTML features such as \\url.",cli:"-T, --trust"},maxSize:{type:"number",default:1/0,description:"If non-zero, all user-specified sizes, e.g. in \\rule{500em}{500em}, will be capped to maxSize ems. Otherwise, elements and spaces can be arbitrarily large",processor:r=>Math.max(0,r),cli:"-s, --max-size <n>",cliProcessor:parseInt},maxExpand:{type:"number",default:1e3,description:"Limit the number of macro expansions to the specified number, to prevent e.g. infinite macro loops. If set to Infinity, the macro expander will try to fully expand as in LaTeX.",processor:r=>Math.max(0,r),cli:"-e, --max-expand <n>",cliProcessor:r=>r==="Infinity"?1/0:parseInt(r)},globalGroup:{type:"boolean",cli:!1}};function Cs(r){if(typeof r!="string")return r.enum[0];switch(r){case"boolean":return!1;case"string":return"";case"number":return 0;case"object":return{};default:throw new Error("Unexpected schema type; settings must declare an explicit default.")}}function Es(r){if(r.default!==void 0)return r.default;var e=Array.isArray(r.type)?r.type[0]:r.type;return Cs(e)}function Ts(r,e,t,a){var i=t[e];r[e]=i!==void 0?a.processor?a.processor(i):i:Es(a)}class Ra{constructor(e){e===void 0&&(e={}),this.displayMode=void 0,this.output=void 0,this.leqno=void 0,this.fleqn=void 0,this.throwOnError=void 0,this.errorColor=void 0,this.macros=void 0,this.minRuleThickness=void 0,this.colorIsTextColor=void 0,this.strict=void 0,this.trust=void 0,this.maxSize=void 0,this.maxExpand=void 0,this.globalGroup=void 0,e=e||{};for(var t of Object.keys(ma)){var a=ma[t];a&&Ts(this,t,e,a)}}reportNonstrict(e,t,a){var i=this.strict;if(typeof i=="function"&&(i=i(e,t,a)),!(!i||i==="ignore")){if(i===!0||i==="error")throw new D("LaTeX-incompatible input and strict mode is set to 'error': "+(t+" ["+e+"]"),a);i==="warn"?typeof console<"u"&&console.warn("LaTeX-incompatible input and strict mode is set to 'warn': "+(t+" ["+e+"]")):typeof console<"u"&&console.warn("LaTeX-incompatible input and strict mode is set to "+("unrecognized '"+i+"': "+t+" ["+e+"]"))}}useStrictBehavior(e,t,a){var i=this.strict;if(typeof i=="function")try{i=i(e,t,a)}catch{i="error"}return!i||i==="ignore"?!1:i===!0||i==="error"?!0:i==="warn"?(typeof console<"u"&&console.warn("LaTeX-incompatible input and strict mode is set to 'warn': "+(t+" ["+e+"]")),!1):(typeof console<"u"&&console.warn("LaTeX-incompatible input and strict mode is set to "+("unrecognized '"+i+"': "+t+" ["+e+"]")),!1)}isTrusted(e){if("url"in e&&e.url&&!e.protocol){var t=As(e.url);if(t==null)return!1;e.protocol=t}var a=typeof this.trust=="function"?this.trust(e):this.trust;return!!a}}class lt{constructor(e,t,a){this.id=void 0,this.size=void 0,this.cramped=void 0,this.id=e,this.size=t,this.cramped=a}sup(){return Ke[Is[this.id]]}sub(){return Ke[Ds[this.id]]}fracNum(){return Ke[Bs[this.id]]}fracDen(){return Ke[Ls[this.id]]}cramp(){return Ke[qs[this.id]]}text(){return Ke[$s[this.id]]}isTight(){return this.size>=2}}var Pa=0,fr=1,qt=2,at=3,Jt=4,We=5,Rt=6,Re=7,Ke=[new lt(Pa,0,!1),new lt(fr,0,!0),new lt(qt,1,!1),new lt(at,1,!0),new lt(Jt,2,!1),new lt(We,2,!0),new lt(Rt,3,!1),new lt(Re,3,!0)],Is=[Jt,We,Jt,We,Rt,Re,Rt,Re],Ds=[We,We,We,We,Re,Re,Re,Re],Bs=[qt,at,Jt,We,Rt,Re,Rt,Re],Ls=[at,at,We,We,Re,Re,Re,Re],qs=[fr,fr,at,at,We,We,Re,Re],$s=[Pa,fr,qt,at,qt,at,qt,at],ie={DISPLAY:Ke[Pa],TEXT:Ke[qt],SCRIPT:Ke[Jt],SCRIPTSCRIPT:Ke[Rt]},pa=[{name:"latin",blocks:[[256,591],[768,879]]},{name:"cyrillic",blocks:[[1024,1279]]},{name:"armenian",blocks:[[1328,1423]]},{name:"brahmic",blocks:[[2304,4255]]},{name:"georgian",blocks:[[4256,4351]]},{name:"cjk",blocks:[[12288,12543],[19968,40879],[65280,65376]]},{name:"hangul",blocks:[[44032,55215]]}];function Rs(r){for(var e=0;e<pa.length;e++)for(var t=pa[e],a=0;a<t.blocks.length;a++){var i=t.blocks[a];if(r>=i[0]&&r<=i[1])return t.name}return null}var pr=[];pa.forEach(r=>r.blocks.forEach(e=>pr.push(...e)));function ei(r){for(var e=0;e<pr.length;e+=2)if(r>=pr[e]&&r<=pr[e+1])return!0;return!1}var Te=r=>r+" "+r,Bt=80,Ps=function(e,t){return"M95,"+(622+e+t)+`
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l`+e/2.075+" -"+e+`
+c5.3,-9.3,12,-14,20,-14
+H400000v`+(40+e)+`H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M`+(834+e)+" "+t+"h400000v"+(40+e)+"h-400000z"},Fs=function(e,t){return"M263,"+(601+e+t)+`c0.7,0,18,39.7,52,119
+c34,79.3,68.167,158.7,102.5,238c34.3,79.3,51.8,119.3,52.5,120
+c340,-704.7,510.7,-1060.3,512,-1067
+l`+e/2.084+" -"+e+`
+c4.7,-7.3,11,-11,19,-11
+H40000v`+(40+e)+`H1012.3
+s-271.3,567,-271.3,567c-38.7,80.7,-84,175,-136,283c-52,108,-89.167,185.3,-111.5,232
+c-22.3,46.7,-33.8,70.3,-34.5,71c-4.7,4.7,-12.3,7,-23,7s-12,-1,-12,-1
+s-109,-253,-109,-253c-72.7,-168,-109.3,-252,-110,-252c-10.7,8,-22,16.7,-34,26
+c-22,17.3,-33.3,26,-34,26s-26,-26,-26,-26s76,-59,76,-59s76,-60,76,-60z
+M`+(1001+e)+" "+t+"h400000v"+(40+e)+"h-400000z"},Ns=function(e,t){return"M983 "+(10+e+t)+`
+l`+e/3.13+" -"+e+`
+c4,-6.7,10,-10,18,-10 H400000v`+(40+e)+`
+H1013.1s-83.4,268,-264.1,840c-180.7,572,-277,876.3,-289,913c-4.7,4.7,-12.7,7,-24,7
+s-12,0,-12,0c-1.3,-3.3,-3.7,-11.7,-7,-25c-35.3,-125.3,-106.7,-373.3,-214,-744
+c-10,12,-21,25,-33,39s-32,39,-32,39c-6,-5.3,-15,-14,-27,-26s25,-30,25,-30
+c26.7,-32.7,52,-63,76,-91s52,-60,52,-60s208,722,208,722
+c56,-175.3,126.3,-397.3,211,-666c84.7,-268.7,153.8,-488.2,207.5,-658.5
+c53.7,-170.3,84.5,-266.8,92.5,-289.5z
+M`+(1001+e)+" "+t+"h400000v"+(40+e)+"h-400000z"},js=function(e,t){return"M424,"+(2398+e+t)+`
+c-1.3,-0.7,-38.5,-172,-111.5,-514c-73,-342,-109.8,-513.3,-110.5,-514
+c0,-2,-10.7,14.3,-32,49c-4.7,7.3,-9.8,15.7,-15.5,25c-5.7,9.3,-9.8,16,-12.5,20
+s-5,7,-5,7c-4,-3.3,-8.3,-7.7,-13,-13s-13,-13,-13,-13s76,-122,76,-122s77,-121,77,-121
+s209,968,209,968c0,-2,84.7,-361.7,254,-1079c169.3,-717.3,254.7,-1077.7,256,-1081
+l`+e/4.223+" -"+e+`c4,-6.7,10,-10,18,-10 H400000
+v`+(40+e)+`H1014.6
+s-87.3,378.7,-272.6,1166c-185.3,787.3,-279.3,1182.3,-282,1185
+c-2,6,-10,9,-24,9
+c-8,0,-12,-0.7,-12,-2z M`+(1001+e)+" "+t+`
+h400000v`+(40+e)+"h-400000z"},Os=function(e,t){return"M473,"+(2713+e+t)+`
+c339.3,-1799.3,509.3,-2700,510,-2702 l`+e/5.298+" -"+e+`
+c3.3,-7.3,9.3,-11,18,-11 H400000v`+(40+e)+`H1017.7
+s-90.5,478,-276.2,1466c-185.7,988,-279.5,1483,-281.5,1485c-2,6,-10,9,-24,9
+c-8,0,-12,-0.7,-12,-2c0,-1.3,-5.3,-32,-16,-92c-50.7,-293.3,-119.7,-693.3,-207,-1200
+c0,-1.3,-5.3,8.7,-16,30c-10.7,21.3,-21.3,42.7,-32,64s-16,33,-16,33s-26,-26,-26,-26
+s76,-153,76,-153s77,-151,77,-151c0.7,0.7,35.7,202,105,604c67.3,400.7,102,602.7,104,
+606zM`+(1001+e)+" "+t+"h400000v"+(40+e)+"H1017.7z"},Hs=function(e){var t=e/2;return"M400000 "+e+" H0 L"+t+" 0 l65 45 L145 "+(e-80)+" H400000z"},Vs=function(e,t,a){var i=a-54-t-e;return"M702 "+(e+t)+"H400000"+(40+e)+`
+H742v`+i+`l-4 4-4 4c-.667.7 -2 1.5-4 2.5s-4.167 1.833-6.5 2.5-5.5 1-9.5 1
+h-12l-28-84c-16.667-52-96.667 -294.333-240-727l-212 -643 -85 170
+c-4-3.333-8.333-7.667-13 -13l-13-13l77-155 77-156c66 199.333 139 419.667
+219 661 l218 661zM702 `+t+"H400000v"+(40+e)+"H742z"},Gs=function(e,t,a){t=1e3*t;var i="";switch(e){case"sqrtMain":i=Ps(t,Bt);break;case"sqrtSize1":i=Fs(t,Bt);break;case"sqrtSize2":i=Ns(t,Bt);break;case"sqrtSize3":i=js(t,Bt);break;case"sqrtSize4":i=Os(t,Bt);break;case"sqrtTall":i=Vs(t,Bt,a)}return i},Us=function(e,t){switch(e){case"⎜":return Te("M291 0 H417 V"+t+" H291z");case"∣":return Te("M145 0 H188 V"+t+" H145z");case"∥":return Te("M145 0 H188 V"+t+" H145z")+Te("M367 0 H410 V"+t+" H367z");case"⎟":return Te("M457 0 H583 V"+t+" H457z");case"⎢":return Te("M319 0 H403 V"+t+" H319z");case"⎥":return Te("M263 0 H347 V"+t+" H263z");case"⎪":return Te("M384 0 H504 V"+t+" H384z");case"⏐":return Te("M312 0 H355 V"+t+" H312z");case"‖":return Te("M257 0 H300 V"+t+" H257z")+Te("M478 0 H521 V"+t+" H478z");default:return""}},m0={doubleleftarrow:`M262 157
+l10-10c34-36 62.7-77 86-123 3.3-8 5-13.3 5-16 0-5.3-6.7-8-20-8-7.3
+ 0-12.2.5-14.5 1.5-2.3 1-4.8 4.5-7.5 10.5-49.3 97.3-121.7 169.3-217 216-28
+ 14-57.3 25-88 33-6.7 2-11 3.8-13 5.5-2 1.7-3 4.2-3 7.5s1 5.8 3 7.5
+c2 1.7 6.3 3.5 13 5.5 68 17.3 128.2 47.8 180.5 91.5 52.3 43.7 93.8 96.2 124.5
+ 157.5 9.3 8 15.3 12.3 18 13h6c12-.7 18-4 18-10 0-2-1.7-7-5-15-23.3-46-52-87
+-86-123l-10-10h399738v-40H218c328 0 0 0 0 0l-10-8c-26.7-20-65.7-43-117-69 2.7
+-2 6-3.7 10-5 36.7-16 72.3-37.3 107-64l10-8h399782v-40z
+m8 0v40h399730v-40zm0 194v40h399730v-40z`,doublerightarrow:`M399738 392l
+-10 10c-34 36-62.7 77-86 123-3.3 8-5 13.3-5 16 0 5.3 6.7 8 20 8 7.3 0 12.2-.5
+ 14.5-1.5 2.3-1 4.8-4.5 7.5-10.5 49.3-97.3 121.7-169.3 217-216 28-14 57.3-25 88
+-33 6.7-2 11-3.8 13-5.5 2-1.7 3-4.2 3-7.5s-1-5.8-3-7.5c-2-1.7-6.3-3.5-13-5.5-68
+-17.3-128.2-47.8-180.5-91.5-52.3-43.7-93.8-96.2-124.5-157.5-9.3-8-15.3-12.3-18
+-13h-6c-12 .7-18 4-18 10 0 2 1.7 7 5 15 23.3 46 52 87 86 123l10 10H0v40h399782
+c-328 0 0 0 0 0l10 8c26.7 20 65.7 43 117 69-2.7 2-6 3.7-10 5-36.7 16-72.3 37.3
+-107 64l-10 8H0v40zM0 157v40h399730v-40zm0 194v40h399730v-40z`,leftarrow:`M400000 241H110l3-3c68.7-52.7 113.7-120
+ 135-202 4-14.7 6-23 6-25 0-7.3-7-11-21-11-8 0-13.2.8-15.5 2.5-2.3 1.7-4.2 5.8
+-5.5 12.5-1.3 4.7-2.7 10.3-4 17-12 48.7-34.8 92-68.5 130S65.3 228.3 18 247
+c-10 4-16 7.7-18 11 0 8.7 6 14.3 18 17 47.3 18.7 87.8 47 121.5 85S196 441.3 208
+ 490c.7 2 1.3 5 2 9s1.2 6.7 1.5 8c.3 1.3 1 3.3 2 6s2.2 4.5 3.5 5.5c1.3 1 3.3
+ 1.8 6 2.5s6 1 10 1c14 0 21-3.7 21-11 0-2-2-10.3-6-25-20-79.3-65-146.7-135-202
+ l-3-3h399890zM100 241v40h399900v-40z`,leftbrace:`M6 548l-6-6v-35l6-11c56-104 135.3-181.3 238-232 57.3-28.7 117
+-45 179-50h399577v120H403c-43.3 7-81 15-113 26-100.7 33-179.7 91-237 174-2.7
+ 5-6 9-10 13-.7 1-7.3 1-20 1H6z`,leftbraceunder:`M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z`,leftgroup:`M400000 80
+H435C64 80 168.3 229.4 21 260c-5.9 1.2-18 0-18 0-2 0-3-1-3-3v-38C76 61 257 0
+ 435 0h399565z`,leftgroupunder:`M400000 262
+H435C64 262 168.3 112.6 21 82c-5.9-1.2-18 0-18 0-2 0-3 1-3 3v38c76 158 257 219
+ 435 219h399565z`,leftharpoon:`M0 267c.7 5.3 3 10 7 14h399993v-40H93c3.3
+-3.3 10.2-9.5 20.5-18.5s17.8-15.8 22.5-20.5c50.7-52 88-110.3 112-175 4-11.3 5
+-18.3 3-21-1.3-4-7.3-6-18-6-8 0-13 .7-15 2s-4.7 6.7-8 16c-42 98.7-107.3 174.7
+-196 228-6.7 4.7-10.7 8-12 10-1.3 2-2 5.7-2 11zm100-26v40h399900v-40z`,leftharpoonplus:`M0 267c.7 5.3 3 10 7 14h399993v-40H93c3.3-3.3 10.2-9.5
+ 20.5-18.5s17.8-15.8 22.5-20.5c50.7-52 88-110.3 112-175 4-11.3 5-18.3 3-21-1.3
+-4-7.3-6-18-6-8 0-13 .7-15 2s-4.7 6.7-8 16c-42 98.7-107.3 174.7-196 228-6.7 4.7
+-10.7 8-12 10-1.3 2-2 5.7-2 11zm100-26v40h399900v-40zM0 435v40h400000v-40z
+m0 0v40h400000v-40z`,leftharpoondown:`M7 241c-4 4-6.333 8.667-7 14 0 5.333.667 9 2 11s5.333
+ 5.333 12 10c90.667 54 156 130 196 228 3.333 10.667 6.333 16.333 9 17 2 .667 5
+ 1 9 1h5c10.667 0 16.667-2 18-6 2-2.667 1-9.667-3-21-32-87.333-82.667-157.667
+-152-211l-3-3h399907v-40zM93 281 H400000 v-40L7 241z`,leftharpoondownplus:`M7 435c-4 4-6.3 8.7-7 14 0 5.3.7 9 2 11s5.3 5.3 12
+ 10c90.7 54 156 130 196 228 3.3 10.7 6.3 16.3 9 17 2 .7 5 1 9 1h5c10.7 0 16.7
+-2 18-6 2-2.7 1-9.7-3-21-32-87.3-82.7-157.7-152-211l-3-3h399907v-40H7zm93 0
+v40h399900v-40zM0 241v40h399900v-40zm0 0v40h399900v-40z`,lefthook:`M400000 281 H103s-33-11.2-61-33.5S0 197.3 0 164s14.2-61.2 42.5
+-83.5C70.8 58.2 104 47 142 47 c16.7 0 25 6.7 25 20 0 12-8.7 18.7-26 20-40 3.3
+-68.7 15.7-86 37-10 12-15 25.3-15 40 0 22.7 9.8 40.7 29.5 54 19.7 13.3 43.5 21
+ 71.5 23h399859zM103 281v-40h399897v40z`,leftlinesegment:Te("M40 281 V428 H0 V94 H40 V241 H400000 v40z"),leftbracketunder:Te("M0 0 h120 V290 H399995 v120 H0z"),leftbracketover:Te("M0 440 h120 V150 H399995 v-120 H0z"),leftmapsto:Te("M40 281 V448H0V74H40V241H400000v40z"),leftToFrom:`M0 147h400000v40H0zm0 214c68 40 115.7 95.7 143 167h22c15.3 0 23
+-.3 23-1 0-1.3-5.3-13.7-16-37-18-35.3-41.3-69-70-101l-7-8h399905v-40H95l7-8
+c28.7-32 52-65.7 70-101 10.7-23.3 16-35.7 16-37 0-.7-7.7-1-23-1h-22C115.7 265.3
+ 68 321 0 361zm0-174v-40h399900v40zm100 154v40h399900v-40z`,longequal:Te("M0 50 h400000 v40H0z m0 194h40000v40H0z"),midbrace:`M200428 334
+c-100.7-8.3-195.3-44-280-108-55.3-42-101.7-93-139-153l-9-14c-2.7 4-5.7 8.7-9 14
+-53.3 86.7-123.7 153-211 199-66.7 36-137.3 56.3-212 62H0V214h199568c178.3-11.7
+ 311.7-78.3 403-201 6-8 9.7-12 11-12 .7-.7 6.7-1 18-1s17.3.3 18 1c1.3 0 5 4 11
+ 12 44.7 59.3 101.3 106.3 170 141s145.3 54.3 229 60h199572v120z`,midbraceunder:`M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z`,oiintSize1:`M512.6 71.6c272.6 0 320.3 106.8 320.3 178.2 0 70.8-47.7 177.6
+-320.3 177.6S193.1 320.6 193.1 249.8c0-71.4 46.9-178.2 319.5-178.2z
+m368.1 178.2c0-86.4-60.9-215.4-368.1-215.4-306.4 0-367.3 129-367.3 215.4 0 85.8
+60.9 214.8 367.3 214.8 307.2 0 368.1-129 368.1-214.8z`,oiintSize2:`M757.8 100.1c384.7 0 451.1 137.6 451.1 230 0 91.3-66.4 228.8
+-451.1 228.8-386.3 0-452.7-137.5-452.7-228.8 0-92.4 66.4-230 452.7-230z
+m502.4 230c0-111.2-82.4-277.2-502.4-277.2s-504 166-504 277.2
+c0 110 84 276 504 276s502.4-166 502.4-276z`,oiiintSize1:`M681.4 71.6c408.9 0 480.5 106.8 480.5 178.2 0 70.8-71.6 177.6
+-480.5 177.6S202.1 320.6 202.1 249.8c0-71.4 70.5-178.2 479.3-178.2z
+m525.8 178.2c0-86.4-86.8-215.4-525.7-215.4-437.9 0-524.7 129-524.7 215.4 0
+85.8 86.8 214.8 524.7 214.8 438.9 0 525.7-129 525.7-214.8z`,oiiintSize2:`M1021.2 53c603.6 0 707.8 165.8 707.8 277.2 0 110-104.2 275.8
+-707.8 275.8-606 0-710.2-165.8-710.2-275.8C311 218.8 415.2 53 1021.2 53z
+m770.4 277.1c0-131.2-126.4-327.6-770.5-327.6S248.4 198.9 248.4 330.1
+c0 130 128.8 326.4 772.7 326.4s770.5-196.4 770.5-326.4z`,rightarrow:`M0 241v40h399891c-47.3 35.3-84 78-110 128
+-16.7 32-27.7 63.7-33 95 0 1.3-.2 2.7-.5 4-.3 1.3-.5 2.3-.5 3 0 7.3 6.7 11 20
+ 11 8 0 13.2-.8 15.5-2.5 2.3-1.7 4.2-5.5 5.5-11.5 2-13.3 5.7-27 11-41 14.7-44.7
+ 39-84.5 73-119.5s73.7-60.2 119-75.5c6-2 9-5.7 9-11s-3-9-9-11c-45.3-15.3-85
+-40.5-119-75.5s-58.3-74.8-73-119.5c-4.7-14-8.3-27.3-11-40-1.3-6.7-3.2-10.8-5.5
+-12.5-2.3-1.7-7.5-2.5-15.5-2.5-14 0-21 3.7-21 11 0 2 2 10.3 6 25 20.7 83.3 67
+ 151.7 139 205zm0 0v40h399900v-40z`,rightbrace:`M400000 542l
+-6 6h-17c-12.7 0-19.3-.3-20-1-4-4-7.3-8.3-10-13-35.3-51.3-80.8-93.8-136.5-127.5
+s-117.2-55.8-184.5-66.5c-.7 0-2-.3-4-1-18.7-2.7-76-4.3-172-5H0V214h399571l6 1
+c124.7 8 235 61.7 331 161 31.3 33.3 59.7 72.7 85 118l7 13v35z`,rightbraceunder:`M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z`,rightgroup:`M0 80h399565c371 0 266.7 149.4 414 180 5.9 1.2 18 0 18 0 2 0
+ 3-1 3-3v-38c-76-158-257-219-435-219H0z`,rightgroupunder:`M0 262h399565c371 0 266.7-149.4 414-180 5.9-1.2 18 0 18
+ 0 2 0 3 1 3 3v38c-76 158-257 219-435 219H0z`,rightharpoon:`M0 241v40h399993c4.7-4.7 7-9.3 7-14 0-9.3
+-3.7-15.3-11-18-92.7-56.7-159-133.7-199-231-3.3-9.3-6-14.7-8-16-2-1.3-7-2-15-2
+-10.7 0-16.7 2-18 6-2 2.7-1 9.7 3 21 15.3 42 36.7 81.8 64 119.5 27.3 37.7 58
+ 69.2 92 94.5zm0 0v40h399900v-40z`,rightharpoonplus:`M0 241v40h399993c4.7-4.7 7-9.3 7-14 0-9.3-3.7-15.3-11
+-18-92.7-56.7-159-133.7-199-231-3.3-9.3-6-14.7-8-16-2-1.3-7-2-15-2-10.7 0-16.7
+ 2-18 6-2 2.7-1 9.7 3 21 15.3 42 36.7 81.8 64 119.5 27.3 37.7 58 69.2 92 94.5z
+m0 0v40h399900v-40z m100 194v40h399900v-40zm0 0v40h399900v-40z`,rightharpoondown:`M399747 511c0 7.3 6.7 11 20 11 8 0 13-.8 15-2.5s4.7-6.8
+ 8-15.5c40-94 99.3-166.3 178-217 13.3-8 20.3-12.3 21-13 5.3-3.3 8.5-5.8 9.5
+-7.5 1-1.7 1.5-5.2 1.5-10.5s-2.3-10.3-7-15H0v40h399908c-34 25.3-64.7 57-92 95
+-27.3 38-48.7 77.7-64 119-3.3 8.7-5 14-5 16zM0 241v40h399900v-40z`,rightharpoondownplus:`M399747 705c0 7.3 6.7 11 20 11 8 0 13-.8
+ 15-2.5s4.7-6.8 8-15.5c40-94 99.3-166.3 178-217 13.3-8 20.3-12.3 21-13 5.3-3.3
+ 8.5-5.8 9.5-7.5 1-1.7 1.5-5.2 1.5-10.5s-2.3-10.3-7-15H0v40h399908c-34 25.3
+-64.7 57-92 95-27.3 38-48.7 77.7-64 119-3.3 8.7-5 14-5 16zM0 435v40h399900v-40z
+m0-194v40h400000v-40zm0 0v40h400000v-40z`,righthook:`M399859 241c-764 0 0 0 0 0 40-3.3 68.7-15.7 86-37 10-12 15-25.3
+ 15-40 0-22.7-9.8-40.7-29.5-54-19.7-13.3-43.5-21-71.5-23-17.3-1.3-26-8-26-20 0
+-13.3 8.7-20 26-20 38 0 71 11.2 99 33.5 0 0 7 5.6 21 16.7 14 11.2 21 33.5 21
+ 66.8s-14 61.2-42 83.5c-28 22.3-61 33.5-99 33.5L0 241z M0 281v-40h399859v40z`,rightlinesegment:Te("M399960 241 V94 h40 V428 h-40 V281 H0 v-40z"),rightbracketunder:Te("M399995 0 h-120 V290 H0 v120 H400000z"),rightbracketover:Te("M399995 440 h-120 V150 H0 v-120 H399995z"),rightToFrom:`M400000 167c-70.7-42-118-97.7-142-167h-23c-15.3 0-23 .3-23
+ 1 0 1.3 5.3 13.7 16 37 18 35.3 41.3 69 70 101l7 8H0v40h399905l-7 8c-28.7 32
+-52 65.7-70 101-10.7 23.3-16 35.7-16 37 0 .7 7.7 1 23 1h23c24-69.3 71.3-125 142
+-167z M100 147v40h399900v-40zM0 341v40h399900v-40z`,twoheadleftarrow:`M0 167c68 40
+ 115.7 95.7 143 167h22c15.3 0 23-.3 23-1 0-1.3-5.3-13.7-16-37-18-35.3-41.3-69
+-70-101l-7-8h125l9 7c50.7 39.3 85 86 103 140h46c0-4.7-6.3-18.7-19-42-18-35.3
+-40-67.3-66-96l-9-9h399716v-40H284l9-9c26-28.7 48-60.7 66-96 12.7-23.333 19
+-37.333 19-42h-46c-18 54-52.3 100.7-103 140l-9 7H95l7-8c28.7-32 52-65.7 70-101
+ 10.7-23.333 16-35.7 16-37 0-.7-7.7-1-23-1h-22C115.7 71.3 68 127 0 167z`,twoheadrightarrow:`M400000 167
+c-68-40-115.7-95.7-143-167h-22c-15.3 0-23 .3-23 1 0 1.3 5.3 13.7 16 37 18 35.3
+ 41.3 69 70 101l7 8h-125l-9-7c-50.7-39.3-85-86-103-140h-46c0 4.7 6.3 18.7 19 42
+ 18 35.3 40 67.3 66 96l9 9H0v40h399716l-9 9c-26 28.7-48 60.7-66 96-12.7 23.333
+-19 37.333-19 42h46c18-54 52.3-100.7 103-140l9-7h125l-7 8c-28.7 32-52 65.7-70
+ 101-10.7 23.333-16 35.7-16 37 0 .7 7.7 1 23 1h22c27.3-71.3 75-127 143-167z`,tilde1:`M200 55.538c-77 0-168 73.953-177 73.953-3 0-7
+-2.175-9-5.437L2 97c-1-2-2-4-2-6 0-4 2-7 5-9l20-12C116 12 171 0 207 0c86 0
+ 114 68 191 68 78 0 168-68 177-68 4 0 7 2 9 5l12 19c1 2.175 2 4.35 2 6.525 0
+ 4.35-2 7.613-5 9.788l-19 13.05c-92 63.077-116.937 75.308-183 76.128
+-68.267.847-113-73.952-191-73.952z`,tilde2:`M344 55.266c-142 0-300.638 81.316-311.5 86.418
+-8.01 3.762-22.5 10.91-23.5 5.562L1 120c-1-2-1-3-1-4 0-5 3-9 8-10l18.4-9C160.9
+ 31.9 283 0 358 0c148 0 188 122 331 122s314-97 326-97c4 0 8 2 10 7l7 21.114
+c1 2.14 1 3.21 1 4.28 0 5.347-3 9.626-7 10.696l-22.3 12.622C852.6 158.372 751
+ 181.476 676 181.476c-149 0-189-126.21-332-126.21z`,tilde3:`M786 59C457 59 32 175.242 13 175.242c-6 0-10-3.457
+-11-10.37L.15 138c-1-7 3-12 10-13l19.2-6.4C378.4 40.7 634.3 0 804.3 0c337 0
+ 411.8 157 746.8 157 328 0 754-112 773-112 5 0 10 3 11 9l1 14.075c1 8.066-.697
+ 16.595-6.697 17.492l-21.052 7.31c-367.9 98.146-609.15 122.696-778.15 122.696
+ -338 0-409-156.573-744-156.573z`,tilde4:`M786 58C457 58 32 177.487 13 177.487c-6 0-10-3.345
+-11-10.035L.15 143c-1-7 3-12 10-13l22-6.7C381.2 35 637.15 0 807.15 0c337 0 409
+ 177 744 177 328 0 754-127 773-127 5 0 10 3 11 9l1 14.794c1 7.805-3 13.38-9
+ 14.495l-20.7 5.574c-366.85 99.79-607.3 139.372-776.3 139.372-338 0-409
+ -175.236-744-175.236z`,vec:`M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z`,widehat1:`M529 0h5l519 115c5 1 9 5 9 10 0 1-1 2-1 3l-4 22
+c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z`,widehat2:`M1181 0h2l1171 176c6 0 10 5 10 11l-2 23c-1 6-5 10
+-11 10h-1L1182 67 15 220h-1c-6 0-10-4-11-10l-2-23c-1-6 4-11 10-11z`,widehat3:`M1181 0h2l1171 236c6 0 10 5 10 11l-2 23c-1 6-5 10
+-11 10h-1L1182 67 15 280h-1c-6 0-10-4-11-10l-2-23c-1-6 4-11 10-11z`,widehat4:`M1181 0h2l1171 296c6 0 10 5 10 11l-2 23c-1 6-5 10
+-11 10h-1L1182 67 15 340h-1c-6 0-10-4-11-10l-2-23c-1-6 4-11 10-11z`,widecheck1:`M529,159h5l519,-115c5,-1,9,-5,9,-10c0,-1,-1,-2,-1,-3l-4,-22c-1,
+-5,-5,-9,-11,-9h-2l-512,92l-513,-92h-2c-5,0,-9,4,-11,9l-5,22c-1,6,2,12,8,13z`,widecheck2:`M1181,220h2l1171,-176c6,0,10,-5,10,-11l-2,-23c-1,-6,-5,-10,
+-11,-10h-1l-1168,153l-1167,-153h-1c-6,0,-10,4,-11,10l-2,23c-1,6,4,11,10,11z`,widecheck3:`M1181,280h2l1171,-236c6,0,10,-5,10,-11l-2,-23c-1,-6,-5,-10,
+-11,-10h-1l-1168,213l-1167,-213h-1c-6,0,-10,4,-11,10l-2,23c-1,6,4,11,10,11z`,widecheck4:`M1181,340h2l1171,-296c6,0,10,-5,10,-11l-2,-23c-1,-6,-5,-10,
+-11,-10h-1l-1168,273l-1167,-273h-1c-6,0,-10,4,-11,10l-2,23c-1,6,4,11,10,11z`,baraboveleftarrow:`M400000 620h-399890l3 -3c68.7 -52.7 113.7 -120 135 -202
+c4 -14.7 6 -23 6 -25c0 -7.3 -7 -11 -21 -11c-8 0 -13.2 0.8 -15.5 2.5
+c-2.3 1.7 -4.2 5.8 -5.5 12.5c-1.3 4.7 -2.7 10.3 -4 17c-12 48.7 -34.8 92 -68.5 130
+s-74.2 66.3 -121.5 85c-10 4 -16 7.7 -18 11c0 8.7 6 14.3 18 17c47.3 18.7 87.8 47
+121.5 85s56.5 81.3 68.5 130c0.7 2 1.3 5 2 9s1.2 6.7 1.5 8c0.3 1.3 1 3.3 2 6
+s2.2 4.5 3.5 5.5c1.3 1 3.3 1.8 6 2.5s6 1 10 1c14 0 21 -3.7 21 -11
+c0 -2 -2 -10.3 -6 -25c-20 -79.3 -65 -146.7 -135 -202l-3 -3h399890z
+M100 620v40h399900v-40z M0 241v40h399900v-40zM0 241v40h399900v-40z`,rightarrowabovebar:`M0 241v40h399891c-47.3 35.3-84 78-110 128-16.7 32
+-27.7 63.7-33 95 0 1.3-.2 2.7-.5 4-.3 1.3-.5 2.3-.5 3 0 7.3 6.7 11 20 11 8 0
+13.2-.8 15.5-2.5 2.3-1.7 4.2-5.5 5.5-11.5 2-13.3 5.7-27 11-41 14.7-44.7 39
+-84.5 73-119.5s73.7-60.2 119-75.5c6-2 9-5.7 9-11s-3-9-9-11c-45.3-15.3-85-40.5
+-119-75.5s-58.3-74.8-73-119.5c-4.7-14-8.3-27.3-11-40-1.3-6.7-3.2-10.8-5.5
+-12.5-2.3-1.7-7.5-2.5-15.5-2.5-14 0-21 3.7-21 11 0 2 2 10.3 6 25 20.7 83.3 67
+151.7 139 205zm96 379h399894v40H0zm0 0h399904v40H0z`,baraboveshortleftharpoon:`M507,435c-4,4,-6.3,8.7,-7,14c0,5.3,0.7,9,2,11
+c1.3,2,5.3,5.3,12,10c90.7,54,156,130,196,228c3.3,10.7,6.3,16.3,9,17
+c2,0.7,5,1,9,1c0,0,5,0,5,0c10.7,0,16.7,-2,18,-6c2,-2.7,1,-9.7,-3,-21
+c-32,-87.3,-82.7,-157.7,-152,-211c0,0,-3,-3,-3,-3l399351,0l0,-40
+c-398570,0,-399437,0,-399437,0z M593 435 v40 H399500 v-40z
+M0 281 v-40 H399908 v40z M0 281 v-40 H399908 v40z`,rightharpoonaboveshortbar:`M0,241 l0,40c399126,0,399993,0,399993,0
+c4.7,-4.7,7,-9.3,7,-14c0,-9.3,-3.7,-15.3,-11,-18c-92.7,-56.7,-159,-133.7,-199,
+-231c-3.3,-9.3,-6,-14.7,-8,-16c-2,-1.3,-7,-2,-15,-2c-10.7,0,-16.7,2,-18,6
+c-2,2.7,-1,9.7,3,21c15.3,42,36.7,81.8,64,119.5c27.3,37.7,58,69.2,92,94.5z
+M0 241 v40 H399908 v-40z M0 475 v-40 H399500 v40z M0 475 v-40 H399500 v40z`,shortbaraboveleftharpoon:`M7,435c-4,4,-6.3,8.7,-7,14c0,5.3,0.7,9,2,11
+c1.3,2,5.3,5.3,12,10c90.7,54,156,130,196,228c3.3,10.7,6.3,16.3,9,17c2,0.7,5,1,9,
+1c0,0,5,0,5,0c10.7,0,16.7,-2,18,-6c2,-2.7,1,-9.7,-3,-21c-32,-87.3,-82.7,-157.7,
+-152,-211c0,0,-3,-3,-3,-3l399907,0l0,-40c-399126,0,-399993,0,-399993,0z
+M93 435 v40 H400000 v-40z M500 241 v40 H400000 v-40z M500 241 v40 H400000 v-40z`,shortrightharpoonabovebar:`M53,241l0,40c398570,0,399437,0,399437,0
+c4.7,-4.7,7,-9.3,7,-14c0,-9.3,-3.7,-15.3,-11,-18c-92.7,-56.7,-159,-133.7,-199,
+-231c-3.3,-9.3,-6,-14.7,-8,-16c-2,-1.3,-7,-2,-15,-2c-10.7,0,-16.7,2,-18,6
+c-2,2.7,-1,9.7,3,21c15.3,42,36.7,81.8,64,119.5c27.3,37.7,58,69.2,92,94.5z
+M500 241 v40 H399408 v-40z M500 435 v40 H400000 v-40z`},Ws=function(e,t){switch(e){case"lbrack":return"M403 1759 V84 H666 V0 H319 V1759 v"+t+` v1759 v84 h347 v-84
+H403z M403 1759 V0 H319 V1759 v`+t+" v1759 v84 h84z";case"rbrack":return"M347 1759 V0 H0 V84 H263 V1759 v"+t+` v1759 H0 v84 H347z
+M347 1759 V0 H263 V1759 v`+t+" v1759 h84z";case"vert":return"M145 15 v585 v"+t+` v585 c2.667,10,9.667,15,21,15
+c10,0,16.667,-5,20,-15 v-585 v`+-t+` v-585 c-2.667,-10,-9.667,-15,-21,-15
+c-10,0,-16.667,5,-20,15z M188 15 H145 v585 v`+t+" v585 h43z";case"doublevert":return"M145 15 v585 v"+t+` v585 c2.667,10,9.667,15,21,15
+c10,0,16.667,-5,20,-15 v-585 v`+-t+` v-585 c-2.667,-10,-9.667,-15,-21,-15
+c-10,0,-16.667,5,-20,15z M188 15 H145 v585 v`+t+` v585 h43z
+M367 15 v585 v`+t+` v585 c2.667,10,9.667,15,21,15
+c10,0,16.667,-5,20,-15 v-585 v`+-t+` v-585 c-2.667,-10,-9.667,-15,-21,-15
+c-10,0,-16.667,5,-20,15z M410 15 H367 v585 v`+t+" v585 h43z";case"lfloor":return"M319 602 V0 H403 V602 v"+t+` v1715 h263 v84 H319z
+MM319 602 V0 H403 V602 v`+t+" v1715 H319z";case"rfloor":return"M319 602 V0 H403 V602 v"+t+` v1799 H0 v-84 H319z
+MM319 602 V0 H403 V602 v`+t+" v1715 H319z";case"lceil":return"M403 1759 V84 H666 V0 H319 V1759 v"+t+` v602 h84z
+M403 1759 V0 H319 V1759 v`+t+" v602 h84z";case"rceil":return"M347 1759 V0 H0 V84 H263 V1759 v"+t+` v602 h84z
+M347 1759 V0 h-84 V1759 v`+t+" v602 h84z";case"lparen":return`M863,9c0,-2,-2,-5,-6,-9c0,0,-17,0,-17,0c-12.7,0,-19.3,0.3,-20,1
+c-5.3,5.3,-10.3,11,-15,17c-242.7,294.7,-395.3,682,-458,1162c-21.3,163.3,-33.3,349,
+-36,557 l0,`+(t+84)+`c0.2,6,0,26,0,60c2,159.3,10,310.7,24,454c53.3,528,210,
+949.7,470,1265c4.7,6,9.7,11.7,15,17c0.7,0.7,7,1,19,1c0,0,18,0,18,0c4,-4,6,-7,6,-9
+c0,-2.7,-3.3,-8.7,-10,-18c-135.3,-192.7,-235.5,-414.3,-300.5,-665c-65,-250.7,-102.5,
+-544.7,-112.5,-882c-2,-104,-3,-167,-3,-189
+l0,-`+(t+92)+`c0,-162.7,5.7,-314,17,-454c20.7,-272,63.7,-513,129,-723c65.3,
+-210,155.3,-396.3,270,-559c6.7,-9.3,10,-15.3,10,-18z`;case"rparen":return`M76,0c-16.7,0,-25,3,-25,9c0,2,2,6.3,6,13c21.3,28.7,42.3,60.3,
+63,95c96.7,156.7,172.8,332.5,228.5,527.5c55.7,195,92.8,416.5,111.5,664.5
+c11.3,139.3,17,290.7,17,454c0,28,1.7,43,3.3,45l0,`+(t+9)+`
+c-3,4,-3.3,16.7,-3.3,38c0,162,-5.7,313.7,-17,455c-18.7,248,-55.8,469.3,-111.5,664
+c-55.7,194.7,-131.8,370.3,-228.5,527c-20.7,34.7,-41.7,66.3,-63,95c-2,3.3,-4,7,-6,11
+c0,7.3,5.7,11,17,11c0,0,11,0,11,0c9.3,0,14.3,-0.3,15,-1c5.3,-5.3,10.3,-11,15,-17
+c242.7,-294.7,395.3,-681.7,458,-1161c21.3,-164.7,33.3,-350.7,36,-558
+l0,-`+(t+144)+`c-2,-159.3,-10,-310.7,-24,-454c-53.3,-528,-210,-949.7,
+-470,-1265c-4.7,-6,-9.7,-11.7,-15,-17c-0.7,-0.7,-6.7,-1,-18,-1z`;default:throw new Error("Unknown stretchy delimiter.")}};function Xs(r){return"toText"in r}class Nt{constructor(e){this.children=void 0,this.classes=void 0,this.height=void 0,this.depth=void 0,this.maxFontSize=void 0,this.style=void 0,this.children=e,this.classes=[],this.height=0,this.depth=0,this.maxFontSize=0,this.style={}}hasClass(e){return this.classes.includes(e)}toNode(){for(var e=document.createDocumentFragment(),t=0;t<this.children.length;t++)e.appendChild(this.children[t].toNode());return e}toMarkup(){for(var e="",t=0;t<this.children.length;t++)e+=this.children[t].toMarkup();return e}toText(){return this.children.map(e=>{if(Xs(e))return e.toText();throw new Error("Expected MathDomNode with toText, got "+e.constructor.name)}).join("")}}var ha={pt:1,mm:7227/2540,cm:7227/254,in:72.27,bp:803/800,pc:12,dd:1238/1157,cc:14856/1157,nd:685/642,nc:1370/107,sp:1/65536,px:803/800},Ys={ex:!0,em:!0,mu:!0},ti=function(e){return typeof e!="string"&&(e=e.unit),e in ha||e in Ys||e==="ex"},Se=function(e,t){var a;if(e.unit in ha)a=ha[e.unit]/t.fontMetrics().ptPerEm/t.sizeMultiplier;else if(e.unit==="mu")a=t.fontMetrics().cssEmPerMu;else{var i;if(t.style.isTight()?i=t.havingStyle(t.style.text()):i=t,e.unit==="ex")a=i.fontMetrics().xHeight;else if(e.unit==="em")a=i.fontMetrics().quad;else throw new D("Invalid unit: '"+e.unit+"'");i!==t&&(a*=i.sizeMultiplier/t.sizeMultiplier)}return Math.min(e.number*a,t.maxSize)},$=function(e){return+e.toFixed(4)+"em"},ut=function(e){return e.filter(t=>t).join(" ")},Fa=function(e){var t="";for(var a of Object.keys(e)){var i=e[a];i!==void 0&&(t+=ks(a)+":"+i+";")}return t},ri=function(e,t,a){if(this.classes=e||[],this.attributes={},this.height=0,this.depth=0,this.maxFontSize=0,this.style=a||{},t){t.style.isTight()&&this.classes.push("mtight");var i=t.getColor();i&&(this.style.color=i)}},ai=function(e){var t=document.createElement(e);t.className=ut(this.classes),Object.assign(t.style,this.style);for(var a of Object.keys(this.attributes))t.setAttribute(a,this.attributes[a]);for(var i=0;i<this.children.length;i++)t.appendChild(this.children[i].toNode());return t},Zs=/[\s"'>/=\x00-\x1f]/,ii=function(e){var t="<"+e;this.classes.length&&(t+=' class="'+Be(ut(this.classes))+'"');var a=Fa(this.style);a&&(t+=' style="'+Be(a)+'"');for(var i of Object.keys(this.attributes)){if(Zs.test(i))throw new D("Invalid attribute name '"+i+"'");t+=" "+i+'="'+Be(this.attributes[i])+'"'}t+=">";for(var s=0;s<this.children.length;s++)t+=this.children[s].toMarkup();return t+="</"+e+">",t};class jt{constructor(e,t,a,i){this.children=void 0,this.attributes=void 0,this.classes=void 0,this.height=void 0,this.depth=void 0,this.width=void 0,this.maxFontSize=void 0,this.style=void 0,this.italic=void 0,ri.call(this,e,a,i),this.children=t||[]}setAttribute(e,t){this.attributes[e]=t}hasClass(e){return this.classes.includes(e)}toNode(){return ai.call(this,"span")}toMarkup(){return ii.call(this,"span")}}class wr{constructor(e,t,a,i){this.children=void 0,this.attributes=void 0,this.classes=void 0,this.height=void 0,this.depth=void 0,this.maxFontSize=void 0,this.style=void 0,ri.call(this,t,i),this.children=a||[],this.setAttribute("href",e)}setAttribute(e,t){this.attributes[e]=t}hasClass(e){return this.classes.includes(e)}toNode(){return ai.call(this,"a")}toMarkup(){return ii.call(this,"a")}}class Ks{constructor(e,t,a){this.src=void 0,this.alt=void 0,this.classes=void 0,this.height=void 0,this.depth=void 0,this.maxFontSize=void 0,this.style=void 0,this.alt=t,this.src=e,this.classes=["mord"],this.height=0,this.depth=0,this.maxFontSize=0,this.style=a}hasClass(e){return this.classes.includes(e)}toNode(){var e=document.createElement("img");return e.src=this.src,e.alt=this.alt,e.className="mord",Object.assign(e.style,this.style),e}toMarkup(){var e='<img src="'+Be(this.src)+'"'+(' alt="'+Be(this.alt)+'"'),t=Fa(this.style);return t&&(e+=' style="'+Be(t)+'"'),e+="'/>",e}}var Js={î:"ı̂",ï:"ı̈",í:"ı́",ì:"ı̀"};class He{constructor(e,t,a,i,s,o,d,c){this.text=void 0,this.height=void 0,this.depth=void 0,this.italic=void 0,this.skew=void 0,this.width=void 0,this.maxFontSize=void 0,this.classes=void 0,this.style=void 0,this.text=e,this.height=t||0,this.depth=a||0,this.italic=i||0,this.skew=s||0,this.width=o||0,this.classes=d||[],this.style=c||{},this.maxFontSize=0;var m=Rs(this.text.charCodeAt(0));m&&this.classes.push(m+"_fallback"),/[îïíì]/.test(this.text)&&(this.text=Js[this.text])}hasClass(e){return this.classes.includes(e)}toNode(){var e=document.createTextNode(this.text),t=null;return this.italic>0&&(t=document.createElement("span"),t.style.marginRight=$(this.italic)),this.classes.length>0&&(t=t||document.createElement("span"),t.className=ut(this.classes)),Object.keys(this.style).length>0&&(t=t||document.createElement("span"),Object.assign(t.style,this.style)),t?(t.appendChild(e),t):e}toMarkup(){var e=!1,t="<span";this.classes.length&&(e=!0,t+=' class="',t+=Be(ut(this.classes)),t+='"');var a="";this.italic>0&&(a+="margin-right:"+$(this.italic)+";"),a+=Fa(this.style),a&&(e=!0,t+=' style="'+Be(a)+'"');var i=Be(this.text);return e?(t+=">",t+=i,t+="</span>",t):i}}class it{constructor(e,t){this.children=void 0,this.attributes=void 0,this.children=e||[],this.attributes=t||{}}toNode(){var e="http://www.w3.org/2000/svg",t=document.createElementNS(e,"svg");for(var a of Object.keys(this.attributes))t.setAttribute(a,this.attributes[a]);for(var i=0;i<this.children.length;i++)t.appendChild(this.children[i].toNode());return t}toMarkup(){var e='<svg xmlns="http://www.w3.org/2000/svg"';for(var t of Object.keys(this.attributes))e+=" "+t+'="'+Be(this.attributes[t])+'"';e+=">";for(var a=0;a<this.children.length;a++)e+=this.children[a].toMarkup();return e+="</svg>",e}}class mt{constructor(e,t){this.pathName=void 0,this.alternate=void 0,this.pathName=e,this.alternate=t}toNode(){var e="http://www.w3.org/2000/svg",t=document.createElementNS(e,"path");return this.alternate?t.setAttribute("d",this.alternate):t.setAttribute("d",m0[this.pathName]),t}toMarkup(){return this.alternate?'<path d="'+Be(this.alternate)+'"/>':'<path d="'+Be(m0[this.pathName])+'"/>'}}class fa{constructor(e){this.attributes=void 0,this.attributes=e||{}}toNode(){var e="http://www.w3.org/2000/svg",t=document.createElementNS(e,"line");for(var a of Object.keys(this.attributes))t.setAttribute(a,this.attributes[a]);return t}toMarkup(){var e="<line";for(var t of Object.keys(this.attributes))e+=" "+t+'="'+Be(this.attributes[t])+'"';return e+="/>",e}}function Qs(r){if(r instanceof He)return r;throw new Error("Expected symbolNode but got "+String(r)+".")}function _s(r){if(r instanceof jt)return r;throw new Error("Expected span<HtmlDomNode> but got "+String(r)+".")}var en=r=>r instanceof jt||r instanceof wr||r instanceof Nt,Je={"AMS-Regular":{32:[0,0,0,0,.25],65:[0,.68889,0,0,.72222],66:[0,.68889,0,0,.66667],67:[0,.68889,0,0,.72222],68:[0,.68889,0,0,.72222],69:[0,.68889,0,0,.66667],70:[0,.68889,0,0,.61111],71:[0,.68889,0,0,.77778],72:[0,.68889,0,0,.77778],73:[0,.68889,0,0,.38889],74:[.16667,.68889,0,0,.5],75:[0,.68889,0,0,.77778],76:[0,.68889,0,0,.66667],77:[0,.68889,0,0,.94445],78:[0,.68889,0,0,.72222],79:[.16667,.68889,0,0,.77778],80:[0,.68889,0,0,.61111],81:[.16667,.68889,0,0,.77778],82:[0,.68889,0,0,.72222],83:[0,.68889,0,0,.55556],84:[0,.68889,0,0,.66667],85:[0,.68889,0,0,.72222],86:[0,.68889,0,0,.72222],87:[0,.68889,0,0,1],88:[0,.68889,0,0,.72222],89:[0,.68889,0,0,.72222],90:[0,.68889,0,0,.66667],107:[0,.68889,0,0,.55556],160:[0,0,0,0,.25],165:[0,.675,.025,0,.75],174:[.15559,.69224,0,0,.94666],240:[0,.68889,0,0,.55556],295:[0,.68889,0,0,.54028],710:[0,.825,0,0,2.33334],732:[0,.9,0,0,2.33334],770:[0,.825,0,0,2.33334],771:[0,.9,0,0,2.33334],989:[.08167,.58167,0,0,.77778],1008:[0,.43056,.04028,0,.66667],8245:[0,.54986,0,0,.275],8463:[0,.68889,0,0,.54028],8487:[0,.68889,0,0,.72222],8498:[0,.68889,0,0,.55556],8502:[0,.68889,0,0,.66667],8503:[0,.68889,0,0,.44445],8504:[0,.68889,0,0,.66667],8513:[0,.68889,0,0,.63889],8592:[-.03598,.46402,0,0,.5],8594:[-.03598,.46402,0,0,.5],8602:[-.13313,.36687,0,0,1],8603:[-.13313,.36687,0,0,1],8606:[.01354,.52239,0,0,1],8608:[.01354,.52239,0,0,1],8610:[.01354,.52239,0,0,1.11111],8611:[.01354,.52239,0,0,1.11111],8619:[0,.54986,0,0,1],8620:[0,.54986,0,0,1],8621:[-.13313,.37788,0,0,1.38889],8622:[-.13313,.36687,0,0,1],8624:[0,.69224,0,0,.5],8625:[0,.69224,0,0,.5],8630:[0,.43056,0,0,1],8631:[0,.43056,0,0,1],8634:[.08198,.58198,0,0,.77778],8635:[.08198,.58198,0,0,.77778],8638:[.19444,.69224,0,0,.41667],8639:[.19444,.69224,0,0,.41667],8642:[.19444,.69224,0,0,.41667],8643:[.19444,.69224,0,0,.41667],8644:[.1808,.675,0,0,1],8646:[.1808,.675,0,0,1],8647:[.1808,.675,0,0,1],8648:[.19444,.69224,0,0,.83334],8649:[.1808,.675,0,0,1],8650:[.19444,.69224,0,0,.83334],8651:[.01354,.52239,0,0,1],8652:[.01354,.52239,0,0,1],8653:[-.13313,.36687,0,0,1],8654:[-.13313,.36687,0,0,1],8655:[-.13313,.36687,0,0,1],8666:[.13667,.63667,0,0,1],8667:[.13667,.63667,0,0,1],8669:[-.13313,.37788,0,0,1],8672:[-.064,.437,0,0,1.334],8674:[-.064,.437,0,0,1.334],8705:[0,.825,0,0,.5],8708:[0,.68889,0,0,.55556],8709:[.08167,.58167,0,0,.77778],8717:[0,.43056,0,0,.42917],8722:[-.03598,.46402,0,0,.5],8724:[.08198,.69224,0,0,.77778],8726:[.08167,.58167,0,0,.77778],8733:[0,.69224,0,0,.77778],8736:[0,.69224,0,0,.72222],8737:[0,.69224,0,0,.72222],8738:[.03517,.52239,0,0,.72222],8739:[.08167,.58167,0,0,.22222],8740:[.25142,.74111,0,0,.27778],8741:[.08167,.58167,0,0,.38889],8742:[.25142,.74111,0,0,.5],8756:[0,.69224,0,0,.66667],8757:[0,.69224,0,0,.66667],8764:[-.13313,.36687,0,0,.77778],8765:[-.13313,.37788,0,0,.77778],8769:[-.13313,.36687,0,0,.77778],8770:[-.03625,.46375,0,0,.77778],8774:[.30274,.79383,0,0,.77778],8776:[-.01688,.48312,0,0,.77778],8778:[.08167,.58167,0,0,.77778],8782:[.06062,.54986,0,0,.77778],8783:[.06062,.54986,0,0,.77778],8785:[.08198,.58198,0,0,.77778],8786:[.08198,.58198,0,0,.77778],8787:[.08198,.58198,0,0,.77778],8790:[0,.69224,0,0,.77778],8791:[.22958,.72958,0,0,.77778],8796:[.08198,.91667,0,0,.77778],8806:[.25583,.75583,0,0,.77778],8807:[.25583,.75583,0,0,.77778],8808:[.25142,.75726,0,0,.77778],8809:[.25142,.75726,0,0,.77778],8812:[.25583,.75583,0,0,.5],8814:[.20576,.70576,0,0,.77778],8815:[.20576,.70576,0,0,.77778],8816:[.30274,.79383,0,0,.77778],8817:[.30274,.79383,0,0,.77778],8818:[.22958,.72958,0,0,.77778],8819:[.22958,.72958,0,0,.77778],8822:[.1808,.675,0,0,.77778],8823:[.1808,.675,0,0,.77778],8828:[.13667,.63667,0,0,.77778],8829:[.13667,.63667,0,0,.77778],8830:[.22958,.72958,0,0,.77778],8831:[.22958,.72958,0,0,.77778],8832:[.20576,.70576,0,0,.77778],8833:[.20576,.70576,0,0,.77778],8840:[.30274,.79383,0,0,.77778],8841:[.30274,.79383,0,0,.77778],8842:[.13597,.63597,0,0,.77778],8843:[.13597,.63597,0,0,.77778],8847:[.03517,.54986,0,0,.77778],8848:[.03517,.54986,0,0,.77778],8858:[.08198,.58198,0,0,.77778],8859:[.08198,.58198,0,0,.77778],8861:[.08198,.58198,0,0,.77778],8862:[0,.675,0,0,.77778],8863:[0,.675,0,0,.77778],8864:[0,.675,0,0,.77778],8865:[0,.675,0,0,.77778],8872:[0,.69224,0,0,.61111],8873:[0,.69224,0,0,.72222],8874:[0,.69224,0,0,.88889],8876:[0,.68889,0,0,.61111],8877:[0,.68889,0,0,.61111],8878:[0,.68889,0,0,.72222],8879:[0,.68889,0,0,.72222],8882:[.03517,.54986,0,0,.77778],8883:[.03517,.54986,0,0,.77778],8884:[.13667,.63667,0,0,.77778],8885:[.13667,.63667,0,0,.77778],8888:[0,.54986,0,0,1.11111],8890:[.19444,.43056,0,0,.55556],8891:[.19444,.69224,0,0,.61111],8892:[.19444,.69224,0,0,.61111],8901:[0,.54986,0,0,.27778],8903:[.08167,.58167,0,0,.77778],8905:[.08167,.58167,0,0,.77778],8906:[.08167,.58167,0,0,.77778],8907:[0,.69224,0,0,.77778],8908:[0,.69224,0,0,.77778],8909:[-.03598,.46402,0,0,.77778],8910:[0,.54986,0,0,.76042],8911:[0,.54986,0,0,.76042],8912:[.03517,.54986,0,0,.77778],8913:[.03517,.54986,0,0,.77778],8914:[0,.54986,0,0,.66667],8915:[0,.54986,0,0,.66667],8916:[0,.69224,0,0,.66667],8918:[.0391,.5391,0,0,.77778],8919:[.0391,.5391,0,0,.77778],8920:[.03517,.54986,0,0,1.33334],8921:[.03517,.54986,0,0,1.33334],8922:[.38569,.88569,0,0,.77778],8923:[.38569,.88569,0,0,.77778],8926:[.13667,.63667,0,0,.77778],8927:[.13667,.63667,0,0,.77778],8928:[.30274,.79383,0,0,.77778],8929:[.30274,.79383,0,0,.77778],8934:[.23222,.74111,0,0,.77778],8935:[.23222,.74111,0,0,.77778],8936:[.23222,.74111,0,0,.77778],8937:[.23222,.74111,0,0,.77778],8938:[.20576,.70576,0,0,.77778],8939:[.20576,.70576,0,0,.77778],8940:[.30274,.79383,0,0,.77778],8941:[.30274,.79383,0,0,.77778],8994:[.19444,.69224,0,0,.77778],8995:[.19444,.69224,0,0,.77778],9416:[.15559,.69224,0,0,.90222],9484:[0,.69224,0,0,.5],9488:[0,.69224,0,0,.5],9492:[0,.37788,0,0,.5],9496:[0,.37788,0,0,.5],9585:[.19444,.68889,0,0,.88889],9586:[.19444,.74111,0,0,.88889],9632:[0,.675,0,0,.77778],9633:[0,.675,0,0,.77778],9650:[0,.54986,0,0,.72222],9651:[0,.54986,0,0,.72222],9654:[.03517,.54986,0,0,.77778],9660:[0,.54986,0,0,.72222],9661:[0,.54986,0,0,.72222],9664:[.03517,.54986,0,0,.77778],9674:[.11111,.69224,0,0,.66667],9733:[.19444,.69224,0,0,.94445],10003:[0,.69224,0,0,.83334],10016:[0,.69224,0,0,.83334],10731:[.11111,.69224,0,0,.66667],10846:[.19444,.75583,0,0,.61111],10877:[.13667,.63667,0,0,.77778],10878:[.13667,.63667,0,0,.77778],10885:[.25583,.75583,0,0,.77778],10886:[.25583,.75583,0,0,.77778],10887:[.13597,.63597,0,0,.77778],10888:[.13597,.63597,0,0,.77778],10889:[.26167,.75726,0,0,.77778],10890:[.26167,.75726,0,0,.77778],10891:[.48256,.98256,0,0,.77778],10892:[.48256,.98256,0,0,.77778],10901:[.13667,.63667,0,0,.77778],10902:[.13667,.63667,0,0,.77778],10933:[.25142,.75726,0,0,.77778],10934:[.25142,.75726,0,0,.77778],10935:[.26167,.75726,0,0,.77778],10936:[.26167,.75726,0,0,.77778],10937:[.26167,.75726,0,0,.77778],10938:[.26167,.75726,0,0,.77778],10949:[.25583,.75583,0,0,.77778],10950:[.25583,.75583,0,0,.77778],10955:[.28481,.79383,0,0,.77778],10956:[.28481,.79383,0,0,.77778],57350:[.08167,.58167,0,0,.22222],57351:[.08167,.58167,0,0,.38889],57352:[.08167,.58167,0,0,.77778],57353:[0,.43056,.04028,0,.66667],57356:[.25142,.75726,0,0,.77778],57357:[.25142,.75726,0,0,.77778],57358:[.41951,.91951,0,0,.77778],57359:[.30274,.79383,0,0,.77778],57360:[.30274,.79383,0,0,.77778],57361:[.41951,.91951,0,0,.77778],57366:[.25142,.75726,0,0,.77778],57367:[.25142,.75726,0,0,.77778],57368:[.25142,.75726,0,0,.77778],57369:[.25142,.75726,0,0,.77778],57370:[.13597,.63597,0,0,.77778],57371:[.13597,.63597,0,0,.77778]},"Caligraphic-Regular":{32:[0,0,0,0,.25],65:[0,.68333,0,.19445,.79847],66:[0,.68333,.03041,.13889,.65681],67:[0,.68333,.05834,.13889,.52653],68:[0,.68333,.02778,.08334,.77139],69:[0,.68333,.08944,.11111,.52778],70:[0,.68333,.09931,.11111,.71875],71:[.09722,.68333,.0593,.11111,.59487],72:[0,.68333,.00965,.11111,.84452],73:[0,.68333,.07382,0,.54452],74:[.09722,.68333,.18472,.16667,.67778],75:[0,.68333,.01445,.05556,.76195],76:[0,.68333,0,.13889,.68972],77:[0,.68333,0,.13889,1.2009],78:[0,.68333,.14736,.08334,.82049],79:[0,.68333,.02778,.11111,.79611],80:[0,.68333,.08222,.08334,.69556],81:[.09722,.68333,0,.11111,.81667],82:[0,.68333,0,.08334,.8475],83:[0,.68333,.075,.13889,.60556],84:[0,.68333,.25417,0,.54464],85:[0,.68333,.09931,.08334,.62583],86:[0,.68333,.08222,0,.61278],87:[0,.68333,.08222,.08334,.98778],88:[0,.68333,.14643,.13889,.7133],89:[.09722,.68333,.08222,.08334,.66834],90:[0,.68333,.07944,.13889,.72473],160:[0,0,0,0,.25]},"Fraktur-Regular":{32:[0,0,0,0,.25],33:[0,.69141,0,0,.29574],34:[0,.69141,0,0,.21471],38:[0,.69141,0,0,.73786],39:[0,.69141,0,0,.21201],40:[.24982,.74947,0,0,.38865],41:[.24982,.74947,0,0,.38865],42:[0,.62119,0,0,.27764],43:[.08319,.58283,0,0,.75623],44:[0,.10803,0,0,.27764],45:[.08319,.58283,0,0,.75623],46:[0,.10803,0,0,.27764],47:[.24982,.74947,0,0,.50181],48:[0,.47534,0,0,.50181],49:[0,.47534,0,0,.50181],50:[0,.47534,0,0,.50181],51:[.18906,.47534,0,0,.50181],52:[.18906,.47534,0,0,.50181],53:[.18906,.47534,0,0,.50181],54:[0,.69141,0,0,.50181],55:[.18906,.47534,0,0,.50181],56:[0,.69141,0,0,.50181],57:[.18906,.47534,0,0,.50181],58:[0,.47534,0,0,.21606],59:[.12604,.47534,0,0,.21606],61:[-.13099,.36866,0,0,.75623],63:[0,.69141,0,0,.36245],65:[0,.69141,0,0,.7176],66:[0,.69141,0,0,.88397],67:[0,.69141,0,0,.61254],68:[0,.69141,0,0,.83158],69:[0,.69141,0,0,.66278],70:[.12604,.69141,0,0,.61119],71:[0,.69141,0,0,.78539],72:[.06302,.69141,0,0,.7203],73:[0,.69141,0,0,.55448],74:[.12604,.69141,0,0,.55231],75:[0,.69141,0,0,.66845],76:[0,.69141,0,0,.66602],77:[0,.69141,0,0,1.04953],78:[0,.69141,0,0,.83212],79:[0,.69141,0,0,.82699],80:[.18906,.69141,0,0,.82753],81:[.03781,.69141,0,0,.82699],82:[0,.69141,0,0,.82807],83:[0,.69141,0,0,.82861],84:[0,.69141,0,0,.66899],85:[0,.69141,0,0,.64576],86:[0,.69141,0,0,.83131],87:[0,.69141,0,0,1.04602],88:[0,.69141,0,0,.71922],89:[.18906,.69141,0,0,.83293],90:[.12604,.69141,0,0,.60201],91:[.24982,.74947,0,0,.27764],93:[.24982,.74947,0,0,.27764],94:[0,.69141,0,0,.49965],97:[0,.47534,0,0,.50046],98:[0,.69141,0,0,.51315],99:[0,.47534,0,0,.38946],100:[0,.62119,0,0,.49857],101:[0,.47534,0,0,.40053],102:[.18906,.69141,0,0,.32626],103:[.18906,.47534,0,0,.5037],104:[.18906,.69141,0,0,.52126],105:[0,.69141,0,0,.27899],106:[0,.69141,0,0,.28088],107:[0,.69141,0,0,.38946],108:[0,.69141,0,0,.27953],109:[0,.47534,0,0,.76676],110:[0,.47534,0,0,.52666],111:[0,.47534,0,0,.48885],112:[.18906,.52396,0,0,.50046],113:[.18906,.47534,0,0,.48912],114:[0,.47534,0,0,.38919],115:[0,.47534,0,0,.44266],116:[0,.62119,0,0,.33301],117:[0,.47534,0,0,.5172],118:[0,.52396,0,0,.5118],119:[0,.52396,0,0,.77351],120:[.18906,.47534,0,0,.38865],121:[.18906,.47534,0,0,.49884],122:[.18906,.47534,0,0,.39054],160:[0,0,0,0,.25],8216:[0,.69141,0,0,.21471],8217:[0,.69141,0,0,.21471],58112:[0,.62119,0,0,.49749],58113:[0,.62119,0,0,.4983],58114:[.18906,.69141,0,0,.33328],58115:[.18906,.69141,0,0,.32923],58116:[.18906,.47534,0,0,.50343],58117:[0,.69141,0,0,.33301],58118:[0,.62119,0,0,.33409],58119:[0,.47534,0,0,.50073]},"Main-Bold":{32:[0,0,0,0,.25],33:[0,.69444,0,0,.35],34:[0,.69444,0,0,.60278],35:[.19444,.69444,0,0,.95833],36:[.05556,.75,0,0,.575],37:[.05556,.75,0,0,.95833],38:[0,.69444,0,0,.89444],39:[0,.69444,0,0,.31944],40:[.25,.75,0,0,.44722],41:[.25,.75,0,0,.44722],42:[0,.75,0,0,.575],43:[.13333,.63333,0,0,.89444],44:[.19444,.15556,0,0,.31944],45:[0,.44444,0,0,.38333],46:[0,.15556,0,0,.31944],47:[.25,.75,0,0,.575],48:[0,.64444,0,0,.575],49:[0,.64444,0,0,.575],50:[0,.64444,0,0,.575],51:[0,.64444,0,0,.575],52:[0,.64444,0,0,.575],53:[0,.64444,0,0,.575],54:[0,.64444,0,0,.575],55:[0,.64444,0,0,.575],56:[0,.64444,0,0,.575],57:[0,.64444,0,0,.575],58:[0,.44444,0,0,.31944],59:[.19444,.44444,0,0,.31944],60:[.08556,.58556,0,0,.89444],61:[-.10889,.39111,0,0,.89444],62:[.08556,.58556,0,0,.89444],63:[0,.69444,0,0,.54305],64:[0,.69444,0,0,.89444],65:[0,.68611,0,0,.86944],66:[0,.68611,0,0,.81805],67:[0,.68611,0,0,.83055],68:[0,.68611,0,0,.88194],69:[0,.68611,0,0,.75555],70:[0,.68611,0,0,.72361],71:[0,.68611,0,0,.90416],72:[0,.68611,0,0,.9],73:[0,.68611,0,0,.43611],74:[0,.68611,0,0,.59444],75:[0,.68611,0,0,.90138],76:[0,.68611,0,0,.69166],77:[0,.68611,0,0,1.09166],78:[0,.68611,0,0,.9],79:[0,.68611,0,0,.86388],80:[0,.68611,0,0,.78611],81:[.19444,.68611,0,0,.86388],82:[0,.68611,0,0,.8625],83:[0,.68611,0,0,.63889],84:[0,.68611,0,0,.8],85:[0,.68611,0,0,.88472],86:[0,.68611,.01597,0,.86944],87:[0,.68611,.01597,0,1.18888],88:[0,.68611,0,0,.86944],89:[0,.68611,.02875,0,.86944],90:[0,.68611,0,0,.70277],91:[.25,.75,0,0,.31944],92:[.25,.75,0,0,.575],93:[.25,.75,0,0,.31944],94:[0,.69444,0,0,.575],95:[.31,.13444,.03194,0,.575],97:[0,.44444,0,0,.55902],98:[0,.69444,0,0,.63889],99:[0,.44444,0,0,.51111],100:[0,.69444,0,0,.63889],101:[0,.44444,0,0,.52708],102:[0,.69444,.10903,0,.35139],103:[.19444,.44444,.01597,0,.575],104:[0,.69444,0,0,.63889],105:[0,.69444,0,0,.31944],106:[.19444,.69444,0,0,.35139],107:[0,.69444,0,0,.60694],108:[0,.69444,0,0,.31944],109:[0,.44444,0,0,.95833],110:[0,.44444,0,0,.63889],111:[0,.44444,0,0,.575],112:[.19444,.44444,0,0,.63889],113:[.19444,.44444,0,0,.60694],114:[0,.44444,0,0,.47361],115:[0,.44444,0,0,.45361],116:[0,.63492,0,0,.44722],117:[0,.44444,0,0,.63889],118:[0,.44444,.01597,0,.60694],119:[0,.44444,.01597,0,.83055],120:[0,.44444,0,0,.60694],121:[.19444,.44444,.01597,0,.60694],122:[0,.44444,0,0,.51111],123:[.25,.75,0,0,.575],124:[.25,.75,0,0,.31944],125:[.25,.75,0,0,.575],126:[.35,.34444,0,0,.575],160:[0,0,0,0,.25],163:[0,.69444,0,0,.86853],168:[0,.69444,0,0,.575],172:[0,.44444,0,0,.76666],176:[0,.69444,0,0,.86944],177:[.13333,.63333,0,0,.89444],184:[.17014,0,0,0,.51111],198:[0,.68611,0,0,1.04166],215:[.13333,.63333,0,0,.89444],216:[.04861,.73472,0,0,.89444],223:[0,.69444,0,0,.59722],230:[0,.44444,0,0,.83055],247:[.13333,.63333,0,0,.89444],248:[.09722,.54167,0,0,.575],305:[0,.44444,0,0,.31944],338:[0,.68611,0,0,1.16944],339:[0,.44444,0,0,.89444],567:[.19444,.44444,0,0,.35139],710:[0,.69444,0,0,.575],711:[0,.63194,0,0,.575],713:[0,.59611,0,0,.575],714:[0,.69444,0,0,.575],715:[0,.69444,0,0,.575],728:[0,.69444,0,0,.575],729:[0,.69444,0,0,.31944],730:[0,.69444,0,0,.86944],732:[0,.69444,0,0,.575],733:[0,.69444,0,0,.575],915:[0,.68611,0,0,.69166],916:[0,.68611,0,0,.95833],920:[0,.68611,0,0,.89444],923:[0,.68611,0,0,.80555],926:[0,.68611,0,0,.76666],928:[0,.68611,0,0,.9],931:[0,.68611,0,0,.83055],933:[0,.68611,0,0,.89444],934:[0,.68611,0,0,.83055],936:[0,.68611,0,0,.89444],937:[0,.68611,0,0,.83055],8211:[0,.44444,.03194,0,.575],8212:[0,.44444,.03194,0,1.14999],8216:[0,.69444,0,0,.31944],8217:[0,.69444,0,0,.31944],8220:[0,.69444,0,0,.60278],8221:[0,.69444,0,0,.60278],8224:[.19444,.69444,0,0,.51111],8225:[.19444,.69444,0,0,.51111],8242:[0,.55556,0,0,.34444],8407:[0,.72444,.15486,0,.575],8463:[0,.69444,0,0,.66759],8465:[0,.69444,0,0,.83055],8467:[0,.69444,0,0,.47361],8472:[.19444,.44444,0,0,.74027],8476:[0,.69444,0,0,.83055],8501:[0,.69444,0,0,.70277],8592:[-.10889,.39111,0,0,1.14999],8593:[.19444,.69444,0,0,.575],8594:[-.10889,.39111,0,0,1.14999],8595:[.19444,.69444,0,0,.575],8596:[-.10889,.39111,0,0,1.14999],8597:[.25,.75,0,0,.575],8598:[.19444,.69444,0,0,1.14999],8599:[.19444,.69444,0,0,1.14999],8600:[.19444,.69444,0,0,1.14999],8601:[.19444,.69444,0,0,1.14999],8636:[-.10889,.39111,0,0,1.14999],8637:[-.10889,.39111,0,0,1.14999],8640:[-.10889,.39111,0,0,1.14999],8641:[-.10889,.39111,0,0,1.14999],8656:[-.10889,.39111,0,0,1.14999],8657:[.19444,.69444,0,0,.70277],8658:[-.10889,.39111,0,0,1.14999],8659:[.19444,.69444,0,0,.70277],8660:[-.10889,.39111,0,0,1.14999],8661:[.25,.75,0,0,.70277],8704:[0,.69444,0,0,.63889],8706:[0,.69444,.06389,0,.62847],8707:[0,.69444,0,0,.63889],8709:[.05556,.75,0,0,.575],8711:[0,.68611,0,0,.95833],8712:[.08556,.58556,0,0,.76666],8715:[.08556,.58556,0,0,.76666],8722:[.13333,.63333,0,0,.89444],8723:[.13333,.63333,0,0,.89444],8725:[.25,.75,0,0,.575],8726:[.25,.75,0,0,.575],8727:[-.02778,.47222,0,0,.575],8728:[-.02639,.47361,0,0,.575],8729:[-.02639,.47361,0,0,.575],8730:[.18,.82,0,0,.95833],8733:[0,.44444,0,0,.89444],8734:[0,.44444,0,0,1.14999],8736:[0,.69224,0,0,.72222],8739:[.25,.75,0,0,.31944],8741:[.25,.75,0,0,.575],8743:[0,.55556,0,0,.76666],8744:[0,.55556,0,0,.76666],8745:[0,.55556,0,0,.76666],8746:[0,.55556,0,0,.76666],8747:[.19444,.69444,.12778,0,.56875],8764:[-.10889,.39111,0,0,.89444],8768:[.19444,.69444,0,0,.31944],8771:[.00222,.50222,0,0,.89444],8773:[.027,.638,0,0,.894],8776:[.02444,.52444,0,0,.89444],8781:[.00222,.50222,0,0,.89444],8801:[.00222,.50222,0,0,.89444],8804:[.19667,.69667,0,0,.89444],8805:[.19667,.69667,0,0,.89444],8810:[.08556,.58556,0,0,1.14999],8811:[.08556,.58556,0,0,1.14999],8826:[.08556,.58556,0,0,.89444],8827:[.08556,.58556,0,0,.89444],8834:[.08556,.58556,0,0,.89444],8835:[.08556,.58556,0,0,.89444],8838:[.19667,.69667,0,0,.89444],8839:[.19667,.69667,0,0,.89444],8846:[0,.55556,0,0,.76666],8849:[.19667,.69667,0,0,.89444],8850:[.19667,.69667,0,0,.89444],8851:[0,.55556,0,0,.76666],8852:[0,.55556,0,0,.76666],8853:[.13333,.63333,0,0,.89444],8854:[.13333,.63333,0,0,.89444],8855:[.13333,.63333,0,0,.89444],8856:[.13333,.63333,0,0,.89444],8857:[.13333,.63333,0,0,.89444],8866:[0,.69444,0,0,.70277],8867:[0,.69444,0,0,.70277],8868:[0,.69444,0,0,.89444],8869:[0,.69444,0,0,.89444],8900:[-.02639,.47361,0,0,.575],8901:[-.02639,.47361,0,0,.31944],8902:[-.02778,.47222,0,0,.575],8968:[.25,.75,0,0,.51111],8969:[.25,.75,0,0,.51111],8970:[.25,.75,0,0,.51111],8971:[.25,.75,0,0,.51111],8994:[-.13889,.36111,0,0,1.14999],8995:[-.13889,.36111,0,0,1.14999],9651:[.19444,.69444,0,0,1.02222],9657:[-.02778,.47222,0,0,.575],9661:[.19444,.69444,0,0,1.02222],9667:[-.02778,.47222,0,0,.575],9711:[.19444,.69444,0,0,1.14999],9824:[.12963,.69444,0,0,.89444],9825:[.12963,.69444,0,0,.89444],9826:[.12963,.69444,0,0,.89444],9827:[.12963,.69444,0,0,.89444],9837:[0,.75,0,0,.44722],9838:[.19444,.69444,0,0,.44722],9839:[.19444,.69444,0,0,.44722],10216:[.25,.75,0,0,.44722],10217:[.25,.75,0,0,.44722],10815:[0,.68611,0,0,.9],10927:[.19667,.69667,0,0,.89444],10928:[.19667,.69667,0,0,.89444],57376:[.19444,.69444,0,0,0]},"Main-BoldItalic":{32:[0,0,0,0,.25],33:[0,.69444,.11417,0,.38611],34:[0,.69444,.07939,0,.62055],35:[.19444,.69444,.06833,0,.94444],37:[.05556,.75,.12861,0,.94444],38:[0,.69444,.08528,0,.88555],39:[0,.69444,.12945,0,.35555],40:[.25,.75,.15806,0,.47333],41:[.25,.75,.03306,0,.47333],42:[0,.75,.14333,0,.59111],43:[.10333,.60333,.03306,0,.88555],44:[.19444,.14722,0,0,.35555],45:[0,.44444,.02611,0,.41444],46:[0,.14722,0,0,.35555],47:[.25,.75,.15806,0,.59111],48:[0,.64444,.13167,0,.59111],49:[0,.64444,.13167,0,.59111],50:[0,.64444,.13167,0,.59111],51:[0,.64444,.13167,0,.59111],52:[.19444,.64444,.13167,0,.59111],53:[0,.64444,.13167,0,.59111],54:[0,.64444,.13167,0,.59111],55:[.19444,.64444,.13167,0,.59111],56:[0,.64444,.13167,0,.59111],57:[0,.64444,.13167,0,.59111],58:[0,.44444,.06695,0,.35555],59:[.19444,.44444,.06695,0,.35555],61:[-.10889,.39111,.06833,0,.88555],63:[0,.69444,.11472,0,.59111],64:[0,.69444,.09208,0,.88555],65:[0,.68611,0,0,.86555],66:[0,.68611,.0992,0,.81666],67:[0,.68611,.14208,0,.82666],68:[0,.68611,.09062,0,.87555],69:[0,.68611,.11431,0,.75666],70:[0,.68611,.12903,0,.72722],71:[0,.68611,.07347,0,.89527],72:[0,.68611,.17208,0,.8961],73:[0,.68611,.15681,0,.47166],74:[0,.68611,.145,0,.61055],75:[0,.68611,.14208,0,.89499],76:[0,.68611,0,0,.69777],77:[0,.68611,.17208,0,1.07277],78:[0,.68611,.17208,0,.8961],79:[0,.68611,.09062,0,.85499],80:[0,.68611,.0992,0,.78721],81:[.19444,.68611,.09062,0,.85499],82:[0,.68611,.02559,0,.85944],83:[0,.68611,.11264,0,.64999],84:[0,.68611,.12903,0,.7961],85:[0,.68611,.17208,0,.88083],86:[0,.68611,.18625,0,.86555],87:[0,.68611,.18625,0,1.15999],88:[0,.68611,.15681,0,.86555],89:[0,.68611,.19803,0,.86555],90:[0,.68611,.14208,0,.70888],91:[.25,.75,.1875,0,.35611],93:[.25,.75,.09972,0,.35611],94:[0,.69444,.06709,0,.59111],95:[.31,.13444,.09811,0,.59111],97:[0,.44444,.09426,0,.59111],98:[0,.69444,.07861,0,.53222],99:[0,.44444,.05222,0,.53222],100:[0,.69444,.10861,0,.59111],101:[0,.44444,.085,0,.53222],102:[.19444,.69444,.21778,0,.4],103:[.19444,.44444,.105,0,.53222],104:[0,.69444,.09426,0,.59111],105:[0,.69326,.11387,0,.35555],106:[.19444,.69326,.1672,0,.35555],107:[0,.69444,.11111,0,.53222],108:[0,.69444,.10861,0,.29666],109:[0,.44444,.09426,0,.94444],110:[0,.44444,.09426,0,.64999],111:[0,.44444,.07861,0,.59111],112:[.19444,.44444,.07861,0,.59111],113:[.19444,.44444,.105,0,.53222],114:[0,.44444,.11111,0,.50167],115:[0,.44444,.08167,0,.48694],116:[0,.63492,.09639,0,.385],117:[0,.44444,.09426,0,.62055],118:[0,.44444,.11111,0,.53222],119:[0,.44444,.11111,0,.76777],120:[0,.44444,.12583,0,.56055],121:[.19444,.44444,.105,0,.56166],122:[0,.44444,.13889,0,.49055],126:[.35,.34444,.11472,0,.59111],160:[0,0,0,0,.25],168:[0,.69444,.11473,0,.59111],176:[0,.69444,0,0,.94888],184:[.17014,0,0,0,.53222],198:[0,.68611,.11431,0,1.02277],216:[.04861,.73472,.09062,0,.88555],223:[.19444,.69444,.09736,0,.665],230:[0,.44444,.085,0,.82666],248:[.09722,.54167,.09458,0,.59111],305:[0,.44444,.09426,0,.35555],338:[0,.68611,.11431,0,1.14054],339:[0,.44444,.085,0,.82666],567:[.19444,.44444,.04611,0,.385],710:[0,.69444,.06709,0,.59111],711:[0,.63194,.08271,0,.59111],713:[0,.59444,.10444,0,.59111],714:[0,.69444,.08528,0,.59111],715:[0,.69444,0,0,.59111],728:[0,.69444,.10333,0,.59111],729:[0,.69444,.12945,0,.35555],730:[0,.69444,0,0,.94888],732:[0,.69444,.11472,0,.59111],733:[0,.69444,.11472,0,.59111],915:[0,.68611,.12903,0,.69777],916:[0,.68611,0,0,.94444],920:[0,.68611,.09062,0,.88555],923:[0,.68611,0,0,.80666],926:[0,.68611,.15092,0,.76777],928:[0,.68611,.17208,0,.8961],931:[0,.68611,.11431,0,.82666],933:[0,.68611,.10778,0,.88555],934:[0,.68611,.05632,0,.82666],936:[0,.68611,.10778,0,.88555],937:[0,.68611,.0992,0,.82666],8211:[0,.44444,.09811,0,.59111],8212:[0,.44444,.09811,0,1.18221],8216:[0,.69444,.12945,0,.35555],8217:[0,.69444,.12945,0,.35555],8220:[0,.69444,.16772,0,.62055],8221:[0,.69444,.07939,0,.62055]},"Main-Italic":{32:[0,0,0,0,.25],33:[0,.69444,.12417,0,.30667],34:[0,.69444,.06961,0,.51444],35:[.19444,.69444,.06616,0,.81777],37:[.05556,.75,.13639,0,.81777],38:[0,.69444,.09694,0,.76666],39:[0,.69444,.12417,0,.30667],40:[.25,.75,.16194,0,.40889],41:[.25,.75,.03694,0,.40889],42:[0,.75,.14917,0,.51111],43:[.05667,.56167,.03694,0,.76666],44:[.19444,.10556,0,0,.30667],45:[0,.43056,.02826,0,.35778],46:[0,.10556,0,0,.30667],47:[.25,.75,.16194,0,.51111],48:[0,.64444,.13556,0,.51111],49:[0,.64444,.13556,0,.51111],50:[0,.64444,.13556,0,.51111],51:[0,.64444,.13556,0,.51111],52:[.19444,.64444,.13556,0,.51111],53:[0,.64444,.13556,0,.51111],54:[0,.64444,.13556,0,.51111],55:[.19444,.64444,.13556,0,.51111],56:[0,.64444,.13556,0,.51111],57:[0,.64444,.13556,0,.51111],58:[0,.43056,.0582,0,.30667],59:[.19444,.43056,.0582,0,.30667],61:[-.13313,.36687,.06616,0,.76666],63:[0,.69444,.1225,0,.51111],64:[0,.69444,.09597,0,.76666],65:[0,.68333,0,0,.74333],66:[0,.68333,.10257,0,.70389],67:[0,.68333,.14528,0,.71555],68:[0,.68333,.09403,0,.755],69:[0,.68333,.12028,0,.67833],70:[0,.68333,.13305,0,.65277],71:[0,.68333,.08722,0,.77361],72:[0,.68333,.16389,0,.74333],73:[0,.68333,.15806,0,.38555],74:[0,.68333,.14028,0,.525],75:[0,.68333,.14528,0,.76888],76:[0,.68333,0,0,.62722],77:[0,.68333,.16389,0,.89666],78:[0,.68333,.16389,0,.74333],79:[0,.68333,.09403,0,.76666],80:[0,.68333,.10257,0,.67833],81:[.19444,.68333,.09403,0,.76666],82:[0,.68333,.03868,0,.72944],83:[0,.68333,.11972,0,.56222],84:[0,.68333,.13305,0,.71555],85:[0,.68333,.16389,0,.74333],86:[0,.68333,.18361,0,.74333],87:[0,.68333,.18361,0,.99888],88:[0,.68333,.15806,0,.74333],89:[0,.68333,.19383,0,.74333],90:[0,.68333,.14528,0,.61333],91:[.25,.75,.1875,0,.30667],93:[.25,.75,.10528,0,.30667],94:[0,.69444,.06646,0,.51111],95:[.31,.12056,.09208,0,.51111],97:[0,.43056,.07671,0,.51111],98:[0,.69444,.06312,0,.46],99:[0,.43056,.05653,0,.46],100:[0,.69444,.10333,0,.51111],101:[0,.43056,.07514,0,.46],102:[.19444,.69444,.21194,0,.30667],103:[.19444,.43056,.08847,0,.46],104:[0,.69444,.07671,0,.51111],105:[0,.65536,.1019,0,.30667],106:[.19444,.65536,.14467,0,.30667],107:[0,.69444,.10764,0,.46],108:[0,.69444,.10333,0,.25555],109:[0,.43056,.07671,0,.81777],110:[0,.43056,.07671,0,.56222],111:[0,.43056,.06312,0,.51111],112:[.19444,.43056,.06312,0,.51111],113:[.19444,.43056,.08847,0,.46],114:[0,.43056,.10764,0,.42166],115:[0,.43056,.08208,0,.40889],116:[0,.61508,.09486,0,.33222],117:[0,.43056,.07671,0,.53666],118:[0,.43056,.10764,0,.46],119:[0,.43056,.10764,0,.66444],120:[0,.43056,.12042,0,.46389],121:[.19444,.43056,.08847,0,.48555],122:[0,.43056,.12292,0,.40889],126:[.35,.31786,.11585,0,.51111],160:[0,0,0,0,.25],168:[0,.66786,.10474,0,.51111],176:[0,.69444,0,0,.83129],184:[.17014,0,0,0,.46],198:[0,.68333,.12028,0,.88277],216:[.04861,.73194,.09403,0,.76666],223:[.19444,.69444,.10514,0,.53666],230:[0,.43056,.07514,0,.71555],248:[.09722,.52778,.09194,0,.51111],338:[0,.68333,.12028,0,.98499],339:[0,.43056,.07514,0,.71555],710:[0,.69444,.06646,0,.51111],711:[0,.62847,.08295,0,.51111],713:[0,.56167,.10333,0,.51111],714:[0,.69444,.09694,0,.51111],715:[0,.69444,0,0,.51111],728:[0,.69444,.10806,0,.51111],729:[0,.66786,.11752,0,.30667],730:[0,.69444,0,0,.83129],732:[0,.66786,.11585,0,.51111],733:[0,.69444,.1225,0,.51111],915:[0,.68333,.13305,0,.62722],916:[0,.68333,0,0,.81777],920:[0,.68333,.09403,0,.76666],923:[0,.68333,0,0,.69222],926:[0,.68333,.15294,0,.66444],928:[0,.68333,.16389,0,.74333],931:[0,.68333,.12028,0,.71555],933:[0,.68333,.11111,0,.76666],934:[0,.68333,.05986,0,.71555],936:[0,.68333,.11111,0,.76666],937:[0,.68333,.10257,0,.71555],8211:[0,.43056,.09208,0,.51111],8212:[0,.43056,.09208,0,1.02222],8216:[0,.69444,.12417,0,.30667],8217:[0,.69444,.12417,0,.30667],8220:[0,.69444,.1685,0,.51444],8221:[0,.69444,.06961,0,.51444],8463:[0,.68889,0,0,.54028]},"Main-Regular":{32:[0,0,0,0,.25],33:[0,.69444,0,0,.27778],34:[0,.69444,0,0,.5],35:[.19444,.69444,0,0,.83334],36:[.05556,.75,0,0,.5],37:[.05556,.75,0,0,.83334],38:[0,.69444,0,0,.77778],39:[0,.69444,0,0,.27778],40:[.25,.75,0,0,.38889],41:[.25,.75,0,0,.38889],42:[0,.75,0,0,.5],43:[.08333,.58333,0,0,.77778],44:[.19444,.10556,0,0,.27778],45:[0,.43056,0,0,.33333],46:[0,.10556,0,0,.27778],47:[.25,.75,0,0,.5],48:[0,.64444,0,0,.5],49:[0,.64444,0,0,.5],50:[0,.64444,0,0,.5],51:[0,.64444,0,0,.5],52:[0,.64444,0,0,.5],53:[0,.64444,0,0,.5],54:[0,.64444,0,0,.5],55:[0,.64444,0,0,.5],56:[0,.64444,0,0,.5],57:[0,.64444,0,0,.5],58:[0,.43056,0,0,.27778],59:[.19444,.43056,0,0,.27778],60:[.0391,.5391,0,0,.77778],61:[-.13313,.36687,0,0,.77778],62:[.0391,.5391,0,0,.77778],63:[0,.69444,0,0,.47222],64:[0,.69444,0,0,.77778],65:[0,.68333,0,0,.75],66:[0,.68333,0,0,.70834],67:[0,.68333,0,0,.72222],68:[0,.68333,0,0,.76389],69:[0,.68333,0,0,.68056],70:[0,.68333,0,0,.65278],71:[0,.68333,0,0,.78472],72:[0,.68333,0,0,.75],73:[0,.68333,0,0,.36111],74:[0,.68333,0,0,.51389],75:[0,.68333,0,0,.77778],76:[0,.68333,0,0,.625],77:[0,.68333,0,0,.91667],78:[0,.68333,0,0,.75],79:[0,.68333,0,0,.77778],80:[0,.68333,0,0,.68056],81:[.19444,.68333,0,0,.77778],82:[0,.68333,0,0,.73611],83:[0,.68333,0,0,.55556],84:[0,.68333,0,0,.72222],85:[0,.68333,0,0,.75],86:[0,.68333,.01389,0,.75],87:[0,.68333,.01389,0,1.02778],88:[0,.68333,0,0,.75],89:[0,.68333,.025,0,.75],90:[0,.68333,0,0,.61111],91:[.25,.75,0,0,.27778],92:[.25,.75,0,0,.5],93:[.25,.75,0,0,.27778],94:[0,.69444,0,0,.5],95:[.31,.12056,.02778,0,.5],97:[0,.43056,0,0,.5],98:[0,.69444,0,0,.55556],99:[0,.43056,0,0,.44445],100:[0,.69444,0,0,.55556],101:[0,.43056,0,0,.44445],102:[0,.69444,.07778,0,.30556],103:[.19444,.43056,.01389,0,.5],104:[0,.69444,0,0,.55556],105:[0,.66786,0,0,.27778],106:[.19444,.66786,0,0,.30556],107:[0,.69444,0,0,.52778],108:[0,.69444,0,0,.27778],109:[0,.43056,0,0,.83334],110:[0,.43056,0,0,.55556],111:[0,.43056,0,0,.5],112:[.19444,.43056,0,0,.55556],113:[.19444,.43056,0,0,.52778],114:[0,.43056,0,0,.39167],115:[0,.43056,0,0,.39445],116:[0,.61508,0,0,.38889],117:[0,.43056,0,0,.55556],118:[0,.43056,.01389,0,.52778],119:[0,.43056,.01389,0,.72222],120:[0,.43056,0,0,.52778],121:[.19444,.43056,.01389,0,.52778],122:[0,.43056,0,0,.44445],123:[.25,.75,0,0,.5],124:[.25,.75,0,0,.27778],125:[.25,.75,0,0,.5],126:[.35,.31786,0,0,.5],160:[0,0,0,0,.25],163:[0,.69444,0,0,.76909],167:[.19444,.69444,0,0,.44445],168:[0,.66786,0,0,.5],172:[0,.43056,0,0,.66667],176:[0,.69444,0,0,.75],177:[.08333,.58333,0,0,.77778],182:[.19444,.69444,0,0,.61111],184:[.17014,0,0,0,.44445],198:[0,.68333,0,0,.90278],215:[.08333,.58333,0,0,.77778],216:[.04861,.73194,0,0,.77778],223:[0,.69444,0,0,.5],230:[0,.43056,0,0,.72222],247:[.08333,.58333,0,0,.77778],248:[.09722,.52778,0,0,.5],305:[0,.43056,0,0,.27778],338:[0,.68333,0,0,1.01389],339:[0,.43056,0,0,.77778],567:[.19444,.43056,0,0,.30556],710:[0,.69444,0,0,.5],711:[0,.62847,0,0,.5],713:[0,.56778,0,0,.5],714:[0,.69444,0,0,.5],715:[0,.69444,0,0,.5],728:[0,.69444,0,0,.5],729:[0,.66786,0,0,.27778],730:[0,.69444,0,0,.75],732:[0,.66786,0,0,.5],733:[0,.69444,0,0,.5],915:[0,.68333,0,0,.625],916:[0,.68333,0,0,.83334],920:[0,.68333,0,0,.77778],923:[0,.68333,0,0,.69445],926:[0,.68333,0,0,.66667],928:[0,.68333,0,0,.75],931:[0,.68333,0,0,.72222],933:[0,.68333,0,0,.77778],934:[0,.68333,0,0,.72222],936:[0,.68333,0,0,.77778],937:[0,.68333,0,0,.72222],8211:[0,.43056,.02778,0,.5],8212:[0,.43056,.02778,0,1],8216:[0,.69444,0,0,.27778],8217:[0,.69444,0,0,.27778],8220:[0,.69444,0,0,.5],8221:[0,.69444,0,0,.5],8224:[.19444,.69444,0,0,.44445],8225:[.19444,.69444,0,0,.44445],8230:[0,.123,0,0,1.172],8242:[0,.55556,0,0,.275],8407:[0,.71444,.15382,0,.5],8463:[0,.68889,0,0,.54028],8465:[0,.69444,0,0,.72222],8467:[0,.69444,0,.11111,.41667],8472:[.19444,.43056,0,.11111,.63646],8476:[0,.69444,0,0,.72222],8501:[0,.69444,0,0,.61111],8592:[-.13313,.36687,0,0,1],8593:[.19444,.69444,0,0,.5],8594:[-.13313,.36687,0,0,1],8595:[.19444,.69444,0,0,.5],8596:[-.13313,.36687,0,0,1],8597:[.25,.75,0,0,.5],8598:[.19444,.69444,0,0,1],8599:[.19444,.69444,0,0,1],8600:[.19444,.69444,0,0,1],8601:[.19444,.69444,0,0,1],8614:[.011,.511,0,0,1],8617:[.011,.511,0,0,1.126],8618:[.011,.511,0,0,1.126],8636:[-.13313,.36687,0,0,1],8637:[-.13313,.36687,0,0,1],8640:[-.13313,.36687,0,0,1],8641:[-.13313,.36687,0,0,1],8652:[.011,.671,0,0,1],8656:[-.13313,.36687,0,0,1],8657:[.19444,.69444,0,0,.61111],8658:[-.13313,.36687,0,0,1],8659:[.19444,.69444,0,0,.61111],8660:[-.13313,.36687,0,0,1],8661:[.25,.75,0,0,.61111],8704:[0,.69444,0,0,.55556],8706:[0,.69444,.05556,.08334,.5309],8707:[0,.69444,0,0,.55556],8709:[.05556,.75,0,0,.5],8711:[0,.68333,0,0,.83334],8712:[.0391,.5391,0,0,.66667],8715:[.0391,.5391,0,0,.66667],8722:[.08333,.58333,0,0,.77778],8723:[.08333,.58333,0,0,.77778],8725:[.25,.75,0,0,.5],8726:[.25,.75,0,0,.5],8727:[-.03472,.46528,0,0,.5],8728:[-.05555,.44445,0,0,.5],8729:[-.05555,.44445,0,0,.5],8730:[.2,.8,0,0,.83334],8733:[0,.43056,0,0,.77778],8734:[0,.43056,0,0,1],8736:[0,.69224,0,0,.72222],8739:[.25,.75,0,0,.27778],8741:[.25,.75,0,0,.5],8743:[0,.55556,0,0,.66667],8744:[0,.55556,0,0,.66667],8745:[0,.55556,0,0,.66667],8746:[0,.55556,0,0,.66667],8747:[.19444,.69444,.11111,0,.41667],8764:[-.13313,.36687,0,0,.77778],8768:[.19444,.69444,0,0,.27778],8771:[-.03625,.46375,0,0,.77778],8773:[-.022,.589,0,0,.778],8776:[-.01688,.48312,0,0,.77778],8781:[-.03625,.46375,0,0,.77778],8784:[-.133,.673,0,0,.778],8801:[-.03625,.46375,0,0,.77778],8804:[.13597,.63597,0,0,.77778],8805:[.13597,.63597,0,0,.77778],8810:[.0391,.5391,0,0,1],8811:[.0391,.5391,0,0,1],8826:[.0391,.5391,0,0,.77778],8827:[.0391,.5391,0,0,.77778],8834:[.0391,.5391,0,0,.77778],8835:[.0391,.5391,0,0,.77778],8838:[.13597,.63597,0,0,.77778],8839:[.13597,.63597,0,0,.77778],8846:[0,.55556,0,0,.66667],8849:[.13597,.63597,0,0,.77778],8850:[.13597,.63597,0,0,.77778],8851:[0,.55556,0,0,.66667],8852:[0,.55556,0,0,.66667],8853:[.08333,.58333,0,0,.77778],8854:[.08333,.58333,0,0,.77778],8855:[.08333,.58333,0,0,.77778],8856:[.08333,.58333,0,0,.77778],8857:[.08333,.58333,0,0,.77778],8866:[0,.69444,0,0,.61111],8867:[0,.69444,0,0,.61111],8868:[0,.69444,0,0,.77778],8869:[0,.69444,0,0,.77778],8872:[.249,.75,0,0,.867],8900:[-.05555,.44445,0,0,.5],8901:[-.05555,.44445,0,0,.27778],8902:[-.03472,.46528,0,0,.5],8904:[.005,.505,0,0,.9],8942:[.03,.903,0,0,.278],8943:[-.19,.313,0,0,1.172],8945:[-.1,.823,0,0,1.282],8968:[.25,.75,0,0,.44445],8969:[.25,.75,0,0,.44445],8970:[.25,.75,0,0,.44445],8971:[.25,.75,0,0,.44445],8994:[-.14236,.35764,0,0,1],8995:[-.14236,.35764,0,0,1],9136:[.244,.744,0,0,.412],9137:[.244,.745,0,0,.412],9651:[.19444,.69444,0,0,.88889],9657:[-.03472,.46528,0,0,.5],9661:[.19444,.69444,0,0,.88889],9667:[-.03472,.46528,0,0,.5],9711:[.19444,.69444,0,0,1],9824:[.12963,.69444,0,0,.77778],9825:[.12963,.69444,0,0,.77778],9826:[.12963,.69444,0,0,.77778],9827:[.12963,.69444,0,0,.77778],9837:[0,.75,0,0,.38889],9838:[.19444,.69444,0,0,.38889],9839:[.19444,.69444,0,0,.38889],10216:[.25,.75,0,0,.38889],10217:[.25,.75,0,0,.38889],10222:[.244,.744,0,0,.412],10223:[.244,.745,0,0,.412],10229:[.011,.511,0,0,1.609],10230:[.011,.511,0,0,1.638],10231:[.011,.511,0,0,1.859],10232:[.024,.525,0,0,1.609],10233:[.024,.525,0,0,1.638],10234:[.024,.525,0,0,1.858],10236:[.011,.511,0,0,1.638],10815:[0,.68333,0,0,.75],10927:[.13597,.63597,0,0,.77778],10928:[.13597,.63597,0,0,.77778],57376:[.19444,.69444,0,0,0]},"Math-BoldItalic":{32:[0,0,0,0,.25],48:[0,.44444,0,0,.575],49:[0,.44444,0,0,.575],50:[0,.44444,0,0,.575],51:[.19444,.44444,0,0,.575],52:[.19444,.44444,0,0,.575],53:[.19444,.44444,0,0,.575],54:[0,.64444,0,0,.575],55:[.19444,.44444,0,0,.575],56:[0,.64444,0,0,.575],57:[.19444,.44444,0,0,.575],65:[0,.68611,0,0,.86944],66:[0,.68611,.04835,0,.8664],67:[0,.68611,.06979,0,.81694],68:[0,.68611,.03194,0,.93812],69:[0,.68611,.05451,0,.81007],70:[0,.68611,.15972,0,.68889],71:[0,.68611,0,0,.88673],72:[0,.68611,.08229,0,.98229],73:[0,.68611,.07778,0,.51111],74:[0,.68611,.10069,0,.63125],75:[0,.68611,.06979,0,.97118],76:[0,.68611,0,0,.75555],77:[0,.68611,.11424,0,1.14201],78:[0,.68611,.11424,0,.95034],79:[0,.68611,.03194,0,.83666],80:[0,.68611,.15972,0,.72309],81:[.19444,.68611,0,0,.86861],82:[0,.68611,.00421,0,.87235],83:[0,.68611,.05382,0,.69271],84:[0,.68611,.15972,0,.63663],85:[0,.68611,.11424,0,.80027],86:[0,.68611,.25555,0,.67778],87:[0,.68611,.15972,0,1.09305],88:[0,.68611,.07778,0,.94722],89:[0,.68611,.25555,0,.67458],90:[0,.68611,.06979,0,.77257],97:[0,.44444,0,0,.63287],98:[0,.69444,0,0,.52083],99:[0,.44444,0,0,.51342],100:[0,.69444,0,0,.60972],101:[0,.44444,0,0,.55361],102:[.19444,.69444,.11042,0,.56806],103:[.19444,.44444,.03704,0,.5449],104:[0,.69444,0,0,.66759],105:[0,.69326,0,0,.4048],106:[.19444,.69326,.0622,0,.47083],107:[0,.69444,.01852,0,.6037],108:[0,.69444,.0088,0,.34815],109:[0,.44444,0,0,1.0324],110:[0,.44444,0,0,.71296],111:[0,.44444,0,0,.58472],112:[.19444,.44444,0,0,.60092],113:[.19444,.44444,.03704,0,.54213],114:[0,.44444,.03194,0,.5287],115:[0,.44444,0,0,.53125],116:[0,.63492,0,0,.41528],117:[0,.44444,0,0,.68102],118:[0,.44444,.03704,0,.56666],119:[0,.44444,.02778,0,.83148],120:[0,.44444,0,0,.65903],121:[.19444,.44444,.03704,0,.59028],122:[0,.44444,.04213,0,.55509],160:[0,0,0,0,.25],915:[0,.68611,.15972,0,.65694],916:[0,.68611,0,0,.95833],920:[0,.68611,.03194,0,.86722],923:[0,.68611,0,0,.80555],926:[0,.68611,.07458,0,.84125],928:[0,.68611,.08229,0,.98229],931:[0,.68611,.05451,0,.88507],933:[0,.68611,.15972,0,.67083],934:[0,.68611,0,0,.76666],936:[0,.68611,.11653,0,.71402],937:[0,.68611,.04835,0,.8789],945:[0,.44444,0,0,.76064],946:[.19444,.69444,.03403,0,.65972],947:[.19444,.44444,.06389,0,.59003],948:[0,.69444,.03819,0,.52222],949:[0,.44444,0,0,.52882],950:[.19444,.69444,.06215,0,.50833],951:[.19444,.44444,.03704,0,.6],952:[0,.69444,.03194,0,.5618],953:[0,.44444,0,0,.41204],954:[0,.44444,0,0,.66759],955:[0,.69444,0,0,.67083],956:[.19444,.44444,0,0,.70787],957:[0,.44444,.06898,0,.57685],958:[.19444,.69444,.03021,0,.50833],959:[0,.44444,0,0,.58472],960:[0,.44444,.03704,0,.68241],961:[.19444,.44444,0,0,.6118],962:[.09722,.44444,.07917,0,.42361],963:[0,.44444,.03704,0,.68588],964:[0,.44444,.13472,0,.52083],965:[0,.44444,.03704,0,.63055],966:[.19444,.44444,0,0,.74722],967:[.19444,.44444,0,0,.71805],968:[.19444,.69444,.03704,0,.75833],969:[0,.44444,.03704,0,.71782],977:[0,.69444,0,0,.69155],981:[.19444,.69444,0,0,.7125],982:[0,.44444,.03194,0,.975],1009:[.19444,.44444,0,0,.6118],1013:[0,.44444,0,0,.48333],57649:[0,.44444,0,0,.39352],57911:[.19444,.44444,0,0,.43889]},"Math-Italic":{32:[0,0,0,0,.25],48:[0,.43056,0,0,.5],49:[0,.43056,0,0,.5],50:[0,.43056,0,0,.5],51:[.19444,.43056,0,0,.5],52:[.19444,.43056,0,0,.5],53:[.19444,.43056,0,0,.5],54:[0,.64444,0,0,.5],55:[.19444,.43056,0,0,.5],56:[0,.64444,0,0,.5],57:[.19444,.43056,0,0,.5],65:[0,.68333,0,.13889,.75],66:[0,.68333,.05017,.08334,.75851],67:[0,.68333,.07153,.08334,.71472],68:[0,.68333,.02778,.05556,.82792],69:[0,.68333,.05764,.08334,.7382],70:[0,.68333,.13889,.08334,.64306],71:[0,.68333,0,.08334,.78625],72:[0,.68333,.08125,.05556,.83125],73:[0,.68333,.07847,.11111,.43958],74:[0,.68333,.09618,.16667,.55451],75:[0,.68333,.07153,.05556,.84931],76:[0,.68333,0,.02778,.68056],77:[0,.68333,.10903,.08334,.97014],78:[0,.68333,.10903,.08334,.80347],79:[0,.68333,.02778,.08334,.76278],80:[0,.68333,.13889,.08334,.64201],81:[.19444,.68333,0,.08334,.79056],82:[0,.68333,.00773,.08334,.75929],83:[0,.68333,.05764,.08334,.6132],84:[0,.68333,.13889,.08334,.58438],85:[0,.68333,.10903,.02778,.68278],86:[0,.68333,.22222,0,.58333],87:[0,.68333,.13889,0,.94445],88:[0,.68333,.07847,.08334,.82847],89:[0,.68333,.22222,0,.58056],90:[0,.68333,.07153,.08334,.68264],97:[0,.43056,0,0,.52859],98:[0,.69444,0,0,.42917],99:[0,.43056,0,.05556,.43276],100:[0,.69444,0,.16667,.52049],101:[0,.43056,0,.05556,.46563],102:[.19444,.69444,.10764,.16667,.48959],103:[.19444,.43056,.03588,.02778,.47697],104:[0,.69444,0,0,.57616],105:[0,.65952,0,0,.34451],106:[.19444,.65952,.05724,0,.41181],107:[0,.69444,.03148,0,.5206],108:[0,.69444,.01968,.08334,.29838],109:[0,.43056,0,0,.87801],110:[0,.43056,0,0,.60023],111:[0,.43056,0,.05556,.48472],112:[.19444,.43056,0,.08334,.50313],113:[.19444,.43056,.03588,.08334,.44641],114:[0,.43056,.02778,.05556,.45116],115:[0,.43056,0,.05556,.46875],116:[0,.61508,0,.08334,.36111],117:[0,.43056,0,.02778,.57246],118:[0,.43056,.03588,.02778,.48472],119:[0,.43056,.02691,.08334,.71592],120:[0,.43056,0,.02778,.57153],121:[.19444,.43056,.03588,.05556,.49028],122:[0,.43056,.04398,.05556,.46505],160:[0,0,0,0,.25],915:[0,.68333,.13889,.08334,.61528],916:[0,.68333,0,.16667,.83334],920:[0,.68333,.02778,.08334,.76278],923:[0,.68333,0,.16667,.69445],926:[0,.68333,.07569,.08334,.74236],928:[0,.68333,.08125,.05556,.83125],931:[0,.68333,.05764,.08334,.77986],933:[0,.68333,.13889,.05556,.58333],934:[0,.68333,0,.08334,.66667],936:[0,.68333,.11,.05556,.61222],937:[0,.68333,.05017,.08334,.7724],945:[0,.43056,.0037,.02778,.6397],946:[.19444,.69444,.05278,.08334,.56563],947:[.19444,.43056,.05556,0,.51773],948:[0,.69444,.03785,.05556,.44444],949:[0,.43056,0,.08334,.46632],950:[.19444,.69444,.07378,.08334,.4375],951:[.19444,.43056,.03588,.05556,.49653],952:[0,.69444,.02778,.08334,.46944],953:[0,.43056,0,.05556,.35394],954:[0,.43056,0,0,.57616],955:[0,.69444,0,0,.58334],956:[.19444,.43056,0,.02778,.60255],957:[0,.43056,.06366,.02778,.49398],958:[.19444,.69444,.04601,.11111,.4375],959:[0,.43056,0,.05556,.48472],960:[0,.43056,.03588,0,.57003],961:[.19444,.43056,0,.08334,.51702],962:[.09722,.43056,.07986,.08334,.36285],963:[0,.43056,.03588,0,.57141],964:[0,.43056,.1132,.02778,.43715],965:[0,.43056,.03588,.02778,.54028],966:[.19444,.43056,0,.08334,.65417],967:[.19444,.43056,0,.05556,.62569],968:[.19444,.69444,.03588,.11111,.65139],969:[0,.43056,.03588,0,.62245],977:[0,.69444,0,.08334,.59144],981:[.19444,.69444,0,.08334,.59583],982:[0,.43056,.02778,0,.82813],1009:[.19444,.43056,0,.08334,.51702],1013:[0,.43056,0,.05556,.4059],57649:[0,.43056,0,.02778,.32246],57911:[.19444,.43056,0,.08334,.38403]},"SansSerif-Bold":{32:[0,0,0,0,.25],33:[0,.69444,0,0,.36667],34:[0,.69444,0,0,.55834],35:[.19444,.69444,0,0,.91667],36:[.05556,.75,0,0,.55],37:[.05556,.75,0,0,1.02912],38:[0,.69444,0,0,.83056],39:[0,.69444,0,0,.30556],40:[.25,.75,0,0,.42778],41:[.25,.75,0,0,.42778],42:[0,.75,0,0,.55],43:[.11667,.61667,0,0,.85556],44:[.10556,.13056,0,0,.30556],45:[0,.45833,0,0,.36667],46:[0,.13056,0,0,.30556],47:[.25,.75,0,0,.55],48:[0,.69444,0,0,.55],49:[0,.69444,0,0,.55],50:[0,.69444,0,0,.55],51:[0,.69444,0,0,.55],52:[0,.69444,0,0,.55],53:[0,.69444,0,0,.55],54:[0,.69444,0,0,.55],55:[0,.69444,0,0,.55],56:[0,.69444,0,0,.55],57:[0,.69444,0,0,.55],58:[0,.45833,0,0,.30556],59:[.10556,.45833,0,0,.30556],61:[-.09375,.40625,0,0,.85556],63:[0,.69444,0,0,.51945],64:[0,.69444,0,0,.73334],65:[0,.69444,0,0,.73334],66:[0,.69444,0,0,.73334],67:[0,.69444,0,0,.70278],68:[0,.69444,0,0,.79445],69:[0,.69444,0,0,.64167],70:[0,.69444,0,0,.61111],71:[0,.69444,0,0,.73334],72:[0,.69444,0,0,.79445],73:[0,.69444,0,0,.33056],74:[0,.69444,0,0,.51945],75:[0,.69444,0,0,.76389],76:[0,.69444,0,0,.58056],77:[0,.69444,0,0,.97778],78:[0,.69444,0,0,.79445],79:[0,.69444,0,0,.79445],80:[0,.69444,0,0,.70278],81:[.10556,.69444,0,0,.79445],82:[0,.69444,0,0,.70278],83:[0,.69444,0,0,.61111],84:[0,.69444,0,0,.73334],85:[0,.69444,0,0,.76389],86:[0,.69444,.01528,0,.73334],87:[0,.69444,.01528,0,1.03889],88:[0,.69444,0,0,.73334],89:[0,.69444,.0275,0,.73334],90:[0,.69444,0,0,.67223],91:[.25,.75,0,0,.34306],93:[.25,.75,0,0,.34306],94:[0,.69444,0,0,.55],95:[.35,.10833,.03056,0,.55],97:[0,.45833,0,0,.525],98:[0,.69444,0,0,.56111],99:[0,.45833,0,0,.48889],100:[0,.69444,0,0,.56111],101:[0,.45833,0,0,.51111],102:[0,.69444,.07639,0,.33611],103:[.19444,.45833,.01528,0,.55],104:[0,.69444,0,0,.56111],105:[0,.69444,0,0,.25556],106:[.19444,.69444,0,0,.28611],107:[0,.69444,0,0,.53056],108:[0,.69444,0,0,.25556],109:[0,.45833,0,0,.86667],110:[0,.45833,0,0,.56111],111:[0,.45833,0,0,.55],112:[.19444,.45833,0,0,.56111],113:[.19444,.45833,0,0,.56111],114:[0,.45833,.01528,0,.37222],115:[0,.45833,0,0,.42167],116:[0,.58929,0,0,.40417],117:[0,.45833,0,0,.56111],118:[0,.45833,.01528,0,.5],119:[0,.45833,.01528,0,.74445],120:[0,.45833,0,0,.5],121:[.19444,.45833,.01528,0,.5],122:[0,.45833,0,0,.47639],126:[.35,.34444,0,0,.55],160:[0,0,0,0,.25],168:[0,.69444,0,0,.55],176:[0,.69444,0,0,.73334],180:[0,.69444,0,0,.55],184:[.17014,0,0,0,.48889],305:[0,.45833,0,0,.25556],567:[.19444,.45833,0,0,.28611],710:[0,.69444,0,0,.55],711:[0,.63542,0,0,.55],713:[0,.63778,0,0,.55],728:[0,.69444,0,0,.55],729:[0,.69444,0,0,.30556],730:[0,.69444,0,0,.73334],732:[0,.69444,0,0,.55],733:[0,.69444,0,0,.55],915:[0,.69444,0,0,.58056],916:[0,.69444,0,0,.91667],920:[0,.69444,0,0,.85556],923:[0,.69444,0,0,.67223],926:[0,.69444,0,0,.73334],928:[0,.69444,0,0,.79445],931:[0,.69444,0,0,.79445],933:[0,.69444,0,0,.85556],934:[0,.69444,0,0,.79445],936:[0,.69444,0,0,.85556],937:[0,.69444,0,0,.79445],8211:[0,.45833,.03056,0,.55],8212:[0,.45833,.03056,0,1.10001],8216:[0,.69444,0,0,.30556],8217:[0,.69444,0,0,.30556],8220:[0,.69444,0,0,.55834],8221:[0,.69444,0,0,.55834]},"SansSerif-Italic":{32:[0,0,0,0,.25],33:[0,.69444,.05733,0,.31945],34:[0,.69444,.00316,0,.5],35:[.19444,.69444,.05087,0,.83334],36:[.05556,.75,.11156,0,.5],37:[.05556,.75,.03126,0,.83334],38:[0,.69444,.03058,0,.75834],39:[0,.69444,.07816,0,.27778],40:[.25,.75,.13164,0,.38889],41:[.25,.75,.02536,0,.38889],42:[0,.75,.11775,0,.5],43:[.08333,.58333,.02536,0,.77778],44:[.125,.08333,0,0,.27778],45:[0,.44444,.01946,0,.33333],46:[0,.08333,0,0,.27778],47:[.25,.75,.13164,0,.5],48:[0,.65556,.11156,0,.5],49:[0,.65556,.11156,0,.5],50:[0,.65556,.11156,0,.5],51:[0,.65556,.11156,0,.5],52:[0,.65556,.11156,0,.5],53:[0,.65556,.11156,0,.5],54:[0,.65556,.11156,0,.5],55:[0,.65556,.11156,0,.5],56:[0,.65556,.11156,0,.5],57:[0,.65556,.11156,0,.5],58:[0,.44444,.02502,0,.27778],59:[.125,.44444,.02502,0,.27778],61:[-.13,.37,.05087,0,.77778],63:[0,.69444,.11809,0,.47222],64:[0,.69444,.07555,0,.66667],65:[0,.69444,0,0,.66667],66:[0,.69444,.08293,0,.66667],67:[0,.69444,.11983,0,.63889],68:[0,.69444,.07555,0,.72223],69:[0,.69444,.11983,0,.59722],70:[0,.69444,.13372,0,.56945],71:[0,.69444,.11983,0,.66667],72:[0,.69444,.08094,0,.70834],73:[0,.69444,.13372,0,.27778],74:[0,.69444,.08094,0,.47222],75:[0,.69444,.11983,0,.69445],76:[0,.69444,0,0,.54167],77:[0,.69444,.08094,0,.875],78:[0,.69444,.08094,0,.70834],79:[0,.69444,.07555,0,.73611],80:[0,.69444,.08293,0,.63889],81:[.125,.69444,.07555,0,.73611],82:[0,.69444,.08293,0,.64584],83:[0,.69444,.09205,0,.55556],84:[0,.69444,.13372,0,.68056],85:[0,.69444,.08094,0,.6875],86:[0,.69444,.1615,0,.66667],87:[0,.69444,.1615,0,.94445],88:[0,.69444,.13372,0,.66667],89:[0,.69444,.17261,0,.66667],90:[0,.69444,.11983,0,.61111],91:[.25,.75,.15942,0,.28889],93:[.25,.75,.08719,0,.28889],94:[0,.69444,.0799,0,.5],95:[.35,.09444,.08616,0,.5],97:[0,.44444,.00981,0,.48056],98:[0,.69444,.03057,0,.51667],99:[0,.44444,.08336,0,.44445],100:[0,.69444,.09483,0,.51667],101:[0,.44444,.06778,0,.44445],102:[0,.69444,.21705,0,.30556],103:[.19444,.44444,.10836,0,.5],104:[0,.69444,.01778,0,.51667],105:[0,.67937,.09718,0,.23889],106:[.19444,.67937,.09162,0,.26667],107:[0,.69444,.08336,0,.48889],108:[0,.69444,.09483,0,.23889],109:[0,.44444,.01778,0,.79445],110:[0,.44444,.01778,0,.51667],111:[0,.44444,.06613,0,.5],112:[.19444,.44444,.0389,0,.51667],113:[.19444,.44444,.04169,0,.51667],114:[0,.44444,.10836,0,.34167],115:[0,.44444,.0778,0,.38333],116:[0,.57143,.07225,0,.36111],117:[0,.44444,.04169,0,.51667],118:[0,.44444,.10836,0,.46111],119:[0,.44444,.10836,0,.68334],120:[0,.44444,.09169,0,.46111],121:[.19444,.44444,.10836,0,.46111],122:[0,.44444,.08752,0,.43472],126:[.35,.32659,.08826,0,.5],160:[0,0,0,0,.25],168:[0,.67937,.06385,0,.5],176:[0,.69444,0,0,.73752],184:[.17014,0,0,0,.44445],305:[0,.44444,.04169,0,.23889],567:[.19444,.44444,.04169,0,.26667],710:[0,.69444,.0799,0,.5],711:[0,.63194,.08432,0,.5],713:[0,.60889,.08776,0,.5],714:[0,.69444,.09205,0,.5],715:[0,.69444,0,0,.5],728:[0,.69444,.09483,0,.5],729:[0,.67937,.07774,0,.27778],730:[0,.69444,0,0,.73752],732:[0,.67659,.08826,0,.5],733:[0,.69444,.09205,0,.5],915:[0,.69444,.13372,0,.54167],916:[0,.69444,0,0,.83334],920:[0,.69444,.07555,0,.77778],923:[0,.69444,0,0,.61111],926:[0,.69444,.12816,0,.66667],928:[0,.69444,.08094,0,.70834],931:[0,.69444,.11983,0,.72222],933:[0,.69444,.09031,0,.77778],934:[0,.69444,.04603,0,.72222],936:[0,.69444,.09031,0,.77778],937:[0,.69444,.08293,0,.72222],8211:[0,.44444,.08616,0,.5],8212:[0,.44444,.08616,0,1],8216:[0,.69444,.07816,0,.27778],8217:[0,.69444,.07816,0,.27778],8220:[0,.69444,.14205,0,.5],8221:[0,.69444,.00316,0,.5]},"SansSerif-Regular":{32:[0,0,0,0,.25],33:[0,.69444,0,0,.31945],34:[0,.69444,0,0,.5],35:[.19444,.69444,0,0,.83334],36:[.05556,.75,0,0,.5],37:[.05556,.75,0,0,.83334],38:[0,.69444,0,0,.75834],39:[0,.69444,0,0,.27778],40:[.25,.75,0,0,.38889],41:[.25,.75,0,0,.38889],42:[0,.75,0,0,.5],43:[.08333,.58333,0,0,.77778],44:[.125,.08333,0,0,.27778],45:[0,.44444,0,0,.33333],46:[0,.08333,0,0,.27778],47:[.25,.75,0,0,.5],48:[0,.65556,0,0,.5],49:[0,.65556,0,0,.5],50:[0,.65556,0,0,.5],51:[0,.65556,0,0,.5],52:[0,.65556,0,0,.5],53:[0,.65556,0,0,.5],54:[0,.65556,0,0,.5],55:[0,.65556,0,0,.5],56:[0,.65556,0,0,.5],57:[0,.65556,0,0,.5],58:[0,.44444,0,0,.27778],59:[.125,.44444,0,0,.27778],61:[-.13,.37,0,0,.77778],63:[0,.69444,0,0,.47222],64:[0,.69444,0,0,.66667],65:[0,.69444,0,0,.66667],66:[0,.69444,0,0,.66667],67:[0,.69444,0,0,.63889],68:[0,.69444,0,0,.72223],69:[0,.69444,0,0,.59722],70:[0,.69444,0,0,.56945],71:[0,.69444,0,0,.66667],72:[0,.69444,0,0,.70834],73:[0,.69444,0,0,.27778],74:[0,.69444,0,0,.47222],75:[0,.69444,0,0,.69445],76:[0,.69444,0,0,.54167],77:[0,.69444,0,0,.875],78:[0,.69444,0,0,.70834],79:[0,.69444,0,0,.73611],80:[0,.69444,0,0,.63889],81:[.125,.69444,0,0,.73611],82:[0,.69444,0,0,.64584],83:[0,.69444,0,0,.55556],84:[0,.69444,0,0,.68056],85:[0,.69444,0,0,.6875],86:[0,.69444,.01389,0,.66667],87:[0,.69444,.01389,0,.94445],88:[0,.69444,0,0,.66667],89:[0,.69444,.025,0,.66667],90:[0,.69444,0,0,.61111],91:[.25,.75,0,0,.28889],93:[.25,.75,0,0,.28889],94:[0,.69444,0,0,.5],95:[.35,.09444,.02778,0,.5],97:[0,.44444,0,0,.48056],98:[0,.69444,0,0,.51667],99:[0,.44444,0,0,.44445],100:[0,.69444,0,0,.51667],101:[0,.44444,0,0,.44445],102:[0,.69444,.06944,0,.30556],103:[.19444,.44444,.01389,0,.5],104:[0,.69444,0,0,.51667],105:[0,.67937,0,0,.23889],106:[.19444,.67937,0,0,.26667],107:[0,.69444,0,0,.48889],108:[0,.69444,0,0,.23889],109:[0,.44444,0,0,.79445],110:[0,.44444,0,0,.51667],111:[0,.44444,0,0,.5],112:[.19444,.44444,0,0,.51667],113:[.19444,.44444,0,0,.51667],114:[0,.44444,.01389,0,.34167],115:[0,.44444,0,0,.38333],116:[0,.57143,0,0,.36111],117:[0,.44444,0,0,.51667],118:[0,.44444,.01389,0,.46111],119:[0,.44444,.01389,0,.68334],120:[0,.44444,0,0,.46111],121:[.19444,.44444,.01389,0,.46111],122:[0,.44444,0,0,.43472],126:[.35,.32659,0,0,.5],160:[0,0,0,0,.25],168:[0,.67937,0,0,.5],176:[0,.69444,0,0,.66667],184:[.17014,0,0,0,.44445],305:[0,.44444,0,0,.23889],567:[.19444,.44444,0,0,.26667],710:[0,.69444,0,0,.5],711:[0,.63194,0,0,.5],713:[0,.60889,0,0,.5],714:[0,.69444,0,0,.5],715:[0,.69444,0,0,.5],728:[0,.69444,0,0,.5],729:[0,.67937,0,0,.27778],730:[0,.69444,0,0,.66667],732:[0,.67659,0,0,.5],733:[0,.69444,0,0,.5],915:[0,.69444,0,0,.54167],916:[0,.69444,0,0,.83334],920:[0,.69444,0,0,.77778],923:[0,.69444,0,0,.61111],926:[0,.69444,0,0,.66667],928:[0,.69444,0,0,.70834],931:[0,.69444,0,0,.72222],933:[0,.69444,0,0,.77778],934:[0,.69444,0,0,.72222],936:[0,.69444,0,0,.77778],937:[0,.69444,0,0,.72222],8211:[0,.44444,.02778,0,.5],8212:[0,.44444,.02778,0,1],8216:[0,.69444,0,0,.27778],8217:[0,.69444,0,0,.27778],8220:[0,.69444,0,0,.5],8221:[0,.69444,0,0,.5]},"Script-Regular":{32:[0,0,0,0,.25],65:[0,.7,.22925,0,.80253],66:[0,.7,.04087,0,.90757],67:[0,.7,.1689,0,.66619],68:[0,.7,.09371,0,.77443],69:[0,.7,.18583,0,.56162],70:[0,.7,.13634,0,.89544],71:[0,.7,.17322,0,.60961],72:[0,.7,.29694,0,.96919],73:[0,.7,.19189,0,.80907],74:[.27778,.7,.19189,0,1.05159],75:[0,.7,.31259,0,.91364],76:[0,.7,.19189,0,.87373],77:[0,.7,.15981,0,1.08031],78:[0,.7,.3525,0,.9015],79:[0,.7,.08078,0,.73787],80:[0,.7,.08078,0,1.01262],81:[0,.7,.03305,0,.88282],82:[0,.7,.06259,0,.85],83:[0,.7,.19189,0,.86767],84:[0,.7,.29087,0,.74697],85:[0,.7,.25815,0,.79996],86:[0,.7,.27523,0,.62204],87:[0,.7,.27523,0,.80532],88:[0,.7,.26006,0,.94445],89:[0,.7,.2939,0,.70961],90:[0,.7,.24037,0,.8212],160:[0,0,0,0,.25]},"Size1-Regular":{32:[0,0,0,0,.25],40:[.35001,.85,0,0,.45834],41:[.35001,.85,0,0,.45834],47:[.35001,.85,0,0,.57778],91:[.35001,.85,0,0,.41667],92:[.35001,.85,0,0,.57778],93:[.35001,.85,0,0,.41667],123:[.35001,.85,0,0,.58334],125:[.35001,.85,0,0,.58334],160:[0,0,0,0,.25],710:[0,.72222,0,0,.55556],732:[0,.72222,0,0,.55556],770:[0,.72222,0,0,.55556],771:[0,.72222,0,0,.55556],8214:[-99e-5,.601,0,0,.77778],8593:[1e-5,.6,0,0,.66667],8595:[1e-5,.6,0,0,.66667],8657:[1e-5,.6,0,0,.77778],8659:[1e-5,.6,0,0,.77778],8719:[.25001,.75,0,0,.94445],8720:[.25001,.75,0,0,.94445],8721:[.25001,.75,0,0,1.05556],8730:[.35001,.85,0,0,1],8739:[-.00599,.606,0,0,.33333],8741:[-.00599,.606,0,0,.55556],8747:[.30612,.805,.19445,0,.47222],8748:[.306,.805,.19445,0,.47222],8749:[.306,.805,.19445,0,.47222],8750:[.30612,.805,.19445,0,.47222],8896:[.25001,.75,0,0,.83334],8897:[.25001,.75,0,0,.83334],8898:[.25001,.75,0,0,.83334],8899:[.25001,.75,0,0,.83334],8968:[.35001,.85,0,0,.47222],8969:[.35001,.85,0,0,.47222],8970:[.35001,.85,0,0,.47222],8971:[.35001,.85,0,0,.47222],9168:[-99e-5,.601,0,0,.66667],10216:[.35001,.85,0,0,.47222],10217:[.35001,.85,0,0,.47222],10752:[.25001,.75,0,0,1.11111],10753:[.25001,.75,0,0,1.11111],10754:[.25001,.75,0,0,1.11111],10756:[.25001,.75,0,0,.83334],10758:[.25001,.75,0,0,.83334]},"Size2-Regular":{32:[0,0,0,0,.25],40:[.65002,1.15,0,0,.59722],41:[.65002,1.15,0,0,.59722],47:[.65002,1.15,0,0,.81111],91:[.65002,1.15,0,0,.47222],92:[.65002,1.15,0,0,.81111],93:[.65002,1.15,0,0,.47222],123:[.65002,1.15,0,0,.66667],125:[.65002,1.15,0,0,.66667],160:[0,0,0,0,.25],710:[0,.75,0,0,1],732:[0,.75,0,0,1],770:[0,.75,0,0,1],771:[0,.75,0,0,1],8719:[.55001,1.05,0,0,1.27778],8720:[.55001,1.05,0,0,1.27778],8721:[.55001,1.05,0,0,1.44445],8730:[.65002,1.15,0,0,1],8747:[.86225,1.36,.44445,0,.55556],8748:[.862,1.36,.44445,0,.55556],8749:[.862,1.36,.44445,0,.55556],8750:[.86225,1.36,.44445,0,.55556],8896:[.55001,1.05,0,0,1.11111],8897:[.55001,1.05,0,0,1.11111],8898:[.55001,1.05,0,0,1.11111],8899:[.55001,1.05,0,0,1.11111],8968:[.65002,1.15,0,0,.52778],8969:[.65002,1.15,0,0,.52778],8970:[.65002,1.15,0,0,.52778],8971:[.65002,1.15,0,0,.52778],10216:[.65002,1.15,0,0,.61111],10217:[.65002,1.15,0,0,.61111],10752:[.55001,1.05,0,0,1.51112],10753:[.55001,1.05,0,0,1.51112],10754:[.55001,1.05,0,0,1.51112],10756:[.55001,1.05,0,0,1.11111],10758:[.55001,1.05,0,0,1.11111]},"Size3-Regular":{32:[0,0,0,0,.25],40:[.95003,1.45,0,0,.73611],41:[.95003,1.45,0,0,.73611],47:[.95003,1.45,0,0,1.04445],91:[.95003,1.45,0,0,.52778],92:[.95003,1.45,0,0,1.04445],93:[.95003,1.45,0,0,.52778],123:[.95003,1.45,0,0,.75],125:[.95003,1.45,0,0,.75],160:[0,0,0,0,.25],710:[0,.75,0,0,1.44445],732:[0,.75,0,0,1.44445],770:[0,.75,0,0,1.44445],771:[0,.75,0,0,1.44445],8730:[.95003,1.45,0,0,1],8968:[.95003,1.45,0,0,.58334],8969:[.95003,1.45,0,0,.58334],8970:[.95003,1.45,0,0,.58334],8971:[.95003,1.45,0,0,.58334],10216:[.95003,1.45,0,0,.75],10217:[.95003,1.45,0,0,.75]},"Size4-Regular":{32:[0,0,0,0,.25],40:[1.25003,1.75,0,0,.79167],41:[1.25003,1.75,0,0,.79167],47:[1.25003,1.75,0,0,1.27778],91:[1.25003,1.75,0,0,.58334],92:[1.25003,1.75,0,0,1.27778],93:[1.25003,1.75,0,0,.58334],123:[1.25003,1.75,0,0,.80556],125:[1.25003,1.75,0,0,.80556],160:[0,0,0,0,.25],710:[0,.825,0,0,1.8889],732:[0,.825,0,0,1.8889],770:[0,.825,0,0,1.8889],771:[0,.825,0,0,1.8889],8730:[1.25003,1.75,0,0,1],8968:[1.25003,1.75,0,0,.63889],8969:[1.25003,1.75,0,0,.63889],8970:[1.25003,1.75,0,0,.63889],8971:[1.25003,1.75,0,0,.63889],9115:[.64502,1.155,0,0,.875],9116:[1e-5,.6,0,0,.875],9117:[.64502,1.155,0,0,.875],9118:[.64502,1.155,0,0,.875],9119:[1e-5,.6,0,0,.875],9120:[.64502,1.155,0,0,.875],9121:[.64502,1.155,0,0,.66667],9122:[-99e-5,.601,0,0,.66667],9123:[.64502,1.155,0,0,.66667],9124:[.64502,1.155,0,0,.66667],9125:[-99e-5,.601,0,0,.66667],9126:[.64502,1.155,0,0,.66667],9127:[1e-5,.9,0,0,.88889],9128:[.65002,1.15,0,0,.88889],9129:[.90001,0,0,0,.88889],9130:[0,.3,0,0,.88889],9131:[1e-5,.9,0,0,.88889],9132:[.65002,1.15,0,0,.88889],9133:[.90001,0,0,0,.88889],9143:[.88502,.915,0,0,1.05556],10216:[1.25003,1.75,0,0,.80556],10217:[1.25003,1.75,0,0,.80556],57344:[-.00499,.605,0,0,1.05556],57345:[-.00499,.605,0,0,1.05556],57680:[0,.12,0,0,.45],57681:[0,.12,0,0,.45],57682:[0,.12,0,0,.45],57683:[0,.12,0,0,.45]},"Typewriter-Regular":{32:[0,0,0,0,.525],33:[0,.61111,0,0,.525],34:[0,.61111,0,0,.525],35:[0,.61111,0,0,.525],36:[.08333,.69444,0,0,.525],37:[.08333,.69444,0,0,.525],38:[0,.61111,0,0,.525],39:[0,.61111,0,0,.525],40:[.08333,.69444,0,0,.525],41:[.08333,.69444,0,0,.525],42:[0,.52083,0,0,.525],43:[-.08056,.53055,0,0,.525],44:[.13889,.125,0,0,.525],45:[-.08056,.53055,0,0,.525],46:[0,.125,0,0,.525],47:[.08333,.69444,0,0,.525],48:[0,.61111,0,0,.525],49:[0,.61111,0,0,.525],50:[0,.61111,0,0,.525],51:[0,.61111,0,0,.525],52:[0,.61111,0,0,.525],53:[0,.61111,0,0,.525],54:[0,.61111,0,0,.525],55:[0,.61111,0,0,.525],56:[0,.61111,0,0,.525],57:[0,.61111,0,0,.525],58:[0,.43056,0,0,.525],59:[.13889,.43056,0,0,.525],60:[-.05556,.55556,0,0,.525],61:[-.19549,.41562,0,0,.525],62:[-.05556,.55556,0,0,.525],63:[0,.61111,0,0,.525],64:[0,.61111,0,0,.525],65:[0,.61111,0,0,.525],66:[0,.61111,0,0,.525],67:[0,.61111,0,0,.525],68:[0,.61111,0,0,.525],69:[0,.61111,0,0,.525],70:[0,.61111,0,0,.525],71:[0,.61111,0,0,.525],72:[0,.61111,0,0,.525],73:[0,.61111,0,0,.525],74:[0,.61111,0,0,.525],75:[0,.61111,0,0,.525],76:[0,.61111,0,0,.525],77:[0,.61111,0,0,.525],78:[0,.61111,0,0,.525],79:[0,.61111,0,0,.525],80:[0,.61111,0,0,.525],81:[.13889,.61111,0,0,.525],82:[0,.61111,0,0,.525],83:[0,.61111,0,0,.525],84:[0,.61111,0,0,.525],85:[0,.61111,0,0,.525],86:[0,.61111,0,0,.525],87:[0,.61111,0,0,.525],88:[0,.61111,0,0,.525],89:[0,.61111,0,0,.525],90:[0,.61111,0,0,.525],91:[.08333,.69444,0,0,.525],92:[.08333,.69444,0,0,.525],93:[.08333,.69444,0,0,.525],94:[0,.61111,0,0,.525],95:[.09514,0,0,0,.525],96:[0,.61111,0,0,.525],97:[0,.43056,0,0,.525],98:[0,.61111,0,0,.525],99:[0,.43056,0,0,.525],100:[0,.61111,0,0,.525],101:[0,.43056,0,0,.525],102:[0,.61111,0,0,.525],103:[.22222,.43056,0,0,.525],104:[0,.61111,0,0,.525],105:[0,.61111,0,0,.525],106:[.22222,.61111,0,0,.525],107:[0,.61111,0,0,.525],108:[0,.61111,0,0,.525],109:[0,.43056,0,0,.525],110:[0,.43056,0,0,.525],111:[0,.43056,0,0,.525],112:[.22222,.43056,0,0,.525],113:[.22222,.43056,0,0,.525],114:[0,.43056,0,0,.525],115:[0,.43056,0,0,.525],116:[0,.55358,0,0,.525],117:[0,.43056,0,0,.525],118:[0,.43056,0,0,.525],119:[0,.43056,0,0,.525],120:[0,.43056,0,0,.525],121:[.22222,.43056,0,0,.525],122:[0,.43056,0,0,.525],123:[.08333,.69444,0,0,.525],124:[.08333,.69444,0,0,.525],125:[.08333,.69444,0,0,.525],126:[0,.61111,0,0,.525],127:[0,.61111,0,0,.525],160:[0,0,0,0,.525],176:[0,.61111,0,0,.525],184:[.19445,0,0,0,.525],305:[0,.43056,0,0,.525],567:[.22222,.43056,0,0,.525],711:[0,.56597,0,0,.525],713:[0,.56555,0,0,.525],714:[0,.61111,0,0,.525],715:[0,.61111,0,0,.525],728:[0,.61111,0,0,.525],730:[0,.61111,0,0,.525],770:[0,.61111,0,0,.525],771:[0,.61111,0,0,.525],776:[0,.61111,0,0,.525],915:[0,.61111,0,0,.525],916:[0,.61111,0,0,.525],920:[0,.61111,0,0,.525],923:[0,.61111,0,0,.525],926:[0,.61111,0,0,.525],928:[0,.61111,0,0,.525],931:[0,.61111,0,0,.525],933:[0,.61111,0,0,.525],934:[0,.61111,0,0,.525],936:[0,.61111,0,0,.525],937:[0,.61111,0,0,.525],8216:[0,.61111,0,0,.525],8217:[0,.61111,0,0,.525],8242:[0,.61111,0,0,.525],9251:[.11111,.21944,0,0,.525]}},ar={slant:[.25,.25,.25],space:[0,0,0],stretch:[0,0,0],shrink:[0,0,0],xHeight:[.431,.431,.431],quad:[1,1.171,1.472],extraSpace:[0,0,0],num1:[.677,.732,.925],num2:[.394,.384,.387],num3:[.444,.471,.504],denom1:[.686,.752,1.025],denom2:[.345,.344,.532],sup1:[.413,.503,.504],sup2:[.363,.431,.404],sup3:[.289,.286,.294],sub1:[.15,.143,.2],sub2:[.247,.286,.4],supDrop:[.386,.353,.494],subDrop:[.05,.071,.1],delim1:[2.39,1.7,1.98],delim2:[1.01,1.157,1.42],axisHeight:[.25,.25,.25],defaultRuleThickness:[.04,.049,.049],bigOpSpacing1:[.111,.111,.111],bigOpSpacing2:[.166,.166,.166],bigOpSpacing3:[.2,.2,.2],bigOpSpacing4:[.6,.611,.611],bigOpSpacing5:[.1,.143,.143],sqrtRuleThickness:[.04,.04,.04],ptPerEm:[10,10,10],doubleRuleSep:[.2,.2,.2],arrayRuleWidth:[.04,.04,.04],fboxsep:[.3,.3,.3],fboxrule:[.04,.04,.04]},p0={Å:"A",Ð:"D",Þ:"o",å:"a",ð:"d",þ:"o",А:"A",Б:"B",В:"B",Г:"F",Д:"A",Е:"E",Ж:"K",З:"3",И:"N",Й:"N",К:"K",Л:"N",М:"M",Н:"H",О:"O",П:"N",Р:"P",С:"C",Т:"T",У:"y",Ф:"O",Х:"X",Ц:"U",Ч:"h",Ш:"W",Щ:"W",Ъ:"B",Ы:"X",Ь:"B",Э:"3",Ю:"X",Я:"R",а:"a",б:"b",в:"a",г:"r",д:"y",е:"e",ж:"m",з:"e",и:"n",й:"n",к:"n",л:"n",м:"m",н:"n",о:"o",п:"n",р:"p",с:"c",т:"o",у:"y",ф:"b",х:"x",ц:"n",ч:"n",ш:"w",щ:"w",ъ:"a",ы:"m",ь:"a",э:"e",ю:"m",я:"r"};function tn(r,e){Je[r]=e}function Na(r,e,t){if(!Je[e])throw new Error("Font metrics not found for font: "+e+".");var a=r.charCodeAt(0),i=Je[e][a];if(!i&&r[0]in p0&&(a=p0[r[0]].charCodeAt(0),i=Je[e][a]),!i&&t==="text"&&ei(a)&&(i=Je[e][77]),i)return{depth:i[0],height:i[1],italic:i[2],skew:i[3],width:i[4]}}var Or={};function rn(r){var e;if(r>=5?e=0:r>=3?e=1:e=2,!Or[e]){var t=Or[e]={cssEmPerMu:ar.quad[e]/18};for(var a in ar)ar.hasOwnProperty(a)&&(t[a]=ar[a][e])}return Or[e]}var ye={math:{},text:{}};function n(r,e,t,a,i,s){ye[r][i]={font:e,group:t,replace:a},s&&a&&(ye[r][a]=ye[r][i])}var l="math",E="text",u="main",v="ams",xe="accent-token",V="bin",Pe="close",Ot="inner",ee="mathord",Ee="op-token",Ve="open",_t="punct",g="rel",nt="spacing",w="textord";n(l,u,g,"≡","\\equiv",!0);n(l,u,g,"≺","\\prec",!0);n(l,u,g,"≻","\\succ",!0);n(l,u,g,"∼","\\sim",!0);n(l,u,g,"⊥","\\perp");n(l,u,g,"⪯","\\preceq",!0);n(l,u,g,"⪰","\\succeq",!0);n(l,u,g,"≃","\\simeq",!0);n(l,u,g,"∣","\\mid",!0);n(l,u,g,"≪","\\ll",!0);n(l,u,g,"≫","\\gg",!0);n(l,u,g,"≍","\\asymp",!0);n(l,u,g,"∥","\\parallel");n(l,u,g,"⋈","\\bowtie",!0);n(l,u,g,"⌣","\\smile",!0);n(l,u,g,"⊑","\\sqsubseteq",!0);n(l,u,g,"⊒","\\sqsupseteq",!0);n(l,u,g,"≐","\\doteq",!0);n(l,u,g,"⌢","\\frown",!0);n(l,u,g,"∋","\\ni",!0);n(l,u,g,"∝","\\propto",!0);n(l,u,g,"⊢","\\vdash",!0);n(l,u,g,"⊣","\\dashv",!0);n(l,u,g,"∋","\\owns");n(l,u,_t,".","\\ldotp");n(l,u,_t,"⋅","\\cdotp");n(l,u,_t,"⋅","·");n(E,u,w,"⋅","·");n(l,u,w,"#","\\#");n(E,u,w,"#","\\#");n(l,u,w,"&","\\&");n(E,u,w,"&","\\&");n(l,u,w,"ℵ","\\aleph",!0);n(l,u,w,"∀","\\forall",!0);n(l,u,w,"ℏ","\\hbar",!0);n(l,u,w,"∃","\\exists",!0);n(l,u,w,"∇","\\nabla",!0);n(l,u,w,"♭","\\flat",!0);n(l,u,w,"ℓ","\\ell",!0);n(l,u,w,"♮","\\natural",!0);n(l,u,w,"♣","\\clubsuit",!0);n(l,u,w,"℘","\\wp",!0);n(l,u,w,"♯","\\sharp",!0);n(l,u,w,"♢","\\diamondsuit",!0);n(l,u,w,"ℜ","\\Re",!0);n(l,u,w,"♡","\\heartsuit",!0);n(l,u,w,"ℑ","\\Im",!0);n(l,u,w,"♠","\\spadesuit",!0);n(l,u,w,"§","\\S",!0);n(E,u,w,"§","\\S");n(l,u,w,"¶","\\P",!0);n(E,u,w,"¶","\\P");n(l,u,w,"†","\\dag");n(E,u,w,"†","\\dag");n(E,u,w,"†","\\textdagger");n(l,u,w,"‡","\\ddag");n(E,u,w,"‡","\\ddag");n(E,u,w,"‡","\\textdaggerdbl");n(l,u,Pe,"⎱","\\rmoustache",!0);n(l,u,Ve,"⎰","\\lmoustache",!0);n(l,u,Pe,"⟯","\\rgroup",!0);n(l,u,Ve,"⟮","\\lgroup",!0);n(l,u,V,"∓","\\mp",!0);n(l,u,V,"⊖","\\ominus",!0);n(l,u,V,"⊎","\\uplus",!0);n(l,u,V,"⊓","\\sqcap",!0);n(l,u,V,"∗","\\ast");n(l,u,V,"⊔","\\sqcup",!0);n(l,u,V,"◯","\\bigcirc",!0);n(l,u,V,"∙","\\bullet",!0);n(l,u,V,"‡","\\ddagger");n(l,u,V,"≀","\\wr",!0);n(l,u,V,"⨿","\\amalg");n(l,u,V,"&","\\And");n(l,u,g,"⟵","\\longleftarrow",!0);n(l,u,g,"⇐","\\Leftarrow",!0);n(l,u,g,"⟸","\\Longleftarrow",!0);n(l,u,g,"⟶","\\longrightarrow",!0);n(l,u,g,"⇒","\\Rightarrow",!0);n(l,u,g,"⟹","\\Longrightarrow",!0);n(l,u,g,"↔","\\leftrightarrow",!0);n(l,u,g,"⟷","\\longleftrightarrow",!0);n(l,u,g,"⇔","\\Leftrightarrow",!0);n(l,u,g,"⟺","\\Longleftrightarrow",!0);n(l,u,g,"↦","\\mapsto",!0);n(l,u,g,"⟼","\\longmapsto",!0);n(l,u,g,"↗","\\nearrow",!0);n(l,u,g,"↩","\\hookleftarrow",!0);n(l,u,g,"↪","\\hookrightarrow",!0);n(l,u,g,"↘","\\searrow",!0);n(l,u,g,"↼","\\leftharpoonup",!0);n(l,u,g,"⇀","\\rightharpoonup",!0);n(l,u,g,"↙","\\swarrow",!0);n(l,u,g,"↽","\\leftharpoondown",!0);n(l,u,g,"⇁","\\rightharpoondown",!0);n(l,u,g,"↖","\\nwarrow",!0);n(l,u,g,"⇌","\\rightleftharpoons",!0);n(l,v,g,"≮","\\nless",!0);n(l,v,g,"","\\@nleqslant");n(l,v,g,"","\\@nleqq");n(l,v,g,"⪇","\\lneq",!0);n(l,v,g,"≨","\\lneqq",!0);n(l,v,g,"","\\@lvertneqq");n(l,v,g,"⋦","\\lnsim",!0);n(l,v,g,"⪉","\\lnapprox",!0);n(l,v,g,"⊀","\\nprec",!0);n(l,v,g,"⋠","\\npreceq",!0);n(l,v,g,"⋨","\\precnsim",!0);n(l,v,g,"⪹","\\precnapprox",!0);n(l,v,g,"≁","\\nsim",!0);n(l,v,g,"","\\@nshortmid");n(l,v,g,"∤","\\nmid",!0);n(l,v,g,"⊬","\\nvdash",!0);n(l,v,g,"⊭","\\nvDash",!0);n(l,v,g,"⋪","\\ntriangleleft");n(l,v,g,"⋬","\\ntrianglelefteq",!0);n(l,v,g,"⊊","\\subsetneq",!0);n(l,v,g,"","\\@varsubsetneq");n(l,v,g,"⫋","\\subsetneqq",!0);n(l,v,g,"","\\@varsubsetneqq");n(l,v,g,"≯","\\ngtr",!0);n(l,v,g,"","\\@ngeqslant");n(l,v,g,"","\\@ngeqq");n(l,v,g,"⪈","\\gneq",!0);n(l,v,g,"≩","\\gneqq",!0);n(l,v,g,"","\\@gvertneqq");n(l,v,g,"⋧","\\gnsim",!0);n(l,v,g,"⪊","\\gnapprox",!0);n(l,v,g,"⊁","\\nsucc",!0);n(l,v,g,"⋡","\\nsucceq",!0);n(l,v,g,"⋩","\\succnsim",!0);n(l,v,g,"⪺","\\succnapprox",!0);n(l,v,g,"≆","\\ncong",!0);n(l,v,g,"","\\@nshortparallel");n(l,v,g,"∦","\\nparallel",!0);n(l,v,g,"⊯","\\nVDash",!0);n(l,v,g,"⋫","\\ntriangleright");n(l,v,g,"⋭","\\ntrianglerighteq",!0);n(l,v,g,"","\\@nsupseteqq");n(l,v,g,"⊋","\\supsetneq",!0);n(l,v,g,"","\\@varsupsetneq");n(l,v,g,"⫌","\\supsetneqq",!0);n(l,v,g,"","\\@varsupsetneqq");n(l,v,g,"⊮","\\nVdash",!0);n(l,v,g,"⪵","\\precneqq",!0);n(l,v,g,"⪶","\\succneqq",!0);n(l,v,g,"","\\@nsubseteqq");n(l,v,V,"⊴","\\unlhd");n(l,v,V,"⊵","\\unrhd");n(l,v,g,"↚","\\nleftarrow",!0);n(l,v,g,"↛","\\nrightarrow",!0);n(l,v,g,"⇍","\\nLeftarrow",!0);n(l,v,g,"⇏","\\nRightarrow",!0);n(l,v,g,"↮","\\nleftrightarrow",!0);n(l,v,g,"⇎","\\nLeftrightarrow",!0);n(l,v,g,"△","\\vartriangle");n(l,v,w,"ℏ","\\hslash");n(l,v,w,"▽","\\triangledown");n(l,v,w,"◊","\\lozenge");n(l,v,w,"Ⓢ","\\circledS");n(l,v,w,"®","\\circledR");n(E,v,w,"®","\\circledR");n(l,v,w,"∡","\\measuredangle",!0);n(l,v,w,"∄","\\nexists");n(l,v,w,"℧","\\mho");n(l,v,w,"Ⅎ","\\Finv",!0);n(l,v,w,"⅁","\\Game",!0);n(l,v,w,"‵","\\backprime");n(l,v,w,"▲","\\blacktriangle");n(l,v,w,"▼","\\blacktriangledown");n(l,v,w,"■","\\blacksquare");n(l,v,w,"⧫","\\blacklozenge");n(l,v,w,"★","\\bigstar");n(l,v,w,"∢","\\sphericalangle",!0);n(l,v,w,"∁","\\complement",!0);n(l,v,w,"ð","\\eth",!0);n(E,u,w,"ð","ð");n(l,v,w,"╱","\\diagup");n(l,v,w,"╲","\\diagdown");n(l,v,w,"□","\\square");n(l,v,w,"□","\\Box");n(l,v,w,"◊","\\Diamond");n(l,v,w,"¥","\\yen",!0);n(E,v,w,"¥","\\yen",!0);n(l,v,w,"✓","\\checkmark",!0);n(E,v,w,"✓","\\checkmark");n(l,v,w,"ℶ","\\beth",!0);n(l,v,w,"ℸ","\\daleth",!0);n(l,v,w,"ℷ","\\gimel",!0);n(l,v,w,"ϝ","\\digamma",!0);n(l,v,w,"ϰ","\\varkappa");n(l,v,Ve,"┌","\\@ulcorner",!0);n(l,v,Pe,"┐","\\@urcorner",!0);n(l,v,Ve,"└","\\@llcorner",!0);n(l,v,Pe,"┘","\\@lrcorner",!0);n(l,v,g,"≦","\\leqq",!0);n(l,v,g,"⩽","\\leqslant",!0);n(l,v,g,"⪕","\\eqslantless",!0);n(l,v,g,"≲","\\lesssim",!0);n(l,v,g,"⪅","\\lessapprox",!0);n(l,v,g,"≊","\\approxeq",!0);n(l,v,V,"⋖","\\lessdot");n(l,v,g,"⋘","\\lll",!0);n(l,v,g,"≶","\\lessgtr",!0);n(l,v,g,"⋚","\\lesseqgtr",!0);n(l,v,g,"⪋","\\lesseqqgtr",!0);n(l,v,g,"≑","\\doteqdot");n(l,v,g,"≓","\\risingdotseq",!0);n(l,v,g,"≒","\\fallingdotseq",!0);n(l,v,g,"∽","\\backsim",!0);n(l,v,g,"⋍","\\backsimeq",!0);n(l,v,g,"⫅","\\subseteqq",!0);n(l,v,g,"⋐","\\Subset",!0);n(l,v,g,"⊏","\\sqsubset",!0);n(l,v,g,"≼","\\preccurlyeq",!0);n(l,v,g,"⋞","\\curlyeqprec",!0);n(l,v,g,"≾","\\precsim",!0);n(l,v,g,"⪷","\\precapprox",!0);n(l,v,g,"⊲","\\vartriangleleft");n(l,v,g,"⊴","\\trianglelefteq");n(l,v,g,"⊨","\\vDash",!0);n(l,v,g,"⊪","\\Vvdash",!0);n(l,v,g,"⌣","\\smallsmile");n(l,v,g,"⌢","\\smallfrown");n(l,v,g,"≏","\\bumpeq",!0);n(l,v,g,"≎","\\Bumpeq",!0);n(l,v,g,"≧","\\geqq",!0);n(l,v,g,"⩾","\\geqslant",!0);n(l,v,g,"⪖","\\eqslantgtr",!0);n(l,v,g,"≳","\\gtrsim",!0);n(l,v,g,"⪆","\\gtrapprox",!0);n(l,v,V,"⋗","\\gtrdot");n(l,v,g,"⋙","\\ggg",!0);n(l,v,g,"≷","\\gtrless",!0);n(l,v,g,"⋛","\\gtreqless",!0);n(l,v,g,"⪌","\\gtreqqless",!0);n(l,v,g,"≖","\\eqcirc",!0);n(l,v,g,"≗","\\circeq",!0);n(l,v,g,"≜","\\triangleq",!0);n(l,v,g,"∼","\\thicksim");n(l,v,g,"≈","\\thickapprox");n(l,v,g,"⫆","\\supseteqq",!0);n(l,v,g,"⋑","\\Supset",!0);n(l,v,g,"⊐","\\sqsupset",!0);n(l,v,g,"≽","\\succcurlyeq",!0);n(l,v,g,"⋟","\\curlyeqsucc",!0);n(l,v,g,"≿","\\succsim",!0);n(l,v,g,"⪸","\\succapprox",!0);n(l,v,g,"⊳","\\vartriangleright");n(l,v,g,"⊵","\\trianglerighteq");n(l,v,g,"⊩","\\Vdash",!0);n(l,v,g,"∣","\\shortmid");n(l,v,g,"∥","\\shortparallel");n(l,v,g,"≬","\\between",!0);n(l,v,g,"⋔","\\pitchfork",!0);n(l,v,g,"∝","\\varpropto");n(l,v,g,"◀","\\blacktriangleleft");n(l,v,g,"∴","\\therefore",!0);n(l,v,g,"∍","\\backepsilon");n(l,v,g,"▶","\\blacktriangleright");n(l,v,g,"∵","\\because",!0);n(l,v,g,"⋘","\\llless");n(l,v,g,"⋙","\\gggtr");n(l,v,V,"⊲","\\lhd");n(l,v,V,"⊳","\\rhd");n(l,v,g,"≂","\\eqsim",!0);n(l,u,g,"⋈","\\Join");n(l,v,g,"≑","\\Doteq",!0);n(l,v,V,"∔","\\dotplus",!0);n(l,v,V,"∖","\\smallsetminus");n(l,v,V,"⋒","\\Cap",!0);n(l,v,V,"⋓","\\Cup",!0);n(l,v,V,"⩞","\\doublebarwedge",!0);n(l,v,V,"⊟","\\boxminus",!0);n(l,v,V,"⊞","\\boxplus",!0);n(l,v,V,"⋇","\\divideontimes",!0);n(l,v,V,"⋉","\\ltimes",!0);n(l,v,V,"⋊","\\rtimes",!0);n(l,v,V,"⋋","\\leftthreetimes",!0);n(l,v,V,"⋌","\\rightthreetimes",!0);n(l,v,V,"⋏","\\curlywedge",!0);n(l,v,V,"⋎","\\curlyvee",!0);n(l,v,V,"⊝","\\circleddash",!0);n(l,v,V,"⊛","\\circledast",!0);n(l,v,V,"⋅","\\centerdot");n(l,v,V,"⊺","\\intercal",!0);n(l,v,V,"⋒","\\doublecap");n(l,v,V,"⋓","\\doublecup");n(l,v,V,"⊠","\\boxtimes",!0);n(l,v,g,"⇢","\\dashrightarrow",!0);n(l,v,g,"⇠","\\dashleftarrow",!0);n(l,v,g,"⇇","\\leftleftarrows",!0);n(l,v,g,"⇆","\\leftrightarrows",!0);n(l,v,g,"⇚","\\Lleftarrow",!0);n(l,v,g,"↞","\\twoheadleftarrow",!0);n(l,v,g,"↢","\\leftarrowtail",!0);n(l,v,g,"↫","\\looparrowleft",!0);n(l,v,g,"⇋","\\leftrightharpoons",!0);n(l,v,g,"↶","\\curvearrowleft",!0);n(l,v,g,"↺","\\circlearrowleft",!0);n(l,v,g,"↰","\\Lsh",!0);n(l,v,g,"⇈","\\upuparrows",!0);n(l,v,g,"↿","\\upharpoonleft",!0);n(l,v,g,"⇃","\\downharpoonleft",!0);n(l,u,g,"⊶","\\origof",!0);n(l,u,g,"⊷","\\imageof",!0);n(l,v,g,"⊸","\\multimap",!0);n(l,v,g,"↭","\\leftrightsquigarrow",!0);n(l,v,g,"⇉","\\rightrightarrows",!0);n(l,v,g,"⇄","\\rightleftarrows",!0);n(l,v,g,"↠","\\twoheadrightarrow",!0);n(l,v,g,"↣","\\rightarrowtail",!0);n(l,v,g,"↬","\\looparrowright",!0);n(l,v,g,"↷","\\curvearrowright",!0);n(l,v,g,"↻","\\circlearrowright",!0);n(l,v,g,"↱","\\Rsh",!0);n(l,v,g,"⇊","\\downdownarrows",!0);n(l,v,g,"↾","\\upharpoonright",!0);n(l,v,g,"⇂","\\downharpoonright",!0);n(l,v,g,"⇝","\\rightsquigarrow",!0);n(l,v,g,"⇝","\\leadsto");n(l,v,g,"⇛","\\Rrightarrow",!0);n(l,v,g,"↾","\\restriction");n(l,u,w,"‘","`");n(l,u,w,"$","\\$");n(E,u,w,"$","\\$");n(E,u,w,"$","\\textdollar");n(l,u,w,"%","\\%");n(E,u,w,"%","\\%");n(l,u,w,"_","\\_");n(E,u,w,"_","\\_");n(E,u,w,"_","\\textunderscore");n(l,u,w,"∠","\\angle",!0);n(l,u,w,"∞","\\infty",!0);n(l,u,w,"′","\\prime");n(l,u,w,"△","\\triangle");n(l,u,w,"Γ","\\Gamma",!0);n(l,u,w,"Δ","\\Delta",!0);n(l,u,w,"Θ","\\Theta",!0);n(l,u,w,"Λ","\\Lambda",!0);n(l,u,w,"Ξ","\\Xi",!0);n(l,u,w,"Π","\\Pi",!0);n(l,u,w,"Σ","\\Sigma",!0);n(l,u,w,"Υ","\\Upsilon",!0);n(l,u,w,"Φ","\\Phi",!0);n(l,u,w,"Ψ","\\Psi",!0);n(l,u,w,"Ω","\\Omega",!0);n(l,u,w,"A","Α");n(l,u,w,"B","Β");n(l,u,w,"E","Ε");n(l,u,w,"Z","Ζ");n(l,u,w,"H","Η");n(l,u,w,"I","Ι");n(l,u,w,"K","Κ");n(l,u,w,"M","Μ");n(l,u,w,"N","Ν");n(l,u,w,"O","Ο");n(l,u,w,"P","Ρ");n(l,u,w,"T","Τ");n(l,u,w,"X","Χ");n(l,u,w,"¬","\\neg",!0);n(l,u,w,"¬","\\lnot");n(l,u,w,"⊤","\\top");n(l,u,w,"⊥","\\bot");n(l,u,w,"∅","\\emptyset");n(l,v,w,"∅","\\varnothing");n(l,u,ee,"α","\\alpha",!0);n(l,u,ee,"β","\\beta",!0);n(l,u,ee,"γ","\\gamma",!0);n(l,u,ee,"δ","\\delta",!0);n(l,u,ee,"ϵ","\\epsilon",!0);n(l,u,ee,"ζ","\\zeta",!0);n(l,u,ee,"η","\\eta",!0);n(l,u,ee,"θ","\\theta",!0);n(l,u,ee,"ι","\\iota",!0);n(l,u,ee,"κ","\\kappa",!0);n(l,u,ee,"λ","\\lambda",!0);n(l,u,ee,"μ","\\mu",!0);n(l,u,ee,"ν","\\nu",!0);n(l,u,ee,"ξ","\\xi",!0);n(l,u,ee,"ο","\\omicron",!0);n(l,u,ee,"π","\\pi",!0);n(l,u,ee,"ρ","\\rho",!0);n(l,u,ee,"σ","\\sigma",!0);n(l,u,ee,"τ","\\tau",!0);n(l,u,ee,"υ","\\upsilon",!0);n(l,u,ee,"ϕ","\\phi",!0);n(l,u,ee,"χ","\\chi",!0);n(l,u,ee,"ψ","\\psi",!0);n(l,u,ee,"ω","\\omega",!0);n(l,u,ee,"ε","\\varepsilon",!0);n(l,u,ee,"ϑ","\\vartheta",!0);n(l,u,ee,"ϖ","\\varpi",!0);n(l,u,ee,"ϱ","\\varrho",!0);n(l,u,ee,"ς","\\varsigma",!0);n(l,u,ee,"φ","\\varphi",!0);n(l,u,V,"∗","*",!0);n(l,u,V,"+","+");n(l,u,V,"−","-",!0);n(l,u,V,"⋅","\\cdot",!0);n(l,u,V,"∘","\\circ",!0);n(l,u,V,"÷","\\div",!0);n(l,u,V,"±","\\pm",!0);n(l,u,V,"×","\\times",!0);n(l,u,V,"∩","\\cap",!0);n(l,u,V,"∪","\\cup",!0);n(l,u,V,"∖","\\setminus",!0);n(l,u,V,"∧","\\land");n(l,u,V,"∨","\\lor");n(l,u,V,"∧","\\wedge",!0);n(l,u,V,"∨","\\vee",!0);n(l,u,w,"√","\\surd");n(l,u,Ve,"⟨","\\langle",!0);n(l,u,Ve,"∣","\\lvert");n(l,u,Ve,"∥","\\lVert");n(l,u,Pe,"?","?");n(l,u,Pe,"!","!");n(l,u,Pe,"⟩","\\rangle",!0);n(l,u,Pe,"∣","\\rvert");n(l,u,Pe,"∥","\\rVert");n(l,u,g,"=","=");n(l,u,g,":",":");n(l,u,g,"≈","\\approx",!0);n(l,u,g,"≅","\\cong",!0);n(l,u,g,"≥","\\ge");n(l,u,g,"≥","\\geq",!0);n(l,u,g,"←","\\gets");n(l,u,g,">","\\gt",!0);n(l,u,g,"∈","\\in",!0);n(l,u,g,"","\\@not");n(l,u,g,"⊂","\\subset",!0);n(l,u,g,"⊃","\\supset",!0);n(l,u,g,"⊆","\\subseteq",!0);n(l,u,g,"⊇","\\supseteq",!0);n(l,v,g,"⊈","\\nsubseteq",!0);n(l,v,g,"⊉","\\nsupseteq",!0);n(l,u,g,"⊨","\\models");n(l,u,g,"←","\\leftarrow",!0);n(l,u,g,"≤","\\le");n(l,u,g,"≤","\\leq",!0);n(l,u,g,"<","\\lt",!0);n(l,u,g,"→","\\rightarrow",!0);n(l,u,g,"→","\\to");n(l,v,g,"≱","\\ngeq",!0);n(l,v,g,"≰","\\nleq",!0);n(l,u,nt," ","\\ ");n(l,u,nt," ","\\space");n(l,u,nt," ","\\nobreakspace");n(E,u,nt," ","\\ ");n(E,u,nt," "," ");n(E,u,nt," ","\\space");n(E,u,nt," ","\\nobreakspace");n(l,u,nt,"","\\nobreak");n(l,u,nt,"","\\allowbreak");n(l,u,_t,",",",");n(l,u,_t,";",";");n(l,v,V,"⊼","\\barwedge",!0);n(l,v,V,"⊻","\\veebar",!0);n(l,u,V,"⊙","\\odot",!0);n(l,u,V,"⊕","\\oplus",!0);n(l,u,V,"⊗","\\otimes",!0);n(l,u,w,"∂","\\partial",!0);n(l,u,V,"⊘","\\oslash",!0);n(l,v,V,"⊚","\\circledcirc",!0);n(l,v,V,"⊡","\\boxdot",!0);n(l,u,V,"△","\\bigtriangleup");n(l,u,V,"▽","\\bigtriangledown");n(l,u,V,"†","\\dagger");n(l,u,V,"⋄","\\diamond");n(l,u,V,"⋆","\\star");n(l,u,V,"◃","\\triangleleft");n(l,u,V,"▹","\\triangleright");n(l,u,Ve,"{","\\{");n(E,u,w,"{","\\{");n(E,u,w,"{","\\textbraceleft");n(l,u,Pe,"}","\\}");n(E,u,w,"}","\\}");n(E,u,w,"}","\\textbraceright");n(l,u,Ve,"{","\\lbrace");n(l,u,Pe,"}","\\rbrace");n(l,u,Ve,"[","\\lbrack",!0);n(E,u,w,"[","\\lbrack",!0);n(l,u,Pe,"]","\\rbrack",!0);n(E,u,w,"]","\\rbrack",!0);n(l,u,Ve,"(","\\lparen",!0);n(l,u,Pe,")","\\rparen",!0);n(E,u,w,"<","\\textless",!0);n(E,u,w,">","\\textgreater",!0);n(l,u,Ve,"⌊","\\lfloor",!0);n(l,u,Pe,"⌋","\\rfloor",!0);n(l,u,Ve,"⌈","\\lceil",!0);n(l,u,Pe,"⌉","\\rceil",!0);n(l,u,w,"\\","\\backslash");n(l,u,w,"∣","|");n(l,u,w,"∣","\\vert");n(E,u,w,"|","\\textbar",!0);n(l,u,w,"∥","\\|");n(l,u,w,"∥","\\Vert");n(E,u,w,"∥","\\textbardbl");n(E,u,w,"~","\\textasciitilde");n(E,u,w,"\\","\\textbackslash");n(E,u,w,"^","\\textasciicircum");n(l,u,g,"↑","\\uparrow",!0);n(l,u,g,"⇑","\\Uparrow",!0);n(l,u,g,"↓","\\downarrow",!0);n(l,u,g,"⇓","\\Downarrow",!0);n(l,u,g,"↕","\\updownarrow",!0);n(l,u,g,"⇕","\\Updownarrow",!0);n(l,u,Ee,"∐","\\coprod");n(l,u,Ee,"⋁","\\bigvee");n(l,u,Ee,"⋀","\\bigwedge");n(l,u,Ee,"⨄","\\biguplus");n(l,u,Ee,"⋂","\\bigcap");n(l,u,Ee,"⋃","\\bigcup");n(l,u,Ee,"∫","\\int");n(l,u,Ee,"∫","\\intop");n(l,u,Ee,"∬","\\iint");n(l,u,Ee,"∭","\\iiint");n(l,u,Ee,"∏","\\prod");n(l,u,Ee,"∑","\\sum");n(l,u,Ee,"⨂","\\bigotimes");n(l,u,Ee,"⨁","\\bigoplus");n(l,u,Ee,"⨀","\\bigodot");n(l,u,Ee,"∮","\\oint");n(l,u,Ee,"∯","\\oiint");n(l,u,Ee,"∰","\\oiiint");n(l,u,Ee,"⨆","\\bigsqcup");n(l,u,Ee,"∫","\\smallint");n(E,u,Ot,"…","\\textellipsis");n(l,u,Ot,"…","\\mathellipsis");n(E,u,Ot,"…","\\ldots",!0);n(l,u,Ot,"…","\\ldots",!0);n(l,u,Ot,"⋯","\\@cdots",!0);n(l,u,Ot,"⋱","\\ddots",!0);n(l,u,w,"⋮","\\varvdots");n(E,u,w,"⋮","\\varvdots");n(l,u,xe,"ˊ","\\acute");n(l,u,xe,"ˋ","\\grave");n(l,u,xe,"¨","\\ddot");n(l,u,xe,"~","\\tilde");n(l,u,xe,"ˉ","\\bar");n(l,u,xe,"˘","\\breve");n(l,u,xe,"ˇ","\\check");n(l,u,xe,"^","\\hat");n(l,u,xe,"⃗","\\vec");n(l,u,xe,"˙","\\dot");n(l,u,xe,"˚","\\mathring");n(l,u,ee,"","\\@imath");n(l,u,ee,"","\\@jmath");n(l,u,w,"ı","ı");n(l,u,w,"ȷ","ȷ");n(E,u,w,"ı","\\i",!0);n(E,u,w,"ȷ","\\j",!0);n(E,u,w,"ß","\\ss",!0);n(E,u,w,"æ","\\ae",!0);n(E,u,w,"œ","\\oe",!0);n(E,u,w,"ø","\\o",!0);n(E,u,w,"Æ","\\AE",!0);n(E,u,w,"Œ","\\OE",!0);n(E,u,w,"Ø","\\O",!0);n(E,u,xe,"ˊ","\\'");n(E,u,xe,"ˋ","\\`");n(E,u,xe,"ˆ","\\^");n(E,u,xe,"˜","\\~");n(E,u,xe,"ˉ","\\=");n(E,u,xe,"˘","\\u");n(E,u,xe,"˙","\\.");n(E,u,xe,"¸","\\c");n(E,u,xe,"˚","\\r");n(E,u,xe,"ˇ","\\v");n(E,u,xe,"¨",'\\"');n(E,u,xe,"˝","\\H");n(E,u,xe,"◯","\\textcircled");var si={"--":!0,"---":!0,"``":!0,"''":!0};n(E,u,w,"–","--",!0);n(E,u,w,"–","\\textendash");n(E,u,w,"—","---",!0);n(E,u,w,"—","\\textemdash");n(E,u,w,"‘","`",!0);n(E,u,w,"‘","\\textquoteleft");n(E,u,w,"’","'",!0);n(E,u,w,"’","\\textquoteright");n(E,u,w,"“","``",!0);n(E,u,w,"“","\\textquotedblleft");n(E,u,w,"”","''",!0);n(E,u,w,"”","\\textquotedblright");n(l,u,w,"°","\\degree",!0);n(E,u,w,"°","\\degree");n(E,u,w,"°","\\textdegree",!0);n(l,u,w,"£","\\pounds");n(l,u,w,"£","\\mathsterling",!0);n(E,u,w,"£","\\pounds");n(E,u,w,"£","\\textsterling",!0);n(l,v,w,"✠","\\maltese");n(E,v,w,"✠","\\maltese");var h0='0123456789/@."';for(var Hr=0;Hr<h0.length;Hr++){var f0=h0.charAt(Hr);n(l,u,w,f0,f0)}var v0='0123456789!@*()-=+";:?/.,';for(var Vr=0;Vr<v0.length;Vr++){var g0=v0.charAt(Vr);n(E,u,w,g0,g0)}var vr="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";for(var Gr=0;Gr<vr.length;Gr++){var ir=vr.charAt(Gr);n(l,u,ee,ir,ir),n(E,u,w,ir,ir)}n(l,v,w,"C","ℂ");n(E,v,w,"C","ℂ");n(l,v,w,"H","ℍ");n(E,v,w,"H","ℍ");n(l,v,w,"N","ℕ");n(E,v,w,"N","ℕ");n(l,v,w,"P","ℙ");n(E,v,w,"P","ℙ");n(l,v,w,"Q","ℚ");n(E,v,w,"Q","ℚ");n(l,v,w,"R","ℝ");n(E,v,w,"R","ℝ");n(l,v,w,"Z","ℤ");n(E,v,w,"Z","ℤ");n(l,u,ee,"h","ℎ");n(E,u,ee,"h","ℎ");var re;for(var qe=0;qe<vr.length;qe++){var ze=vr.charAt(qe);re=String.fromCharCode(55349,56320+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),re=String.fromCharCode(55349,56372+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),re=String.fromCharCode(55349,56424+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),re=String.fromCharCode(55349,56580+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),re=String.fromCharCode(55349,56684+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),re=String.fromCharCode(55349,56736+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),re=String.fromCharCode(55349,56788+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),re=String.fromCharCode(55349,56840+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),re=String.fromCharCode(55349,56944+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),qe<26&&(re=String.fromCharCode(55349,56632+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re),re=String.fromCharCode(55349,56476+qe),n(l,u,ee,ze,re),n(E,u,w,ze,re))}re="𝕜";n(l,u,ee,"k",re);n(E,u,w,"k",re);for(var gt=0;gt<10;gt++){var dt=gt.toString();re=String.fromCharCode(55349,57294+gt),n(l,u,ee,dt,re),n(E,u,w,dt,re),re=String.fromCharCode(55349,57314+gt),n(l,u,ee,dt,re),n(E,u,w,dt,re),re=String.fromCharCode(55349,57324+gt),n(l,u,ee,dt,re),n(E,u,w,dt,re),re=String.fromCharCode(55349,57334+gt),n(l,u,ee,dt,re),n(E,u,w,dt,re)}var va="ÐÞþ";for(var Ur=0;Ur<va.length;Ur++){var sr=va.charAt(Ur);n(l,u,ee,sr,sr),n(E,u,w,sr,sr)}var ga={mathClass:"mathbf",textClass:"textbf",font:"Main-Bold"},b0={mathClass:"mathnormal",textClass:"textit",font:"Math-Italic"},y0={mathClass:"boldsymbol",textClass:"boldsymbol",font:"Main-BoldItalic"},an={mathClass:"mathscr",textClass:"textscr",font:"Script-Regular"},yt={mathClass:"",textClass:"",font:""},x0={mathClass:"mathfrak",textClass:"textfrak",font:"Fraktur-Regular"},w0={mathClass:"mathbb",textClass:"textbb",font:"AMS-Regular"},k0={mathClass:"mathboldfrak",textClass:"textboldfrak",font:"Fraktur-Regular"},ba={mathClass:"mathsf",textClass:"textsf",font:"SansSerif-Regular"},ya={mathClass:"mathboldsf",textClass:"textboldsf",font:"SansSerif-Bold"},S0={mathClass:"mathitsf",textClass:"textitsf",font:"SansSerif-Italic"},xa={mathClass:"mathtt",textClass:"texttt",font:"Typewriter-Regular"},M0=[ga,ga,b0,b0,y0,y0,an,yt,yt,yt,x0,x0,w0,w0,k0,k0,ba,ba,ya,ya,S0,S0,yt,yt,xa,xa],sn=[ga,yt,ba,ya,xa],nn=r=>{var e=r.charCodeAt(0),t=r.charCodeAt(1),a=(e-55296)*1024+(t-56320)+65536;if(119808<=a&&a<120484){var i=Math.floor((a-119808)/26);return M0[i]}else if(120782<=a&&a<=120831){var s=Math.floor((a-120782)/10);return sn[s]}else{if(a===120485||a===120486)return M0[0];if(120486<a&&a<120782)return yt;throw new D("Unsupported character: "+r)}},kr=function(e,t,a){if(ye[a][e]){var i=ye[a][e].replace;i&&(e=i)}return{value:e,metrics:Na(e,t,a)}},$e=function(e,t,a,i,s){var o=kr(e,t,a),d=o.metrics;e=o.value;var c;if(d){var m=d.italic;(a==="text"||i&&i.font==="mathit")&&(m=0),c=new He(e,d.height,d.depth,m,d.skew,d.width,s)}else typeof console<"u"&&console.warn("No character metrics "+("for '"+e+"' in style '"+t+"' and mode '"+a+"'")),c=new He(e,0,0,0,0,0,s);if(i){c.maxFontSize=i.sizeMultiplier,i.style.isTight()&&c.classes.push("mtight");var h=i.getColor();h&&(c.style.color=h)}return c},ja=function(e,t,a,i){return i===void 0&&(i=[]),a.font==="boldsymbol"&&kr(e,"Main-Bold",t).metrics?$e(e,"Main-Bold",t,a,i.concat(["mathbf"])):e==="\\"||ye[t][e].font==="main"?$e(e,"Main-Regular",t,a,i):$e(e,"AMS-Regular",t,a,i.concat(["amsrm"]))},on=function(e,t,a){return a!=="textord"&&kr(e,"Math-BoldItalic",t).metrics?{fontName:"Math-BoldItalic",fontClass:"boldsymbol"}:{fontName:"Main-Bold",fontClass:"mathbf"}},Sr=function(e,t,a){var i=e.mode,s=e.text,o=["mord"],{font:d,fontFamily:c,fontWeight:m,fontShape:h}=t,f=i==="math"||i==="text"&&!!d,b=f?d:c,x="",z="";if(s.charCodeAt(0)===55349){var S=nn(s);x=S.font,z=S[i+"Class"]}if(x)return $e(s,x,i,t,o.concat(z));if(b){var M,A;if(b==="boldsymbol"){var T=on(s,i,a);M=T.fontName,A=[T.fontClass]}else f?(M=wa[d].fontName,A=[d]):(M=nr(c,m,h),A=[c,m,h]);if(kr(s,M,i).metrics)return $e(s,M,i,t,o.concat(A));if(si.hasOwnProperty(s)&&M.slice(0,10)==="Typewriter"){for(var F=[],W=0;W<s.length;W++)F.push($e(s[W],M,i,t,o.concat(A)));return ot(F)}}if(a==="mathord")return $e(s,"Math-Italic",i,t,o.concat(["mathnormal"]));if(a==="textord"){var K=ye[i][s]&&ye[i][s].font;if(K==="ams"){var Q=nr("amsrm",m,h);return $e(s,Q,i,t,o.concat("amsrm",m,h))}else if(K==="main"||!K){var X=nr("textrm",m,h);return $e(s,X,i,t,o.concat(m,h))}else{var q=nr(K,m,h);return $e(s,q,i,t,o.concat(q,m,h))}}else throw new Error("unexpected type: "+a+" in makeOrd")},ln=(r,e)=>{if(ut(r.classes)!==ut(e.classes)||r.skew!==e.skew||r.maxFontSize!==e.maxFontSize||r.italic!==0&&r.hasClass("mathnormal"))return!1;if(r.classes.length===1){var t=r.classes[0];if(t==="mbin"||t==="mord")return!1}for(var a of Object.keys(r.style))if(r.style[a]!==e.style[a])return!1;for(var i of Object.keys(e.style))if(r.style[i]!==e.style[i])return!1;return!0},ni=r=>{for(var e=0;e<r.length-1;e++){var t=r[e],a=r[e+1];t instanceof He&&a instanceof He&&ln(t,a)&&(t.text+=a.text,t.height=Math.max(t.height,a.height),t.depth=Math.max(t.depth,a.depth),t.italic=a.italic,r.splice(e+1,1),e--)}return r},Oa=function(e){for(var t=0,a=0,i=0,s=0;s<e.children.length;s++){var o=e.children[s];o.height>t&&(t=o.height),o.depth>a&&(a=o.depth),o.maxFontSize>i&&(i=o.maxFontSize)}e.height=t,e.depth=a,e.maxFontSize=i},I=function(e,t,a,i){var s=new jt(e,t,a,i);return Oa(s),s},pt=(r,e,t,a)=>new jt(r,e,t,a),Pt=function(e,t,a){var i=I([e],[],t);return i.height=Math.max(a||t.fontMetrics().defaultRuleThickness,t.minRuleThickness),i.style.borderBottomWidth=$(i.height),i.maxFontSize=1,i},dn=function(e,t,a,i){var s=new wr(e,t,a,i);return Oa(s),s},ot=function(e){var t=new Nt(e);return Oa(t),t},Ft=function(e,t){return e instanceof Nt?I([],[e],t):e},cn=function(e){if(e.positionType==="individualShift"){for(var t=e.children,a=[t[0]],i=-t[0].shift-t[0].elem.depth,s=i,o=1;o<t.length;o++){var d=-t[o].shift-s-t[o].elem.depth,c=d-(t[o-1].elem.height+t[o-1].elem.depth);s=s+d,a.push({type:"kern",size:c}),a.push(t[o])}return{children:a,depth:i}}var m;if(e.positionType==="top"){for(var h=e.positionData,f=0;f<e.children.length;f++){var b=e.children[f];h-=b.type==="kern"?b.size:b.elem.height+b.elem.depth}m=h}else if(e.positionType==="bottom")m=-e.positionData;else{var x=e.children[0];if(x.type!=="elem")throw new Error('First child must have type "elem".');if(e.positionType==="shift")m=-x.elem.depth-e.positionData;else if(e.positionType==="firstBaseline")m=-x.elem.depth;else throw new Error("Invalid positionType "+e.positionType+".")}return{children:e.children,depth:m}},ue=function(e,t){for(var{children:a,depth:i}=cn(e),s=0,o=0;o<a.length;o++){var d=a[o];if(d.type==="elem"){var c=d.elem;s=Math.max(s,c.maxFontSize,c.height)}}s+=2;var m=I(["pstrut"],[]);m.style.height=$(s);for(var h=[],f=i,b=i,x=i,z=0;z<a.length;z++){var S=a[z];if(S.type==="kern")x+=S.size;else{var M=S.elem,A=S.wrapperClasses||[],T=S.wrapperStyle||{},F=I(A,[m,M],void 0,T);F.style.top=$(-s-x-M.depth),S.marginLeft&&(F.style.marginLeft=S.marginLeft),S.marginRight&&(F.style.marginRight=S.marginRight),h.push(F),x+=M.height+M.depth}f=Math.min(f,x),b=Math.max(b,x)}var W=I(["vlist"],h);W.style.height=$(b);var K;if(f<0){var Q=I([],[]),X=I(["vlist"],[Q]);X.style.height=$(-f);var q=I(["vlist-s"],[new He("​")]);K=[I(["vlist-r"],[W,q]),I(["vlist-r"],[X])]}else K=[I(["vlist-r"],[W])];var O=I(["vlist-t"],K);return K.length===2&&O.classes.push("vlist-t2"),O.height=b,O.depth=-f,O},oi=(r,e)=>{var t=I(["mspace"],[],e),a=Se(r,e);return t.style.marginRight=$(a),t},nr=(r,e,t)=>{var a,i;switch(r){case"amsrm":a="AMS";break;case"textrm":a="Main";break;case"textsf":a="SansSerif";break;case"texttt":a="Typewriter";break;default:a=r}return e==="textbf"&&t==="textit"?i="BoldItalic":e==="textbf"?i="Bold":t==="textit"?i="Italic":i="Regular",a+"-"+i},wa={mathbf:{variant:"bold",fontName:"Main-Bold"},mathrm:{variant:"normal",fontName:"Main-Regular"},textit:{variant:"italic",fontName:"Main-Italic"},mathit:{variant:"italic",fontName:"Main-Italic"},mathnormal:{variant:"italic",fontName:"Math-Italic"},mathsfit:{variant:"sans-serif-italic",fontName:"SansSerif-Italic"},mathbb:{variant:"double-struck",fontName:"AMS-Regular"},mathcal:{variant:"script",fontName:"Caligraphic-Regular"},mathfrak:{variant:"fraktur",fontName:"Fraktur-Regular"},mathscr:{variant:"script",fontName:"Script-Regular"},mathsf:{variant:"sans-serif",fontName:"SansSerif-Regular"},mathtt:{variant:"monospace",fontName:"Typewriter-Regular"}},li={vec:["vec",.471,.714],oiintSize1:["oiintSize1",.957,.499],oiintSize2:["oiintSize2",1.472,.659],oiiintSize1:["oiiintSize1",1.304,.499],oiiintSize2:["oiiintSize2",1.98,.659]},di=function(e,t){var[a,i,s]=li[e],o=new mt(a),d=new it([o],{width:$(i),height:$(s),style:"width:"+$(i),viewBox:"0 0 "+1e3*i+" "+1e3*s,preserveAspectRatio:"xMinYMin"}),c=pt(["overlay"],[d],t);return c.height=s,c.style.height=$(s),c.style.width=$(i),c},ke={number:3,unit:"mu"},bt={number:4,unit:"mu"},tt={number:5,unit:"mu"},un={mord:{mop:ke,mbin:bt,mrel:tt,minner:ke},mop:{mord:ke,mop:ke,mrel:tt,minner:ke},mbin:{mord:bt,mop:bt,mopen:bt,minner:bt},mrel:{mord:tt,mop:tt,mopen:tt,minner:tt},mopen:{},mclose:{mop:ke,mbin:bt,mrel:tt,minner:ke},mpunct:{mord:ke,mop:ke,mrel:tt,mopen:ke,mclose:ke,mpunct:ke,minner:ke},minner:{mord:ke,mop:ke,mbin:bt,mrel:tt,mopen:ke,mpunct:ke,minner:ke}},mn={mord:{mop:ke},mop:{mord:ke,mop:ke},mbin:{},mrel:{},mopen:{},mclose:{mop:ke},mpunct:{},minner:{mop:ke}},ci={},gr={},br={};function H(r){for(var{type:e,names:t,props:a,handler:i,htmlBuilder:s,mathmlBuilder:o}=r,d={type:e,numArgs:a.numArgs,argTypes:a.argTypes,allowedInArgument:!!a.allowedInArgument,allowedInText:!!a.allowedInText,allowedInMath:a.allowedInMath===void 0?!0:a.allowedInMath,numOptionalArgs:a.numOptionalArgs||0,infix:!!a.infix,primitive:!!a.primitive,handler:i},c=0;c<t.length;++c)ci[t[c]]=d;e&&(s&&(gr[e]=s),o&&(br[e]=o))}function It(r){var{type:e,htmlBuilder:t,mathmlBuilder:a}=r;H({type:e,names:[],props:{numArgs:0},handler(){throw new Error("Should never be called.")},htmlBuilder:t,mathmlBuilder:a})}var yr=function(e){return e.type==="ordgroup"&&e.body.length===1?e.body[0]:e},Ae=function(e){return e.type==="ordgroup"?e.body:[e]},pn=new Set(["leftmost","mbin","mopen","mrel","mop","mpunct"]),hn=new Set(["rightmost","mrel","mclose","mpunct"]),fn={display:ie.DISPLAY,text:ie.TEXT,script:ie.SCRIPT,scriptscript:ie.SCRIPTSCRIPT},vn={mord:"mord",mop:"mop",mbin:"mbin",mrel:"mrel",mopen:"mopen",mclose:"mclose",mpunct:"mpunct",minner:"minner"},Ie=function(e,t,a,i){i===void 0&&(i=[null,null]);for(var s=[],o=0;o<e.length;o++){var d=me(e[o],t);if(d instanceof Nt){var c=d.children;s.push(...c)}else s.push(d)}if(ni(s),!a)return s;var m=t;if(e.length===1){var h=e[0];h.type==="sizing"?m=t.havingSize(h.size):h.type==="styling"&&(m=t.havingStyle(fn[h.style]))}var f=I([i[0]||"leftmost"],[],t),b=I([i[1]||"rightmost"],[],t),x=a==="root";return ka(s,(z,S)=>{var M=S.classes[0],A=z.classes[0];M==="mbin"&&hn.has(A)?S.classes[0]="mord":A==="mbin"&&pn.has(M)&&(z.classes[0]="mord")},{node:f},b,x),ka(s,(z,S)=>{var M,A,T=Ma(S),F=Ma(z),W=T&&F?z.hasClass("mtight")?(M=mn[T])==null?void 0:M[F]:(A=un[T])==null?void 0:A[F]:null;if(W)return oi(W,m)},{node:f},b,x),s},ka=function(e,t,a,i,s){i&&e.push(i);for(var o=0;o<e.length;o++){var d=e[o],c=ui(d);if(c){ka(c.children,t,a,null,s);continue}var m=!d.hasClass("mspace");if(m){var h=t(d,a.node);h&&(a.insertAfter?a.insertAfter(h):(e.unshift(h),o++))}m?a.node=d:s&&d.hasClass("newline")&&(a.node=I(["leftmost"])),a.insertAfter=(f=>b=>{e.splice(f+1,0,b),o++})(o)}i&&e.pop()},ui=function(e){return e instanceof Nt||e instanceof wr||e instanceof jt&&e.hasClass("enclosing")?e:null},Sa=function(e,t){var a=ui(e);if(a){var i=a.children;if(i.length){if(t==="right")return Sa(i[i.length-1],"right");if(t==="left")return Sa(i[0],"left")}}return e},Ma=function(e,t){if(!e)return null;t&&(e=Sa(e,t));var a=e.classes[0];return vn[a]||null},Qt=function(e,t){var a=["nulldelimiter"].concat(e.baseSizingClasses());return I(t.concat(a))},me=function(e,t,a){if(!e)return I();if(gr[e.type]){var i=gr[e.type](e,t);if(a&&t.size!==a.size){i=I(t.sizingClasses(a),[i],t);var s=t.sizeMultiplier/a.sizeMultiplier;i.height*=s,i.depth*=s}return i}else throw new D("Got group of unknown type: '"+e.type+"'")};function or(r,e){var t=I(["base"],r,e),a=I(["strut"]);return a.style.height=$(t.height+t.depth),t.depth&&(a.style.verticalAlign=$(-t.depth)),t.children.unshift(a),t}function za(r,e){var t=null;r.length===1&&r[0].type==="tag"&&(t=r[0].tag,r=r[0].body);var a=Ie(r,e,"root"),i;a.length===2&&a[1].hasClass("tag")&&(i=a.pop());for(var s=[],o=[],d=0;d<a.length;d++)if(o.push(a[d]),a[d].hasClass("mbin")||a[d].hasClass("mrel")||a[d].hasClass("allowbreak")){for(var c=!1;d<a.length-1&&a[d+1].hasClass("mspace")&&!a[d+1].hasClass("newline");)d++,o.push(a[d]),a[d].hasClass("nobreak")&&(c=!0);c||(s.push(or(o,e)),o=[])}else a[d].hasClass("newline")&&(o.pop(),o.length>0&&(s.push(or(o,e)),o=[]),s.push(a[d]));o.length>0&&s.push(or(o,e));var m;t?(m=or(Ie(t,e,!0),e),m.classes=["tag"],s.push(m)):i&&s.push(i);var h=I(["katex-html"],s);if(h.setAttribute("aria-hidden","true"),m){var f=m.children[0];f.style.height=$(h.height+h.depth),h.depth&&(f.style.verticalAlign=$(-h.depth))}return h}function mi(r){return new Nt(r)}class B{constructor(e,t,a){this.type=void 0,this.attributes=void 0,this.children=void 0,this.classes=void 0,this.type=e,this.attributes={},this.children=t||[],this.classes=a||[]}setAttribute(e,t){this.attributes[e]=t}getAttribute(e){return this.attributes[e]}toNode(){var e=document.createElementNS("http://www.w3.org/1998/Math/MathML",this.type);for(var t in this.attributes)Object.prototype.hasOwnProperty.call(this.attributes,t)&&e.setAttribute(t,this.attributes[t]);this.classes.length>0&&(e.className=ut(this.classes));for(var a=0;a<this.children.length;a++)if(this.children[a]instanceof Ce&&this.children[a+1]instanceof Ce){for(var i=this.children[a].toText()+this.children[++a].toText();this.children[a+1]instanceof Ce;)i+=this.children[++a].toText();e.appendChild(new Ce(i).toNode())}else e.appendChild(this.children[a].toNode());return e}toMarkup(){var e="<"+this.type;for(var t in this.attributes)Object.prototype.hasOwnProperty.call(this.attributes,t)&&(e+=" "+t+'="',e+=Be(this.attributes[t]),e+='"');this.classes.length>0&&(e+=' class ="'+Be(ut(this.classes))+'"'),e+=">";for(var a=0;a<this.children.length;a++)e+=this.children[a].toMarkup();return e+="</"+this.type+">",e}toText(){return this.children.map(e=>e.toText()).join("")}}class Ce{constructor(e){this.text=void 0,this.text=e}toNode(){return document.createTextNode(this.text)}toMarkup(){return Be(this.toText())}toText(){return this.text}}class pi{constructor(e){this.width=void 0,this.character=void 0,this.width=e,e>=.05555&&e<=.05556?this.character=" ":e>=.1666&&e<=.1667?this.character=" ":e>=.2222&&e<=.2223?this.character=" ":e>=.2777&&e<=.2778?this.character="  ":e>=-.05556&&e<=-.05555?this.character=" ⁣":e>=-.1667&&e<=-.1666?this.character=" ⁣":e>=-.2223&&e<=-.2222?this.character=" ⁣":e>=-.2778&&e<=-.2777?this.character=" ⁣":this.character=null}toNode(){if(this.character)return document.createTextNode(this.character);var e=document.createElementNS("http://www.w3.org/1998/Math/MathML","mspace");return e.setAttribute("width",$(this.width)),e}toMarkup(){return this.character?"<mtext>"+this.character+"</mtext>":'<mspace width="'+$(this.width)+'"/>'}toText(){return this.character?this.character:" "}}var gn=new Set(["\\imath","\\jmath"]),bn=new Set(["mrow","mtable"]),Xe=function(e,t,a){return ye[t][e]&&ye[t][e].replace&&e.charCodeAt(0)!==55349&&!(si.hasOwnProperty(e)&&a&&(a.fontFamily&&a.fontFamily.slice(4,6)==="tt"||a.font&&a.font.slice(4,6)==="tt"))&&(e=ye[t][e].replace),new Ce(e)},Ha=function(e){return e.length===1?e[0]:new B("mrow",e)},yn={mathit:"italic",boldsymbol:r=>r.type==="textord"?"bold":"bold-italic",mathbf:"bold",mathbb:"double-struck",mathsfit:"sans-serif-italic",mathfrak:"fraktur",mathscr:"script",mathcal:"script",mathsf:"sans-serif",mathtt:"monospace"},Va=(r,e)=>{if(r.mode==="text"){if(e.fontFamily==="texttt")return"monospace";if(e.fontFamily==="textsf")return e.fontShape==="textit"&&e.fontWeight==="textbf"?"sans-serif-bold-italic":e.fontShape==="textit"?"sans-serif-italic":e.fontWeight==="textbf"?"bold-sans-serif":"sans-serif";if(e.fontShape==="textit"&&e.fontWeight==="textbf")return"bold-italic";if(e.fontShape==="textit")return"italic";if(e.fontWeight==="textbf")return"bold"}var t=e.font;if(!t||t==="mathnormal")return null;var a=r.mode,i=yn[t];if(i)return typeof i=="function"?i(r):i;var s=r.text;if(gn.has(s))return null;if(ye[a][s]){var o=ye[a][s].replace;o&&(s=o)}var d=wa[t].fontName;return Na(s,d,a)?wa[t].variant:null};function Wr(r){if(!r)return!1;if(r.type==="mi"&&r.children.length===1){var e=r.children[0];return e instanceof Ce&&e.text==="."}else if(r.type==="mo"&&r.children.length===1&&r.getAttribute("separator")==="true"&&r.getAttribute("lspace")==="0em"&&r.getAttribute("rspace")==="0em"){var t=r.children[0];return t instanceof Ce&&t.text===","}else return!1}var Ge=function(e,t,a){if(e.length===1){var i=ve(e[0],t);return a&&i instanceof B&&i.type==="mo"&&(i.setAttribute("lspace","0em"),i.setAttribute("rspace","0em")),[i]}for(var s=[],o,d=0;d<e.length;d++){var c=ve(e[d],t);if(c instanceof B&&o instanceof B){if(c.type==="mtext"&&o.type==="mtext"&&c.getAttribute("mathvariant")===o.getAttribute("mathvariant")){o.children.push(...c.children);continue}else if(c.type==="mn"&&o.type==="mn"){o.children.push(...c.children);continue}else if(Wr(c)&&o.type==="mn"){o.children.push(...c.children);continue}else if(c.type==="mn"&&Wr(o))c.children=[...o.children,...c.children],s.pop();else if((c.type==="msup"||c.type==="msub")&&c.children.length>=1&&(o.type==="mn"||Wr(o))){var m=c.children[0];m instanceof B&&m.type==="mn"&&(m.children=[...o.children,...m.children],s.pop())}else if(o.type==="mi"&&o.children.length===1){var h=o.children[0];if(h instanceof Ce&&h.text==="̸"&&(c.type==="mo"||c.type==="mi"||c.type==="mn")){var f=c.children[0];f instanceof Ce&&f.text.length>0&&(f.text=f.text.slice(0,1)+"̸"+f.text.slice(1),s.pop())}}}s.push(c),o=c}return s},ht=function(e,t,a){return Ha(Ge(e,t,a))},ve=function(e,t){if(!e)return new B("mrow");if(br[e.type])return br[e.type](e,t);throw new D("Got group of unknown type: '"+e.type+"'")};function z0(r,e,t,a,i){var s=Ge(r,t),o;s.length===1&&s[0]instanceof B&&bn.has(s[0].type)?o=s[0]:o=new B("mrow",s);var d=new B("annotation",[new Ce(e)]);d.setAttribute("encoding","application/x-tex");var c=new B("semantics",[o,d]),m=new B("math",[c]);m.setAttribute("xmlns","http://www.w3.org/1998/Math/MathML"),a&&m.setAttribute("display","block");var h=i?"katex":"katex-mathml";return I([h],[m])}var xn=[[1,1,1],[2,1,1],[3,1,1],[4,2,1],[5,2,1],[6,3,1],[7,4,2],[8,6,3],[9,7,6],[10,8,7],[11,10,9]],A0=[.5,.6,.7,.8,.9,1,1.2,1.44,1.728,2.074,2.488],C0=function(e,t){return t.size<2?e:xn[e-1][t.size-1]};class rt{constructor(e){this.style=void 0,this.color=void 0,this.size=void 0,this.textSize=void 0,this.phantom=void 0,this.font=void 0,this.fontFamily=void 0,this.fontWeight=void 0,this.fontShape=void 0,this.sizeMultiplier=void 0,this.maxSize=void 0,this.minRuleThickness=void 0,this._fontMetrics=void 0,this.style=e.style,this.color=e.color,this.size=e.size||rt.BASESIZE,this.textSize=e.textSize||this.size,this.phantom=!!e.phantom,this.font=e.font||"",this.fontFamily=e.fontFamily||"",this.fontWeight=e.fontWeight||"",this.fontShape=e.fontShape||"",this.sizeMultiplier=A0[this.size-1],this.maxSize=e.maxSize,this.minRuleThickness=e.minRuleThickness,this._fontMetrics=void 0}extend(e){var t={style:this.style,size:this.size,textSize:this.textSize,color:this.color,phantom:this.phantom,font:this.font,fontFamily:this.fontFamily,fontWeight:this.fontWeight,fontShape:this.fontShape,maxSize:this.maxSize,minRuleThickness:this.minRuleThickness};return Object.assign(t,e),new rt(t)}havingStyle(e){return this.style===e?this:this.extend({style:e,size:C0(this.textSize,e)})}havingCrampedStyle(){return this.havingStyle(this.style.cramp())}havingSize(e){return this.size===e&&this.textSize===e?this:this.extend({style:this.style.text(),size:e,textSize:e,sizeMultiplier:A0[e-1]})}havingBaseStyle(e){e=e||this.style.text();var t=C0(rt.BASESIZE,e);return this.size===t&&this.textSize===rt.BASESIZE&&this.style===e?this:this.extend({style:e,size:t})}havingBaseSizing(){var e;switch(this.style.id){case 4:case 5:e=3;break;case 6:case 7:e=1;break;default:e=6}return this.extend({style:this.style.text(),size:e})}withColor(e){return this.extend({color:e})}withPhantom(){return this.extend({phantom:!0})}withFont(e){return this.extend({font:e})}withTextFontFamily(e){return this.extend({fontFamily:e,font:""})}withTextFontWeight(e){return this.extend({fontWeight:e,font:""})}withTextFontShape(e){return this.extend({fontShape:e,font:""})}sizingClasses(e){return e.size!==this.size?["sizing","reset-size"+e.size,"size"+this.size]:[]}baseSizingClasses(){return this.size!==rt.BASESIZE?["sizing","reset-size"+this.size,"size"+rt.BASESIZE]:[]}fontMetrics(){return this._fontMetrics||(this._fontMetrics=rn(this.size)),this._fontMetrics}getColor(){return this.phantom?"transparent":this.color}}rt.BASESIZE=6;var hi=function(e){return new rt({style:e.displayMode?ie.DISPLAY:ie.TEXT,maxSize:e.maxSize,minRuleThickness:e.minRuleThickness})},fi=function(e,t){if(t.displayMode){var a=["katex-display"];t.leqno&&a.push("leqno"),t.fleqn&&a.push("fleqn"),e=I(a,[e])}return e},wn=function(e,t,a){var i=hi(a),s;if(a.output==="mathml")return z0(e,t,i,a.displayMode,!0);if(a.output==="html"){var o=za(e,i);s=I(["katex"],[o])}else{var d=z0(e,t,i,a.displayMode,!1),c=za(e,i);s=I(["katex"],[d,c])}return fi(s,a)},kn=function(e,t,a){var i=hi(a),s=za(e,i),o=I(["katex"],[s]);return fi(o,a)},Sn={widehat:"^",widecheck:"ˇ",widetilde:"~",utilde:"~",overleftarrow:"←",underleftarrow:"←",xleftarrow:"←",overrightarrow:"→",underrightarrow:"→",xrightarrow:"→",underbrace:"⏟",overbrace:"⏞",underbracket:"⎵",overbracket:"⎴",overgroup:"⏠",undergroup:"⏡",overleftrightarrow:"↔",underleftrightarrow:"↔",xleftrightarrow:"↔",Overrightarrow:"⇒",xRightarrow:"⇒",overleftharpoon:"↼",xleftharpoonup:"↼",overrightharpoon:"⇀",xrightharpoonup:"⇀",xLeftarrow:"⇐",xLeftrightarrow:"⇔",xhookleftarrow:"↩",xhookrightarrow:"↪",xmapsto:"↦",xrightharpoondown:"⇁",xleftharpoondown:"↽",xrightleftharpoons:"⇌",xleftrightharpoons:"⇋",xtwoheadleftarrow:"↞",xtwoheadrightarrow:"↠",xlongequal:"=",xtofrom:"⇄",xrightleftarrows:"⇄",xrightequilibrium:"⇌",xleftequilibrium:"⇋","\\cdrightarrow":"→","\\cdleftarrow":"←","\\cdlongequal":"="},Mr=function(e){var t=new B("mo",[new Ce(Sn[e.replace(/^\\/,"")])]);return t.setAttribute("stretchy","true"),t},Mn={overrightarrow:[["rightarrow"],.888,522,"xMaxYMin"],overleftarrow:[["leftarrow"],.888,522,"xMinYMin"],underrightarrow:[["rightarrow"],.888,522,"xMaxYMin"],underleftarrow:[["leftarrow"],.888,522,"xMinYMin"],xrightarrow:[["rightarrow"],1.469,522,"xMaxYMin"],"\\cdrightarrow":[["rightarrow"],3,522,"xMaxYMin"],xleftarrow:[["leftarrow"],1.469,522,"xMinYMin"],"\\cdleftarrow":[["leftarrow"],3,522,"xMinYMin"],Overrightarrow:[["doublerightarrow"],.888,560,"xMaxYMin"],xRightarrow:[["doublerightarrow"],1.526,560,"xMaxYMin"],xLeftarrow:[["doubleleftarrow"],1.526,560,"xMinYMin"],overleftharpoon:[["leftharpoon"],.888,522,"xMinYMin"],xleftharpoonup:[["leftharpoon"],.888,522,"xMinYMin"],xleftharpoondown:[["leftharpoondown"],.888,522,"xMinYMin"],overrightharpoon:[["rightharpoon"],.888,522,"xMaxYMin"],xrightharpoonup:[["rightharpoon"],.888,522,"xMaxYMin"],xrightharpoondown:[["rightharpoondown"],.888,522,"xMaxYMin"],xlongequal:[["longequal"],.888,334,"xMinYMin"],"\\cdlongequal":[["longequal"],3,334,"xMinYMin"],xtwoheadleftarrow:[["twoheadleftarrow"],.888,334,"xMinYMin"],xtwoheadrightarrow:[["twoheadrightarrow"],.888,334,"xMaxYMin"],overleftrightarrow:[["leftarrow","rightarrow"],.888,522],overbrace:[["leftbrace","midbrace","rightbrace"],1.6,548],underbrace:[["leftbraceunder","midbraceunder","rightbraceunder"],1.6,548],underleftrightarrow:[["leftarrow","rightarrow"],.888,522],xleftrightarrow:[["leftarrow","rightarrow"],1.75,522],xLeftrightarrow:[["doubleleftarrow","doublerightarrow"],1.75,560],xrightleftharpoons:[["leftharpoondownplus","rightharpoonplus"],1.75,716],xleftrightharpoons:[["leftharpoonplus","rightharpoondownplus"],1.75,716],xhookleftarrow:[["leftarrow","righthook"],1.08,522],xhookrightarrow:[["lefthook","rightarrow"],1.08,522],overlinesegment:[["leftlinesegment","rightlinesegment"],.888,522],underlinesegment:[["leftlinesegment","rightlinesegment"],.888,522],overbracket:[["leftbracketover","rightbracketover"],1.6,440],underbracket:[["leftbracketunder","rightbracketunder"],1.6,410],overgroup:[["leftgroup","rightgroup"],.888,342],undergroup:[["leftgroupunder","rightgroupunder"],.888,342],xmapsto:[["leftmapsto","rightarrow"],1.5,522],xtofrom:[["leftToFrom","rightToFrom"],1.75,528],xrightleftarrows:[["baraboveleftarrow","rightarrowabovebar"],1.75,901],xrightequilibrium:[["baraboveshortleftharpoon","rightharpoonaboveshortbar"],1.75,716],xleftequilibrium:[["shortbaraboveleftharpoon","shortrightharpoonabovebar"],1.75,716]},zn=new Set(["widehat","widecheck","widetilde","utilde"]),zr=function(e,t){function a(){var d=4e5,c=e.label.slice(1);if(zn.has(c)&&"base"in e){var m=e.base.type==="ordgroup"?e.base.body.length:1,h,f,b;if(m>5)c==="widehat"||c==="widecheck"?(h=420,d=2364,b=.42,f=c+"4"):(h=312,d=2340,b=.34,f="tilde4");else{var x=[1,1,2,2,3,3][m];c==="widehat"||c==="widecheck"?(d=[0,1062,2364,2364,2364][x],h=[0,239,300,360,420][x],b=[0,.24,.3,.3,.36,.42][x],f=c+x):(d=[0,600,1033,2339,2340][x],h=[0,260,286,306,312][x],b=[0,.26,.286,.3,.306,.34][x],f="tilde"+x)}var z=new mt(f),S=new it([z],{width:"100%",height:$(b),viewBox:"0 0 "+d+" "+h,preserveAspectRatio:"none"});return{span:pt([],[S],t),minWidth:0,height:b}}else{var M=[],A=Mn[c];if(!A)throw new Error('No SVG data for "'+c+'".');var[T,F,W]=A,K=W/1e3,Q=T.length,X,q;if(Q===1){if(A.length!==4)throw new Error('Expected 4-tuple for single-path SVG data "'+c+'".');X=["hide-tail"],q=[A[3]]}else if(Q===2)X=["halfarrow-left","halfarrow-right"],q=["xMinYMin","xMaxYMin"];else if(Q===3)X=["brace-left","brace-center","brace-right"],q=["xMinYMin","xMidYMin","xMaxYMin"];else throw new Error(`Correct katexImagesData or update code here to support
+                    `+Q+" children.");for(var O=0;O<Q;O++){var ae=new mt(T[O]),_=new it([ae],{width:"400em",height:$(K),viewBox:"0 0 "+d+" "+W,preserveAspectRatio:q[O]+" slice"}),J=pt([X[O]],[_],t);if(Q===1)return{span:J,minWidth:F,height:K};J.style.height=$(K),M.push(J)}return{span:I(["stretchy"],M,t),minWidth:F,height:K}}}var{span:i,minWidth:s,height:o}=a();return i.height=o,i.style.height=$(o),s>0&&(i.style.minWidth=$(s)),i},An=function(e,t,a,i,s){var o,d=e.height+e.depth+a+i;if(/fbox|color|angl/.test(t)){if(o=I(["stretchy",t],[],s),t==="fbox"){var c=s.color&&s.getColor();c&&(o.style.borderColor=c)}}else{var m=[];/^[bx]cancel$/.test(t)&&m.push(new fa({x1:"0",y1:"0",x2:"100%",y2:"100%","stroke-width":"0.046em"})),/^x?cancel$/.test(t)&&m.push(new fa({x1:"0",y1:"100%",x2:"100%",y2:"0","stroke-width":"0.046em"}));var h=new it(m,{width:"100%",height:$(d)});o=pt([],[h],s)}return o.height=d,o.style.height=$(d),o},Cn={bin:1,close:1,inner:1,open:1,punct:1,rel:1},En={"accent-token":1,mathord:1,"op-token":1,spacing:1,textord:1};function Tn(r){return r in Cn}function ne(r,e){if(!r||r.type!==e)throw new Error("Expected node of type "+e+", but got "+(r?"node of type "+r.type:String(r)));return r}function Ar(r){var e=Cr(r);if(!e)throw new Error("Expected node of symbol group type, but got "+(r?"node of type "+r.type:String(r)));return e}function Cr(r){return r&&(r.type==="atom"||En.hasOwnProperty(r.type))?r:null}var vi=r=>{if(r instanceof He)return r;if(en(r)&&r.children.length===1)return vi(r.children[0])},Ga=(r,e)=>{var t,a,i;r&&r.type==="supsub"?(a=ne(r.base,"accent"),t=a.base,r.base=t,i=_s(me(r,e)),r.base=a):(a=ne(r,"accent"),t=a.base);var s=me(t,e.havingCrampedStyle()),o=a.isShifty&&st(t),d=0;if(o){var c,m;d=(c=(m=vi(s))==null?void 0:m.skew)!=null?c:0}var h=a.label==="\\c",f=h?s.height+s.depth:Math.min(s.height,e.fontMetrics().xHeight),b;if(a.isStretchy)b=zr(a,e),b=ue({positionType:"firstBaseline",children:[{type:"elem",elem:s},{type:"elem",elem:b,wrapperClasses:["svg-align"],wrapperStyle:d>0?{width:"calc(100% - "+$(2*d)+")",marginLeft:$(2*d)}:void 0}]});else{var x,z;a.label==="\\vec"?(x=di("vec",e),z=li.vec[1]):(x=Sr({mode:a.mode,text:a.label},e,"textord"),x=Qs(x),x.italic=0,z=x.width,h&&(f+=x.depth)),b=I(["accent-body"],[x]);var S=a.label==="\\textcircled";S&&(b.classes.push("accent-full"),f=s.height);var M=d;S||(M-=z/2),b.style.left=$(M),a.label==="\\textcircled"&&(b.style.top=".2em"),b=ue({positionType:"firstBaseline",children:[{type:"elem",elem:s},{type:"kern",size:-f},{type:"elem",elem:b}]})}var A=I(["mord","accent"],[b],e);return i?(i.children[0]=A,i.height=Math.max(A.height,i.height),i.classes[0]="mord",i):A},gi=(r,e)=>{var t=r.isStretchy?Mr(r.label):new B("mo",[Xe(r.label,r.mode)]),a=new B("mover",[ve(r.base,e),t]);return a.setAttribute("accent","true"),a},In=new RegExp(["\\acute","\\grave","\\ddot","\\tilde","\\bar","\\breve","\\check","\\hat","\\vec","\\dot","\\mathring"].map(r=>"\\"+r).join("|"));H({type:"accent",names:["\\acute","\\grave","\\ddot","\\tilde","\\bar","\\breve","\\check","\\hat","\\vec","\\dot","\\mathring","\\widecheck","\\widehat","\\widetilde","\\overrightarrow","\\overleftarrow","\\Overrightarrow","\\overleftrightarrow","\\overgroup","\\overlinesegment","\\overleftharpoon","\\overrightharpoon"],props:{numArgs:1},handler:(r,e)=>{var t=yr(e[0]),a=!In.test(r.funcName),i=!a||r.funcName==="\\widehat"||r.funcName==="\\widetilde"||r.funcName==="\\widecheck";return{type:"accent",mode:r.parser.mode,label:r.funcName,isStretchy:a,isShifty:i,base:t}},htmlBuilder:Ga,mathmlBuilder:gi});H({type:"accent",names:["\\'","\\`","\\^","\\~","\\=","\\u","\\.",'\\"',"\\c","\\r","\\H","\\v","\\textcircled"],props:{numArgs:1,allowedInText:!0,allowedInMath:!0,argTypes:["primitive"]},handler:(r,e)=>{var t=e[0],a=r.parser.mode;return a==="math"&&(r.parser.settings.reportNonstrict("mathVsTextAccents","LaTeX's accent "+r.funcName+" works only in text mode"),a="text"),{type:"accent",mode:a,label:r.funcName,isStretchy:!1,isShifty:!0,base:t}},htmlBuilder:Ga,mathmlBuilder:gi});H({type:"accentUnder",names:["\\underleftarrow","\\underrightarrow","\\underleftrightarrow","\\undergroup","\\underlinesegment","\\utilde"],props:{numArgs:1},handler:(r,e)=>{var{parser:t,funcName:a}=r,i=e[0];return{type:"accentUnder",mode:t.mode,label:a,base:i}},htmlBuilder:(r,e)=>{var t=me(r.base,e),a=zr(r,e),i=r.label==="\\utilde"?.12:0,s=ue({positionType:"top",positionData:t.height,children:[{type:"elem",elem:a,wrapperClasses:["svg-align"]},{type:"kern",size:i},{type:"elem",elem:t}]});return I(["mord","accentunder"],[s],e)},mathmlBuilder:(r,e)=>{var t=Mr(r.label),a=new B("munder",[ve(r.base,e),t]);return a.setAttribute("accentunder","true"),a}});var lr=r=>{var e=new B("mpadded",r?[r]:[]);return e.setAttribute("width","+0.6em"),e.setAttribute("lspace","0.3em"),e};H({type:"xArrow",names:["\\xleftarrow","\\xrightarrow","\\xLeftarrow","\\xRightarrow","\\xleftrightarrow","\\xLeftrightarrow","\\xhookleftarrow","\\xhookrightarrow","\\xmapsto","\\xrightharpoondown","\\xrightharpoonup","\\xleftharpoondown","\\xleftharpoonup","\\xrightleftharpoons","\\xleftrightharpoons","\\xlongequal","\\xtwoheadrightarrow","\\xtwoheadleftarrow","\\xtofrom","\\xrightleftarrows","\\xrightequilibrium","\\xleftequilibrium","\\\\cdrightarrow","\\\\cdleftarrow","\\\\cdlongequal"],props:{numArgs:1,numOptionalArgs:1},handler(r,e,t){var{parser:a,funcName:i}=r;return{type:"xArrow",mode:a.mode,label:i,body:e[0],below:t[0]}},htmlBuilder(r,e){var t=e.style,a=e.havingStyle(t.sup()),i=Ft(me(r.body,a,e),e),s=r.label.slice(0,2)==="\\x"?"x":"cd";i.classes.push(s+"-arrow-pad");var o;r.below&&(a=e.havingStyle(t.sub()),o=Ft(me(r.below,a,e),e),o.classes.push(s+"-arrow-pad"));var d=zr(r,e),c=-e.fontMetrics().axisHeight+.5*d.height,m=-e.fontMetrics().axisHeight-.5*d.height-.111;(i.depth>.25||r.label==="\\xleftequilibrium")&&(m-=i.depth);var h;if(o){var f=-e.fontMetrics().axisHeight+o.height+.5*d.height+.111;h=ue({positionType:"individualShift",children:[{type:"elem",elem:i,shift:m},{type:"elem",elem:d,shift:c,wrapperClasses:["svg-align"]},{type:"elem",elem:o,shift:f}]})}else h=ue({positionType:"individualShift",children:[{type:"elem",elem:i,shift:m},{type:"elem",elem:d,shift:c,wrapperClasses:["svg-align"]}]});return I(["mrel","x-arrow"],[h],e)},mathmlBuilder(r,e){var t=Mr(r.label);t.setAttribute("minsize",r.label.charAt(0)==="x"?"1.75em":"3.0em");var a;if(r.body){var i=lr(ve(r.body,e));if(r.below){var s=lr(ve(r.below,e));a=new B("munderover",[t,s,i])}else a=new B("mover",[t,i])}else if(r.below){var o=lr(ve(r.below,e));a=new B("munder",[t,o])}else a=lr(),a=new B("mover",[t,a]);return a}});function bi(r,e){var t=Ie(r.body,e,!0);return I([r.mclass],t,e)}function yi(r,e){var t,a=Ge(r.body,e);return r.mclass==="minner"?t=new B("mpadded",a):r.mclass==="mord"?r.isCharacterBox?(t=a[0],t.type="mi"):t=new B("mi",a):(r.isCharacterBox?(t=a[0],t.type="mo"):t=new B("mo",a),r.mclass==="mbin"?(t.attributes.lspace="0.22em",t.attributes.rspace="0.22em"):r.mclass==="mpunct"?(t.attributes.lspace="0em",t.attributes.rspace="0.17em"):r.mclass==="mopen"||r.mclass==="mclose"?(t.attributes.lspace="0em",t.attributes.rspace="0em"):r.mclass==="minner"&&(t.attributes.lspace="0.0556em",t.attributes.width="+0.1111em")),t}H({type:"mclass",names:["\\mathord","\\mathbin","\\mathrel","\\mathopen","\\mathclose","\\mathpunct","\\mathinner"],props:{numArgs:1,primitive:!0},handler(r,e){var{parser:t,funcName:a}=r,i=e[0];return{type:"mclass",mode:t.mode,mclass:"m"+a.slice(5),body:Ae(i),isCharacterBox:st(i)}},htmlBuilder:bi,mathmlBuilder:yi});var Er=r=>{var e=r.type==="ordgroup"&&r.body.length?r.body[0]:r;return e.type==="atom"&&(e.family==="bin"||e.family==="rel")?"m"+e.family:"mord"};H({type:"mclass",names:["\\@binrel"],props:{numArgs:2},handler(r,e){var{parser:t}=r;return{type:"mclass",mode:t.mode,mclass:Er(e[0]),body:Ae(e[1]),isCharacterBox:st(e[1])}}});H({type:"mclass",names:["\\stackrel","\\overset","\\underset"],props:{numArgs:2},handler(r,e){var{parser:t,funcName:a}=r,i=e[1],s=e[0],o;a!=="\\stackrel"?o=Er(i):o="mrel";var d={type:"op",mode:i.mode,limits:!0,alwaysHandleSupSub:!0,parentIsSupSub:!1,symbol:!1,suppressBaseShift:a!=="\\stackrel",body:Ae(i)},c={type:"supsub",mode:s.mode,base:d,sup:a==="\\underset"?null:s,sub:a==="\\underset"?s:null};return{type:"mclass",mode:t.mode,mclass:o,body:[c],isCharacterBox:st(c)}},htmlBuilder:bi,mathmlBuilder:yi});H({type:"pmb",names:["\\pmb"],props:{numArgs:1,allowedInText:!0},handler(r,e){var{parser:t}=r;return{type:"pmb",mode:t.mode,mclass:Er(e[0]),body:Ae(e[0])}},htmlBuilder(r,e){var t=Ie(r.body,e,!0),a=I([r.mclass],t,e);return a.style.textShadow="0.02em 0.01em 0.04px",a},mathmlBuilder(r,e){var t=Ge(r.body,e),a=new B("mstyle",t);return a.setAttribute("style","text-shadow: 0.02em 0.01em 0.04px"),a}});var Dn={">":"\\\\cdrightarrow","<":"\\\\cdleftarrow","=":"\\\\cdlongequal",A:"\\uparrow",V:"\\downarrow","|":"\\Vert",".":"no arrow"},E0=()=>({type:"styling",body:[],mode:"math",style:"display",resetFont:!0}),T0=r=>r.type==="textord"&&r.text==="@",Bn=(r,e)=>(r.type==="mathord"||r.type==="atom")&&r.text===e;function Ln(r,e,t){var a=Dn[r];switch(a){case"\\\\cdrightarrow":case"\\\\cdleftarrow":return t.callFunction(a,[e[0]],[e[1]]);case"\\uparrow":case"\\downarrow":{var i=t.callFunction("\\\\cdleft",[e[0]],[]),s={type:"atom",text:a,mode:"math",family:"rel"},o=t.callFunction("\\Big",[s],[]),d=t.callFunction("\\\\cdright",[e[1]],[]),c={type:"ordgroup",mode:"math",body:[i,o,d]};return t.callFunction("\\\\cdparent",[c],[])}case"\\\\cdlongequal":return t.callFunction("\\\\cdlongequal",[],[]);case"\\Vert":{var m={type:"textord",text:"\\Vert",mode:"math"};return t.callFunction("\\Big",[m],[])}default:return{type:"textord",text:" ",mode:"math"}}}function qn(r){var e=[];for(r.gullet.beginGroup(),r.gullet.macros.set("\\cr","\\\\\\relax"),r.gullet.beginGroup();;){e.push(r.parseExpression(!1,"\\\\")),r.gullet.endGroup(),r.gullet.beginGroup();var t=r.fetch().text;if(t==="&"||t==="\\\\")r.consume();else if(t==="\\end"){e[e.length-1].length===0&&e.pop();break}else throw new D("Expected \\\\ or \\cr or \\end",r.nextToken)}for(var a=[],i=[a],s=0;s<e.length;s++){for(var o=e[s],d=E0(),c=0;c<o.length;c++)if(!T0(o[c]))d.body.push(o[c]);else{a.push(d),c+=1;var m=Ar(o[c]).text,h=new Array(2);if(h[0]={type:"ordgroup",mode:"math",body:[]},h[1]={type:"ordgroup",mode:"math",body:[]},!"=|.".includes(m))if("<>AV".includes(m))for(var f=0;f<2;f++){for(var b=!0,x=c+1;x<o.length;x++){if(Bn(o[x],m)){b=!1,c=x;break}if(T0(o[x]))throw new D("Missing a "+m+" character to complete a CD arrow.",o[x]);h[f].body.push(o[x])}if(b)throw new D("Missing a "+m+" character to complete a CD arrow.",o[c])}else throw new D('Expected one of "<>AV=|." after @',o[c]);var z=Ln(m,h,r),S={type:"styling",body:[z],mode:"math",style:"display",resetFont:!0};a.push(S),d=E0()}s%2===0?a.push(d):a.shift(),a=[],i.push(a)}r.gullet.endGroup(),r.gullet.endGroup();var M=new Array(i[0].length).fill({type:"align",align:"c",pregap:.25,postgap:.25});return{type:"array",mode:"math",body:i,arraystretch:1,addJot:!0,rowGaps:[null],cols:M,colSeparationType:"CD",hLinesBeforeRow:new Array(i.length+1).fill([])}}H({type:"cdlabel",names:["\\\\cdleft","\\\\cdright"],props:{numArgs:1},handler(r,e){var{parser:t,funcName:a}=r;return{type:"cdlabel",mode:t.mode,side:a.slice(4),label:e[0]}},htmlBuilder(r,e){var t=e.havingStyle(e.style.sup()),a=Ft(me(r.label,t,e),e);return a.classes.push("cd-label-"+r.side),a.style.bottom=$(.8-a.depth),a.height=0,a.depth=0,a},mathmlBuilder(r,e){var t=new B("mrow",[ve(r.label,e)]);return t=new B("mpadded",[t]),t.setAttribute("width","0"),r.side==="left"&&t.setAttribute("lspace","-1width"),t.setAttribute("voffset","0.7em"),t=new B("mstyle",[t]),t.setAttribute("displaystyle","false"),t.setAttribute("scriptlevel","1"),t}});H({type:"cdlabelparent",names:["\\\\cdparent"],props:{numArgs:1},handler(r,e){var{parser:t}=r;return{type:"cdlabelparent",mode:t.mode,fragment:e[0]}},htmlBuilder(r,e){var t=Ft(me(r.fragment,e),e);return t.classes.push("cd-vert-arrow"),t},mathmlBuilder(r,e){return new B("mrow",[ve(r.fragment,e)])}});H({type:"textord",names:["\\@char"],props:{numArgs:1,allowedInText:!0},handler(r,e){for(var{parser:t}=r,a=ne(e[0],"ordgroup"),i=a.body,s="",o=0;o<i.length;o++){var d=ne(i[o],"textord");s+=d.text}var c=parseInt(s),m;if(isNaN(c))throw new D("\\@char has non-numeric argument "+s);if(c<0||c>=1114111)throw new D("\\@char with invalid code point "+s);return c<=65535?m=String.fromCharCode(c):(c-=65536,m=String.fromCharCode((c>>10)+55296,(c&1023)+56320)),{type:"textord",mode:t.mode,text:m}}});var xi=(r,e)=>{var t=Ie(r.body,e.withColor(r.color),!1);return ot(t)},wi=(r,e)=>{var t=Ge(r.body,e.withColor(r.color)),a=new B("mstyle",t);return a.setAttribute("mathcolor",r.color),a};H({type:"color",names:["\\textcolor"],props:{numArgs:2,allowedInText:!0,argTypes:["color","original"]},handler(r,e){var{parser:t}=r,a=ne(e[0],"color-token").color,i=e[1];return{type:"color",mode:t.mode,color:a,body:Ae(i)}},htmlBuilder:xi,mathmlBuilder:wi});H({type:"color",names:["\\color"],props:{numArgs:1,allowedInText:!0,argTypes:["color"]},handler(r,e){var{parser:t,breakOnTokenText:a}=r,i=ne(e[0],"color-token").color;t.gullet.macros.set("\\current@color",i);var s=t.parseExpression(!0,a);return{type:"color",mode:t.mode,color:i,body:s}},htmlBuilder:xi,mathmlBuilder:wi});H({type:"cr",names:["\\\\"],props:{numArgs:0,numOptionalArgs:0,allowedInText:!0},handler(r,e,t){var{parser:a}=r,i=a.gullet.future().text==="["?a.parseSizeGroup(!0):null,s=!a.settings.displayMode||!a.settings.useStrictBehavior("newLineInDisplayMode","In LaTeX, \\\\ or \\newline does nothing in display mode");return{type:"cr",mode:a.mode,newLine:s,size:i&&ne(i,"size").value}},htmlBuilder(r,e){var t=I(["mspace"],[],e);return r.newLine&&(t.classes.push("newline"),r.size&&(t.style.marginTop=$(Se(r.size,e)))),t},mathmlBuilder(r,e){var t=new B("mspace");return r.newLine&&(t.setAttribute("linebreak","newline"),r.size&&t.setAttribute("height",$(Se(r.size,e)))),t}});var Aa={"\\global":"\\global","\\long":"\\\\globallong","\\\\globallong":"\\\\globallong","\\def":"\\gdef","\\gdef":"\\gdef","\\edef":"\\xdef","\\xdef":"\\xdef","\\let":"\\\\globallet","\\futurelet":"\\\\globalfuture"},ki=r=>{var e=r.text;if(/^(?:[\\{}$&#^_]|EOF)$/.test(e))throw new D("Expected a control sequence",r);return e},$n=r=>{var e=r.gullet.popToken();return e.text==="="&&(e=r.gullet.popToken(),e.text===" "&&(e=r.gullet.popToken())),e},Si=(r,e,t,a)=>{var i=r.gullet.macros.get(t.text);i==null&&(t.noexpand=!0,i={tokens:[t],numArgs:0,unexpandable:!r.gullet.isExpandable(t.text)}),r.gullet.macros.set(e,i,a)};H({type:"internal",names:["\\global","\\long","\\\\globallong"],props:{numArgs:0,allowedInText:!0},handler(r){var{parser:e,funcName:t}=r;e.consumeSpaces();var a=e.fetch();if(Aa[a.text])return(t==="\\global"||t==="\\\\globallong")&&(a.text=Aa[a.text]),ne(e.parseFunction(),"internal");throw new D("Invalid token after macro prefix",a)}});H({type:"internal",names:["\\def","\\gdef","\\edef","\\xdef"],props:{numArgs:0,allowedInText:!0,primitive:!0},handler(r){var{parser:e,funcName:t}=r,a=e.gullet.popToken(),i=a.text;if(/^(?:[\\{}$&#^_]|EOF)$/.test(i))throw new D("Expected a control sequence",a);for(var s=0,o,d=[[]];e.gullet.future().text!=="{";)if(a=e.gullet.popToken(),a.text==="#"){if(e.gullet.future().text==="{"){o=e.gullet.future(),d[s].push("{");break}if(a=e.gullet.popToken(),!/^[1-9]$/.test(a.text))throw new D('Invalid argument number "'+a.text+'"');if(parseInt(a.text)!==s+1)throw new D('Argument number "'+a.text+'" out of order');s++,d.push([])}else{if(a.text==="EOF")throw new D("Expected a macro definition");d[s].push(a.text)}var{tokens:c}=e.gullet.consumeArg();return o&&c.unshift(o),(t==="\\edef"||t==="\\xdef")&&(c=e.gullet.expandTokens(c),c.reverse()),e.gullet.macros.set(i,{tokens:c,numArgs:s,delimiters:d},t===Aa[t]),{type:"internal",mode:e.mode}}});H({type:"internal",names:["\\let","\\\\globallet"],props:{numArgs:0,allowedInText:!0,primitive:!0},handler(r){var{parser:e,funcName:t}=r,a=ki(e.gullet.popToken());e.gullet.consumeSpaces();var i=$n(e);return Si(e,a,i,t==="\\\\globallet"),{type:"internal",mode:e.mode}}});H({type:"internal",names:["\\futurelet","\\\\globalfuture"],props:{numArgs:0,allowedInText:!0,primitive:!0},handler(r){var{parser:e,funcName:t}=r,a=ki(e.gullet.popToken()),i=e.gullet.popToken(),s=e.gullet.popToken();return Si(e,a,s,t==="\\\\globalfuture"),e.gullet.pushToken(s),e.gullet.pushToken(i),{type:"internal",mode:e.mode}}});var Ut=function(e,t,a){var i=ye.math[e]&&ye.math[e].replace,s=Na(i||e,t,a);if(!s)throw new Error("Unsupported symbol "+e+" and font size "+t+".");return s},Ua=function(e,t,a,i){var s=a.havingBaseStyle(t),o=I(i.concat(s.sizingClasses(a)),[e],a),d=s.sizeMultiplier/a.sizeMultiplier;return o.height*=d,o.depth*=d,o.maxFontSize=s.sizeMultiplier,o},Mi=function(e,t,a){var i=t.havingBaseStyle(a),s=(1-t.sizeMultiplier/i.sizeMultiplier)*t.fontMetrics().axisHeight;e.classes.push("delimcenter"),e.style.top=$(s),e.height-=s,e.depth+=s},Rn=function(e,t,a,i,s,o){var d=$e(e,"Main-Regular",s,i),c=Ua(d,t,i,o);return Mi(c,i,t),c},Pn=function(e,t,a,i){return $e(e,"Size"+t+"-Regular",a,i)},zi=function(e,t,a,i,s,o){var d=Pn(e,t,s,i),c=Ua(I(["delimsizing","size"+t],[d],i),ie.TEXT,i,o);return a&&Mi(c,i,ie.TEXT),c},Xr=function(e,t,a){var i;t==="Size1-Regular"?i="delim-size1":i="delim-size4";var s=I(["delimsizinginner",i],[I([],[$e(e,t,a)])]);return{type:"elem",elem:s}},Yr=function(e,t,a){var i=Je["Size4-Regular"][e.charCodeAt(0)]?Je["Size4-Regular"][e.charCodeAt(0)][4]:Je["Size1-Regular"][e.charCodeAt(0)][4],s=new mt("inner",Us(e,Math.round(1e3*t))),o=new it([s],{width:$(i),height:$(t),style:"width:"+$(i),viewBox:"0 0 "+1e3*i+" "+Math.round(1e3*t),preserveAspectRatio:"xMinYMin"}),d=pt([],[o],a);return d.height=t,d.style.height=$(t),d.style.width=$(i),{type:"elem",elem:d}},Ca=.008,dr={type:"kern",size:-1*Ca},Fn=new Set(["|","\\lvert","\\rvert","\\vert"]),Nn=new Set(["\\|","\\lVert","\\rVert","\\Vert"]),Ai=function(e,t,a,i,s,o){var d,c,m,h,f="",b=0;d=m=h=e,c=null;var x="Size1-Regular";e==="\\uparrow"?m=h="⏐":e==="\\Uparrow"?m=h="‖":e==="\\downarrow"?d=m="⏐":e==="\\Downarrow"?d=m="‖":e==="\\updownarrow"?(d="\\uparrow",m="⏐",h="\\downarrow"):e==="\\Updownarrow"?(d="\\Uparrow",m="‖",h="\\Downarrow"):Fn.has(e)?(m="∣",f="vert",b=333):Nn.has(e)?(m="∥",f="doublevert",b=556):e==="["||e==="\\lbrack"?(d="⎡",m="⎢",h="⎣",x="Size4-Regular",f="lbrack",b=667):e==="]"||e==="\\rbrack"?(d="⎤",m="⎥",h="⎦",x="Size4-Regular",f="rbrack",b=667):e==="\\lfloor"||e==="⌊"?(m=d="⎢",h="⎣",x="Size4-Regular",f="lfloor",b=667):e==="\\lceil"||e==="⌈"?(d="⎡",m=h="⎢",x="Size4-Regular",f="lceil",b=667):e==="\\rfloor"||e==="⌋"?(m=d="⎥",h="⎦",x="Size4-Regular",f="rfloor",b=667):e==="\\rceil"||e==="⌉"?(d="⎤",m=h="⎥",x="Size4-Regular",f="rceil",b=667):e==="("||e==="\\lparen"?(d="⎛",m="⎜",h="⎝",x="Size4-Regular",f="lparen",b=875):e===")"||e==="\\rparen"?(d="⎞",m="⎟",h="⎠",x="Size4-Regular",f="rparen",b=875):e==="\\{"||e==="\\lbrace"?(d="⎧",c="⎨",h="⎩",m="⎪",x="Size4-Regular"):e==="\\}"||e==="\\rbrace"?(d="⎫",c="⎬",h="⎭",m="⎪",x="Size4-Regular"):e==="\\lgroup"||e==="⟮"?(d="⎧",h="⎩",m="⎪",x="Size4-Regular"):e==="\\rgroup"||e==="⟯"?(d="⎫",h="⎭",m="⎪",x="Size4-Regular"):e==="\\lmoustache"||e==="⎰"?(d="⎧",h="⎭",m="⎪",x="Size4-Regular"):(e==="\\rmoustache"||e==="⎱")&&(d="⎫",h="⎩",m="⎪",x="Size4-Regular");var z=Ut(d,x,s),S=z.height+z.depth,M=Ut(m,x,s),A=M.height+M.depth,T=Ut(h,x,s),F=T.height+T.depth,W=0,K=1;if(c!==null){var Q=Ut(c,x,s);W=Q.height+Q.depth,K=2}var X=S+F+W,q=Math.max(0,Math.ceil((t-X)/(K*A))),O=X+q*K*A,ae=i.fontMetrics().axisHeight;a&&(ae*=i.sizeMultiplier);var _=O/2-ae,J=[];if(f.length>0){var Z=O-S-F,te=Math.round(O*1e3),U=Ws(f,Math.round(Z*1e3)),se=new mt(f,U),de=$(b/1e3),pe=$(te/1e3),we=new it([se],{width:de,height:pe,viewBox:"0 0 "+b+" "+te}),k=pt([],[we],i);k.height=te/1e3,k.style.width=de,k.style.height=pe,J.push({type:"elem",elem:k})}else{if(J.push(Xr(h,x,s)),J.push(dr),c===null){var y=O-S-F+2*Ca;J.push(Yr(m,y,i))}else{var N=(O-S-F-W)/2+2*Ca;J.push(Yr(m,N,i)),J.push(dr),J.push(Xr(c,x,s)),J.push(dr),J.push(Yr(m,N,i))}J.push(dr),J.push(Xr(d,x,s))}var C=i.havingBaseStyle(ie.TEXT),R=ue({positionType:"bottom",positionData:_,children:J});return Ua(I(["delimsizing","mult"],[R],C),ie.TEXT,i,o)},Zr=80,Kr=.08,Jr=function(e,t,a,i,s){var o=Gs(e,i,a),d=new mt(e,o),c=new it([d],{width:"400em",height:$(t),viewBox:"0 0 400000 "+a,preserveAspectRatio:"xMinYMin slice"});return pt(["hide-tail"],[c],s)},jn=function(e,t){var a=t.havingBaseSizing(),i=Di("\\surd",e*a.sizeMultiplier,Ii,a),s=a.sizeMultiplier,o=Math.max(0,t.minRuleThickness-t.fontMetrics().sqrtRuleThickness),d,c,m,h,f;return i.type==="small"?(h=1e3+1e3*o+Zr,e<1?s=1:e<1.4&&(s=.7),c=(1+o+Kr)/s,m=(1+o)/s,d=Jr("sqrtMain",c,h,o,t),d.style.minWidth="0.853em",f=.833/s):i.type==="large"?(h=(1e3+Zr)*Xt[i.size],m=(Xt[i.size]+o)/s,c=(Xt[i.size]+o+Kr)/s,d=Jr("sqrtSize"+i.size,c,h,o,t),d.style.minWidth="1.02em",f=1/s):(c=e+o+Kr,m=e+o,h=Math.floor(1e3*e+o)+Zr,d=Jr("sqrtTall",c,h,o,t),d.style.minWidth="0.742em",f=1.056),d.height=m,d.style.height=$(c),{span:d,advanceWidth:f,ruleWidth:(t.fontMetrics().sqrtRuleThickness+o)*s}},Ci=new Set(["(","\\lparen",")","\\rparen","[","\\lbrack","]","\\rbrack","\\{","\\lbrace","\\}","\\rbrace","\\lfloor","\\rfloor","⌊","⌋","\\lceil","\\rceil","⌈","⌉","\\surd"]),On=new Set(["\\uparrow","\\downarrow","\\updownarrow","\\Uparrow","\\Downarrow","\\Updownarrow","|","\\|","\\vert","\\Vert","\\lvert","\\rvert","\\lVert","\\rVert","\\lgroup","\\rgroup","⟮","⟯","\\lmoustache","\\rmoustache","⎰","⎱"]),Ei=new Set(["<",">","\\langle","\\rangle","/","\\backslash","\\lt","\\gt"]),Xt=[0,1.2,1.8,2.4,3],Ti=function(e,t,a,i,s){if(e==="<"||e==="\\lt"||e==="⟨"?e="\\langle":(e===">"||e==="\\gt"||e==="⟩")&&(e="\\rangle"),Ci.has(e)||Ei.has(e))return zi(e,t,!1,a,i,s);if(On.has(e))return Ai(e,Xt[t],!1,a,i,s);throw new D("Illegal delimiter: '"+e+"'")},Hn=[{type:"small",style:ie.SCRIPTSCRIPT},{type:"small",style:ie.SCRIPT},{type:"small",style:ie.TEXT},{type:"large",size:1},{type:"large",size:2},{type:"large",size:3},{type:"large",size:4}],Vn=[{type:"small",style:ie.SCRIPTSCRIPT},{type:"small",style:ie.SCRIPT},{type:"small",style:ie.TEXT},{type:"stack"}],Ii=[{type:"small",style:ie.SCRIPTSCRIPT},{type:"small",style:ie.SCRIPT},{type:"small",style:ie.TEXT},{type:"large",size:1},{type:"large",size:2},{type:"large",size:3},{type:"large",size:4},{type:"stack"}],Gn=function(e){if(e.type==="small")return"Main-Regular";if(e.type==="large")return"Size"+e.size+"-Regular";if(e.type==="stack")return"Size4-Regular";var t=e.type;throw new Error("Add support for delim type '"+t+"' here.")},Di=function(e,t,a,i){for(var s=Math.min(2,3-i.style.size),o=s;o<a.length;o++){var d=a[o];if(d.type==="stack")break;var c=Ut(e,Gn(d),"math"),m=c.height+c.depth;if(d.type==="small"){var h=i.havingBaseStyle(d.style);m*=h.sizeMultiplier}if(m>t)return d}return a[a.length-1]},Ea=function(e,t,a,i,s,o){e==="<"||e==="\\lt"||e==="⟨"?e="\\langle":(e===">"||e==="\\gt"||e==="⟩")&&(e="\\rangle");var d;Ei.has(e)?d=Hn:Ci.has(e)?d=Ii:d=Vn;var c=Di(e,t,d,i);return c.type==="small"?Rn(e,c.style,a,i,s,o):c.type==="large"?zi(e,c.size,a,i,s,o):Ai(e,t,a,i,s,o)},Qr=function(e,t,a,i,s,o){var d=i.fontMetrics().axisHeight*i.sizeMultiplier,c=901,m=5/i.fontMetrics().ptPerEm,h=Math.max(t-d,a+d),f=Math.max(h/500*c,2*h-m);return Ea(e,f,!0,i,s,o)},I0={"\\bigl":{mclass:"mopen",size:1},"\\Bigl":{mclass:"mopen",size:2},"\\biggl":{mclass:"mopen",size:3},"\\Biggl":{mclass:"mopen",size:4},"\\bigr":{mclass:"mclose",size:1},"\\Bigr":{mclass:"mclose",size:2},"\\biggr":{mclass:"mclose",size:3},"\\Biggr":{mclass:"mclose",size:4},"\\bigm":{mclass:"mrel",size:1},"\\Bigm":{mclass:"mrel",size:2},"\\biggm":{mclass:"mrel",size:3},"\\Biggm":{mclass:"mrel",size:4},"\\big":{mclass:"mord",size:1},"\\Big":{mclass:"mord",size:2},"\\bigg":{mclass:"mord",size:3},"\\Bigg":{mclass:"mord",size:4}},Un=new Set(["(","\\lparen",")","\\rparen","[","\\lbrack","]","\\rbrack","\\{","\\lbrace","\\}","\\rbrace","\\lfloor","\\rfloor","⌊","⌋","\\lceil","\\rceil","⌈","⌉","<",">","\\langle","⟨","\\rangle","⟩","\\lt","\\gt","\\lvert","\\rvert","\\lVert","\\rVert","\\lgroup","\\rgroup","⟮","⟯","\\lmoustache","\\rmoustache","⎰","⎱","/","\\backslash","|","\\vert","\\|","\\Vert","\\uparrow","\\Uparrow","\\downarrow","\\Downarrow","\\updownarrow","\\Updownarrow","."]);function D0(r){return"isMiddle"in r}function Tr(r,e){var t=Cr(r);if(t&&Un.has(t.text))return t;throw t?new D("Invalid delimiter '"+t.text+"' after '"+e.funcName+"'",r):new D("Invalid delimiter type '"+r.type+"'",r)}H({type:"delimsizing",names:["\\bigl","\\Bigl","\\biggl","\\Biggl","\\bigr","\\Bigr","\\biggr","\\Biggr","\\bigm","\\Bigm","\\biggm","\\Biggm","\\big","\\Big","\\bigg","\\Bigg"],props:{numArgs:1,argTypes:["primitive"]},handler:(r,e)=>{var t=Tr(e[0],r);return{type:"delimsizing",mode:r.parser.mode,size:I0[r.funcName].size,mclass:I0[r.funcName].mclass,delim:t.text}},htmlBuilder:(r,e)=>r.delim==="."?I([r.mclass]):Ti(r.delim,r.size,e,r.mode,[r.mclass]),mathmlBuilder:r=>{var e=[];r.delim!=="."&&e.push(Xe(r.delim,r.mode));var t=new B("mo",e);r.mclass==="mopen"||r.mclass==="mclose"?t.setAttribute("fence","true"):t.setAttribute("fence","false"),t.setAttribute("stretchy","true");var a=$(Xt[r.size]);return t.setAttribute("minsize",a),t.setAttribute("maxsize",a),t}});function B0(r){if(!r.body)throw new Error("Bug: The leftright ParseNode wasn't fully parsed.")}H({type:"leftright-right",names:["\\right"],props:{numArgs:1,primitive:!0},handler:(r,e)=>{var t=r.parser.gullet.macros.get("\\current@color");if(t&&typeof t!="string")throw new D("\\current@color set to non-string in \\right");return{type:"leftright-right",mode:r.parser.mode,delim:Tr(e[0],r).text,color:t}}});H({type:"leftright",names:["\\left"],props:{numArgs:1,primitive:!0},handler:(r,e)=>{var t=Tr(e[0],r),a=r.parser;++a.leftrightDepth;var i=a.parseExpression(!1);--a.leftrightDepth,a.expect("\\right",!1);var s=ne(a.parseFunction(),"leftright-right");return{type:"leftright",mode:a.mode,body:i,left:t.text,right:s.delim,rightColor:s.color}},htmlBuilder:(r,e)=>{B0(r);for(var t=Ie(r.body,e,!0,["mopen","mclose"]),a=0,i=0,s=!1,o=0;o<t.length;o++){var d=t[o];D0(d)?s=!0:(a=Math.max(t[o].height,a),i=Math.max(t[o].depth,i))}a*=e.sizeMultiplier,i*=e.sizeMultiplier;var c;if(r.left==="."?c=Qt(e,["mopen"]):c=Qr(r.left,a,i,e,r.mode,["mopen"]),t.unshift(c),s)for(var m=1;m<t.length;m++){var h=t[m];if(D0(h)){var f=h.isMiddle;t[m]=Qr(f.delim,a,i,f.options,r.mode,[])}}var b;if(r.right===".")b=Qt(e,["mclose"]);else{var x=r.rightColor?e.withColor(r.rightColor):e;b=Qr(r.right,a,i,x,r.mode,["mclose"])}return t.push(b),I(["minner"],t,e)},mathmlBuilder:(r,e)=>{B0(r);var t=Ge(r.body,e);if(r.left!=="."){var a=new B("mo",[Xe(r.left,r.mode)]);a.setAttribute("fence","true"),t.unshift(a)}if(r.right!=="."){var i=new B("mo",[Xe(r.right,r.mode)]);i.setAttribute("fence","true"),r.rightColor&&i.setAttribute("mathcolor",r.rightColor),t.push(i)}return Ha(t)}});H({type:"middle",names:["\\middle"],props:{numArgs:1,primitive:!0},handler:(r,e)=>{var t=Tr(e[0],r);if(!r.parser.leftrightDepth)throw new D("\\middle without preceding \\left",t);return{type:"middle",mode:r.parser.mode,delim:t.text}},htmlBuilder:(r,e)=>{var t;return r.delim==="."?t=Qt(e,[]):(t=Ti(r.delim,1,e,r.mode,[]),t.isMiddle={delim:r.delim,options:e}),t},mathmlBuilder:(r,e)=>{var t=r.delim==="\\vert"||r.delim==="|"?Xe("|","text"):Xe(r.delim,r.mode),a=new B("mo",[t]);return a.setAttribute("fence","true"),a.setAttribute("lspace","0.05em"),a.setAttribute("rspace","0.05em"),a}});var Ir=(r,e)=>{var t=Ft(me(r.body,e),e),a=r.label.slice(1),i=e.sizeMultiplier,s,o,d=st(r.body);if(a==="sout")s=I(["stretchy","sout"]),s.height=e.fontMetrics().defaultRuleThickness/i,o=-.5*e.fontMetrics().xHeight;else if(a==="phase"){var c=Se({number:.6,unit:"pt"},e),m=Se({number:.35,unit:"ex"},e),h=e.havingBaseSizing();i=i/h.sizeMultiplier;var f=t.height+t.depth+c+m;t.style.paddingLeft=$(f/2+c);var b=Math.floor(1e3*f*i),x=Hs(b),z=new it([new mt("phase",x)],{width:"400em",height:$(b/1e3),viewBox:"0 0 400000 "+b,preserveAspectRatio:"xMinYMin slice"});s=pt(["hide-tail"],[z],e),s.style.height=$(f),o=t.depth+c+m}else{/cancel/.test(a)?d||t.classes.push("cancel-pad"):a==="angl"?t.classes.push("anglpad"):t.classes.push("boxpad");var S,M,A=0;/box/.test(a)?(A=Math.max(e.fontMetrics().fboxrule,e.minRuleThickness),S=e.fontMetrics().fboxsep+(a==="colorbox"?0:A),M=S):a==="angl"?(A=Math.max(e.fontMetrics().defaultRuleThickness,e.minRuleThickness),S=4*A,M=Math.max(0,.25-t.depth)):(S=d?.2:0,M=S),s=An(t,a,S,M,e),/fbox|boxed|fcolorbox/.test(a)?(s.style.borderStyle="solid",s.style.borderWidth=$(A)):a==="angl"&&A!==.049&&(s.style.borderTopWidth=$(A),s.style.borderRightWidth=$(A)),o=t.depth+M,r.backgroundColor&&(s.style.backgroundColor=r.backgroundColor,r.borderColor&&(s.style.borderColor=r.borderColor))}var T;if(r.backgroundColor)T=ue({positionType:"individualShift",children:[{type:"elem",elem:s,shift:o},{type:"elem",elem:t,shift:0}]});else{var F=/cancel|phase/.test(a)?["svg-align"]:[];T=ue({positionType:"individualShift",children:[{type:"elem",elem:t,shift:0},{type:"elem",elem:s,shift:o,wrapperClasses:F}]})}return/cancel/.test(a)&&(T.height=t.height,T.depth=t.depth),/cancel/.test(a)&&!d?I(["mord","cancel-lap"],[T],e):I(["mord"],[T],e)},Dr=(r,e)=>{var t,a=new B(r.label.includes("colorbox")?"mpadded":"menclose",[ve(r.body,e)]);switch(r.label){case"\\cancel":a.setAttribute("notation","updiagonalstrike");break;case"\\bcancel":a.setAttribute("notation","downdiagonalstrike");break;case"\\phase":a.setAttribute("notation","phasorangle");break;case"\\sout":a.setAttribute("notation","horizontalstrike");break;case"\\fbox":a.setAttribute("notation","box");break;case"\\angl":a.setAttribute("notation","actuarial");break;case"\\fcolorbox":case"\\colorbox":if(t=e.fontMetrics().fboxsep*e.fontMetrics().ptPerEm,a.setAttribute("width","+"+2*t+"pt"),a.setAttribute("height","+"+2*t+"pt"),a.setAttribute("lspace",t+"pt"),a.setAttribute("voffset",t+"pt"),r.label==="\\fcolorbox"){var i=Math.max(e.fontMetrics().fboxrule,e.minRuleThickness);a.setAttribute("style","border: "+$(i)+" solid "+r.borderColor)}break;case"\\xcancel":a.setAttribute("notation","updiagonalstrike downdiagonalstrike");break}return r.backgroundColor&&a.setAttribute("mathbackground",r.backgroundColor),a};H({type:"enclose",names:["\\colorbox"],props:{numArgs:2,allowedInText:!0,argTypes:["color","hbox"]},handler(r,e,t){var{parser:a,funcName:i}=r,s=ne(e[0],"color-token").color,o=e[1];return{type:"enclose",mode:a.mode,label:i,backgroundColor:s,body:o}},htmlBuilder:Ir,mathmlBuilder:Dr});H({type:"enclose",names:["\\fcolorbox"],props:{numArgs:3,allowedInText:!0,argTypes:["color","color","hbox"]},handler(r,e,t){var{parser:a,funcName:i}=r,s=ne(e[0],"color-token").color,o=ne(e[1],"color-token").color,d=e[2];return{type:"enclose",mode:a.mode,label:i,backgroundColor:o,borderColor:s,body:d}},htmlBuilder:Ir,mathmlBuilder:Dr});H({type:"enclose",names:["\\fbox"],props:{numArgs:1,argTypes:["hbox"],allowedInText:!0},handler(r,e){var{parser:t}=r;return{type:"enclose",mode:t.mode,label:"\\fbox",body:e[0]}}});H({type:"enclose",names:["\\cancel","\\bcancel","\\xcancel","\\phase"],props:{numArgs:1},handler(r,e){var{parser:t,funcName:a}=r,i=e[0];return{type:"enclose",mode:t.mode,label:a,body:i}},htmlBuilder:Ir,mathmlBuilder:Dr});H({type:"enclose",names:["\\sout"],props:{numArgs:1,allowedInText:!0},handler(r,e){var{parser:t,funcName:a}=r;t.mode==="math"&&t.settings.reportNonstrict("mathVsSout","LaTeX's \\sout works only in text mode");var i=e[0];return{type:"enclose",mode:t.mode,label:a,body:i}},htmlBuilder:Ir,mathmlBuilder:Dr});H({type:"enclose",names:["\\angl"],props:{numArgs:1,argTypes:["hbox"],allowedInText:!1},handler(r,e){var{parser:t}=r;return{type:"enclose",mode:t.mode,label:"\\angl",body:e[0]}}});var Bi={};function Qe(r){for(var{type:e,names:t,props:a,handler:i,htmlBuilder:s,mathmlBuilder:o}=r,d={type:e,numArgs:a.numArgs||0,allowedInText:!1,numOptionalArgs:0,handler:i},c=0;c<t.length;++c)Bi[t[c]]=d;s&&(gr[e]=s),o&&(br[e]=o)}var Li={};function p(r,e){Li[r]=e}class Fe{constructor(e,t,a){this.lexer=void 0,this.start=void 0,this.end=void 0,this.lexer=e,this.start=t,this.end=a}static range(e,t){return t?!e||!e.loc||!t.loc||e.loc.lexer!==t.loc.lexer?null:new Fe(e.loc.lexer,e.loc.start,t.loc.end):e&&e.loc}}class Oe{constructor(e,t){this.text=void 0,this.loc=void 0,this.noexpand=void 0,this.treatAsRelax=void 0,this.text=e,this.loc=t}range(e,t){return new Oe(t,Fe.range(this,e))}}function L0(r){var e=[];r.consumeSpaces();var t=r.fetch().text;for(t==="\\relax"&&(r.consume(),r.consumeSpaces(),t=r.fetch().text);t==="\\hline"||t==="\\hdashline";)r.consume(),e.push(t==="\\hdashline"),r.consumeSpaces(),t=r.fetch().text;return e}var Br=r=>{var e=r.parser.settings;if(!e.displayMode)throw new D("{"+r.envName+"} can be used only in display mode.")},Wn=new Set(["gather","gather*"]);function Wa(r){if(!r.includes("ed"))return!r.includes("*")}function ft(r,e,t){var{hskipBeforeAndAfter:a,addJot:i,cols:s,arraystretch:o,colSeparationType:d,autoTag:c,singleRow:m,emptySingleRow:h,maxNumCols:f,leqno:b}=e;if(r.gullet.beginGroup(),m||r.gullet.macros.set("\\cr","\\\\\\relax"),!o){var x=r.gullet.expandMacroAsText("\\arraystretch");if(x==null)o=1;else if(o=parseFloat(x),!o||o<0)throw new D("Invalid \\arraystretch: "+x)}r.gullet.beginGroup();var z=[],S=[z],M=[],A=[],T=c!=null?[]:void 0;function F(){c&&r.gullet.macros.set("\\@eqnsw","1",!0)}function W(){T&&(r.gullet.macros.get("\\df@tag")?(T.push(r.subparse([new Oe("\\df@tag")])),r.gullet.macros.set("\\df@tag",void 0,!0)):T.push(!!c&&r.gullet.macros.get("\\@eqnsw")==="1"))}for(F(),A.push(L0(r));;){var K=r.parseExpression(!1,m?"\\end":"\\\\");r.gullet.endGroup(),r.gullet.beginGroup();var Q={type:"ordgroup",mode:r.mode,body:K};t&&(Q={type:"styling",mode:r.mode,style:t,resetFont:!0,body:[Q]}),z.push(Q);var X=r.fetch().text;if(X==="&"){if(f&&z.length===f){if(m||d)throw new D("Too many tab characters: &",r.nextToken);r.settings.reportNonstrict("textEnv","Too few columns specified in the {array} column argument.")}r.consume()}else if(X==="\\end"){W(),z.length===1&&Q.type==="styling"&&Q.body.length===1&&Q.body[0].type==="ordgroup"&&Q.body[0].body.length===0&&(S.length>1||!h)&&S.pop(),A.length<S.length+1&&A.push([]);break}else if(X==="\\\\"){r.consume();var q=void 0;r.gullet.future().text!==" "&&(q=r.parseSizeGroup(!0)),M.push(q?q.value:null),W(),A.push(L0(r)),z=[],S.push(z),F()}else throw new D("Expected & or \\\\ or \\cr or \\end",r.nextToken)}return r.gullet.endGroup(),r.gullet.endGroup(),{type:"array",mode:r.mode,addJot:i,arraystretch:o,body:S,cols:s,rowGaps:M,hskipBeforeAndAfter:a,hLinesBeforeRow:A,colSeparationType:d,tags:T,leqno:b}}function Xa(r){return r.slice(0,1)==="d"?"display":"text"}var _e=function(e,t){var a,i,s=e.body.length,o=e.hLinesBeforeRow,d=0,c=new Array(s),m=[],h=Math.max(t.fontMetrics().arrayRuleWidth,t.minRuleThickness),f=1/t.fontMetrics().ptPerEm,b=5*f;if(e.colSeparationType&&e.colSeparationType==="small"){var x=t.havingStyle(ie.SCRIPT).sizeMultiplier;b=.2778*(x/t.sizeMultiplier)}var z=e.colSeparationType==="CD"?Se({number:3,unit:"ex"},t):12*f,S=3*f,M=e.arraystretch*z,A=.7*M,T=.3*M,F=0;function W(Dt){for(var vt=0;vt<Dt.length;++vt)vt>0&&(F+=.25),m.push({pos:F,isDashed:Dt[vt]})}for(W(o[0]),a=0;a<e.body.length;++a){var K=e.body[a],Q=A,X=T;d<K.length&&(d=K.length);var q={cells:new Array(K.length),height:0,depth:0,pos:0};for(i=0;i<K.length;++i){var O=me(K[i],t);X<O.depth&&(X=O.depth),Q<O.height&&(Q=O.height),q.cells[i]=O}var ae=e.rowGaps[a],_=0;ae&&(_=Se(ae,t),_>0&&(_+=T,X<_&&(X=_),_=0)),e.addJot&&a<e.body.length-1&&(X+=S),q.height=Q,q.depth=X,F+=Q,q.pos=F,F+=X+_,c[a]=q,W(o[a+1])}var J=F/2+t.fontMetrics().axisHeight,Z=e.cols||[],te=[],U,se,de=[];if(e.tags&&e.tags.some(Dt=>Dt))for(a=0;a<s;++a){var pe=c[a],we=pe.pos-J,k=e.tags[a],y=void 0;k===!0?y=I(["eqn-num"],[],t):k===!1?y=I([],[],t):y=I([],Ie(k,t,!0),t),y.depth=pe.depth,y.height=pe.height,de.push({type:"elem",elem:y,shift:we})}for(i=0,se=0;i<d||se<Z.length;++i,++se){for(var N,C=Z[se],R=!0;((L=C)==null?void 0:L.type)==="separator";){var L;if(R||(U=I(["arraycolsep"],[]),U.style.width=$(t.fontMetrics().doubleRuleSep),te.push(U)),C.separator==="|"||C.separator===":"){var G=C.separator==="|"?"solid":"dashed",P=I(["vertical-separator"],[],t);P.style.height=$(F),P.style.borderRightWidth=$(h),P.style.borderRightStyle=G,P.style.margin="0 "+$(-h/2);var Y=F-J;Y&&(P.style.verticalAlign=$(-Y)),te.push(P)}else throw new D("Invalid separator type: "+C.separator);se++,C=Z[se],R=!1}if(!(i>=d)){var oe=void 0;if(i>0||e.hskipBeforeAndAfter){var ge,fe;oe=(ge=(fe=C)==null?void 0:fe.pregap)!=null?ge:b,oe!==0&&(U=I(["arraycolsep"],[]),U.style.width=$(oe),te.push(U))}var be=[];for(a=0;a<s;++a){var Me=c[a],le=Me.cells[i];if(le){var De=Me.pos-J;le.depth=Me.depth,le.height=Me.height,be.push({type:"elem",elem:le,shift:De})}}var Ne=ue({positionType:"individualShift",children:be}),je=I(["col-align-"+(((N=C)==null?void 0:N.align)||"c")],[Ne]);if(te.push(je),i<d-1||e.hskipBeforeAndAfter){var Ue,Ye;oe=(Ue=(Ye=C)==null?void 0:Ye.postgap)!=null?Ue:b,oe!==0&&(U=I(["arraycolsep"],[]),U.style.width=$(oe),te.push(U))}}}var Le=I(["mtable"],te);if(m.length>0){for(var qr=Pt("hline",t,h),$r=Pt("hdashline",t,h),Vt=[{type:"elem",elem:Le,shift:0}];m.length>0;){var Gt=m.pop(),tr=Gt.pos-J;Gt.isDashed?Vt.push({type:"elem",elem:$r,shift:tr}):Vt.push({type:"elem",elem:qr,shift:tr})}Le=ue({positionType:"individualShift",children:Vt})}if(de.length===0)return I(["mord"],[Le],t);var rr=ue({positionType:"individualShift",children:de}),Rr=I(["tag"],[rr],t);return ot([Le,Rr])},Xn={c:"center ",l:"left ",r:"right "},et=function(e,t){for(var a=[],i=new B("mtd",[],["mtr-glue"]),s=new B("mtd",[],["mml-eqn-num"]),o=0;o<e.body.length;o++){for(var d=e.body[o],c=[],m=0;m<d.length;m++)c.push(new B("mtd",[ve(d[m],t)]));e.tags&&e.tags[o]&&(c.unshift(i),c.push(i),e.leqno?c.unshift(s):c.push(s)),a.push(new B("mtr",c))}var h=new B("mtable",a),f=e.arraystretch===.5?.1:.16+e.arraystretch-1+(e.addJot?.09:0);h.setAttribute("rowspacing",$(f));var b="",x="";if(e.cols&&e.cols.length>0){var z=e.cols,S="",M=!1,A=0,T=z.length;z[0].type==="separator"&&(b+="top ",A=1),z[z.length-1].type==="separator"&&(b+="bottom ",T-=1);for(var F=A;F<T;F++){var W=z[F];W.type==="align"?(x+=Xn[W.align],M&&(S+="none "),M=!0):W.type==="separator"&&M&&(S+=W.separator==="|"?"solid ":"dashed ",M=!1)}h.setAttribute("columnalign",x.trim()),/[sd]/.test(S)&&h.setAttribute("columnlines",S.trim())}if(e.colSeparationType==="align"){for(var K=e.cols||[],Q="",X=1;X<K.length;X++)Q+=X%2?"0em ":"1em ";h.setAttribute("columnspacing",Q.trim())}else e.colSeparationType==="alignat"||e.colSeparationType==="gather"?h.setAttribute("columnspacing","0em"):e.colSeparationType==="small"?h.setAttribute("columnspacing","0.2778em"):e.colSeparationType==="CD"?h.setAttribute("columnspacing","0.5em"):h.setAttribute("columnspacing","1em");var q="",O=e.hLinesBeforeRow;b+=O[0].length>0?"left ":"",b+=O[O.length-1].length>0?"right ":"";for(var ae=1;ae<O.length-1;ae++)q+=O[ae].length===0?"none ":O[ae][0]?"dashed ":"solid ";return/[sd]/.test(q)&&h.setAttribute("rowlines",q.trim()),b!==""&&(h=new B("menclose",[h]),h.setAttribute("notation",b.trim())),e.arraystretch&&e.arraystretch<1&&(h=new B("mstyle",[h]),h.setAttribute("scriptlevel","1")),h},qi=function(e,t){e.envName.includes("ed")||Br(e);var a=[],i=e.envName.includes("at")?"alignat":"align",s=e.envName==="split",o=ft(e.parser,{cols:a,addJot:!0,autoTag:s?void 0:Wa(e.envName),emptySingleRow:!0,colSeparationType:i,maxNumCols:s?2:void 0,leqno:e.parser.settings.leqno},"display"),d=0,c=0,m={type:"ordgroup",mode:e.mode,body:[]};if(t[0]&&t[0].type==="ordgroup"){for(var h="",f=0;f<t[0].body.length;f++){var b=ne(t[0].body[f],"textord");h+=b.text}d=Number(h),c=d*2}var x=!c;o.body.forEach(function(A){for(var T=1;T<A.length;T+=2){var F=ne(A[T],"styling"),W=ne(F.body[0],"ordgroup");W.body.unshift(m)}if(x)c<A.length&&(c=A.length);else{var K=A.length/2;if(d<K)throw new D("Too many math in a row: "+("expected "+d+", but got "+K),A[0])}});for(var z=0;z<c;++z){var S="r",M=0;z%2===1?S="l":z>0&&x&&(M=1),a[z]={type:"align",align:S,pregap:M,postgap:0}}return o.colSeparationType=x?"align":"alignat",o};Qe({type:"array",names:["array","darray"],props:{numArgs:1},handler(r,e){var t=Cr(e[0]),a=t?[e[0]]:ne(e[0],"ordgroup").body,i=a.map(function(o){var d=Ar(o),c=d.text;if("lcr".includes(c))return{type:"align",align:c};if(c==="|")return{type:"separator",separator:"|"};if(c===":")return{type:"separator",separator:":"};throw new D("Unknown column alignment: "+c,o)}),s={cols:i,hskipBeforeAndAfter:!0,maxNumCols:i.length};return ft(r.parser,s,Xa(r.envName))},htmlBuilder:_e,mathmlBuilder:et});Qe({type:"array",names:["matrix","pmatrix","bmatrix","Bmatrix","vmatrix","Vmatrix","matrix*","pmatrix*","bmatrix*","Bmatrix*","vmatrix*","Vmatrix*"],props:{numArgs:0},handler(r){var e={matrix:null,pmatrix:["(",")"],bmatrix:["[","]"],Bmatrix:["\\{","\\}"],vmatrix:["|","|"],Vmatrix:["\\Vert","\\Vert"]}[r.envName.replace("*","")],t="c",a={hskipBeforeAndAfter:!1,cols:[{type:"align",align:t}]};if(r.envName.charAt(r.envName.length-1)==="*"){var i=r.parser;if(i.consumeSpaces(),i.fetch().text==="["){if(i.consume(),i.consumeSpaces(),t=i.fetch().text,!"lcr".includes(t))throw new D("Expected l or c or r",i.nextToken);i.consume(),i.consumeSpaces(),i.expect("]"),i.consume(),a.cols=[{type:"align",align:t}]}}var s=ft(r.parser,a,Xa(r.envName)),o=Math.max(0,...s.body.map(d=>d.length));return s.cols=new Array(o).fill({type:"align",align:t}),e?{type:"leftright",mode:r.mode,body:[s],left:e[0],right:e[1],rightColor:void 0}:s},htmlBuilder:_e,mathmlBuilder:et});Qe({type:"array",names:["smallmatrix"],props:{numArgs:0},handler(r){var e={arraystretch:.5},t=ft(r.parser,e,"script");return t.colSeparationType="small",t},htmlBuilder:_e,mathmlBuilder:et});Qe({type:"array",names:["subarray"],props:{numArgs:1},handler(r,e){var t=Cr(e[0]),a=t?[e[0]]:ne(e[0],"ordgroup").body,i=a.map(function(d){var c=Ar(d),m=c.text;if("lc".includes(m))return{type:"align",align:m};throw new D("Unknown column alignment: "+m,d)});if(i.length>1)throw new D("{subarray} can contain only one column");var s={cols:i,hskipBeforeAndAfter:!1,arraystretch:.5},o=ft(r.parser,s,"script");if(o.body.length>0&&o.body[0].length>1)throw new D("{subarray} can contain only one column");return o},htmlBuilder:_e,mathmlBuilder:et});Qe({type:"array",names:["cases","dcases","rcases","drcases"],props:{numArgs:0},handler(r){var e={arraystretch:1.2,cols:[{type:"align",align:"l",pregap:0,postgap:1},{type:"align",align:"l",pregap:0,postgap:0}]},t=ft(r.parser,e,Xa(r.envName));return{type:"leftright",mode:r.mode,body:[t],left:r.envName.includes("r")?".":"\\{",right:r.envName.includes("r")?"\\}":".",rightColor:void 0}},htmlBuilder:_e,mathmlBuilder:et});Qe({type:"array",names:["align","align*","aligned","split"],props:{numArgs:0},handler:qi,htmlBuilder:_e,mathmlBuilder:et});Qe({type:"array",names:["gathered","gather","gather*"],props:{numArgs:0},handler(r){Wn.has(r.envName)&&Br(r);var e={cols:[{type:"align",align:"c"}],addJot:!0,colSeparationType:"gather",autoTag:Wa(r.envName),emptySingleRow:!0,leqno:r.parser.settings.leqno};return ft(r.parser,e,"display")},htmlBuilder:_e,mathmlBuilder:et});Qe({type:"array",names:["alignat","alignat*","alignedat"],props:{numArgs:1},handler:qi,htmlBuilder:_e,mathmlBuilder:et});Qe({type:"array",names:["equation","equation*"],props:{numArgs:0},handler(r){Br(r);var e={autoTag:Wa(r.envName),emptySingleRow:!0,singleRow:!0,maxNumCols:1,leqno:r.parser.settings.leqno};return ft(r.parser,e,"display")},htmlBuilder:_e,mathmlBuilder:et});Qe({type:"array",names:["CD"],props:{numArgs:0},handler(r){return Br(r),qn(r.parser)},htmlBuilder:_e,mathmlBuilder:et});p("\\nonumber","\\gdef\\@eqnsw{0}");p("\\notag","\\nonumber");H({type:"text",names:["\\hline","\\hdashline"],props:{numArgs:0,allowedInText:!0,allowedInMath:!0},handler(r,e){throw new D(r.funcName+" valid only within array environment")}});var q0=Bi;H({type:"environment",names:["\\begin","\\end"],props:{numArgs:1,argTypes:["text"]},handler(r,e){var{parser:t,funcName:a}=r,i=e[0];if(i.type!=="ordgroup")throw new D("Invalid environment name",i);for(var s="",o=0;o<i.body.length;++o)s+=ne(i.body[o],"textord").text;if(a==="\\begin"){if(!q0.hasOwnProperty(s))throw new D("No such environment: "+s,i);var d=q0[s],{args:c,optArgs:m}=t.parseArguments("\\begin{"+s+"}",d),h={mode:t.mode,envName:s,parser:t},f=d.handler(h,c,m);t.expect("\\end",!1);var b=t.nextToken,x=ne(t.parseFunction(),"environment");if(x.name!==s)throw new D("Mismatch: \\begin{"+s+"} matched by \\end{"+x.name+"}",b);return f}return{type:"environment",mode:t.mode,name:s,nameGroup:i}}});var $i=(r,e)=>{var t=r.font,a=e.withFont(t);return me(r.body,a)},Ri=(r,e)=>{var t=r.font,a=e.withFont(t);return ve(r.body,a)},$0={"\\Bbb":"\\mathbb","\\bold":"\\mathbf","\\frak":"\\mathfrak"};H({type:"font",names:["\\mathrm","\\mathit","\\mathbf","\\mathnormal","\\mathsfit","\\mathbb","\\mathcal","\\mathfrak","\\mathscr","\\mathsf","\\mathtt","\\Bbb","\\bold","\\frak"],props:{numArgs:1,allowedInArgument:!0},handler:(r,e)=>{var{parser:t,funcName:a}=r,i=yr(e[0]),s=a;return s in $0&&(s=$0[s]),{type:"font",mode:t.mode,font:s.slice(1),body:i}},htmlBuilder:$i,mathmlBuilder:Ri});H({type:"mclass",names:["\\boldsymbol","\\bm"],props:{numArgs:1},handler:(r,e)=>{var{parser:t}=r,a=e[0];return{type:"mclass",mode:t.mode,mclass:Er(a),body:[{type:"font",mode:t.mode,font:"boldsymbol",body:a}],isCharacterBox:st(a)}}});H({type:"font",names:["\\rm","\\sf","\\tt","\\bf","\\it","\\cal"],props:{numArgs:0,allowedInText:!0},handler:(r,e)=>{var{parser:t,funcName:a,breakOnTokenText:i}=r,{mode:s}=t,o=t.parseExpression(!0,i);return{type:"font",mode:s,font:"math"+a.slice(1),body:{type:"ordgroup",mode:t.mode,body:o}}},htmlBuilder:$i,mathmlBuilder:Ri});var Yn=(r,e)=>{var t=e.style,a=t.fracNum(),i=t.fracDen(),s;s=e.havingStyle(a);var o=me(r.numer,s,e);if(r.continued){var d=8.5/e.fontMetrics().ptPerEm,c=3.5/e.fontMetrics().ptPerEm;o.height=o.height<d?d:o.height,o.depth=o.depth<c?c:o.depth}s=e.havingStyle(i);var m=me(r.denom,s,e),h,f,b;r.hasBarLine?(r.barSize?(f=Se(r.barSize,e),h=Pt("frac-line",e,f)):h=Pt("frac-line",e),f=h.height,b=h.height):(h=null,f=0,b=e.fontMetrics().defaultRuleThickness);var x,z,S;t.size===ie.DISPLAY.size?(x=e.fontMetrics().num1,f>0?z=3*b:z=7*b,S=e.fontMetrics().denom1):(f>0?(x=e.fontMetrics().num2,z=b):(x=e.fontMetrics().num3,z=3*b),S=e.fontMetrics().denom2);var M;if(h){var T=e.fontMetrics().axisHeight;x-o.depth-(T+.5*f)<z&&(x+=z-(x-o.depth-(T+.5*f))),T-.5*f-(m.height-S)<z&&(S+=z-(T-.5*f-(m.height-S)));var F=-(T-.5*f);M=ue({positionType:"individualShift",children:[{type:"elem",elem:m,shift:S},{type:"elem",elem:h,shift:F},{type:"elem",elem:o,shift:-x}]})}else{var A=x-o.depth-(m.height-S);A<z&&(x+=.5*(z-A),S+=.5*(z-A)),M=ue({positionType:"individualShift",children:[{type:"elem",elem:m,shift:S},{type:"elem",elem:o,shift:-x}]})}s=e.havingStyle(t),M.height*=s.sizeMultiplier/e.sizeMultiplier,M.depth*=s.sizeMultiplier/e.sizeMultiplier;var W;t.size===ie.DISPLAY.size?W=e.fontMetrics().delim1:t.size===ie.SCRIPTSCRIPT.size?W=e.havingStyle(ie.SCRIPT).fontMetrics().delim2:W=e.fontMetrics().delim2;var K,Q;return r.leftDelim==null?K=Qt(e,["mopen"]):K=Ea(r.leftDelim,W,!0,e.havingStyle(t),r.mode,["mopen"]),r.continued?Q=I([]):r.rightDelim==null?Q=Qt(e,["mclose"]):Q=Ea(r.rightDelim,W,!0,e.havingStyle(t),r.mode,["mclose"]),I(["mord"].concat(s.sizingClasses(e)),[K,I(["mfrac"],[M]),Q],e)},Zn=(r,e)=>{var t=new B("mfrac",[ve(r.numer,e),ve(r.denom,e)]);if(!r.hasBarLine)t.setAttribute("linethickness","0px");else if(r.barSize){var a=Se(r.barSize,e);t.setAttribute("linethickness",$(a))}if(r.leftDelim!=null||r.rightDelim!=null){var i=[];if(r.leftDelim!=null){var s=new B("mo",[new Ce(r.leftDelim.replace("\\",""))]);s.setAttribute("fence","true"),i.push(s)}if(i.push(t),r.rightDelim!=null){var o=new B("mo",[new Ce(r.rightDelim.replace("\\",""))]);o.setAttribute("fence","true"),i.push(o)}return Ha(i)}return t},Pi=(r,e)=>{if(!e)return r;var t={type:"styling",mode:r.mode,style:e,body:[r]};return t};H({type:"genfrac",names:["\\cfrac","\\dfrac","\\frac","\\tfrac","\\dbinom","\\binom","\\tbinom","\\\\atopfrac","\\\\bracefrac","\\\\brackfrac"],props:{numArgs:2,allowedInArgument:!0},handler:(r,e)=>{var{parser:t,funcName:a}=r,i=e[0],s=e[1],o,d=null,c=null;switch(a){case"\\cfrac":case"\\dfrac":case"\\frac":case"\\tfrac":o=!0;break;case"\\\\atopfrac":o=!1;break;case"\\dbinom":case"\\binom":case"\\tbinom":o=!1,d="(",c=")";break;case"\\\\bracefrac":o=!1,d="\\{",c="\\}";break;case"\\\\brackfrac":o=!1,d="[",c="]";break;default:throw new Error("Unrecognized genfrac command")}var m=a==="\\cfrac",h=null;return m||a.startsWith("\\d")?h="display":a.startsWith("\\t")&&(h="text"),Pi({type:"genfrac",mode:t.mode,numer:i,denom:s,continued:m,hasBarLine:o,leftDelim:d,rightDelim:c,barSize:null},h)},htmlBuilder:Yn,mathmlBuilder:Zn});H({type:"infix",names:["\\over","\\choose","\\atop","\\brace","\\brack"],props:{numArgs:0,infix:!0},handler(r){var{parser:e,funcName:t,token:a}=r,i;switch(t){case"\\over":i="\\frac";break;case"\\choose":i="\\binom";break;case"\\atop":i="\\\\atopfrac";break;case"\\brace":i="\\\\bracefrac";break;case"\\brack":i="\\\\brackfrac";break;default:throw new Error("Unrecognized infix genfrac command")}return{type:"infix",mode:e.mode,replaceWith:i,token:a}}});var R0=["display","text","script","scriptscript"],P0=function(e){var t=null;return e.length>0&&(t=e,t=t==="."?null:t),t};H({type:"genfrac",names:["\\genfrac"],props:{numArgs:6,allowedInArgument:!0,argTypes:["math","math","size","text","math","math"]},handler(r,e){var{parser:t}=r,a=e[4],i=e[5],s=yr(e[0]),o=s.type==="atom"&&s.family==="open"?P0(s.text):null,d=yr(e[1]),c=d.type==="atom"&&d.family==="close"?P0(d.text):null,m=ne(e[2],"size"),h,f=null;m.isBlank?h=!0:(f=m.value,h=f.number>0);var b=null,x=e[3];if(x.type==="ordgroup"){if(x.body.length>0){var z=ne(x.body[0],"textord");b=R0[Number(z.text)]}}else x=ne(x,"textord"),b=R0[Number(x.text)];return Pi({type:"genfrac",mode:t.mode,numer:a,denom:i,continued:!1,hasBarLine:h,barSize:f,leftDelim:o,rightDelim:c},b)}});H({type:"infix",names:["\\above"],props:{numArgs:1,argTypes:["size"],infix:!0},handler(r,e){var{parser:t,funcName:a,token:i}=r;return{type:"infix",mode:t.mode,replaceWith:"\\\\abovefrac",size:ne(e[0],"size").value,token:i}}});H({type:"genfrac",names:["\\\\abovefrac"],props:{numArgs:3,argTypes:["math","size","math"]},handler:(r,e)=>{var{parser:t,funcName:a}=r,i=e[0],s=ne(e[1],"infix").size;if(!s)throw new Error("\\\\abovefrac expected size, but got "+String(s));var o=e[2],d=s.number>0;return{type:"genfrac",mode:t.mode,numer:i,denom:o,continued:!1,hasBarLine:d,barSize:s,leftDelim:null,rightDelim:null}}});var Fi=(r,e)=>{var t=e.style,a,i;r.type==="supsub"?(a=r.sup?me(r.sup,e.havingStyle(t.sup()),e):me(r.sub,e.havingStyle(t.sub()),e),i=ne(r.base,"horizBrace")):i=ne(r,"horizBrace");var s=me(i.base,e.havingBaseStyle(ie.DISPLAY)),o=zr(i,e),d;if(i.isOver?d=ue({positionType:"firstBaseline",children:[{type:"elem",elem:s},{type:"kern",size:.1},{type:"elem",elem:o,wrapperClasses:["svg-align"]}]}):d=ue({positionType:"bottom",positionData:s.depth+.1+o.height,children:[{type:"elem",elem:o,wrapperClasses:["svg-align"]},{type:"kern",size:.1},{type:"elem",elem:s}]}),a){var c=I(["minner",i.isOver?"mover":"munder"],[d],e);i.isOver?d=ue({positionType:"firstBaseline",children:[{type:"elem",elem:c},{type:"kern",size:.2},{type:"elem",elem:a}]}):d=ue({positionType:"bottom",positionData:c.depth+.2+a.height+a.depth,children:[{type:"elem",elem:a},{type:"kern",size:.2},{type:"elem",elem:c}]})}return I(["minner",i.isOver?"mover":"munder"],[d],e)},Kn=(r,e)=>{var t=Mr(r.label);return new B(r.isOver?"mover":"munder",[ve(r.base,e),t])};H({type:"horizBrace",names:["\\overbrace","\\underbrace","\\overbracket","\\underbracket"],props:{numArgs:1},handler(r,e){var{parser:t,funcName:a}=r;return{type:"horizBrace",mode:t.mode,label:a,isOver:a.includes("\\over"),base:e[0]}},htmlBuilder:Fi,mathmlBuilder:Kn});H({type:"href",names:["\\href"],props:{numArgs:2,argTypes:["url","original"],allowedInText:!0},handler:(r,e)=>{var{parser:t}=r,a=e[1],i=ne(e[0],"url").url;return t.settings.isTrusted({command:"\\href",url:i})?{type:"href",mode:t.mode,href:i,body:Ae(a)}:t.formatUnsupportedCmd("\\href")},htmlBuilder:(r,e)=>{var t=Ie(r.body,e,!1);return dn(r.href,[],t,e)},mathmlBuilder:(r,e)=>{var t=ht(r.body,e);return t instanceof B||(t=new B("mrow",[t])),t.setAttribute("href",r.href),t}});H({type:"href",names:["\\url"],props:{numArgs:1,argTypes:["url"],allowedInText:!0},handler:(r,e)=>{var{parser:t}=r,a=ne(e[0],"url").url;if(!t.settings.isTrusted({command:"\\url",url:a}))return t.formatUnsupportedCmd("\\url");for(var i=[],s=0;s<a.length;s++){var o=a[s];o==="~"&&(o="\\textasciitilde"),i.push({type:"textord",mode:"text",text:o})}var d={type:"text",mode:t.mode,font:"\\texttt",body:i};return{type:"href",mode:t.mode,href:a,body:Ae(d)}}});H({type:"hbox",names:["\\hbox"],props:{numArgs:1,argTypes:["text"],allowedInText:!0,primitive:!0},handler(r,e){var{parser:t}=r;return{type:"hbox",mode:t.mode,body:Ae(e[0])}},htmlBuilder(r,e){var t=Ie(r.body,e.withFont(""),!1);return ot(t)},mathmlBuilder(r,e){return new B("mrow",Ge(r.body,e.withFont("")))}});H({type:"html",names:["\\htmlClass","\\htmlId","\\htmlStyle","\\htmlData"],props:{numArgs:2,argTypes:["raw","original"],allowedInText:!0},handler:(r,e)=>{var{parser:t,funcName:a,token:i}=r,s=ne(e[0],"raw").string,o=e[1];t.settings.strict&&t.settings.reportNonstrict("htmlExtension","HTML extension is disabled on strict mode");var d,c={};switch(a){case"\\htmlClass":c.class=s,d={command:"\\htmlClass",class:s};break;case"\\htmlId":c.id=s,d={command:"\\htmlId",id:s};break;case"\\htmlStyle":c.style=s,d={command:"\\htmlStyle",style:s};break;case"\\htmlData":{for(var m=s.split(","),h=0;h<m.length;h++){var f=m[h],b=f.indexOf("=");if(b<0)throw new D("\\htmlData key/value '"+f+"' missing equals sign");var x=f.slice(0,b),z=f.slice(b+1);c["data-"+x.trim()]=z}d={command:"\\htmlData",attributes:c};break}default:throw new Error("Unrecognized html command")}return t.settings.isTrusted(d)?{type:"html",mode:t.mode,attributes:c,body:Ae(o)}:t.formatUnsupportedCmd(a)},htmlBuilder:(r,e)=>{var t=Ie(r.body,e,!1),a=["enclosing"];r.attributes.class&&a.push(...r.attributes.class.trim().split(/\s+/));var i=I(a,t,e);for(var s in r.attributes)s!=="class"&&r.attributes.hasOwnProperty(s)&&i.setAttribute(s,r.attributes[s]);return i},mathmlBuilder:(r,e)=>ht(r.body,e)});H({type:"htmlmathml",names:["\\html@mathml"],props:{numArgs:2,allowedInArgument:!0,allowedInText:!0},handler:(r,e)=>{var{parser:t}=r;return{type:"htmlmathml",mode:t.mode,html:Ae(e[0]),mathml:Ae(e[1])}},htmlBuilder:(r,e)=>{var t=Ie(r.html,e,!1);return ot(t)},mathmlBuilder:(r,e)=>ht(r.mathml,e)});var _r=function(e){if(/^[-+]? *(\d+(\.\d*)?|\.\d+)$/.test(e))return{number:+e,unit:"bp"};var t=/([-+]?) *(\d+(?:\.\d*)?|\.\d+) *([a-z]{2})/.exec(e);if(!t)throw new D("Invalid size: '"+e+"' in \\includegraphics");var a={number:+(t[1]+t[2]),unit:t[3]};if(!ti(a))throw new D("Invalid unit: '"+a.unit+"' in \\includegraphics.");return a};H({type:"includegraphics",names:["\\includegraphics"],props:{numArgs:1,numOptionalArgs:1,argTypes:["raw","url"],allowedInText:!1},handler:(r,e,t)=>{var{parser:a}=r,i={number:0,unit:"em"},s={number:.9,unit:"em"},o={number:0,unit:"em"},d="";if(t[0])for(var c=ne(t[0],"raw").string,m=c.split(","),h=0;h<m.length;h++){var f=m[h].split("=");if(f.length===2){var b=f[1].trim();switch(f[0].trim()){case"alt":d=b;break;case"width":i=_r(b);break;case"height":s=_r(b);break;case"totalheight":o=_r(b);break;default:throw new D("Invalid key: '"+f[0]+"' in \\includegraphics.")}}}var x=ne(e[0],"url").url;return d===""&&(d=x,d=d.replace(/^.*[\\/]/,""),d=d.substring(0,d.lastIndexOf("."))),a.settings.isTrusted({command:"\\includegraphics",url:x})?{type:"includegraphics",mode:a.mode,alt:d,width:i,height:s,totalheight:o,src:x}:a.formatUnsupportedCmd("\\includegraphics")},htmlBuilder:(r,e)=>{var t=Se(r.height,e),a=0;r.totalheight.number>0&&(a=Se(r.totalheight,e)-t);var i=0;r.width.number>0&&(i=Se(r.width,e));var s={height:$(t+a)};i>0&&(s.width=$(i)),a>0&&(s.verticalAlign=$(-a));var o=new Ks(r.src,r.alt,s);return o.height=t,o.depth=a,o},mathmlBuilder:(r,e)=>{var t=new B("mglyph",[]);t.setAttribute("alt",r.alt);var a=Se(r.height,e),i=0;if(r.totalheight.number>0&&(i=Se(r.totalheight,e)-a,t.setAttribute("valign",$(-i))),t.setAttribute("height",$(a+i)),r.width.number>0){var s=Se(r.width,e);t.setAttribute("width",$(s))}return t.setAttribute("src",r.src),t}});H({type:"kern",names:["\\kern","\\mkern","\\hskip","\\mskip"],props:{numArgs:1,argTypes:["size"],primitive:!0,allowedInText:!0},handler(r,e){var{parser:t,funcName:a}=r,i=ne(e[0],"size");if(t.settings.strict){var s=a[1]==="m",o=i.value.unit==="mu";s?(o||t.settings.reportNonstrict("mathVsTextUnits","LaTeX's "+a+" supports only mu units, "+("not "+i.value.unit+" units")),t.mode!=="math"&&t.settings.reportNonstrict("mathVsTextUnits","LaTeX's "+a+" works only in math mode")):o&&t.settings.reportNonstrict("mathVsTextUnits","LaTeX's "+a+" doesn't support mu units")}return{type:"kern",mode:t.mode,dimension:i.value}},htmlBuilder(r,e){return oi(r.dimension,e)},mathmlBuilder(r,e){var t=Se(r.dimension,e);return new pi(t)}});H({type:"lap",names:["\\mathllap","\\mathrlap","\\mathclap"],props:{numArgs:1,allowedInText:!0},handler:(r,e)=>{var{parser:t,funcName:a}=r,i=e[0];return{type:"lap",mode:t.mode,alignment:a.slice(5),body:i}},htmlBuilder:(r,e)=>{var t;r.alignment==="clap"?(t=I([],[me(r.body,e)]),t=I(["inner"],[t],e)):t=I(["inner"],[me(r.body,e)]);var a=I(["fix"],[]),i=I([r.alignment],[t,a],e),s=I(["strut"]);return s.style.height=$(i.height+i.depth),i.depth&&(s.style.verticalAlign=$(-i.depth)),i.children.unshift(s),i=I(["thinbox"],[i],e),I(["mord","vbox"],[i],e)},mathmlBuilder:(r,e)=>{var t=new B("mpadded",[ve(r.body,e)]);if(r.alignment!=="rlap"){var a=r.alignment==="llap"?"-1":"-0.5";t.setAttribute("lspace",a+"width")}return t.setAttribute("width","0px"),t}});H({type:"styling",names:["\\(","$"],props:{numArgs:0,allowedInText:!0,allowedInMath:!1},handler(r,e){var{funcName:t,parser:a}=r,i=a.mode;a.switchMode("math");var s=t==="\\("?"\\)":"$",o=a.parseExpression(!1,s);return a.expect(s),a.switchMode(i),{type:"styling",mode:a.mode,style:"text",resetFont:!0,body:o}}});H({type:"text",names:["\\)","\\]"],props:{numArgs:0,allowedInText:!0,allowedInMath:!1},handler(r,e){throw new D("Mismatched "+r.funcName)}});var F0=(r,e)=>{switch(e.style.size){case ie.DISPLAY.size:return r.display;case ie.TEXT.size:return r.text;case ie.SCRIPT.size:return r.script;case ie.SCRIPTSCRIPT.size:return r.scriptscript;default:return r.text}};H({type:"mathchoice",names:["\\mathchoice"],props:{numArgs:4,primitive:!0},handler:(r,e)=>{var{parser:t}=r;return{type:"mathchoice",mode:t.mode,display:Ae(e[0]),text:Ae(e[1]),script:Ae(e[2]),scriptscript:Ae(e[3])}},htmlBuilder:(r,e)=>{var t=F0(r,e),a=Ie(t,e,!1);return ot(a)},mathmlBuilder:(r,e)=>{var t=F0(r,e);return ht(t,e)}});var Ni=(r,e,t,a,i,s,o)=>{r=I([],[r]);var d=t&&st(t),c,m;if(e){var h=me(e,a.havingStyle(i.sup()),a);m={elem:h,kern:Math.max(a.fontMetrics().bigOpSpacing1,a.fontMetrics().bigOpSpacing3-h.depth)}}if(t){var f=me(t,a.havingStyle(i.sub()),a);c={elem:f,kern:Math.max(a.fontMetrics().bigOpSpacing2,a.fontMetrics().bigOpSpacing4-f.height)}}var b;if(m&&c){var x=a.fontMetrics().bigOpSpacing5+c.elem.height+c.elem.depth+c.kern+r.depth+o;b=ue({positionType:"bottom",positionData:x,children:[{type:"kern",size:a.fontMetrics().bigOpSpacing5},{type:"elem",elem:c.elem,marginLeft:$(-s)},{type:"kern",size:c.kern},{type:"elem",elem:r},{type:"kern",size:m.kern},{type:"elem",elem:m.elem,marginLeft:$(s)},{type:"kern",size:a.fontMetrics().bigOpSpacing5}]})}else if(c){var z=r.height-o;b=ue({positionType:"top",positionData:z,children:[{type:"kern",size:a.fontMetrics().bigOpSpacing5},{type:"elem",elem:c.elem,marginLeft:$(-s)},{type:"kern",size:c.kern},{type:"elem",elem:r}]})}else if(m){var S=r.depth+o;b=ue({positionType:"bottom",positionData:S,children:[{type:"elem",elem:r},{type:"kern",size:m.kern},{type:"elem",elem:m.elem,marginLeft:$(s)},{type:"kern",size:a.fontMetrics().bigOpSpacing5}]})}else return r;var M=[b];if(c&&s!==0&&!d){var A=I(["mspace"],[],a);A.style.marginRight=$(s),M.unshift(A)}return I(["mop","op-limits"],M,a)},ji=new Set(["\\smallint"]),Ht=(r,e)=>{var t,a,i=!1,s;r.type==="supsub"?(t=r.sup,a=r.sub,s=ne(r.base,"op"),i=!0):s=ne(r,"op");var o=e.style,d=!1;o.size===ie.DISPLAY.size&&s.symbol&&!ji.has(s.name)&&(d=!0);var c,m;if(s.symbol){var h=d?"Size2-Regular":"Size1-Regular",f="";if((s.name==="\\oiint"||s.name==="\\oiiint")&&(f=s.name.slice(1),s.name=f==="oiint"?"\\iint":"\\iiint"),c=$e(s.name,h,"math",e,["mop","op-symbol",d?"large-op":"small-op"]),m=c.italic,f.length>0){var b=di(f+"Size"+(d?"2":"1"),e);c=ue({positionType:"individualShift",children:[{type:"elem",elem:c,shift:0},{type:"elem",elem:b,shift:d?.08:0}]}),s.name="\\"+f,c.classes.unshift("mop"),c.italic=m}}else if(s.body){var x=Ie(s.body,e,!0);x.length===1&&x[0]instanceof He?(c=x[0],c.classes[0]="mop"):c=I(["mop"],x,e)}else{for(var z=[],S=1;S<s.name.length;S++)z.push(ja(s.name[S],s.mode,e));c=I(["mop"],z,e)}var M=0,A=0;if((c instanceof He||s.name==="\\oiint"||s.name==="\\oiiint")&&!s.suppressBaseShift){var T;M=(c.height-c.depth)/2-e.fontMetrics().axisHeight,A=(T=c.italic)!=null?T:0}return i?Ni(c,t,a,e,o,A,M):(M&&(c.style.position="relative",c.style.top=$(M)),c)},er=(r,e)=>{var t;if(r.symbol)t=new B("mo",[Xe(r.name,r.mode)]),ji.has(r.name)&&t.setAttribute("largeop","false");else if(r.body)t=new B("mo",Ge(r.body,e));else{t=new B("mi",[new Ce(r.name.slice(1))]);var a=new B("mo",[Xe("⁡","text")]);r.parentIsSupSub?t=new B("mrow",[t,a]):t=mi([t,a])}return t},Jn={"∏":"\\prod","∐":"\\coprod","∑":"\\sum","⋀":"\\bigwedge","⋁":"\\bigvee","⋂":"\\bigcap","⋃":"\\bigcup","⨀":"\\bigodot","⨁":"\\bigoplus","⨂":"\\bigotimes","⨄":"\\biguplus","⨆":"\\bigsqcup"};H({type:"op",names:["\\coprod","\\bigvee","\\bigwedge","\\biguplus","\\bigcap","\\bigcup","\\intop","\\prod","\\sum","\\bigotimes","\\bigoplus","\\bigodot","\\bigsqcup","\\smallint","∏","∐","∑","⋀","⋁","⋂","⋃","⨀","⨁","⨂","⨄","⨆"],props:{numArgs:0},handler:(r,e)=>{var{parser:t,funcName:a}=r,i=a;return i.length===1&&(i=Jn[i]),{type:"op",mode:t.mode,limits:!0,parentIsSupSub:!1,symbol:!0,name:i}},htmlBuilder:Ht,mathmlBuilder:er});H({type:"op",names:["\\mathop"],props:{numArgs:1,primitive:!0},handler:(r,e)=>{var{parser:t}=r,a=e[0];return{type:"op",mode:t.mode,limits:!1,parentIsSupSub:!1,symbol:!1,body:Ae(a)}},htmlBuilder:Ht,mathmlBuilder:er});var Qn={"∫":"\\int","∬":"\\iint","∭":"\\iiint","∮":"\\oint","∯":"\\oiint","∰":"\\oiiint"};H({type:"op",names:["\\arcsin","\\arccos","\\arctan","\\arctg","\\arcctg","\\arg","\\ch","\\cos","\\cosec","\\cosh","\\cot","\\cotg","\\coth","\\csc","\\ctg","\\cth","\\deg","\\dim","\\exp","\\hom","\\ker","\\lg","\\ln","\\log","\\sec","\\sin","\\sinh","\\sh","\\tan","\\tanh","\\tg","\\th"],props:{numArgs:0},handler(r){var{parser:e,funcName:t}=r;return{type:"op",mode:e.mode,limits:!1,parentIsSupSub:!1,symbol:!1,name:t}},htmlBuilder:Ht,mathmlBuilder:er});H({type:"op",names:["\\det","\\gcd","\\inf","\\lim","\\max","\\min","\\Pr","\\sup"],props:{numArgs:0},handler(r){var{parser:e,funcName:t}=r;return{type:"op",mode:e.mode,limits:!0,parentIsSupSub:!1,symbol:!1,name:t}},htmlBuilder:Ht,mathmlBuilder:er});H({type:"op",names:["\\int","\\iint","\\iiint","\\oint","\\oiint","\\oiiint","∫","∬","∭","∮","∯","∰"],props:{numArgs:0,allowedInArgument:!0},handler(r){var{parser:e,funcName:t}=r,a=t;return a.length===1&&(a=Qn[a]),{type:"op",mode:e.mode,limits:!1,parentIsSupSub:!1,symbol:!0,name:a}},htmlBuilder:Ht,mathmlBuilder:er});var Oi=(r,e)=>{var t,a,i=!1,s;r.type==="supsub"?(t=r.sup,a=r.sub,s=ne(r.base,"operatorname"),i=!0):s=ne(r,"operatorname");var o;if(s.body.length>0){for(var d=s.body.map(f=>{var b="text"in f?f.text:void 0;return typeof b=="string"?{type:"textord",mode:f.mode,text:b}:f}),c=Ie(d,e.withFont("mathrm"),!0),m=0;m<c.length;m++){var h=c[m];h instanceof He&&(h.text=h.text.replace(/\u2212/,"-").replace(/\u2217/,"*"))}o=I(["mop"],c,e)}else o=I(["mop"],[],e);return i?Ni(o,t,a,e,e.style,0,0):o},_n=(r,e)=>{for(var t=Ge(r.body,e.withFont("mathrm")),a=!0,i=0;i<t.length;i++){var s=t[i];if(!(s instanceof pi))if(s instanceof B)switch(s.type){case"mi":case"mn":case"mspace":case"mtext":break;case"mo":{var o=s.children[0];s.children.length===1&&o instanceof Ce?o.text=o.text.replace(/\u2212/,"-").replace(/\u2217/,"*"):a=!1;break}default:a=!1}else a=!1}if(a){var d=t.map(h=>h.toText()).join("");t=[new Ce(d)]}var c=new B("mi",t);c.setAttribute("mathvariant","normal");var m=new B("mo",[Xe("⁡","text")]);return r.parentIsSupSub?new B("mrow",[c,m]):mi([c,m])};H({type:"operatorname",names:["\\operatorname@","\\operatornamewithlimits"],props:{numArgs:1},handler:(r,e)=>{var{parser:t,funcName:a}=r,i=e[0];return{type:"operatorname",mode:t.mode,body:Ae(i),alwaysHandleSupSub:a==="\\operatornamewithlimits",limits:!1,parentIsSupSub:!1}},htmlBuilder:Oi,mathmlBuilder:_n});p("\\operatorname","\\@ifstar\\operatornamewithlimits\\operatorname@");It({type:"ordgroup",htmlBuilder(r,e){return r.semisimple?ot(Ie(r.body,e,!1)):I(["mord"],Ie(r.body,e,!0),e)},mathmlBuilder(r,e){return ht(r.body,e,!0)}});H({type:"overline",names:["\\overline"],props:{numArgs:1},handler(r,e){var{parser:t}=r,a=e[0];return{type:"overline",mode:t.mode,body:a}},htmlBuilder(r,e){var t=me(r.body,e.havingCrampedStyle()),a=Pt("overline-line",e),i=e.fontMetrics().defaultRuleThickness,s=ue({positionType:"firstBaseline",children:[{type:"elem",elem:t},{type:"kern",size:3*i},{type:"elem",elem:a},{type:"kern",size:i}]});return I(["mord","overline"],[s],e)},mathmlBuilder(r,e){var t=new B("mo",[new Ce("‾")]);t.setAttribute("stretchy","true");var a=new B("mover",[ve(r.body,e),t]);return a.setAttribute("accent","true"),a}});H({type:"phantom",names:["\\phantom"],props:{numArgs:1,allowedInText:!0},handler:(r,e)=>{var{parser:t}=r,a=e[0];return{type:"phantom",mode:t.mode,body:Ae(a)}},htmlBuilder:(r,e)=>{var t=Ie(r.body,e.withPhantom(),!1);return ot(t)},mathmlBuilder:(r,e)=>{var t=Ge(r.body,e);return new B("mphantom",t)}});p("\\hphantom","\\smash{\\phantom{#1}}");H({type:"vphantom",names:["\\vphantom"],props:{numArgs:1,allowedInText:!0},handler:(r,e)=>{var{parser:t}=r,a=e[0];return{type:"vphantom",mode:t.mode,body:a}},htmlBuilder:(r,e)=>{var t=I(["inner"],[me(r.body,e.withPhantom())]),a=I(["fix"],[]);return I(["mord","rlap"],[t,a],e)},mathmlBuilder:(r,e)=>{var t=Ge(Ae(r.body),e),a=new B("mphantom",t),i=new B("mpadded",[a]);return i.setAttribute("width","0px"),i}});H({type:"raisebox",names:["\\raisebox"],props:{numArgs:2,argTypes:["size","hbox"],allowedInText:!0},handler(r,e){var{parser:t}=r,a=ne(e[0],"size").value,i=e[1];return{type:"raisebox",mode:t.mode,dy:a,body:i}},htmlBuilder(r,e){var t=me(r.body,e),a=Se(r.dy,e);return ue({positionType:"shift",positionData:-a,children:[{type:"elem",elem:t}]})},mathmlBuilder(r,e){var t=new B("mpadded",[ve(r.body,e)]),a=r.dy.number+r.dy.unit;return t.setAttribute("voffset",a),t}});H({type:"internal",names:["\\relax"],props:{numArgs:0,allowedInText:!0,allowedInArgument:!0},handler(r){var{parser:e}=r;return{type:"internal",mode:e.mode}}});H({type:"rule",names:["\\rule"],props:{numArgs:2,numOptionalArgs:1,allowedInText:!0,allowedInMath:!0,argTypes:["size","size","size"]},handler(r,e,t){var{parser:a}=r,i=t[0],s=ne(e[0],"size"),o=ne(e[1],"size");return{type:"rule",mode:a.mode,shift:i&&ne(i,"size").value,width:s.value,height:o.value}},htmlBuilder(r,e){var t=I(["mord","rule"],[],e),a=Se(r.width,e),i=Se(r.height,e),s=r.shift?Se(r.shift,e):0;return t.style.borderRightWidth=$(a),t.style.borderTopWidth=$(i),t.style.bottom=$(s),t.width=a,t.height=i+s,t.depth=-s,t.maxFontSize=i*1.125*e.sizeMultiplier,t},mathmlBuilder(r,e){var t=Se(r.width,e),a=Se(r.height,e),i=r.shift?Se(r.shift,e):0,s=e.color&&e.getColor()||"black",o=new B("mspace");o.setAttribute("mathbackground",s),o.setAttribute("width",$(t)),o.setAttribute("height",$(a));var d=new B("mpadded",[o]);return i>=0?d.setAttribute("height",$(i)):(d.setAttribute("height",$(i)),d.setAttribute("depth",$(-i))),d.setAttribute("voffset",$(i)),d}});function Hi(r,e,t){for(var a=Ie(r,e,!1),i=e.sizeMultiplier/t.sizeMultiplier,s=0;s<a.length;s++){var o=a[s].classes.indexOf("sizing");o<0?Array.prototype.push.apply(a[s].classes,e.sizingClasses(t)):a[s].classes[o+1]==="reset-size"+e.size&&(a[s].classes[o+1]="reset-size"+t.size),a[s].height*=i,a[s].depth*=i}return ot(a)}var N0=["\\tiny","\\sixptsize","\\scriptsize","\\footnotesize","\\small","\\normalsize","\\large","\\Large","\\LARGE","\\huge","\\Huge"],eo=(r,e)=>{var t=e.havingSize(r.size);return Hi(r.body,t,e)};H({type:"sizing",names:N0,props:{numArgs:0,allowedInText:!0},handler:(r,e)=>{var{breakOnTokenText:t,funcName:a,parser:i}=r,s=i.parseExpression(!1,t);return{type:"sizing",mode:i.mode,size:N0.indexOf(a)+1,body:s}},htmlBuilder:eo,mathmlBuilder:(r,e)=>{var t=e.havingSize(r.size),a=Ge(r.body,t),i=new B("mstyle",a);return i.setAttribute("mathsize",$(t.sizeMultiplier)),i}});H({type:"smash",names:["\\smash"],props:{numArgs:1,numOptionalArgs:1,allowedInText:!0},handler:(r,e,t)=>{var{parser:a}=r,i=!1,s=!1,o=t[0]&&ne(t[0],"ordgroup");if(o)for(var d,c=0;c<o.body.length;++c){var m=o.body[c];if(d=Ar(m).text,d==="t")i=!0;else if(d==="b")s=!0;else{i=!1,s=!1;break}}else i=!0,s=!0;var h=e[0];return{type:"smash",mode:a.mode,body:h,smashHeight:i,smashDepth:s}},htmlBuilder:(r,e)=>{var t=I([],[me(r.body,e)]);if(!r.smashHeight&&!r.smashDepth)return t;if(r.smashHeight&&(t.height=0),r.smashDepth&&(t.depth=0),r.smashHeight&&r.smashDepth)return I(["mord","smash"],[t],e);if(t.children)for(var a=0;a<t.children.length;a++)r.smashHeight&&(t.children[a].height=0),r.smashDepth&&(t.children[a].depth=0);var i=ue({positionType:"firstBaseline",children:[{type:"elem",elem:t}]});return I(["mord"],[i],e)},mathmlBuilder:(r,e)=>{var t=new B("mpadded",[ve(r.body,e)]);return r.smashHeight&&t.setAttribute("height","0px"),r.smashDepth&&t.setAttribute("depth","0px"),t}});H({type:"sqrt",names:["\\sqrt"],props:{numArgs:1,numOptionalArgs:1},handler(r,e,t){var{parser:a}=r,i=t[0],s=e[0];return{type:"sqrt",mode:a.mode,body:s,index:i}},htmlBuilder(r,e){var t=me(r.body,e.havingCrampedStyle());t.height===0&&(t.height=e.fontMetrics().xHeight),t=Ft(t,e);var a=e.fontMetrics(),i=a.defaultRuleThickness,s=i;e.style.id<ie.TEXT.id&&(s=e.fontMetrics().xHeight);var o=i+s/4,d=t.height+t.depth+o+i,{span:c,ruleWidth:m,advanceWidth:h}=jn(d,e),f=c.height-m;f>t.height+t.depth+o&&(o=(o+f-t.height-t.depth)/2);var b=c.height-t.height-o-m;t.style.paddingLeft=$(h);var x=ue({positionType:"firstBaseline",children:[{type:"elem",elem:t,wrapperClasses:["svg-align"]},{type:"kern",size:-(t.height+b)},{type:"elem",elem:c},{type:"kern",size:m}]});if(r.index){var z=e.havingStyle(ie.SCRIPTSCRIPT),S=me(r.index,z,e),M=.6*(x.height-x.depth),A=ue({positionType:"shift",positionData:-M,children:[{type:"elem",elem:S}]}),T=I(["root"],[A]);return I(["mord","sqrt"],[T,x],e)}else return I(["mord","sqrt"],[x],e)},mathmlBuilder(r,e){var{body:t,index:a}=r;return a?new B("mroot",[ve(t,e),ve(a,e)]):new B("msqrt",[ve(t,e)])}});var Ta={display:ie.DISPLAY,text:ie.TEXT,script:ie.SCRIPT,scriptscript:ie.SCRIPTSCRIPT};function to(r){return r in Ta}H({type:"styling",names:["\\displaystyle","\\textstyle","\\scriptstyle","\\scriptscriptstyle"],props:{numArgs:0,allowedInText:!0,primitive:!0},handler(r,e){var{breakOnTokenText:t,funcName:a,parser:i}=r,s=i.parseExpression(!0,t),o=a.slice(1,a.length-5);if(!to(o))throw new Error("Unknown style: "+o);return{type:"styling",mode:i.mode,style:o,body:s}},htmlBuilder(r,e){var t=Ta[r.style],a=e.havingStyle(t);return r.resetFont&&(a=a.withFont("")),Hi(r.body,a,e)},mathmlBuilder(r,e){var t=Ta[r.style],a=e.havingStyle(t);r.resetFont&&(a=a.withFont(""));var i=Ge(r.body,a),s=new B("mstyle",i),o={display:["0","true"],text:["0","false"],script:["1","false"],scriptscript:["2","false"]},d=o[r.style];return s.setAttribute("scriptlevel",d[0]),s.setAttribute("displaystyle",d[1]),s}});var ro=function(e,t){var a=e.base;if(a)if(a.type==="op"){var i=a.limits&&(t.style.size===ie.DISPLAY.size||a.alwaysHandleSupSub);return i?Ht:null}else if(a.type==="operatorname"){var s=a.alwaysHandleSupSub&&(t.style.size===ie.DISPLAY.size||a.limits);return s?Oi:null}else{if(a.type==="accent")return st(a.base)?Ga:null;if(a.type==="horizBrace"){var o=!e.sub;return o===a.isOver?Fi:null}else return null}else return null};It({type:"supsub",htmlBuilder(r,e){var t=ro(r,e);if(t)return t(r,e);var{base:a,sup:i,sub:s}=r,o=me(a,e),d,c,m=e.fontMetrics(),h=0,f=0,b=a&&st(a);if(i){var x=e.havingStyle(e.style.sup());d=me(i,x,e),b||(h=o.height-x.fontMetrics().supDrop*x.sizeMultiplier/e.sizeMultiplier)}if(s){var z=e.havingStyle(e.style.sub());c=me(s,z,e),b||(f=o.depth+z.fontMetrics().subDrop*z.sizeMultiplier/e.sizeMultiplier)}var S;e.style===ie.DISPLAY?S=m.sup1:e.style.cramped?S=m.sup3:S=m.sup2;var M=e.sizeMultiplier,A=$(.5/m.ptPerEm/M),T=null;if(c){var F=r.base&&r.base.type==="op"&&r.base.name&&(r.base.name==="\\oiint"||r.base.name==="\\oiiint");if(o instanceof He||F){var W;T=$(-((W=o.italic)!=null?W:0))}}var K;if(d&&c){h=Math.max(h,S,d.depth+.25*m.xHeight),f=Math.max(f,m.sub2);var Q=m.defaultRuleThickness,X=4*Q;if(h-d.depth-(c.height-f)<X){f=X-(h-d.depth)+c.height;var q=.8*m.xHeight-(h-d.depth);q>0&&(h+=q,f-=q)}var O=[{type:"elem",elem:c,shift:f,marginRight:A,marginLeft:T},{type:"elem",elem:d,shift:-h,marginRight:A}];K=ue({positionType:"individualShift",children:O})}else if(c){f=Math.max(f,m.sub1,c.height-.8*m.xHeight);var ae=[{type:"elem",elem:c,marginLeft:T,marginRight:A}];K=ue({positionType:"shift",positionData:f,children:ae})}else if(d)h=Math.max(h,S,d.depth+.25*m.xHeight),K=ue({positionType:"shift",positionData:-h,children:[{type:"elem",elem:d,marginRight:A}]});else throw new Error("supsub must have either sup or sub.");var _=Ma(o,"right")||"mord";return I([_],[o,I(["msupsub"],[K])],e)},mathmlBuilder(r,e){var t=!1,a,i;r.base&&r.base.type==="horizBrace"&&(i=!!r.sup,i===r.base.isOver&&(t=!0,a=r.base.isOver)),r.base&&(r.base.type==="op"||r.base.type==="operatorname")&&(r.base.parentIsSupSub=!0);var s=[ve(r.base,e)];r.sub&&s.push(ve(r.sub,e)),r.sup&&s.push(ve(r.sup,e));var o;if(t)o=a?"mover":"munder";else if(r.sub)if(r.sup){var m=r.base;m&&m.type==="op"&&m.limits&&e.style===ie.DISPLAY||m&&m.type==="operatorname"&&m.alwaysHandleSupSub&&(e.style===ie.DISPLAY||m.limits)?o="munderover":o="msubsup"}else{var c=r.base;c&&c.type==="op"&&c.limits&&(e.style===ie.DISPLAY||c.alwaysHandleSupSub)||c&&c.type==="operatorname"&&c.alwaysHandleSupSub&&(c.limits||e.style===ie.DISPLAY)?o="munder":o="msub"}else{var d=r.base;d&&d.type==="op"&&d.limits&&(e.style===ie.DISPLAY||d.alwaysHandleSupSub)||d&&d.type==="operatorname"&&d.alwaysHandleSupSub&&(d.limits||e.style===ie.DISPLAY)?o="mover":o="msup"}return new B(o,s)}});It({type:"atom",htmlBuilder(r,e){return ja(r.text,r.mode,e,["m"+r.family])},mathmlBuilder(r,e){var t=new B("mo",[Xe(r.text,r.mode)]);if(r.family==="bin"){var a=Va(r,e);a==="bold-italic"&&t.setAttribute("mathvariant",a)}else r.family==="punct"?t.setAttribute("separator","true"):(r.family==="open"||r.family==="close")&&t.setAttribute("stretchy","false");return t}});var Vi={mi:"italic",mn:"normal",mtext:"normal"};It({type:"mathord",htmlBuilder(r,e){return Sr(r,e,"mathord")},mathmlBuilder(r,e){var t=new B("mi",[Xe(r.text,r.mode,e)]),a=Va(r,e)||"italic";return a!==Vi[t.type]&&t.setAttribute("mathvariant",a),t}});It({type:"textord",htmlBuilder(r,e){return Sr(r,e,"textord")},mathmlBuilder(r,e){var t=Xe(r.text,r.mode,e),a=Va(r,e)||"normal",i;return r.mode==="text"?i=new B("mtext",[t]):/[0-9]/.test(r.text)?i=new B("mn",[t]):r.text==="\\prime"?i=new B("mo",[t]):i=new B("mi",[t]),a!==Vi[i.type]&&i.setAttribute("mathvariant",a),i}});var ea={"\\nobreak":"nobreak","\\allowbreak":"allowbreak"},ta={" ":{},"\\ ":{},"~":{className:"nobreak"},"\\space":{},"\\nobreakspace":{className:"nobreak"}};It({type:"spacing",htmlBuilder(r,e){if(ta.hasOwnProperty(r.text)){var t=ta[r.text].className||"";if(r.mode==="text"){var a=Sr(r,e,"textord");return a.classes.push(t),a}else return I(["mspace",t],[ja(r.text,r.mode,e)],e)}else{if(ea.hasOwnProperty(r.text))return I(["mspace",ea[r.text]],[],e);throw new D('Unknown type of space "'+r.text+'"')}},mathmlBuilder(r,e){var t;if(ta.hasOwnProperty(r.text))t=new B("mtext",[new Ce(" ")]);else{if(ea.hasOwnProperty(r.text))return new B("mspace");throw new D('Unknown type of space "'+r.text+'"')}return t}});var j0=()=>{var r=new B("mtd",[]);return r.setAttribute("width","50%"),r};It({type:"tag",mathmlBuilder(r,e){var t=new B("mtable",[new B("mtr",[j0(),new B("mtd",[ht(r.body,e)]),j0(),new B("mtd",[ht(r.tag,e)])])]);return t.setAttribute("width","100%"),t}});var O0={"\\text":void 0,"\\textrm":"textrm","\\textsf":"textsf","\\texttt":"texttt","\\textnormal":"textrm"},H0={"\\textbf":"textbf","\\textmd":"textmd"},ao={"\\textit":"textit","\\textup":"textup"},V0=(r,e)=>{var t=r.font;if(t){if(O0[t])return e.withTextFontFamily(O0[t]);if(H0[t])return e.withTextFontWeight(H0[t]);if(t==="\\emph")return e.fontShape==="textit"?e.withTextFontShape("textup"):e.withTextFontShape("textit")}else return e;return e.withTextFontShape(ao[t])};H({type:"text",names:["\\text","\\textrm","\\textsf","\\texttt","\\textnormal","\\textbf","\\textmd","\\textit","\\textup","\\emph"],props:{numArgs:1,argTypes:["text"],allowedInArgument:!0,allowedInText:!0},handler(r,e){var{parser:t,funcName:a}=r,i=e[0];return{type:"text",mode:t.mode,body:Ae(i),font:a}},htmlBuilder(r,e){var t=V0(r,e),a=Ie(r.body,t,!0);return I(["mord","text"],a,t)},mathmlBuilder(r,e){var t=V0(r,e);return ht(r.body,t)}});H({type:"underline",names:["\\underline"],props:{numArgs:1,allowedInText:!0},handler(r,e){var{parser:t}=r;return{type:"underline",mode:t.mode,body:e[0]}},htmlBuilder(r,e){var t=me(r.body,e),a=Pt("underline-line",e),i=e.fontMetrics().defaultRuleThickness,s=ue({positionType:"top",positionData:t.height,children:[{type:"kern",size:i},{type:"elem",elem:a},{type:"kern",size:3*i},{type:"elem",elem:t}]});return I(["mord","underline"],[s],e)},mathmlBuilder(r,e){var t=new B("mo",[new Ce("‾")]);t.setAttribute("stretchy","true");var a=new B("munder",[ve(r.body,e),t]);return a.setAttribute("accentunder","true"),a}});H({type:"vcenter",names:["\\vcenter"],props:{numArgs:1,argTypes:["original"],allowedInText:!1},handler(r,e){var{parser:t}=r;return{type:"vcenter",mode:t.mode,body:e[0]}},htmlBuilder(r,e){var t=me(r.body,e),a=e.fontMetrics().axisHeight,i=.5*(t.height-a-(t.depth+a));return ue({positionType:"shift",positionData:i,children:[{type:"elem",elem:t}]})},mathmlBuilder(r,e){var t=new B("mpadded",[ve(r.body,e)],["vcenter"]);return new B("mrow",[t])}});H({type:"verb",names:["\\verb"],props:{numArgs:0,allowedInText:!0},handler(r,e,t){throw new D("\\verb ended by end of line instead of matching delimiter")},htmlBuilder(r,e){for(var t=G0(r),a=[],i=e.havingStyle(e.style.text()),s=0;s<t.length;s++){var o=t[s];o==="~"&&(o="\\textasciitilde"),a.push($e(o,"Typewriter-Regular",r.mode,i,["mord","texttt"]))}return I(["mord","text"].concat(i.sizingClasses(e)),ni(a),i)},mathmlBuilder(r,e){var t=new Ce(G0(r)),a=new B("mtext",[t]);return a.setAttribute("mathvariant","monospace"),a}});var G0=r=>r.body.replace(/ /g,r.star?"␣":" "),ct=ci,Gi=`[ \r
+	]`,io="\\\\[a-zA-Z@]+",so="\\\\[^\uD800-\uDFFF]",no="("+io+")"+Gi+"*",oo=`\\\\(
+|[ \r	]+
+?)[ \r	]*`,Ia="[̀-ͯ]",lo=new RegExp(Ia+"+$"),co="("+Gi+"+)|"+(oo+"|")+"([!-\\[\\]-‧‪-퟿豈-￿]"+(Ia+"*")+"|[\uD800-\uDBFF][\uDC00-\uDFFF]"+(Ia+"*")+"|\\\\verb\\*([^]).*?\\4|\\\\verb([^*a-zA-Z]).*?\\5"+("|"+no)+("|"+so+")");class U0{constructor(e,t){this.input=void 0,this.settings=void 0,this.tokenRegex=void 0,this.catcodes=void 0,this.input=e,this.settings=t,this.tokenRegex=new RegExp(co,"g"),this.catcodes={"%":14,"~":13}}setCatcode(e,t){this.catcodes[e]=t}lex(){var e=this.input,t=this.tokenRegex.lastIndex;if(t===e.length)return new Oe("EOF",new Fe(this,t,t));var a=this.tokenRegex.exec(e);if(a===null||a.index!==t)throw new D("Unexpected character: '"+e[t]+"'",new Oe(e[t],new Fe(this,t,t+1)));var i=a[6]||a[3]||(a[2]?"\\ ":" ");if(this.catcodes[i]===14){var s=e.indexOf(`
+`,this.tokenRegex.lastIndex);return s===-1?(this.tokenRegex.lastIndex=e.length,this.settings.reportNonstrict("commentAtEnd","% comment has no terminating newline; LaTeX would fail because of commenting the end of math mode (e.g. $)")):this.tokenRegex.lastIndex=s+1,this.lex()}return new Oe(i,new Fe(this,t,this.tokenRegex.lastIndex))}}class uo{constructor(e,t){e===void 0&&(e={}),t===void 0&&(t={}),this.current=void 0,this.builtins=void 0,this.undefStack=void 0,this.current=t,this.builtins=e,this.undefStack=[]}beginGroup(){this.undefStack.push({})}endGroup(){if(this.undefStack.length===0)throw new D("Unbalanced namespace destruction: attempt to pop global namespace; please report this as a bug");var e=this.undefStack.pop();for(var t in e)e.hasOwnProperty(t)&&(e[t]==null?delete this.current[t]:this.current[t]=e[t])}endGroups(){for(;this.undefStack.length>0;)this.endGroup()}has(e){return this.current.hasOwnProperty(e)||this.builtins.hasOwnProperty(e)}get(e){return this.current.hasOwnProperty(e)?this.current[e]:this.builtins[e]}set(e,t,a){if(a===void 0&&(a=!1),a){for(var i=0;i<this.undefStack.length;i++)delete this.undefStack[i][e];this.undefStack.length>0&&(this.undefStack[this.undefStack.length-1][e]=t)}else{var s=this.undefStack[this.undefStack.length-1];s&&!s.hasOwnProperty(e)&&(s[e]=this.current[e])}t==null?delete this.current[e]:this.current[e]=t}}var mo=Li;p("\\noexpand",function(r){var e=r.popToken();return r.isExpandable(e.text)&&(e.noexpand=!0,e.treatAsRelax=!0),{tokens:[e],numArgs:0}});p("\\expandafter",function(r){var e=r.popToken();return r.expandOnce(!0),{tokens:[e],numArgs:0}});p("\\@firstoftwo",function(r){var e=r.consumeArgs(2);return{tokens:e[0],numArgs:0}});p("\\@secondoftwo",function(r){var e=r.consumeArgs(2);return{tokens:e[1],numArgs:0}});p("\\@ifnextchar",function(r){var e=r.consumeArgs(3);r.consumeSpaces();var t=r.future();return e[0].length===1&&e[0][0].text===t.text?{tokens:e[1],numArgs:0}:{tokens:e[2],numArgs:0}});p("\\@ifstar","\\@ifnextchar *{\\@firstoftwo{#1}}");p("\\TextOrMath",function(r){var e=r.consumeArgs(2);return r.mode==="text"?{tokens:e[0],numArgs:0}:{tokens:e[1],numArgs:0}});var W0={0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,a:10,A:10,b:11,B:11,c:12,C:12,d:13,D:13,e:14,E:14,f:15,F:15};p("\\char",function(r){var e=r.popToken(),t,a=0;if(e.text==="'")t=8,e=r.popToken();else if(e.text==='"')t=16,e=r.popToken();else if(e.text==="`")if(e=r.popToken(),e.text[0]==="\\")a=e.text.charCodeAt(1);else{if(e.text==="EOF")throw new D("\\char` missing argument");a=e.text.charCodeAt(0)}else t=10;if(t){if(a=W0[e.text],a==null||a>=t)throw new D("Invalid base-"+t+" digit "+e.text);for(var i;(i=W0[r.future().text])!=null&&i<t;)a*=t,a+=i,r.popToken()}return"\\@char{"+a+"}"});var Ya=(r,e,t,a)=>{var i=r.consumeArg().tokens;if(i.length!==1)throw new D("\\newcommand's first argument must be a macro name");var s=i[0].text,o=r.isDefined(s);if(o&&!e)throw new D("\\newcommand{"+s+"} attempting to redefine "+(s+"; use \\renewcommand"));if(!o&&!t)throw new D("\\renewcommand{"+s+"} when command "+s+" does not yet exist; use \\newcommand");var d=0;if(i=r.consumeArg().tokens,i.length===1&&i[0].text==="["){for(var c="",m=r.expandNextToken();m.text!=="]"&&m.text!=="EOF";)c+=m.text,m=r.expandNextToken();if(!c.match(/^\s*[0-9]+\s*$/))throw new D("Invalid number of arguments: "+c);d=parseInt(c),i=r.consumeArg().tokens}return o&&a||r.macros.set(s,{tokens:i,numArgs:d}),""};p("\\newcommand",r=>Ya(r,!1,!0,!1));p("\\renewcommand",r=>Ya(r,!0,!1,!1));p("\\providecommand",r=>Ya(r,!0,!0,!0));p("\\message",r=>{var e=r.consumeArgs(1)[0];return console.log(e.reverse().map(t=>t.text).join("")),""});p("\\errmessage",r=>{var e=r.consumeArgs(1)[0];return console.error(e.reverse().map(t=>t.text).join("")),""});p("\\show",r=>{var e=r.popToken(),t=e.text;return console.log(e,r.macros.get(t),ct[t],ye.math[t],ye.text[t]),""});p("\\bgroup","{");p("\\egroup","}");p("~","\\nobreakspace");p("\\lq","`");p("\\rq","'");p("\\aa","\\r a");p("\\AA","\\r A");p("\\textcopyright","\\html@mathml{\\textcircled{c}}{\\char`©}");p("\\copyright","\\TextOrMath{\\textcopyright}{\\text{\\textcopyright}}");p("\\textregistered","\\html@mathml{\\textcircled{\\scriptsize R}}{\\char`®}");p("ℬ","\\mathscr{B}");p("ℰ","\\mathscr{E}");p("ℱ","\\mathscr{F}");p("ℋ","\\mathscr{H}");p("ℐ","\\mathscr{I}");p("ℒ","\\mathscr{L}");p("ℳ","\\mathscr{M}");p("ℛ","\\mathscr{R}");p("ℭ","\\mathfrak{C}");p("ℌ","\\mathfrak{H}");p("ℨ","\\mathfrak{Z}");p("\\Bbbk","\\Bbb{k}");p("\\llap","\\mathllap{\\textrm{#1}}");p("\\rlap","\\mathrlap{\\textrm{#1}}");p("\\clap","\\mathclap{\\textrm{#1}}");p("\\mathstrut","\\vphantom{(}");p("\\underbar","\\underline{\\text{#1}}");p("\\not",'\\html@mathml{\\mathrel{\\mathrlap\\@not}\\nobreak}{\\char"338}');p("\\neq","\\html@mathml{\\mathrel{\\not=}}{\\mathrel{\\char`≠}}");p("\\ne","\\neq");p("≠","\\neq");p("\\notin","\\html@mathml{\\mathrel{{\\in}\\mathllap{/\\mskip1mu}}}{\\mathrel{\\char`∉}}");p("∉","\\notin");p("≘","\\html@mathml{\\mathrel{=\\kern{-1em}\\raisebox{0.4em}{$\\scriptsize\\frown$}}}{\\mathrel{\\char`≘}}");p("≙","\\html@mathml{\\stackrel{\\tiny\\wedge}{=}}{\\mathrel{\\char`≘}}");p("≚","\\html@mathml{\\stackrel{\\tiny\\vee}{=}}{\\mathrel{\\char`≚}}");p("≛","\\html@mathml{\\stackrel{\\scriptsize\\star}{=}}{\\mathrel{\\char`≛}}");p("≝","\\html@mathml{\\stackrel{\\tiny\\mathrm{def}}{=}}{\\mathrel{\\char`≝}}");p("≞","\\html@mathml{\\stackrel{\\tiny\\mathrm{m}}{=}}{\\mathrel{\\char`≞}}");p("≟","\\html@mathml{\\stackrel{\\tiny?}{=}}{\\mathrel{\\char`≟}}");p("⟂","\\perp");p("‼","\\mathclose{!\\mkern-0.8mu!}");p("∌","\\notni");p("⌜","\\ulcorner");p("⌝","\\urcorner");p("⌞","\\llcorner");p("⌟","\\lrcorner");p("©","\\copyright");p("®","\\textregistered");p("\\ulcorner",'\\html@mathml{\\@ulcorner}{\\mathop{\\char"231c}}');p("\\urcorner",'\\html@mathml{\\@urcorner}{\\mathop{\\char"231d}}');p("\\llcorner",'\\html@mathml{\\@llcorner}{\\mathop{\\char"231e}}');p("\\lrcorner",'\\html@mathml{\\@lrcorner}{\\mathop{\\char"231f}}');p("\\vdots","{\\varvdots\\rule{0pt}{15pt}}");p("⋮","\\vdots");p("\\varGamma","\\mathit{\\Gamma}");p("\\varDelta","\\mathit{\\Delta}");p("\\varTheta","\\mathit{\\Theta}");p("\\varLambda","\\mathit{\\Lambda}");p("\\varXi","\\mathit{\\Xi}");p("\\varPi","\\mathit{\\Pi}");p("\\varSigma","\\mathit{\\Sigma}");p("\\varUpsilon","\\mathit{\\Upsilon}");p("\\varPhi","\\mathit{\\Phi}");p("\\varPsi","\\mathit{\\Psi}");p("\\varOmega","\\mathit{\\Omega}");p("\\substack","\\begin{subarray}{c}#1\\end{subarray}");p("\\colon","\\nobreak\\mskip2mu\\mathpunct{}\\mathchoice{\\mkern-3mu}{\\mkern-3mu}{}{}{:}\\mskip6mu\\relax");p("\\boxed","\\fbox{$\\displaystyle{#1}$}");p("\\iff","\\DOTSB\\;\\Longleftrightarrow\\;");p("\\implies","\\DOTSB\\;\\Longrightarrow\\;");p("\\impliedby","\\DOTSB\\;\\Longleftarrow\\;");p("\\dddot","{\\overset{\\raisebox{-0.1ex}{\\normalsize ...}}{#1}}");p("\\ddddot","{\\overset{\\raisebox{-0.1ex}{\\normalsize ....}}{#1}}");var X0={",":"\\dotsc","\\not":"\\dotsb","+":"\\dotsb","=":"\\dotsb","<":"\\dotsb",">":"\\dotsb","-":"\\dotsb","*":"\\dotsb",":":"\\dotsb","\\DOTSB":"\\dotsb","\\coprod":"\\dotsb","\\bigvee":"\\dotsb","\\bigwedge":"\\dotsb","\\biguplus":"\\dotsb","\\bigcap":"\\dotsb","\\bigcup":"\\dotsb","\\prod":"\\dotsb","\\sum":"\\dotsb","\\bigotimes":"\\dotsb","\\bigoplus":"\\dotsb","\\bigodot":"\\dotsb","\\bigsqcup":"\\dotsb","\\And":"\\dotsb","\\longrightarrow":"\\dotsb","\\Longrightarrow":"\\dotsb","\\longleftarrow":"\\dotsb","\\Longleftarrow":"\\dotsb","\\longleftrightarrow":"\\dotsb","\\Longleftrightarrow":"\\dotsb","\\mapsto":"\\dotsb","\\longmapsto":"\\dotsb","\\hookrightarrow":"\\dotsb","\\doteq":"\\dotsb","\\mathbin":"\\dotsb","\\mathrel":"\\dotsb","\\relbar":"\\dotsb","\\Relbar":"\\dotsb","\\xrightarrow":"\\dotsb","\\xleftarrow":"\\dotsb","\\DOTSI":"\\dotsi","\\int":"\\dotsi","\\oint":"\\dotsi","\\iint":"\\dotsi","\\iiint":"\\dotsi","\\iiiint":"\\dotsi","\\idotsint":"\\dotsi","\\DOTSX":"\\dotsx"},po=new Set(["bin","rel"]);p("\\dots",function(r){var e="\\dotso",t=r.expandAfterFuture().text;return t in X0?e=X0[t]:(t.slice(0,4)==="\\not"||t in ye.math&&po.has(ye.math[t].group))&&(e="\\dotsb"),e});var Za={")":!0,"]":!0,"\\rbrack":!0,"\\}":!0,"\\rbrace":!0,"\\rangle":!0,"\\rceil":!0,"\\rfloor":!0,"\\rgroup":!0,"\\rmoustache":!0,"\\right":!0,"\\bigr":!0,"\\biggr":!0,"\\Bigr":!0,"\\Biggr":!0,$:!0,";":!0,".":!0,",":!0};p("\\dotso",function(r){var e=r.future().text;return e in Za?"\\ldots\\,":"\\ldots"});p("\\dotsc",function(r){var e=r.future().text;return e in Za&&e!==","?"\\ldots\\,":"\\ldots"});p("\\cdots",function(r){var e=r.future().text;return e in Za?"\\@cdots\\,":"\\@cdots"});p("\\dotsb","\\cdots");p("\\dotsm","\\cdots");p("\\dotsi","\\!\\cdots");p("\\dotsx","\\ldots\\,");p("\\DOTSI","\\relax");p("\\DOTSB","\\relax");p("\\DOTSX","\\relax");p("\\tmspace","\\TextOrMath{\\kern#1#3}{\\mskip#1#2}\\relax");p("\\,","\\tmspace+{3mu}{.1667em}");p("\\thinspace","\\,");p("\\>","\\mskip{4mu}");p("\\:","\\tmspace+{4mu}{.2222em}");p("\\medspace","\\:");p("\\;","\\tmspace+{5mu}{.2777em}");p("\\thickspace","\\;");p("\\!","\\tmspace-{3mu}{.1667em}");p("\\negthinspace","\\!");p("\\negmedspace","\\tmspace-{4mu}{.2222em}");p("\\negthickspace","\\tmspace-{5mu}{.277em}");p("\\enspace","\\kern.5em ");p("\\enskip","\\hskip.5em\\relax");p("\\quad","\\hskip1em\\relax");p("\\qquad","\\hskip2em\\relax");p("\\tag","\\@ifstar\\tag@literal\\tag@paren");p("\\tag@paren","\\tag@literal{({#1})}");p("\\tag@literal",r=>{if(r.macros.get("\\df@tag"))throw new D("Multiple \\tag");return"\\gdef\\df@tag{\\text{#1}}"});p("\\bmod","\\mathchoice{\\mskip1mu}{\\mskip1mu}{\\mskip5mu}{\\mskip5mu}\\mathbin{\\rm mod}\\mathchoice{\\mskip1mu}{\\mskip1mu}{\\mskip5mu}{\\mskip5mu}");p("\\pod","\\allowbreak\\mathchoice{\\mkern18mu}{\\mkern8mu}{\\mkern8mu}{\\mkern8mu}(#1)");p("\\pmod","\\pod{{\\rm mod}\\mkern6mu#1}");p("\\mod","\\allowbreak\\mathchoice{\\mkern18mu}{\\mkern12mu}{\\mkern12mu}{\\mkern12mu}{\\rm mod}\\,\\,#1");p("\\newline","\\\\\\relax");p("\\TeX","\\textrm{\\html@mathml{T\\kern-.1667em\\raisebox{-.5ex}{E}\\kern-.125emX}{TeX}}");var Ui=$(Je["Main-Regular"][84][1]-.7*Je["Main-Regular"][65][1]);p("\\LaTeX","\\textrm{\\html@mathml{"+("L\\kern-.36em\\raisebox{"+Ui+"}{\\scriptstyle A}")+"\\kern-.15em\\TeX}{LaTeX}}");p("\\KaTeX","\\textrm{\\html@mathml{"+("K\\kern-.17em\\raisebox{"+Ui+"}{\\scriptstyle A}")+"\\kern-.15em\\TeX}{KaTeX}}");p("\\hspace","\\@ifstar\\@hspacer\\@hspace");p("\\@hspace","\\hskip #1\\relax");p("\\@hspacer","\\rule{0pt}{0pt}\\hskip #1\\relax");p("\\ordinarycolon",":");p("\\vcentcolon","\\mathrel{\\mathop\\ordinarycolon}");p("\\dblcolon",'\\html@mathml{\\mathrel{\\vcentcolon\\mathrel{\\mkern-.9mu}\\vcentcolon}}{\\mathop{\\char"2237}}');p("\\coloneqq",'\\html@mathml{\\mathrel{\\vcentcolon\\mathrel{\\mkern-1.2mu}=}}{\\mathop{\\char"2254}}');p("\\Coloneqq",'\\html@mathml{\\mathrel{\\dblcolon\\mathrel{\\mkern-1.2mu}=}}{\\mathop{\\char"2237\\char"3d}}');p("\\coloneq",'\\html@mathml{\\mathrel{\\vcentcolon\\mathrel{\\mkern-1.2mu}\\mathrel{-}}}{\\mathop{\\char"3a\\char"2212}}');p("\\Coloneq",'\\html@mathml{\\mathrel{\\dblcolon\\mathrel{\\mkern-1.2mu}\\mathrel{-}}}{\\mathop{\\char"2237\\char"2212}}');p("\\eqqcolon",'\\html@mathml{\\mathrel{=\\mathrel{\\mkern-1.2mu}\\vcentcolon}}{\\mathop{\\char"2255}}');p("\\Eqqcolon",'\\html@mathml{\\mathrel{=\\mathrel{\\mkern-1.2mu}\\dblcolon}}{\\mathop{\\char"3d\\char"2237}}');p("\\eqcolon",'\\html@mathml{\\mathrel{\\mathrel{-}\\mathrel{\\mkern-1.2mu}\\vcentcolon}}{\\mathop{\\char"2239}}');p("\\Eqcolon",'\\html@mathml{\\mathrel{\\mathrel{-}\\mathrel{\\mkern-1.2mu}\\dblcolon}}{\\mathop{\\char"2212\\char"2237}}');p("\\colonapprox",'\\html@mathml{\\mathrel{\\vcentcolon\\mathrel{\\mkern-1.2mu}\\approx}}{\\mathop{\\char"3a\\char"2248}}');p("\\Colonapprox",'\\html@mathml{\\mathrel{\\dblcolon\\mathrel{\\mkern-1.2mu}\\approx}}{\\mathop{\\char"2237\\char"2248}}');p("\\colonsim",'\\html@mathml{\\mathrel{\\vcentcolon\\mathrel{\\mkern-1.2mu}\\sim}}{\\mathop{\\char"3a\\char"223c}}');p("\\Colonsim",'\\html@mathml{\\mathrel{\\dblcolon\\mathrel{\\mkern-1.2mu}\\sim}}{\\mathop{\\char"2237\\char"223c}}');p("∷","\\dblcolon");p("∹","\\eqcolon");p("≔","\\coloneqq");p("≕","\\eqqcolon");p("⩴","\\Coloneqq");p("\\ratio","\\vcentcolon");p("\\coloncolon","\\dblcolon");p("\\colonequals","\\coloneqq");p("\\coloncolonequals","\\Coloneqq");p("\\equalscolon","\\eqqcolon");p("\\equalscoloncolon","\\Eqqcolon");p("\\colonminus","\\coloneq");p("\\coloncolonminus","\\Coloneq");p("\\minuscolon","\\eqcolon");p("\\minuscoloncolon","\\Eqcolon");p("\\coloncolonapprox","\\Colonapprox");p("\\coloncolonsim","\\Colonsim");p("\\simcolon","\\mathrel{\\sim\\mathrel{\\mkern-1.2mu}\\vcentcolon}");p("\\simcoloncolon","\\mathrel{\\sim\\mathrel{\\mkern-1.2mu}\\dblcolon}");p("\\approxcolon","\\mathrel{\\approx\\mathrel{\\mkern-1.2mu}\\vcentcolon}");p("\\approxcoloncolon","\\mathrel{\\approx\\mathrel{\\mkern-1.2mu}\\dblcolon}");p("\\notni","\\html@mathml{\\not\\ni}{\\mathrel{\\char`∌}}");p("\\limsup","\\DOTSB\\operatorname*{lim\\,sup}");p("\\liminf","\\DOTSB\\operatorname*{lim\\,inf}");p("\\injlim","\\DOTSB\\operatorname*{inj\\,lim}");p("\\projlim","\\DOTSB\\operatorname*{proj\\,lim}");p("\\varlimsup","\\DOTSB\\operatorname*{\\overline{lim}}");p("\\varliminf","\\DOTSB\\operatorname*{\\underline{lim}}");p("\\varinjlim","\\DOTSB\\operatorname*{\\underrightarrow{lim}}");p("\\varprojlim","\\DOTSB\\operatorname*{\\underleftarrow{lim}}");p("\\gvertneqq","\\html@mathml{\\@gvertneqq}{≩}");p("\\lvertneqq","\\html@mathml{\\@lvertneqq}{≨}");p("\\ngeqq","\\html@mathml{\\@ngeqq}{≱}");p("\\ngeqslant","\\html@mathml{\\@ngeqslant}{≱}");p("\\nleqq","\\html@mathml{\\@nleqq}{≰}");p("\\nleqslant","\\html@mathml{\\@nleqslant}{≰}");p("\\nshortmid","\\html@mathml{\\@nshortmid}{∤}");p("\\nshortparallel","\\html@mathml{\\@nshortparallel}{∦}");p("\\nsubseteqq","\\html@mathml{\\@nsubseteqq}{⊈}");p("\\nsupseteqq","\\html@mathml{\\@nsupseteqq}{⊉}");p("\\varsubsetneq","\\html@mathml{\\@varsubsetneq}{⊊}");p("\\varsubsetneqq","\\html@mathml{\\@varsubsetneqq}{⫋}");p("\\varsupsetneq","\\html@mathml{\\@varsupsetneq}{⊋}");p("\\varsupsetneqq","\\html@mathml{\\@varsupsetneqq}{⫌}");p("\\imath","\\html@mathml{\\@imath}{ı}");p("\\jmath","\\html@mathml{\\@jmath}{ȷ}");p("\\llbracket","\\html@mathml{\\mathopen{[\\mkern-3.2mu[}}{\\mathopen{\\char`⟦}}");p("\\rrbracket","\\html@mathml{\\mathclose{]\\mkern-3.2mu]}}{\\mathclose{\\char`⟧}}");p("⟦","\\llbracket");p("⟧","\\rrbracket");p("\\lBrace","\\html@mathml{\\mathopen{\\{\\mkern-3.2mu[}}{\\mathopen{\\char`⦃}}");p("\\rBrace","\\html@mathml{\\mathclose{]\\mkern-3.2mu\\}}}{\\mathclose{\\char`⦄}}");p("⦃","\\lBrace");p("⦄","\\rBrace");p("\\minuso","\\mathbin{\\html@mathml{{\\mathrlap{\\mathchoice{\\kern{0.145em}}{\\kern{0.145em}}{\\kern{0.1015em}}{\\kern{0.0725em}}\\circ}{-}}}{\\char`⦵}}");p("⦵","\\minuso");p("\\darr","\\downarrow");p("\\dArr","\\Downarrow");p("\\Darr","\\Downarrow");p("\\lang","\\langle");p("\\rang","\\rangle");p("\\uarr","\\uparrow");p("\\uArr","\\Uparrow");p("\\Uarr","\\Uparrow");p("\\N","\\mathbb{N}");p("\\R","\\mathbb{R}");p("\\Z","\\mathbb{Z}");p("\\alef","\\aleph");p("\\alefsym","\\aleph");p("\\Alpha","\\mathrm{A}");p("\\Beta","\\mathrm{B}");p("\\bull","\\bullet");p("\\Chi","\\mathrm{X}");p("\\clubs","\\clubsuit");p("\\cnums","\\mathbb{C}");p("\\Complex","\\mathbb{C}");p("\\Dagger","\\ddagger");p("\\diamonds","\\diamondsuit");p("\\empty","\\emptyset");p("\\Epsilon","\\mathrm{E}");p("\\Eta","\\mathrm{H}");p("\\exist","\\exists");p("\\harr","\\leftrightarrow");p("\\hArr","\\Leftrightarrow");p("\\Harr","\\Leftrightarrow");p("\\hearts","\\heartsuit");p("\\image","\\Im");p("\\infin","\\infty");p("\\Iota","\\mathrm{I}");p("\\isin","\\in");p("\\Kappa","\\mathrm{K}");p("\\larr","\\leftarrow");p("\\lArr","\\Leftarrow");p("\\Larr","\\Leftarrow");p("\\lrarr","\\leftrightarrow");p("\\lrArr","\\Leftrightarrow");p("\\Lrarr","\\Leftrightarrow");p("\\Mu","\\mathrm{M}");p("\\natnums","\\mathbb{N}");p("\\Nu","\\mathrm{N}");p("\\Omicron","\\mathrm{O}");p("\\plusmn","\\pm");p("\\rarr","\\rightarrow");p("\\rArr","\\Rightarrow");p("\\Rarr","\\Rightarrow");p("\\real","\\Re");p("\\reals","\\mathbb{R}");p("\\Reals","\\mathbb{R}");p("\\Rho","\\mathrm{P}");p("\\sdot","\\cdot");p("\\sect","\\S");p("\\spades","\\spadesuit");p("\\sub","\\subset");p("\\sube","\\subseteq");p("\\supe","\\supseteq");p("\\Tau","\\mathrm{T}");p("\\thetasym","\\vartheta");p("\\weierp","\\wp");p("\\Zeta","\\mathrm{Z}");p("\\argmin","\\DOTSB\\operatorname*{arg\\,min}");p("\\argmax","\\DOTSB\\operatorname*{arg\\,max}");p("\\plim","\\DOTSB\\mathop{\\operatorname{plim}}\\limits");p("\\bra","\\mathinner{\\langle{#1}|}");p("\\ket","\\mathinner{|{#1}\\rangle}");p("\\braket","\\mathinner{\\langle{#1}\\rangle}");p("\\Bra","\\left\\langle#1\\right|");p("\\Ket","\\left|#1\\right\\rangle");var Wi=r=>e=>{var t=e.consumeArg().tokens,a=e.consumeArg().tokens,i=e.consumeArg().tokens,s=e.consumeArg().tokens,o=e.macros.get("|"),d=e.macros.get("\\|");e.macros.beginGroup();var c=f=>b=>{r&&(b.macros.set("|",o),i.length&&b.macros.set("\\|",d));var x=f;if(!f&&i.length){var z=b.future();z.text==="|"&&(b.popToken(),x=!0)}return{tokens:x?i:a,numArgs:0}};e.macros.set("|",c(!1)),i.length&&e.macros.set("\\|",c(!0));var m=e.consumeArg().tokens,h=e.expandTokens([...s,...m,...t]);return e.macros.endGroup(),{tokens:h.reverse(),numArgs:0}};p("\\bra@ket",Wi(!1));p("\\bra@set",Wi(!0));p("\\Braket","\\bra@ket{\\left\\langle}{\\,\\middle\\vert\\,}{\\,\\middle\\vert\\,}{\\right\\rangle}");p("\\Set","\\bra@set{\\left\\{\\:}{\\;\\middle\\vert\\;}{\\;\\middle\\Vert\\;}{\\:\\right\\}}");p("\\set","\\bra@set{\\{\\,}{\\mid}{}{\\,\\}}");p("\\angln","{\\angl n}");p("\\blue","\\textcolor{##6495ed}{#1}");p("\\orange","\\textcolor{##ffa500}{#1}");p("\\pink","\\textcolor{##ff00af}{#1}");p("\\red","\\textcolor{##df0030}{#1}");p("\\green","\\textcolor{##28ae7b}{#1}");p("\\gray","\\textcolor{gray}{#1}");p("\\purple","\\textcolor{##9d38bd}{#1}");p("\\blueA","\\textcolor{##ccfaff}{#1}");p("\\blueB","\\textcolor{##80f6ff}{#1}");p("\\blueC","\\textcolor{##63d9ea}{#1}");p("\\blueD","\\textcolor{##11accd}{#1}");p("\\blueE","\\textcolor{##0c7f99}{#1}");p("\\tealA","\\textcolor{##94fff5}{#1}");p("\\tealB","\\textcolor{##26edd5}{#1}");p("\\tealC","\\textcolor{##01d1c1}{#1}");p("\\tealD","\\textcolor{##01a995}{#1}");p("\\tealE","\\textcolor{##208170}{#1}");p("\\greenA","\\textcolor{##b6ffb0}{#1}");p("\\greenB","\\textcolor{##8af281}{#1}");p("\\greenC","\\textcolor{##74cf70}{#1}");p("\\greenD","\\textcolor{##1fab54}{#1}");p("\\greenE","\\textcolor{##0d923f}{#1}");p("\\goldA","\\textcolor{##ffd0a9}{#1}");p("\\goldB","\\textcolor{##ffbb71}{#1}");p("\\goldC","\\textcolor{##ff9c39}{#1}");p("\\goldD","\\textcolor{##e07d10}{#1}");p("\\goldE","\\textcolor{##a75a05}{#1}");p("\\redA","\\textcolor{##fca9a9}{#1}");p("\\redB","\\textcolor{##ff8482}{#1}");p("\\redC","\\textcolor{##f9685d}{#1}");p("\\redD","\\textcolor{##e84d39}{#1}");p("\\redE","\\textcolor{##bc2612}{#1}");p("\\maroonA","\\textcolor{##ffbde0}{#1}");p("\\maroonB","\\textcolor{##ff92c6}{#1}");p("\\maroonC","\\textcolor{##ed5fa6}{#1}");p("\\maroonD","\\textcolor{##ca337c}{#1}");p("\\maroonE","\\textcolor{##9e034e}{#1}");p("\\purpleA","\\textcolor{##ddd7ff}{#1}");p("\\purpleB","\\textcolor{##c6b9fc}{#1}");p("\\purpleC","\\textcolor{##aa87ff}{#1}");p("\\purpleD","\\textcolor{##7854ab}{#1}");p("\\purpleE","\\textcolor{##543b78}{#1}");p("\\mintA","\\textcolor{##f5f9e8}{#1}");p("\\mintB","\\textcolor{##edf2df}{#1}");p("\\mintC","\\textcolor{##e0e5cc}{#1}");p("\\grayA","\\textcolor{##f6f7f7}{#1}");p("\\grayB","\\textcolor{##f0f1f2}{#1}");p("\\grayC","\\textcolor{##e3e5e6}{#1}");p("\\grayD","\\textcolor{##d6d8da}{#1}");p("\\grayE","\\textcolor{##babec2}{#1}");p("\\grayF","\\textcolor{##888d93}{#1}");p("\\grayG","\\textcolor{##626569}{#1}");p("\\grayH","\\textcolor{##3b3e40}{#1}");p("\\grayI","\\textcolor{##21242c}{#1}");p("\\kaBlue","\\textcolor{##314453}{#1}");p("\\kaGreen","\\textcolor{##71B307}{#1}");var Xi={"^":!0,_:!0,"\\limits":!0,"\\nolimits":!0};class ho{constructor(e,t,a){this.settings=void 0,this.expansionCount=void 0,this.lexer=void 0,this.macros=void 0,this.stack=void 0,this.mode=void 0,this.settings=t,this.expansionCount=0,this.feed(e),this.macros=new uo(mo,t.macros),this.mode=a,this.stack=[]}feed(e){this.lexer=new U0(e,this.settings)}switchMode(e){this.mode=e}beginGroup(){this.macros.beginGroup()}endGroup(){this.macros.endGroup()}endGroups(){this.macros.endGroups()}future(){return this.stack.length===0&&this.pushToken(this.lexer.lex()),this.stack[this.stack.length-1]}popToken(){return this.future(),this.stack.pop()}pushToken(e){this.stack.push(e)}pushTokens(e){this.stack.push(...e)}scanArgument(e){var t,a,i;if(e){if(this.consumeSpaces(),this.future().text!=="[")return null;t=this.popToken(),{tokens:i,end:a}=this.consumeArg(["]"])}else({tokens:i,start:t,end:a}=this.consumeArg());return this.pushToken(new Oe("EOF",a.loc)),this.pushTokens(i),new Oe("",Fe.range(t,a))}consumeSpaces(){for(;;){var e=this.future();if(e.text===" ")this.stack.pop();else break}}consumeArg(e){var t=[],a=e&&e.length>0;a||this.consumeSpaces();var i=this.future(),s,o=0,d=0;do{if(s=this.popToken(),t.push(s),s.text==="{")++o;else if(s.text==="}"){if(--o,o===-1)throw new D("Extra }",s)}else if(s.text==="EOF")throw new D("Unexpected end of input in a macro argument, expected '"+(e&&a?e[d]:"}")+"'",s);if(e&&a)if((o===0||o===1&&e[d]==="{")&&s.text===e[d]){if(++d,d===e.length){t.splice(-d,d);break}}else d=0}while(o!==0||a);return i.text==="{"&&t[t.length-1].text==="}"&&(t.pop(),t.shift()),t.reverse(),{tokens:t,start:i,end:s}}consumeArgs(e,t){if(t){if(t.length!==e+1)throw new D("The length of delimiters doesn't match the number of args!");for(var a=t[0],i=0;i<a.length;i++){var s=this.popToken();if(a[i]!==s.text)throw new D("Use of the macro doesn't match its definition",s)}}for(var o=[],d=0;d<e;d++)o.push(this.consumeArg(t&&t[d+1]).tokens);return o}countExpansion(e){if(this.expansionCount+=e,this.expansionCount>this.settings.maxExpand)throw new D("Too many expansions: infinite loop or need to increase maxExpand setting")}expandOnce(e){var t=this.popToken(),a=t.text,i=t.noexpand?null:this._getExpansion(a);if(i==null||e&&i.unexpandable){if(e&&i==null&&a[0]==="\\"&&!this.isDefined(a))throw new D("Undefined control sequence: "+a);return this.pushToken(t),!1}this.countExpansion(1);var s=i.tokens,o=this.consumeArgs(i.numArgs,i.delimiters);if(i.numArgs){s=s.slice();for(var d=s.length-1;d>=0;--d){var c=s[d];if(c.text==="#"){if(d===0)throw new D("Incomplete placeholder at end of macro body",c);if(c=s[--d],c.text==="#")s.splice(d+1,1);else if(/^[1-9]$/.test(c.text))s.splice(d,2,...o[+c.text-1]);else throw new D("Not a valid argument number",c)}}}return this.pushTokens(s),s.length}expandAfterFuture(){return this.expandOnce(),this.future()}expandNextToken(){for(;;)if(this.expandOnce()===!1){var e=this.stack.pop();return e.treatAsRelax&&(e.text="\\relax"),e}}expandMacro(e){return this.macros.has(e)?this.expandTokens([new Oe(e)]):void 0}expandTokens(e){var t=[],a=this.stack.length;for(this.pushTokens(e);this.stack.length>a;)if(this.expandOnce(!0)===!1){var i=this.stack.pop();i.treatAsRelax&&(i.noexpand=!1,i.treatAsRelax=!1),t.push(i)}return this.countExpansion(t.length),t}expandMacroAsText(e){var t=this.expandMacro(e);return t&&t.map(a=>a.text).join("")}_getExpansion(e){var t=this.macros.get(e);if(t==null)return t;if(e.length===1){var a=this.lexer.catcodes[e];if(a!=null&&a!==13)return}var i=typeof t=="function"?t(this):t;if(typeof i=="string"){var s=0;if(i.includes("#"))for(var o=i.replace(/##/g,"");o.includes("#"+(s+1));)++s;for(var d=new U0(i,this.settings),c=[],m=d.lex();m.text!=="EOF";)c.push(m),m=d.lex();c.reverse();var h={tokens:c,numArgs:s};return h}return i}isDefined(e){return this.macros.has(e)||ct.hasOwnProperty(e)||ye.math.hasOwnProperty(e)||ye.text.hasOwnProperty(e)||Xi.hasOwnProperty(e)}isExpandable(e){var t=this.macros.get(e);return t!=null?typeof t=="string"||typeof t=="function"||!t.unexpandable:ct.hasOwnProperty(e)&&!ct[e].primitive}}var Y0=/^[₊₋₌₍₎₀₁₂₃₄₅₆₇₈₉ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵧᵨᵩᵪ]/,cr=Object.freeze({"₊":"+","₋":"-","₌":"=","₍":"(","₎":")","₀":"0","₁":"1","₂":"2","₃":"3","₄":"4","₅":"5","₆":"6","₇":"7","₈":"8","₉":"9","ₐ":"a","ₑ":"e","ₕ":"h","ᵢ":"i","ⱼ":"j","ₖ":"k","ₗ":"l","ₘ":"m","ₙ":"n","ₒ":"o","ₚ":"p","ᵣ":"r","ₛ":"s","ₜ":"t","ᵤ":"u","ᵥ":"v","ₓ":"x","ᵦ":"β","ᵧ":"γ","ᵨ":"ρ","ᵩ":"ϕ","ᵪ":"χ","⁺":"+","⁻":"-","⁼":"=","⁽":"(","⁾":")","⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","ᴬ":"A","ᴮ":"B","ᴰ":"D","ᴱ":"E","ᴳ":"G","ᴴ":"H","ᴵ":"I","ᴶ":"J","ᴷ":"K","ᴸ":"L","ᴹ":"M","ᴺ":"N","ᴼ":"O","ᴾ":"P","ᴿ":"R","ᵀ":"T","ᵁ":"U","ⱽ":"V","ᵂ":"W","ᵃ":"a","ᵇ":"b","ᶜ":"c","ᵈ":"d","ᵉ":"e","ᶠ":"f","ᵍ":"g",ʰ:"h","ⁱ":"i",ʲ:"j","ᵏ":"k",ˡ:"l","ᵐ":"m",ⁿ:"n","ᵒ":"o","ᵖ":"p",ʳ:"r",ˢ:"s","ᵗ":"t","ᵘ":"u","ᵛ":"v",ʷ:"w",ˣ:"x",ʸ:"y","ᶻ":"z","ᵝ":"β","ᵞ":"γ","ᵟ":"δ","ᵠ":"ϕ","ᵡ":"χ","ᶿ":"θ"}),ra={"́":{text:"\\'",math:"\\acute"},"̀":{text:"\\`",math:"\\grave"},"̈":{text:'\\"',math:"\\ddot"},"̃":{text:"\\~",math:"\\tilde"},"̄":{text:"\\=",math:"\\bar"},"̆":{text:"\\u",math:"\\breve"},"̌":{text:"\\v",math:"\\check"},"̂":{text:"\\^",math:"\\hat"},"̇":{text:"\\.",math:"\\dot"},"̊":{text:"\\r",math:"\\mathring"},"̋":{text:"\\H"},"̧":{text:"\\c"}},Z0={á:"á",à:"à",ä:"ä",ǟ:"ǟ",ã:"ã",ā:"ā",ă:"ă",ắ:"ắ",ằ:"ằ",ẵ:"ẵ",ǎ:"ǎ",â:"â",ấ:"ấ",ầ:"ầ",ẫ:"ẫ",ȧ:"ȧ",ǡ:"ǡ",å:"å",ǻ:"ǻ",ḃ:"ḃ",ć:"ć",ḉ:"ḉ",č:"č",ĉ:"ĉ",ċ:"ċ",ç:"ç",ď:"ď",ḋ:"ḋ",ḑ:"ḑ",é:"é",è:"è",ë:"ë",ẽ:"ẽ",ē:"ē",ḗ:"ḗ",ḕ:"ḕ",ĕ:"ĕ",ḝ:"ḝ",ě:"ě",ê:"ê",ế:"ế",ề:"ề",ễ:"ễ",ė:"ė",ȩ:"ȩ",ḟ:"ḟ",ǵ:"ǵ",ḡ:"ḡ",ğ:"ğ",ǧ:"ǧ",ĝ:"ĝ",ġ:"ġ",ģ:"ģ",ḧ:"ḧ",ȟ:"ȟ",ĥ:"ĥ",ḣ:"ḣ",ḩ:"ḩ",í:"í",ì:"ì",ï:"ï",ḯ:"ḯ",ĩ:"ĩ",ī:"ī",ĭ:"ĭ",ǐ:"ǐ",î:"î",ǰ:"ǰ",ĵ:"ĵ",ḱ:"ḱ",ǩ:"ǩ",ķ:"ķ",ĺ:"ĺ",ľ:"ľ",ļ:"ļ",ḿ:"ḿ",ṁ:"ṁ",ń:"ń",ǹ:"ǹ",ñ:"ñ",ň:"ň",ṅ:"ṅ",ņ:"ņ",ó:"ó",ò:"ò",ö:"ö",ȫ:"ȫ",õ:"õ",ṍ:"ṍ",ṏ:"ṏ",ȭ:"ȭ",ō:"ō",ṓ:"ṓ",ṑ:"ṑ",ŏ:"ŏ",ǒ:"ǒ",ô:"ô",ố:"ố",ồ:"ồ",ỗ:"ỗ",ȯ:"ȯ",ȱ:"ȱ",ő:"ő",ṕ:"ṕ",ṗ:"ṗ",ŕ:"ŕ",ř:"ř",ṙ:"ṙ",ŗ:"ŗ",ś:"ś",ṥ:"ṥ",š:"š",ṧ:"ṧ",ŝ:"ŝ",ṡ:"ṡ",ş:"ş",ẗ:"ẗ",ť:"ť",ṫ:"ṫ",ţ:"ţ",ú:"ú",ù:"ù",ü:"ü",ǘ:"ǘ",ǜ:"ǜ",ǖ:"ǖ",ǚ:"ǚ",ũ:"ũ",ṹ:"ṹ",ū:"ū",ṻ:"ṻ",ŭ:"ŭ",ǔ:"ǔ",û:"û",ů:"ů",ű:"ű",ṽ:"ṽ",ẃ:"ẃ",ẁ:"ẁ",ẅ:"ẅ",ŵ:"ŵ",ẇ:"ẇ",ẘ:"ẘ",ẍ:"ẍ",ẋ:"ẋ",ý:"ý",ỳ:"ỳ",ÿ:"ÿ",ỹ:"ỹ",ȳ:"ȳ",ŷ:"ŷ",ẏ:"ẏ",ẙ:"ẙ",ź:"ź",ž:"ž",ẑ:"ẑ",ż:"ż",Á:"Á",À:"À",Ä:"Ä",Ǟ:"Ǟ",Ã:"Ã",Ā:"Ā",Ă:"Ă",Ắ:"Ắ",Ằ:"Ằ",Ẵ:"Ẵ",Ǎ:"Ǎ",Â:"Â",Ấ:"Ấ",Ầ:"Ầ",Ẫ:"Ẫ",Ȧ:"Ȧ",Ǡ:"Ǡ",Å:"Å",Ǻ:"Ǻ",Ḃ:"Ḃ",Ć:"Ć",Ḉ:"Ḉ",Č:"Č",Ĉ:"Ĉ",Ċ:"Ċ",Ç:"Ç",Ď:"Ď",Ḋ:"Ḋ",Ḑ:"Ḑ",É:"É",È:"È",Ë:"Ë",Ẽ:"Ẽ",Ē:"Ē",Ḗ:"Ḗ",Ḕ:"Ḕ",Ĕ:"Ĕ",Ḝ:"Ḝ",Ě:"Ě",Ê:"Ê",Ế:"Ế",Ề:"Ề",Ễ:"Ễ",Ė:"Ė",Ȩ:"Ȩ",Ḟ:"Ḟ",Ǵ:"Ǵ",Ḡ:"Ḡ",Ğ:"Ğ",Ǧ:"Ǧ",Ĝ:"Ĝ",Ġ:"Ġ",Ģ:"Ģ",Ḧ:"Ḧ",Ȟ:"Ȟ",Ĥ:"Ĥ",Ḣ:"Ḣ",Ḩ:"Ḩ",Í:"Í",Ì:"Ì",Ï:"Ï",Ḯ:"Ḯ",Ĩ:"Ĩ",Ī:"Ī",Ĭ:"Ĭ",Ǐ:"Ǐ",Î:"Î",İ:"İ",Ĵ:"Ĵ",Ḱ:"Ḱ",Ǩ:"Ǩ",Ķ:"Ķ",Ĺ:"Ĺ",Ľ:"Ľ",Ļ:"Ļ",Ḿ:"Ḿ",Ṁ:"Ṁ",Ń:"Ń",Ǹ:"Ǹ",Ñ:"Ñ",Ň:"Ň",Ṅ:"Ṅ",Ņ:"Ņ",Ó:"Ó",Ò:"Ò",Ö:"Ö",Ȫ:"Ȫ",Õ:"Õ",Ṍ:"Ṍ",Ṏ:"Ṏ",Ȭ:"Ȭ",Ō:"Ō",Ṓ:"Ṓ",Ṑ:"Ṑ",Ŏ:"Ŏ",Ǒ:"Ǒ",Ô:"Ô",Ố:"Ố",Ồ:"Ồ",Ỗ:"Ỗ",Ȯ:"Ȯ",Ȱ:"Ȱ",Ő:"Ő",Ṕ:"Ṕ",Ṗ:"Ṗ",Ŕ:"Ŕ",Ř:"Ř",Ṙ:"Ṙ",Ŗ:"Ŗ",Ś:"Ś",Ṥ:"Ṥ",Š:"Š",Ṧ:"Ṧ",Ŝ:"Ŝ",Ṡ:"Ṡ",Ş:"Ş",Ť:"Ť",Ṫ:"Ṫ",Ţ:"Ţ",Ú:"Ú",Ù:"Ù",Ü:"Ü",Ǘ:"Ǘ",Ǜ:"Ǜ",Ǖ:"Ǖ",Ǚ:"Ǚ",Ũ:"Ũ",Ṹ:"Ṹ",Ū:"Ū",Ṻ:"Ṻ",Ŭ:"Ŭ",Ǔ:"Ǔ",Û:"Û",Ů:"Ů",Ű:"Ű",Ṽ:"Ṽ",Ẃ:"Ẃ",Ẁ:"Ẁ",Ẅ:"Ẅ",Ŵ:"Ŵ",Ẇ:"Ẇ",Ẍ:"Ẍ",Ẋ:"Ẋ",Ý:"Ý",Ỳ:"Ỳ",Ÿ:"Ÿ",Ỹ:"Ỹ",Ȳ:"Ȳ",Ŷ:"Ŷ",Ẏ:"Ẏ",Ź:"Ź",Ž:"Ž",Ẑ:"Ẑ",Ż:"Ż",ά:"ά",ὰ:"ὰ",ᾱ:"ᾱ",ᾰ:"ᾰ",έ:"έ",ὲ:"ὲ",ή:"ή",ὴ:"ὴ",ί:"ί",ὶ:"ὶ",ϊ:"ϊ",ΐ:"ΐ",ῒ:"ῒ",ῑ:"ῑ",ῐ:"ῐ",ό:"ό",ὸ:"ὸ",ύ:"ύ",ὺ:"ὺ",ϋ:"ϋ",ΰ:"ΰ",ῢ:"ῢ",ῡ:"ῡ",ῠ:"ῠ",ώ:"ώ",ὼ:"ὼ",Ύ:"Ύ",Ὺ:"Ὺ",Ϋ:"Ϋ",Ῡ:"Ῡ",Ῠ:"Ῠ",Ώ:"Ώ",Ὼ:"Ὼ"};class Lr{constructor(e,t){this.mode=void 0,this.gullet=void 0,this.settings=void 0,this.leftrightDepth=void 0,this.nextToken=void 0,this.mode="math",this.gullet=new ho(e,t,this.mode),this.settings=t,this.leftrightDepth=0,this.nextToken=null}expect(e,t){if(t===void 0&&(t=!0),this.fetch().text!==e)throw new D("Expected '"+e+"', got '"+this.fetch().text+"'",this.fetch());t&&this.consume()}consume(){this.nextToken=null}fetch(){return this.nextToken==null&&(this.nextToken=this.gullet.expandNextToken()),this.nextToken}switchMode(e){this.mode=e,this.gullet.switchMode(e)}parse(){this.settings.globalGroup||this.gullet.beginGroup(),this.settings.colorIsTextColor&&this.gullet.macros.set("\\color","\\textcolor");try{var e=this.parseExpression(!1);return this.expect("EOF"),this.settings.globalGroup||this.gullet.endGroup(),e}finally{this.gullet.endGroups()}}subparse(e){var t=this.nextToken;this.consume(),this.gullet.pushToken(new Oe("}")),this.gullet.pushTokens(e);var a=this.parseExpression(!1);return this.expect("}"),this.nextToken=t,a}parseExpression(e,t){for(var a=[];;){this.mode==="math"&&this.consumeSpaces();var i=this.fetch();if(Lr.endOfExpression.has(i.text)||t&&i.text===t||e&&ct[i.text]&&ct[i.text].infix)break;var s=this.parseAtom(t);if(s){if(s.type==="internal")continue}else break;a.push(s)}return this.mode==="text"&&this.formLigatures(a),this.handleInfixNodes(a)}handleInfixNodes(e){for(var t=-1,a,i=0;i<e.length;i++){var s=e[i];if(s.type==="infix"){if(t!==-1)throw new D("only one infix operator per group",s.token);t=i,a=s.replaceWith}}if(t!==-1&&a){var o,d,c=e.slice(0,t),m=e.slice(t+1);c.length===1&&c[0].type==="ordgroup"?o=c[0]:o={type:"ordgroup",mode:this.mode,body:c},m.length===1&&m[0].type==="ordgroup"?d=m[0]:d={type:"ordgroup",mode:this.mode,body:m};var h;return a==="\\\\abovefrac"?h=this.callFunction(a,[o,e[t],d],[]):h=this.callFunction(a,[o,d],[]),[h]}else return e}handleSupSubscript(e){var t=this.fetch(),a=t.text;this.consume(),this.consumeSpaces();var i;do{var s;i=this.parseGroup(e)}while(((s=i)==null?void 0:s.type)==="internal");if(!i)throw new D("Expected group after '"+a+"'",t);return i}formatUnsupportedCmd(e){for(var t=[],a=0;a<e.length;a++)t.push({type:"textord",mode:"text",text:e[a]});var i={type:"text",mode:this.mode,body:t},s={type:"color",mode:this.mode,color:this.settings.errorColor,body:[i]};return s}parseAtom(e){var t=this.parseGroup("atom",e);if((t==null?void 0:t.type)==="internal"||this.mode==="text")return t;for(var a,i;;){this.consumeSpaces();var s=this.fetch();if(s.text==="\\limits"||s.text==="\\nolimits"){if(t&&t.type==="op"){var o=s.text==="\\limits";t.limits=o,t.alwaysHandleSupSub=!0}else if(t&&t.type==="operatorname")t.alwaysHandleSupSub&&(t.limits=s.text==="\\limits");else throw new D("Limit controls must follow a math operator",s);this.consume()}else if(s.text==="^"){if(a)throw new D("Double superscript",s);a=this.handleSupSubscript("superscript")}else if(s.text==="_"){if(i)throw new D("Double subscript",s);i=this.handleSupSubscript("subscript")}else if(s.text==="'"){if(a)throw new D("Double superscript",s);var d={type:"textord",mode:this.mode,text:"\\prime"},c=[d];for(this.consume();this.fetch().text==="'";)c.push(d),this.consume();this.fetch().text==="^"&&c.push(this.handleSupSubscript("superscript")),a={type:"ordgroup",mode:this.mode,body:c}}else if(cr[s.text]){var m=Y0.test(s.text),h=[];for(h.push(new Oe(cr[s.text])),this.consume();;){var f=this.fetch().text;if(!cr[f]||Y0.test(f)!==m)break;h.unshift(new Oe(cr[f])),this.consume()}var b=this.subparse(h);m?i={type:"ordgroup",mode:"math",body:b}:a={type:"ordgroup",mode:"math",body:b}}else break}return a||i?{type:"supsub",mode:this.mode,base:t,sup:a,sub:i}:t}parseFunction(e,t){var a=this.fetch(),i=a.text,s=ct[i];if(!s)return null;if(this.consume(),t&&t!=="atom"&&!s.allowedInArgument)throw new D("Got function '"+i+"' with no arguments"+(t?" as "+t:""),a);if(this.mode==="text"&&!s.allowedInText)throw new D("Can't use function '"+i+"' in text mode",a);if(this.mode==="math"&&s.allowedInMath===!1)throw new D("Can't use function '"+i+"' in math mode",a);var{args:o,optArgs:d}=this.parseArguments(i,s);return this.callFunction(i,o,d,a,e)}callFunction(e,t,a,i,s){var o={funcName:e,parser:this,token:i,breakOnTokenText:s},d=ct[e];if(d&&d.handler)return d.handler(o,t,a);throw new D("No function handler for "+e)}parseArguments(e,t){var a=t.numArgs+t.numOptionalArgs;if(a===0)return{args:[],optArgs:[]};for(var i=[],s=[],o=0;o<a;o++){var d=t.argTypes&&t.argTypes[o],c=o<t.numOptionalArgs;("primitive"in t&&t.primitive&&d==null||t.type==="sqrt"&&o===1&&s[0]==null)&&(d="primitive");var m=this.parseGroupOfType("argument to '"+e+"'",d,c);if(c)s.push(m);else if(m!=null)i.push(m);else throw new D("Null argument, please report this as a bug")}return{args:i,optArgs:s}}parseGroupOfType(e,t,a){switch(t){case"color":return this.parseColorGroup(a);case"size":return this.parseSizeGroup(a);case"url":return this.parseUrlGroup(a);case"math":case"text":return this.parseArgumentGroup(a,t);case"hbox":{var i=this.parseArgumentGroup(a,"text");return i!=null?{type:"styling",mode:i.mode,body:[i],style:"text",resetFont:!0}:null}case"raw":{var s=this.parseStringGroup("raw",a);return s!=null?{type:"raw",mode:"text",string:s.text}:null}case"primitive":{if(a)throw new D("A primitive argument cannot be optional");var o=this.parseGroup(e);if(o==null)throw new D("Expected group as "+e,this.fetch());return o}case"original":case null:case void 0:return this.parseArgumentGroup(a);default:throw new D("Unknown group type as "+e,this.fetch())}}consumeSpaces(){for(;this.fetch().text===" ";)this.consume()}parseStringGroup(e,t){var a=this.gullet.scanArgument(t);if(a==null)return null;for(var i="",s;(s=this.fetch()).text!=="EOF";)i+=s.text,this.consume();return this.consume(),a.text=i,a}parseRegexGroup(e,t){for(var a=this.fetch(),i=a,s="",o;(o=this.fetch()).text!=="EOF"&&e.test(s+o.text);)i=o,s+=i.text,this.consume();if(s==="")throw new D("Invalid "+t+": '"+a.text+"'",a);return a.range(i,s)}parseColorGroup(e){var t=this.parseStringGroup("color",e);if(t==null)return null;var a=/^(#[a-f0-9]{3,4}|#[a-f0-9]{6}|#[a-f0-9]{8}|[a-f0-9]{6}|[a-z]+)$/i.exec(t.text);if(!a)throw new D("Invalid color: '"+t.text+"'",t);var i=a[0];return/^[0-9a-f]{6}$/i.test(i)&&(i="#"+i),{type:"color-token",mode:this.mode,color:i}}parseSizeGroup(e){var t,a=!1;if(this.gullet.consumeSpaces(),!e&&this.gullet.future().text!=="{"?t=this.parseRegexGroup(/^[-+]? *(?:$|\d+|\d+\.\d*|\.\d*) *[a-z]{0,2} *$/,"size"):t=this.parseStringGroup("size",e),!t)return null;!e&&t.text.length===0&&(t.text="0pt",a=!0);var i=/([-+]?) *(\d+(?:\.\d*)?|\.\d+) *([a-z]{2})/.exec(t.text);if(!i)throw new D("Invalid size: '"+t.text+"'",t);var s={number:+(i[1]+i[2]),unit:i[3]};if(!ti(s))throw new D("Invalid unit: '"+s.unit+"'",t);return{type:"size",mode:this.mode,value:s,isBlank:a}}parseUrlGroup(e){this.gullet.lexer.setCatcode("%",13),this.gullet.lexer.setCatcode("~",12);var t=this.parseStringGroup("url",e);if(this.gullet.lexer.setCatcode("%",14),this.gullet.lexer.setCatcode("~",13),t==null)return null;var a=t.text.replace(/\\([#$%&~_^{}])/g,"$1");return{type:"url",mode:this.mode,url:a}}parseArgumentGroup(e,t){var a=this.gullet.scanArgument(e);if(a==null)return null;var i=this.mode;t&&this.switchMode(t),this.gullet.beginGroup();var s=this.parseExpression(!1,"EOF");this.expect("EOF"),this.gullet.endGroup();var o={type:"ordgroup",mode:this.mode,loc:a.loc,body:s};return t&&this.switchMode(i),o}parseGroup(e,t){var a=this.fetch(),i=a.text,s;if(i==="{"||i==="\\begingroup"){this.consume();var o=i==="{"?"}":"\\endgroup";this.gullet.beginGroup();var d=this.parseExpression(!1,o),c=this.fetch();this.expect(o),this.gullet.endGroup(),s={type:"ordgroup",mode:this.mode,loc:Fe.range(a,c),body:d,semisimple:i==="\\begingroup"||void 0}}else if(s=this.parseFunction(t,e)||this.parseSymbol(),s==null&&i[0]==="\\"&&!Xi.hasOwnProperty(i)){if(this.settings.throwOnError)throw new D("Undefined control sequence: "+i,a);s=this.formatUnsupportedCmd(i),this.consume()}return s}formLigatures(e){for(var t=e.length-1,a=0;a<t;++a){var i=e[a];if(i.type==="textord"){var s=i.text,o=e[a+1];if(!(!o||o.type!=="textord")){if(s==="-"&&o.text==="-"){var d=e[a+2];a+1<t&&d&&d.type==="textord"&&d.text==="-"?(e.splice(a,3,{type:"textord",mode:"text",loc:Fe.range(i,d),text:"---"}),t-=2):(e.splice(a,2,{type:"textord",mode:"text",loc:Fe.range(i,o),text:"--"}),t-=1)}(s==="'"||s==="`")&&o.text===s&&(e.splice(a,2,{type:"textord",mode:"text",loc:Fe.range(i,o),text:s+s}),t-=1)}}}}parseSymbol(){var e=this.fetch(),t=e.text;if(/^\\verb[^a-zA-Z]/.test(t)){this.consume();var a=t.slice(5),i=a.charAt(0)==="*";if(i&&(a=a.slice(1)),a.length<2||a.charAt(0)!==a.slice(-1))throw new D(`\\verb assertion failed --
+                    please report what input caused this bug`);return a=a.slice(1,-1),{type:"verb",mode:"text",body:a,star:i}}Z0.hasOwnProperty(t[0])&&!ye[this.mode][t[0]]&&(this.settings.strict&&this.mode==="math"&&this.settings.reportNonstrict("unicodeTextInMathMode",'Accented Unicode text character "'+t[0]+'" used in math mode',e),t=Z0[t[0]]+t.slice(1));var s=lo.exec(t);s&&(t=t.substring(0,s.index),t==="i"?t="ı":t==="j"&&(t="ȷ"));var o;if(ye[this.mode][t]){this.settings.strict&&this.mode==="math"&&va.includes(t)&&this.settings.reportNonstrict("unicodeTextInMathMode",'Latin-1/Unicode text character "'+t[0]+'" used in math mode',e);var d=ye[this.mode][t].group,c=Fe.range(e),m;Tn(d)?m={type:"atom",mode:this.mode,family:d,loc:c,text:t}:m={type:d,mode:this.mode,loc:c,text:t},o=m}else if(t.charCodeAt(0)>=128)this.settings.strict&&(ei(t.charCodeAt(0))?this.mode==="math"&&this.settings.reportNonstrict("unicodeTextInMathMode",'Unicode text character "'+t[0]+'" used in math mode',e):this.settings.reportNonstrict("unknownSymbol",'Unrecognized Unicode character "'+t[0]+'"'+(" ("+t.charCodeAt(0)+")"),e)),o={type:"textord",mode:"text",loc:Fe.range(e),text:t};else return null;if(this.consume(),s)for(var h=0;h<s[0].length;h++){var f=s[0][h];if(!ra[f])throw new D("Unknown accent ' "+f+"'",e);var b=ra[f][this.mode]||ra[f].text;if(!b)throw new D("Accent "+f+" unsupported in "+this.mode+" mode",e);o={type:"accent",mode:this.mode,loc:Fe.range(e),label:b,isStretchy:!1,isShifty:!0,base:o}}return o}}Lr.endOfExpression=new Set(["}","\\endgroup","\\end","\\right","&"]);var Ka=function(e,t){if(!(typeof e=="string"||e instanceof String))throw new TypeError("KaTeX can only parse string typed expression");var a=new Lr(e,t);delete a.gullet.macros.current["\\df@tag"];var i=a.parse();if(delete a.gullet.macros.current["\\current@color"],delete a.gullet.macros.current["\\color"],a.gullet.macros.get("\\df@tag")){if(!t.displayMode)throw new D("\\tag works only in display equations");i=[{type:"tag",mode:"text",body:i,tag:a.subparse([new Oe("\\df@tag")])}]}return i},Yi=function(e,t,a){t.textContent="";var i=Ja(e,a).toNode();t.appendChild(i)};typeof document<"u"&&document.compatMode!=="CSS1Compat"&&(typeof console<"u"&&console.warn("Warning: KaTeX doesn't work in quirks mode. Make sure your website has a suitable doctype."),Yi=function(){throw new D("KaTeX doesn't work in quirks mode.")});var fo=function(e,t){var a=Ja(e,t).toMarkup();return a},vo=function(e,t){var a=new Ra(t);return Ka(e,a)},Zi=function(e,t,a){if(a.throwOnError||!(e instanceof D))throw e;var i=I(["katex-error"],[new He(t)]);return i.setAttribute("title",e.toString()),i.setAttribute("style","color:"+a.errorColor),i},Ja=function(e,t){var a=new Ra(t);try{var i=Ka(e,a);return wn(i,e,a)}catch(s){return Zi(s,e,a)}},go=function(e,t){var a=new Ra(t);try{var i=Ka(e,a);return kn(i,e,a)}catch(s){return Zi(s,e,a)}},bo="0.16.47",yo={Span:jt,Anchor:wr,SymbolNode:He,SvgNode:it,PathNode:mt,LineNode:fa},xo={version:bo,render:Yi,renderToString:fo,ParseError:D,SETTINGS_SCHEMA:ma,__parse:vo,__renderToDomTree:Ja,__renderToHTMLTree:go,__setFontMetrics:tn,__defineSymbol:n,__defineFunction:H,__defineMacro:p,__domTree:yo};const At=class At{constructor(){}static getInstance(){return At.instance||(At.instance=new At),At.instance}renderMath(e,t=!1){try{return xo.renderToString(e,{displayMode:t,throwOnError:!1,output:"htmlAndMathml"})}catch{return`<span class="katex-error">${e}</span>`}}parseAndRender(e){if(!e)return"";let t=e.replace(/\$\$([\s\S]+?)\$\$/g,(a,i)=>`<div class="katex-block-container">${this.renderMath(i.trim(),!0)}</div>`);return t=t.replace(/\$([^\$\n]+?)\$/g,(a,i)=>`<span class="katex-inline-container">${this.renderMath(i.trim(),!1)}</span>`),t}};ce(At,"instance");let Da=At;const Yt=Da.getInstance();function aa(r,e){if(e==="new")return'<span class="figma-due-badge due-new">✨ Nueva</span>';const t=Date.now();if(r<=t)return'<span class="figma-due-badge due-now">⚡ Pendiente</span>';const a=new Date(r),i=new Date(t),s=a.toDateString()===i.toDateString(),o=new Date(t+864e5),d=a.toDateString()===o.toDateString(),c=a.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});let m="";return s?m="Hoy":d?m="Mañana":m=a.toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"}),`<span class="figma-due-badge due-future" title="Repaso programado: ${a.toLocaleString("es-ES")}">🕒 ${m}, ${c}</span>`}function wo(r,e){const t=j.getDeckStats(r.id),a=t.dueCards,i=t.newCards,s=t.learningCards,o=t.masteredCards,d=t.totalCards,c=Math.max(1,i+s+o),m=Math.round(i/c*100),h=Math.round(s/c*100),f=Math.round(o/c*100),b=r.settings.algorithmType==="fsrs"?"FSRS (Inteligente)":r.settings.algorithmType==="quick"?"Revisión rápida":r.settings.algorithmType==="languages"?"Aprendizaje de idiomas":r.settings.algorithmType==="medical"?"Aprendizaje médico":r.settings.algorithmType==="general"?"Repaso espaciado general":"Personalizado",x=j.getCardsByDeck(r.id,!0),z=new Set,S=[];for(const M of x)if(M.groupId&&M.type==="image_occlusion"){if(z.has(M.groupId))continue;z.add(M.groupId);const A=j.getCardsByGroupId(M.groupId);S.push(`
+        <div class="occlusion-group-card apple-glass-panel selectable-card-target" data-group-id="${M.groupId}">
+          <div class="occlusion-group-header" data-toggle-group="${M.groupId}" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+              <span style="font-size:1.35rem; flex-shrink:0;">🖼️</span>
+              <div style="min-width:0;">
+                <div style="font-size:1.02rem; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  Oclusión de Imagen (${A.length} máscaras)
+                </div>
+                <div style="font-size:0.78rem; color:var(--f-text-secondary); margin-top:2px;">
+                  Toca para desplegar • Mantén presionado para seleccionar
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+              <button class="btn-toggle-group-accordion" data-group-id="${M.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.2rem; cursor:pointer; padding:4px 6px;">
+                ▸
+              </button>
+            </div>
+          </div>
+
+          <!-- Subtarjetas desglosadas al click (Ocultas por defecto) -->
+          <div class="occlusion-group-body" id="group-body-${M.groupId}" style="display:none; margin-top:10px; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.06); padding-top:10px;">
+            ${A.map((T,F)=>`
+              <div class="occlusion-child-card-row selectable-card-target" data-card-id="${T.id}" title="Toca para estudiar • Mantén presionado para seleccionar">
+                <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                  <span style="font-size:0.76rem; font-weight:800; color:var(--f-blue); background:rgba(56,189,248,0.12); padding:2px 7px; border-radius:6px; flex-shrink:0;">
+                    #${F+1}
+                  </span>
+                  <span style="font-weight:700; color:#fff; font-size:0.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${T.front}</span>
+                </div>
+                
+                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                  ${aa(T.dueDate,T.state)}
+                  <span class="micro-study-badge" title="Estudiar">🎯</span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `)}else if(M.groupId&&M.isInverted){if(z.has(M.groupId))continue;z.add(M.groupId);const A=j.getCardsByGroupId(M.groupId);S.push(`
+        <div class="occlusion-group-card apple-glass-panel selectable-card-target" data-group-id="${M.groupId}">
+          <div class="occlusion-group-header" data-toggle-group="${M.groupId}" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+              <span style="font-size:1.35rem; flex-shrink:0;">⇄</span>
+              <div style="min-width:0;">
+                <div style="font-size:1.02rem; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  Par Invertido (2 tarjetas)
+                </div>
+                <div style="font-size:0.78rem; color:var(--f-text-secondary); margin-top:2px;">
+                  Anverso ⇄ Reverso • Mantén presionado para seleccionar
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+              <button class="btn-toggle-group-accordion" data-group-id="${M.groupId}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.2rem; cursor:pointer; padding:4px 6px;">
+                ▸
+              </button>
+            </div>
+          </div>
+
+          <!-- Subtarjetas desglosadas al click (Ocultas por defecto) -->
+          <div class="occlusion-group-body" id="group-body-${M.groupId}" style="display:none; margin-top:10px; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.06); padding-top:10px;">
+            ${A.map((T,F)=>`
+              <div class="occlusion-child-card-row selectable-card-target" data-card-id="${T.id}">
+                <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                  <span style="font-size:0.74rem; font-weight:800; color:#a855f7; background:rgba(168,85,247,0.14); padding:2px 7px; border-radius:6px; flex-shrink:0;">
+                    ${F===0?"Normal":"Invertida"}
+                  </span>
+                  <span style="font-weight:700; color:#fff; font-size:0.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${T.front}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                  ${aa(T.dueDate,T.state)}
+                  <span class="micro-study-badge" title="Estudiar">🎯</span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `)}else M.groupId||S.push(`
+        <div class="figma-card-item apple-glass-panel selectable-card-target" data-card-id="${M.id}" title="Toca para estudiar • Mantén presionado para seleccionar">
+          <div class="figma-card-top-tag-row">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div class="figma-tag-invertido" style="font-size:0.75rem; padding:2px 8px;">
+                ${M.isInverted?"<span>⇄ Invertido</span>":M.type==="latex"?"<span>📐 LaTeX</span>":"<span>Estándar</span>"}
+              </div>
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:6px;">
+              ${aa(M.dueDate,M.state)}
+              <span class="micro-study-badge" title="Estudiar">🎯</span>
+            </div>
+          </div>
+
+          <div class="figma-card-title-bold">${Yt.parseAndRender(M.front)}</div>
+        </div>
+      `);return`
+    <div>
+      <!-- Action Header with 3-level Breadcrumb -->
+      <div class="figma-action-header">
+        <div class="figma-breadcrumbs" style="font-size:1.2rem;">
+          <button class="figma-icon-btn-dark" id="btn-dash-back" style="margin-right:6px;" title="Volver">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </button>
+          <span class="figma-crumb-link" id="dash-crumb-inicio">Inicio</span>
+          ${e?`
+            <span class="figma-crumb-sep">/</span>
+            <span class="figma-crumb-link" id="dash-crumb-parent">${e.name}</span>
+          `:""}
+          <span class="figma-crumb-sep">/</span>
+          <span class="figma-crumb-current">${r.name}</span>
+        </div>
+
+        <div class="figma-header-actions-group">
+          <button class="figma-icon-btn-dark" id="btn-dash-code" title="Exportar JSON">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </button>
+          <button class="figma-icon-btn-dark" id="btn-dash-share" title="Compartir Mazo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+          <button class="figma-icon-btn-dark" id="btn-dash-menu" title="Ajustes del Mazo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Title & Algorithm Info -->
+      <div class="figma-dashboard-header">
+        <div>
+          <h1 class="figma-dash-title">${r.name}</h1>
+          <p class="figma-dash-subtitle">
+            Algoritmo de aprendizaje: <strong id="btn-open-algo-settings" style="cursor:pointer; color:var(--f-blue); text-decoration:underline;">${b} ⓘ</strong>
+          </p>
+        </div>
+      </div>
+
+      <!-- Hero Metric Box -->
+      <div class="figma-hero-metric-box apple-glass-panel">
+        <div class="figma-hero-large-number">${a}</div>
+        <div class="figma-hero-label">tarjetas para hoy</div>
+
+        <div class="figma-three-stats-row">
+          <div class="figma-stat-pill">
+            <div class="figma-stat-val-badge" style="color:#94a3b8;">
+              <span>+</span> <span>${i}</span>
+            </div>
+            <span class="figma-stat-name">No estudiadas</span>
+          </div>
+
+          <div class="figma-stat-pill">
+            <div class="figma-stat-val-badge" style="color:#10b981;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>${s}</span>
+            </div>
+            <span class="figma-stat-name">En aprendizaje</span>
+          </div>
+
+          <div class="figma-stat-pill">
+            <div class="figma-stat-val-badge" style="color:#38bdf8;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              <span>${o}</span>
+            </div>
+            <span class="figma-stat-name">Dominadas</span>
+          </div>
+        </div>
+
+        <button class="figma-btn-study-large" id="btn-study-cards-main">
+          ${a>0?"Estudiar tarjetas":"✨ Repasar mazo"}
+        </button>
+      </div>
+
+      <!-- Progress Section: Tarjetas en el mazo -->
+      <div class="figma-progress-section">
+        <div class="figma-progress-title-row">
+          <span>Tarjetas en el mazo (${d})</span>
+          <span style="color:var(--f-text-muted); cursor:pointer;" id="btn-deck-info-icon">ⓘ</span>
+        </div>
+
+        <div class="figma-segment-bar">
+          <div class="f-seg-gray" style="width: ${m}%;"></div>
+          <div class="f-seg-green" style="width: ${h}%;"></div>
+          <div class="f-seg-blue" style="width: ${f}%;"></div>
+        </div>
+
+        <div class="figma-bar-legend">
+          <div class="f-legend-item">
+            <div class="f-dot" style="background:#64748b;"></div>
+            <span><strong>${i}</strong> No estudiadas</span>
+          </div>
+          <div class="f-legend-item">
+            <div class="f-dot" style="background:#10b981;"></div>
+            <span><strong>${s}</strong> En aprendizaje</span>
+          </div>
+          <div class="f-legend-item">
+            <div class="f-dot" style="background:#38bdf8;"></div>
+            <span><strong>${o}</strong> Dominadas</span>
+          </div>
+        </div>
+
+        <!-- Search and Action Bar -->
+        <div class="figma-search-bar-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div class="figma-search-input-wrap" style="flex:1; min-width:180px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="figma-search-input" placeholder="Buscar tarjetas en el mazo..." id="dash-search-input" />
+          </div>
+
+          <button class="figma-btn-white-pill" id="btn-dash-add-card" style="padding:10px 18px; font-size:0.88rem;">
+            + Agregar tarjetas
+          </button>
+        </div>
+
+        <!-- Cards List Container with Accordions and Long-Press Multi-Selection -->
+        <div id="dash-cards-list-mount" style="margin-top:18px;">
+          ${S.length>0?S.join(""):`
+            <div style="text-align:center; padding:36px 16px; color:var(--f-text-muted);">
+              No hay tarjetas en este mazo todavía. ¡Agrega una con el botón de arriba!
+            </div>
+          `}
+        </div>
+      </div>
+
+      <!-- Floating Batch Actions Bar (Visible when cards are selected) -->
+      <div id="figma-batch-dock" class="figma-batch-actions-dock" style="display:none;">
+        <div class="batch-info">
+          <span class="batch-count-badge" id="batch-selected-count">0 seleccionadas</span>
+          <button class="batch-text-btn" id="btn-batch-select-all">Todas</button>
+        </div>
+
+        <div class="batch-actions-btns">
+          <button class="batch-action-btn btn-batch-edit" id="btn-batch-edit-action" title="Editar tarjeta" style="display:none;">
+            ✏️ Editar
+          </button>
+          <button class="batch-action-btn btn-batch-move" id="btn-batch-move-action" title="Mover a otra carpeta/mazo">
+            📁 Mover
+          </button>
+          <button class="batch-action-btn btn-batch-invert" id="btn-batch-invert-action" title="Revertir o desrevertir">
+            ⇄ Revertir
+          </button>
+          <button class="batch-action-btn btn-batch-delete" id="btn-batch-delete-action" title="Eliminar seleccionadas">
+            🗑️ Borrar
+          </button>
+          <button class="batch-action-btn btn-batch-close" id="btn-batch-close-action" title="Cancelar selección">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Floating Action Buttons -->
+      <button class="figma-fab-gift" id="btn-fab-gift" title="Recompensas">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      </button>
+
+      <button class="figma-fab-help" id="btn-fab-help" title="Ayuda">
+        ?
+      </button>
+    </div>
+  `}function ko(r,e,t){var m,h,f,b,x,z,S,M,A,T,F,W,K,Q,X;(m=r.querySelector("#btn-dash-back"))==null||m.addEventListener("click",()=>t.onBackToSubdecks()),(h=r.querySelector("#dash-crumb-inicio"))==null||h.addEventListener("click",()=>t.onBackToRoot()),(f=r.querySelector("#dash-crumb-parent"))==null||f.addEventListener("click",()=>t.onBackToSubdecks()),(b=r.querySelector("#btn-study-cards-main"))==null||b.addEventListener("click",()=>t.onStudy(e.id)),(x=r.querySelector("#btn-dash-add-card"))==null||x.addEventListener("click",()=>t.onAddCard(e.id)),(z=r.querySelector("#btn-dash-menu"))==null||z.addEventListener("click",()=>t.onConfigureDeck(e.id)),(S=r.querySelector("#btn-open-algo-settings"))==null||S.addEventListener("click",()=>t.onConfigureDeck(e.id)),(M=r.querySelector("#btn-deck-info-icon"))==null||M.addEventListener("click",()=>t.onConfigureDeck(e.id)),(A=r.querySelector("#btn-dash-code"))==null||A.addEventListener("click",()=>{const q=j.exportDeck(e.id),O=new Blob([q],{type:"application/json"}),ae=URL.createObjectURL(O),_=document.createElement("a");_.href=ae,_.download=`${e.name.toLowerCase().replace(/\s+/g,"_")}_cards.json`,_.click()}),(T=r.querySelector("#btn-dash-share"))==null||T.addEventListener("click",()=>{he.showAlert({title:`Compartir "${e.name}"`,message:`Enlace para compartir este mazo:
+https://eureka.app/deck/${e.id}`})});const a=new Set,i=r.querySelector("#figma-batch-dock"),s=r.querySelector("#batch-selected-count"),o=r.querySelector("#btn-batch-edit-action"),d=()=>{!i||!s||(a.size>0?(i.style.display="flex",s.textContent=`${a.size} sel.`,o&&(o.style.display=a.size===1?"inline-flex":"none")):i.style.display="none",r.querySelectorAll(".selectable-card-target").forEach(q=>{const O=q.dataset.cardId,ae=q.dataset.groupId;let _=!1;if(O&&a.has(O))_=!0;else if(ae){const J=j.getCardsByGroupId(ae);J.length>0&&J.every(Z=>a.has(Z.id))&&(_=!0)}_?q.classList.add("card-selected-active"):q.classList.remove("card-selected-active")}))};o==null||o.addEventListener("click",()=>{if(a.size===1){const q=Array.from(a)[0];a.clear(),d(),t.onEditCard(q)}}),(F=r.querySelector("#btn-batch-select-all"))==null||F.addEventListener("click",()=>{const q=j.getCardsByDeck(e.id,!0);a.size===q.length?a.clear():q.forEach(O=>a.add(O.id)),d()}),(W=r.querySelector("#btn-batch-close-action"))==null||W.addEventListener("click",()=>{a.clear(),d()}),(K=r.querySelector("#btn-batch-delete-action"))==null||K.addEventListener("click",()=>{a.size!==0&&he.showConfirm({title:"Eliminar Tarjetas",message:`¿Estás seguro de eliminar ${a.size} tarjeta(s) definitivamente? Esta acción no se puede deshacer.`,confirmText:"Eliminar",isDanger:!0,onConfirm:()=>{j.deleteCards(Array.from(a)),a.clear(),d()}})}),(Q=r.querySelector("#btn-batch-invert-action"))==null||Q.addEventListener("click",()=>{a.size!==0&&(j.toggleInvertCards(Array.from(a)),a.clear(),d())}),(X=r.querySelector("#btn-batch-move-action"))==null||X.addEventListener("click",()=>{var ae;if(a.size===0)return;const q=j.getAllDecks(),O=document.createElement("div");O.className="apple-modal-overlay",O.innerHTML=`
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <h3 style="font-size:1.25rem; font-weight:800; color:#fff;">Mover ${a.size} tarjeta(s)</h3>
+          <button id="btn-close-move-modal" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+        <p style="color:var(--f-text-secondary); font-size:0.9rem; margin-bottom:16px;">
+          Selecciona el mazo o submazo de destino:
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; margin-bottom:18px;">
+          ${q.map(_=>{const J=_.id===e.id;return`
+              <button class="target-deck-btn ${J?"disabled":""}" data-target-id="${_.id}" style="text-align:left; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; cursor:${J?"not-allowed":"pointer"}; display:flex; align-items:center; justify-content:space-between;">
+                <span>${_.parentId?"↳ ":"📁 "} ${_.name}</span>
+                ${J?'<span style="font-size:0.75rem; color:var(--f-text-muted);">(Actual)</span>':'<span style="color:var(--f-blue);">Mover aquí ›</span>'}
+              </button>
+            `}).join("")}
+        </div>
+      </div>
+    `,document.body.appendChild(O),(ae=O.querySelector("#btn-close-move-modal"))==null||ae.addEventListener("click",()=>O.remove()),O.addEventListener("click",_=>{_.target===O&&O.remove()}),O.querySelectorAll(".target-deck-btn").forEach(_=>{_.addEventListener("click",()=>{const J=_.dataset.targetId;J&&J!==e.id&&(j.moveCards(Array.from(a),J),a.clear(),O.remove(),d())})})}),(()=>{r.querySelectorAll("[data-toggle-group]").forEach(q=>{q.addEventListener("click",()=>{if(a.size>0)return;const O=q.dataset.toggleGroup;if(O){const ae=r.querySelector(`#group-body-${O}`),_=q.querySelector(".btn-toggle-group-accordion");if(ae){const J=ae.style.display==="none";ae.style.display=J?"flex":"none",_&&(_.textContent=J?"▾":"▸")}}})}),r.querySelectorAll(".selectable-card-target").forEach(q=>{let O=null,ae=!1,_=0,J=0;const Z=(U,se)=>{ae=!1,_=U,J=se,O=window.setTimeout(()=>{ae=!0;try{navigator.vibrate&&navigator.vibrate(40)}catch{}const de=q.dataset.cardId,pe=q.dataset.groupId;if(de)a.has(de)?a.delete(de):a.add(de);else if(pe){const we=j.getCardsByGroupId(pe);we.every(y=>a.has(y.id))?we.forEach(y=>a.delete(y.id)):we.forEach(y=>a.add(y.id))}d()},450)},te=()=>{O&&(clearTimeout(O),O=null)};q.addEventListener("mousedown",U=>{U.button===0&&Z(U.clientX,U.clientY)}),q.addEventListener("mouseup",te),q.addEventListener("mouseleave",te),q.addEventListener("touchstart",U=>{U.touches.length===1&&Z(U.touches[0].clientX,U.touches[0].clientY)},{passive:!0}),q.addEventListener("touchmove",U=>{if(U.touches.length===1){const se=Math.abs(U.touches[0].clientX-_),de=Math.abs(U.touches[0].clientY-J);(se>10||de>10)&&te()}},{passive:!0}),q.addEventListener("touchend",te),q.addEventListener("touchcancel",te),q.addEventListener("click",U=>{if(ae){U.preventDefault(),U.stopPropagation(),ae=!1;return}const se=q.dataset.cardId,de=q.dataset.groupId;if(a.size>0){if(U.stopPropagation(),se)a.has(se)?a.delete(se):a.add(se);else if(de){const pe=j.getCardsByGroupId(de);pe.every(k=>a.has(k.id))?pe.forEach(k=>a.delete(k.id)):pe.forEach(k=>a.add(k.id))}d();return}se&&t.onStudySpecificCard(e.id,se)})})})()}const Ct=class Ct{constructor(){ce(this,"synth",null);ce(this,"isSpeaking",!1);ce(this,"onStateChangeListeners",[]);typeof window<"u"&&"speechSynthesis"in window&&(this.synth=window.speechSynthesis)}static getInstance(){return Ct.instance||(Ct.instance=new Ct),Ct.instance}addListener(e){return this.onStateChangeListeners.push(e),()=>{this.onStateChangeListeners=this.onStateChangeListeners.filter(t=>t!==e)}}notify(e){this.isSpeaking=e,this.onStateChangeListeners.forEach(t=>t(e))}getAvailableVoices(){return this.synth?this.synth.getVoices():[]}speak(e,t="es-ES",a){if(!this.synth){console.warn("SpeechSynthesis no está disponible en este entorno.");return}this.stop();const i=e.replace(/<[^>]*>?/gm,"").replace(/\$+/g,"").trim();if(!i)return;const s=new SpeechSynthesisUtterance(i);s.lang=t,s.rate=(a==null?void 0:a.rate)||1,s.pitch=(a==null?void 0:a.pitch)||1;const o=this.getAvailableVoices(),d=o.find(c=>c.lang.startsWith(t.split("-")[0]))||o.find(c=>c.default);d&&(s.voice=d),s.onstart=()=>{this.notify(!0)},s.onend=()=>{var c;this.notify(!1),(c=a==null?void 0:a.onEnd)==null||c.call(a)},s.onerror=c=>{console.warn("Error en reproducción TTS:",c),this.notify(!1)},this.synth.speak(s)}stop(){this.synth&&(this.synth.cancel(),this.notify(!1))}isCurrentlySpeaking(){return this.isSpeaking}};ce(Ct,"instance");let Ba=Ct;const Zt=Ba.getInstance();function So(r){var q,O,ae,_,J;const e=document.getElementById("modal-occlusion-root");e&&e.remove();let t=r.initialImage||hr,a=r.initialMasks?[...r.initialMasks]:[],i=r.initialMode||"hide_all_reveal_one";const s=`
+    <div class="modal-backdrop figma-modal-backdrop" id="modal-occlusion-root">
+      <div class="apple-glass-modal" style="max-width:920px; max-height:92vh; display:flex; flex-direction:column;">
+        
+        <!-- Header -->
+        <div class="figma-modal-header" style="padding:16px 22px; border-bottom:1px solid var(--f-border);">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="apple-glass-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <div>
+              <h3 style="font-size:1.18rem; font-weight:800; color:#fff;">Oclusión de Imágenes Inteligente</h3>
+              <p style="font-size:0.78rem; color:var(--f-text-secondary);">Arrastra para dibujar máscaras, muévelas o bórralas libremente</p>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button class="figma-btn-ghost" id="btn-cancel-occlusion">Cancelar</button>
+            <button class="figma-btn-blue-pill" id="btn-confirm-occlusion" style="padding:10px 22px;">
+              <span id="btn-confirm-text">✨ Generar ${a.length||1} Tarjetas</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Toolbar Superior con Botones con Nombre -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 22px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--f-border); flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button class="apple-btn-outline-pill" id="btn-load-photo">
+              📷 Cargar Foto
+            </button>
+            <input type="file" id="occ-file-input" accept="image/*" style="display:none;" />
+
+            <button class="apple-btn-outline-pill" id="btn-template-heart">
+              🫀 Plantilla Corazón
+            </button>
+
+            <button class="apple-btn-outline-pill" id="btn-clear-all-masks" style="color:#f87171;">
+              🗑️ Borrar Todo
+            </button>
+          </div>
+
+          <!-- Switch Modo Oclusión -->
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:0.85rem; font-weight:700; color:var(--f-text-secondary);">Modo de Estudio:</span>
+            <div style="display:flex; background:#1c1d22; border-radius:10px; padding:3px; border:1px solid var(--f-border);">
+              <button class="apple-tab-pill ${i==="hide_all_reveal_one"?"active":""}" id="btn-mode-hide-all" style="font-size:0.78rem; padding:5px 10px; border-radius:8px; border:none; cursor:pointer;">
+                🔒 Ocluir 1, Ocultar Todas
+              </button>
+              <button class="apple-tab-pill ${i==="hide_one_reveal_one"?"active":""}" id="btn-mode-hide-one" style="font-size:0.78rem; padding:5px 10px; border-radius:8px; border:none; cursor:pointer;">
+                👁️ Ocluir 1, Ocultar 1
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas Stage -->
+        <div style="flex:1; overflow:auto; padding:20px; display:flex; justify-content:center; align-items:center; min-height:380px; background:#07080a;" id="occ-drop-canvas-zone">
+          <div class="figma-stage-inner" id="occ-canvas-stage">
+            <img src="${t}" id="occ-target-img" alt="Lienzo de Oclusión" draggable="false" style="max-height:55vh; width:auto; max-width:100%; border-radius:14px; display:block;" />
+            <div class="figma-mask-overlay" id="occ-overlay-layer"></div>
+          </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div style="padding:14px 22px; border-top:1px solid var(--f-border); display:flex; align-items:center; justify-content:space-between; font-size:0.86rem; color:var(--f-text-secondary);">
+          <span style="color:#fbbf24;">💡 <strong>División Inteligente:</strong> Cada máscara se convertirá en una tarjeta independiente. Puedes mover las máscaras arrastrándolas.</span>
+          <span style="font-weight:800; color:var(--f-blue);" id="lbl-active-masks">Máscaras activas: ${a.length}</span>
+        </div>
+
+      </div>
+    </div>
+  `;document.body.insertAdjacentHTML("beforeend",s);const o=document.getElementById("occ-target-img"),d=document.getElementById("occ-overlay-layer"),c=document.getElementById("lbl-active-masks"),m=document.getElementById("btn-confirm-text");let h=!1,f=0,b=0,x=null,z=null,S=0,M=0;const A=()=>{c&&(c.textContent=`Máscaras activas: ${a.length}`),m&&(m.textContent=`✨ Generar ${Math.max(1,a.length)} Tarjetas`)},T=()=>{d&&(d.innerHTML="",a.forEach((Z,te)=>{const U=document.createElement("div");U.className="figma-drawn-mask",U.style.left=`${Z.x}%`,U.style.top=`${Z.y}%`,U.style.width=`${Z.width}%`,U.style.height=`${Z.height}%`,U.style.cursor="grab",U.dataset.maskIdx=String(te),U.innerHTML=`
+        <span class="f-mask-idx">#${te+1}</span>
+        <button class="f-mask-del" data-del-idx="${te}" title="Eliminar máscara">×</button>
+      `,U.addEventListener("pointerdown",se=>{if(se.target.classList.contains("f-mask-del"))return;se.stopPropagation(),se.preventDefault();const de=d.getBoundingClientRect();z=te;const pe=Z.x/100*de.width,we=Z.y/100*de.height,k=se.clientX-de.left,y=se.clientY-de.top;S=k-pe,M=y-we,U.style.cursor="grabbing"}),d.appendChild(U)}),d.querySelectorAll(".f-mask-del").forEach(Z=>{Z.addEventListener("click",te=>{te.stopPropagation();const U=parseInt(Z.dataset.delIdx||"0",10);a.splice(U,1),T(),A()})}),A())};o.onload=()=>{T()},o.complete&&T(),d.addEventListener("pointerdown",Z=>{if(z!==null||Z.target.classList.contains("f-mask-del")||Z.target.classList.contains("figma-drawn-mask"))return;const te=d.getBoundingClientRect();h=!0,f=Z.clientX-te.left,b=Z.clientY-te.top,x=document.createElement("div"),x.className="figma-drawing-preview",x.style.left=`${f}px`,x.style.top=`${b}px`,x.style.width="0px",x.style.height="0px",d.appendChild(x)}),window.addEventListener("pointermove",Z=>{const te=d.getBoundingClientRect();if(z!==null&&z<a.length){const y=Z.clientX-te.left,N=Z.clientY-te.top,C=y-S,R=N-M,L=a[z],G=Math.max(0,Math.min(100-L.width,C/te.width*100)),P=Math.max(0,Math.min(100-L.height,R/te.height*100));L.x=Number(G.toFixed(2)),L.y=Number(P.toFixed(2));const Y=d.querySelector(`[data-mask-idx="${z}"]`);Y&&(Y.style.left=`${L.x}%`,Y.style.top=`${L.y}%`);return}if(!h||!x)return;const U=Math.max(0,Math.min(te.width,Z.clientX-te.left)),se=Math.max(0,Math.min(te.height,Z.clientY-te.top)),de=Math.min(f,U),pe=Math.min(b,se),we=Math.abs(U-f),k=Math.abs(se-b);x.style.left=`${de}px`,x.style.top=`${pe}px`,x.style.width=`${we}px`,x.style.height=`${k}px`}),window.addEventListener("pointerup",()=>{if(z!==null&&(z=null,T()),h&&x){h=!1;const Z=d.getBoundingClientRect(),te=parseFloat(x.style.left),U=parseFloat(x.style.top),se=parseFloat(x.style.width),de=parseFloat(x.style.height);if(x.remove(),x=null,se>12&&de>12&&Z.width>0&&Z.height>0){const pe=Number((te/Z.width*100).toFixed(2)),we=Number((U/Z.height*100).toFixed(2)),k=Number((se/Z.width*100).toFixed(2)),y=Number((de/Z.height*100).toFixed(2));a.push({id:`mask-${Date.now()}-${Math.random().toString(36).substr(2,4)}`,x:pe,y:we,width:k,height:y,label:`Estructura #${a.length+1}`}),T(),A()}}});const F=document.getElementById("occ-file-input");(q=document.getElementById("btn-load-photo"))==null||q.addEventListener("click",()=>F.click()),F==null||F.addEventListener("change",()=>{if(F.files&&F.files[0]){const Z=new FileReader;Z.onload=te=>{var U;t=(U=te.target)==null?void 0:U.result,o.src=t,a=[],T()},Z.readAsDataURL(F.files[0])}});const W=document.getElementById("occ-drop-canvas-zone");W==null||W.addEventListener("dragover",Z=>Z.preventDefault()),W==null||W.addEventListener("drop",Z=>{var te;if(Z.preventDefault(),(te=Z.dataTransfer)!=null&&te.files&&Z.dataTransfer.files.length>0){const U=Z.dataTransfer.files[0];if(U.type.startsWith("image/")){const se=new FileReader;se.onload=de=>{var pe;t=(pe=de.target)==null?void 0:pe.result,o.src=t,a=[],T()},se.readAsDataURL(U)}}}),(O=document.getElementById("btn-template-heart"))==null||O.addEventListener("click",()=>{t=hr,o.src=t,a=[{id:"m1",x:4.1,y:22.2,width:25,height:7.2,label:"Vena Cava Superior"},{id:"m2",x:70,y:15.5,width:25,height:7.2,label:"Cayado de la Aorta"},{id:"m3",x:4.1,y:43.3,width:25,height:7.2,label:"Aurícula Derecha"},{id:"m4",x:70,y:61.1,width:25.8,height:7.2,label:"Ventrículo Izquierdo"}],T()}),(ae=document.getElementById("btn-clear-all-masks"))==null||ae.addEventListener("click",()=>{a=[],T()});const K=document.getElementById("btn-mode-hide-all"),Q=document.getElementById("btn-mode-hide-one");K==null||K.addEventListener("click",()=>{i="hide_all_reveal_one",K.classList.add("active"),Q==null||Q.classList.remove("active")}),Q==null||Q.addEventListener("click",()=>{i="hide_one_reveal_one",Q.classList.add("active"),K==null||K.classList.remove("active")}),(_=document.getElementById("btn-confirm-occlusion"))==null||_.addEventListener("click",()=>{var Z;r.onConfirm(t,a,i),(Z=document.getElementById("modal-occlusion-root"))==null||Z.remove()});const X=()=>{var Z;(Z=document.getElementById("modal-occlusion-root"))==null||Z.remove()};(J=document.getElementById("btn-cancel-occlusion"))==null||J.addEventListener("click",X)}function Mo(r,e,t){return`
+    <div class="ios-fullscreen-view">
+      
+      <!-- Top Action Navigation Header matching Reference Images 2 & 3 -->
+      <div class="ios-navbar" style="padding-bottom:12px; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:1.15rem; font-weight:700;">
+          <button class="ios-back-btn" id="btn-card-edit-back" style="padding:0; margin-right:4px;" title="Volver">
+            <span class="ios-back-chevron">‹</span>
+          </button>
+          <span class="figma-crumb-link" id="crumb-e-inicio" style="color:var(--f-text-secondary); cursor:pointer;">Inicio</span>
+          ${e?`
+            <span style="color:var(--f-text-muted);">/</span>
+            <span class="figma-crumb-link" id="crumb-e-parent" style="color:var(--f-text-secondary); cursor:pointer;">${e.name}</span>
+          `:""}
+          <span style="color:var(--f-text-muted);">/</span>
+          <span class="figma-crumb-link" id="crumb-e-deck" style="color:var(--f-text-secondary); cursor:pointer;">${r.name}</span>
+          <span style="color:var(--f-text-muted);">/</span>
+          <span style="color:#ffffff; font-weight:800;">${t?"Editar tarjeta":"Agregar nueva tarjeta"}</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px; margin-left:auto;">
+          <button class="cupertino-icon-square" id="btn-toggle-editor-split" style="width:44px; height:44px;" title="Vista dividida">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+          </button>
+
+          <button class="cupertino-btn-check-save" id="btn-save-card-check" title="Guardar tarjeta">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#090a0d" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor Container (Matching Images 2 & 3 Exactly) -->
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:18px;">
+        
+        <!-- ANVERSO -->
+        <div class="cupertino-editor-block">
+          <label class="cupertino-editor-label">Anverso</label>
+          
+          <div class="cupertino-editor-card-box" id="drop-zone-anverso">
+            
+            <textarea 
+              id="f-anverso-input" 
+              class="cupertino-editor-textarea" 
+              placeholder="Introduce el texto aquí"
+            >${(t==null?void 0:t.front)||""}</textarea>
+
+            <!-- Image Attachment Thumbnail Inside the Card (Matching Image 3) -->
+            <div id="f-anverso-img-preview" class="cupertino-thumbnail-box ${t!=null&&t.frontImage||t!=null&&t.occlusionImage?"":"hidden"}">
+              <img src="${(t==null?void 0:t.frontImage)||(t==null?void 0:t.occlusionImage)||""}" id="f-anverso-img-tag" alt="Anverso preview" class="cupertino-thumb-img" />
+              <button type="button" class="cupertino-thumb-del-badge" id="btn-del-anverso-img" title="Eliminar imagen">×</button>
+              <div class="cupertino-thumb-overlay" id="btn-manage-anverso-img" title="Opciones de imagen">
+                ${(t==null?void 0:t.type)==="image_occlusion"?"🔲 Oclusión":"🔍 Ver"}
+              </div>
+            </div>
+
+            <!-- Toolbar Anverso (Matching Image 2 & 3) -->
+            <div class="cupertino-rich-toolbar-dock">
+              <button type="button" class="cupertino-btn-ai-pill" id="btn-ai-anverso">
+                <span>✨ AI Builder</span>
+              </button>
+
+              <button type="button" class="cupertino-tool-icon" id="tool-img-anverso" title="Adjuntar Imagen">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <input type="file" id="f-file-anverso" accept="image/*" style="display:none;" />
+
+              <button type="button" class="cupertino-tool-icon" id="tool-draw-anverso" title="Dibujo libre">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
+              </button>
+
+              <button type="button" class="cupertino-tool-icon" id="tool-occlusion-btn" title="Oclusión de Imagen" style="color:var(--f-blue);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+              </button>
+
+              <button type="button" class="cupertino-tool-icon" id="tool-audio-anverso" title="Audio TTS">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+
+              <button type="button" class="cupertino-tool-icon" id="tool-a-anverso" title="Tamaño de Fuente" style="font-weight:800;">A</button>
+
+              <span class="cupertino-tool-divider"></span>
+
+              <button type="button" class="cupertino-tool-icon" data-fmt="**" title="Negrita"><strong>B</strong></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="*" title="Cursiva"><em>I</em></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="__" title="Subrayado"><u>U</u></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="~~" title="Tachado"><s>S</s></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="## " title="Encabezado">H</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="- " title="Lista con viñetas">≡</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="1. " title="Lista numerada">1≡</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="$_2$" title="Subíndice">X₂</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="$^2$" title="Superíndice">X²</button>
+              <button type="button" class="cupertino-tool-icon" id="tool-katex-anverso" title="Fórmula KaTeX" style="color:var(--f-blue); font-weight:800;">fx</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="\`\`\`" title="Bloque de código">&lt;/&gt;</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt="[enlace](url)" title="Hipervínculo">🔗</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- REVERSO -->
+        <div class="cupertino-editor-block">
+          <label class="cupertino-editor-label">Reverso</label>
+          
+          <div class="cupertino-editor-card-box" id="drop-zone-reverso">
+            
+            <textarea 
+              id="f-reverso-input" 
+              class="cupertino-editor-textarea" 
+              placeholder="Introduce el texto aquí"
+            >${(t==null?void 0:t.back)||""}</textarea>
+
+            <!-- Image Attachment Thumbnail Inside the Card (Matching Image 3) -->
+            <div id="f-reverso-img-preview" class="cupertino-thumbnail-box ${t!=null&&t.backImage?"":"hidden"}">
+              <img src="${(t==null?void 0:t.backImage)||""}" id="f-reverso-img-tag" alt="Reverso preview" class="cupertino-thumb-img" />
+              <button type="button" class="cupertino-thumb-del-badge" id="btn-del-reverso-img" title="Eliminar imagen">×</button>
+              <div class="cupertino-thumb-overlay" id="btn-manage-reverso-img" title="Ver imagen">
+                🔍 Ver
+              </div>
+            </div>
+
+            <!-- Toolbar Reverso (Matching Image 2 & 3) -->
+            <div class="cupertino-rich-toolbar-dock">
+              <button type="button" class="cupertino-btn-ai-pill" id="btn-ai-reverso">
+                <span>✨ AI Builder</span>
+              </button>
+
+              <button type="button" class="cupertino-tool-icon" id="tool-img-reverso" title="Adjuntar Imagen">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <input type="file" id="f-file-reverso" accept="image/*" style="display:none;" />
+
+              <button type="button" class="cupertino-tool-icon" id="tool-audio-reverso" title="Audio TTS">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="**" title="Negrita"><strong>B</strong></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="*" title="Cursiva"><em>I</em></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="__" title="Subrayado"><u>U</u></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="~~" title="Tachado"><s>S</s></button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="## " title="Encabezado">H</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="- " title="Lista">≡</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="1. " title="Lista numerada">1≡</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="$_2$" title="Subíndice">X₂</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="$^2$" title="Superíndice">X²</button>
+              <button type="button" class="cupertino-tool-icon" id="tool-katex-reverso" title="Fórmula KaTeX" style="color:var(--f-blue); font-weight:800;">fx</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="\`\`\`" title="Código">&lt;/&gt;</button>
+              <button type="button" class="cupertino-tool-icon" data-fmt-r="[enlace](url)" title="Hipervínculo">🔗</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Toggle Tarjetas Invertidas (Matching Image 2) -->
+        <div class="apple-card-grouped" style="padding:18px 22px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+              <span style="font-size:1.05rem; font-weight:700; color:#fff;">Tarjetas invertidas</span>
+              <span style="color:var(--f-text-muted); cursor:pointer; font-size:1rem;" title="Genera dos tarjetas recíprocas (Anverso -> Reverso y Reverso -> Anverso)">ⓘ</span>
+            </div>
+
+            <label class="figma-switch">
+              <input type="checkbox" id="toggle-inverted-cards" ${t!=null&&t.isInverted?"checked":""} />
+              <span class="figma-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  `}function zo(r,e,t,a){var Q,X,q,O,ae,_,J,Z,te,U,se,de,pe,we,k,y,N;const i=r.querySelector("#f-anverso-input"),s=r.querySelector("#f-reverso-input"),o=r.querySelector("#toggle-inverted-cards");let d=t==null?void 0:t.frontImage,c=t==null?void 0:t.backImage,m=t==null?void 0:t.occlusionImage,h=(t==null?void 0:t.occlusionMasks)||[],f=(t==null?void 0:t.occlusionMode)||"hide_all_reveal_one";const b=()=>{const C=r.querySelector("#f-anverso-img-preview"),R=r.querySelector("#f-anverso-img-tag"),L=d||m;C&&R&&(L?(R.src=L,C.classList.remove("hidden")):C.classList.add("hidden"));const G=r.querySelector("#f-reverso-img-preview"),P=r.querySelector("#f-reverso-img-tag");G&&P&&(c?(P.src=c,G.classList.remove("hidden")):G.classList.add("hidden"))},x=(C,R)=>{const L=new FileReader;L.onload=G=>{var Y;const P=(Y=G.target)==null?void 0:Y.result;P&&(R?d=P:c=P,b())},L.readAsDataURL(C)},z=(C,R)=>{C==null||C.addEventListener("paste",L=>{var P;const G=(P=L.clipboardData)==null?void 0:P.items;if(G){for(let Y=0;Y<G.length;Y++)if(G[Y].type.indexOf("image")!==-1){const oe=G[Y].getAsFile();if(oe){L.preventDefault(),x(oe,R);break}}}})};z(i,!0),z(s,!1);const S=(C,R)=>{const L=r.querySelector(C);L&&(L.addEventListener("dragover",G=>{G.preventDefault(),L.style.borderColor="var(--f-blue)"}),L.addEventListener("dragleave",()=>{L.style.borderColor=""}),L.addEventListener("drop",G=>{var P;if(G.preventDefault(),L.style.borderColor="",(P=G.dataTransfer)!=null&&P.files&&G.dataTransfer.files.length>0){const Y=G.dataTransfer.files[0];Y.type.startsWith("image/")&&x(Y,R)}}))};S("#drop-zone-anverso",!0),S("#drop-zone-reverso",!1);const M=r.querySelector("#f-file-anverso");(Q=r.querySelector("#tool-img-anverso"))==null||Q.addEventListener("click",()=>M==null?void 0:M.click()),M==null||M.addEventListener("change",()=>{M.files&&M.files[0]&&x(M.files[0],!0)});const A=r.querySelector("#f-file-reverso");(X=r.querySelector("#tool-img-reverso"))==null||X.addEventListener("click",()=>A==null?void 0:A.click()),A==null||A.addEventListener("change",()=>{A.files&&A.files[0]&&x(A.files[0],!1)}),(q=r.querySelector("#btn-del-anverso-img"))==null||q.addEventListener("click",C=>{C.stopPropagation(),d=void 0,m=void 0,h=[],b()}),(O=r.querySelector("#btn-del-reverso-img"))==null||O.addEventListener("click",C=>{C.stopPropagation(),c=void 0,b()});const T=()=>{So({deckId:e.id,initialImage:d||m||hr,initialMasks:h,initialMode:f,onConfirm:(C,R,L)=>{R.length>0?(j.createOcclusionCards(e.id,C,R,L),a.onSaved()):(m=C,d=C,h=R,f=L,b())},onClose:()=>{}})};(ae=r.querySelector("#btn-manage-anverso-img"))==null||ae.addEventListener("click",T),(_=r.querySelector("#tool-occlusion-btn"))==null||_.addEventListener("click",T);const F=(C,R,L="")=>{if(!C)return;const G=C.selectionStart,P=C.selectionEnd,Y=C.value,oe=Y.substring(G,P)||"texto";C.value=Y.substring(0,G)+R+oe+(L||R)+Y.substring(P),C.focus()};r.querySelectorAll("[data-fmt]").forEach(C=>{C.addEventListener("click",()=>{const R=C.dataset.fmt;R&&F(i,R)})}),r.querySelectorAll("[data-fmt-r]").forEach(C=>{C.addEventListener("click",()=>{const R=C.dataset.fmtR;R&&F(s,R)})}),(J=r.querySelector("#btn-card-edit-back"))==null||J.addEventListener("click",()=>a.onBack()),(Z=r.querySelector("#crumb-e-inicio"))==null||Z.addEventListener("click",()=>a.onBack()),(te=r.querySelector("#crumb-e-parent"))==null||te.addEventListener("click",()=>a.onBack()),(U=r.querySelector("#crumb-e-deck"))==null||U.addEventListener("click",()=>a.onBack());const W=()=>{$a({deckId:e.id,onInsertToEditor:C=>{i&&(i.value=C.front),s&&(s.value=C.back)},onBatchAdded:()=>{a.onSaved()},onClose:()=>{}})};(se=r.querySelector("#btn-ai-anverso"))==null||se.addEventListener("click",W),(de=r.querySelector("#btn-ai-reverso"))==null||de.addEventListener("click",W),(pe=r.querySelector("#tool-katex-anverso"))==null||pe.addEventListener("click",()=>{i&&(i.value+=" $$E = mc^2$$ ",i.focus())}),(we=r.querySelector("#tool-katex-reverso"))==null||we.addEventListener("click",()=>{s&&(s.value+=" $$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$ ",s.focus())}),(k=r.querySelector("#tool-audio-anverso"))==null||k.addEventListener("click",()=>{const C=(i==null?void 0:i.value)||"Audio de prueba";Zt.speak(C,e.settings.ttsVoiceLang)}),(y=r.querySelector("#tool-audio-reverso"))==null||y.addEventListener("click",()=>{const C=(s==null?void 0:s.value)||"Respuesta de prueba";Zt.speak(C,e.settings.ttsVoiceLang)});const K=()=>{const C=(i==null?void 0:i.value.trim())||"Pregunta",R=(s==null?void 0:s.value.trim())||"Respuesta",L=h.length>0,G=C.includes("$")||R.includes("$"),P=(o==null?void 0:o.checked)||!1,Y=L?"image_occlusion":G?"latex":"standard";t?j.updateCard(t.id,{deckId:e.id,type:Y,front:C,back:R,frontImage:d,backImage:c,occlusionImage:L?m:void 0,occlusionMasks:L?h:void 0,activeMaskId:L&&h[0]?h[0].id:void 0,occlusionMode:f}):j.createCard({deckId:e.id,type:Y,front:C,back:R,frontImage:d,backImage:c,occlusionImage:L?m:void 0,occlusionMasks:L?h:void 0,activeMaskId:L&&h[0]?h[0].id:void 0,occlusionMode:f},P),a.onSaved()};(N=r.querySelector("#btn-save-card-check"))==null||N.addEventListener("click",K)}function Ao(){const r=j.getAllDecks().flatMap(e=>j.getCardsByDeck(e.id,!1));return`
+    <div style="padding-bottom:90px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+        <div>
+          <h2 class="figma-dash-title">Biblioteca de Tarjetas</h2>
+          <p class="figma-dash-subtitle">Explora y busca en todas las flashcards del sistema</p>
+        </div>
+        <button class="figma-btn-white-pill" id="btn-lib-add-card">+ Nueva Tarjeta</button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="figma-search-input-wrap" style="margin-bottom:20px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="figma-search-input" placeholder="Buscar por anverso, reverso o etiquetas..." id="lib-search-input" />
+      </div>
+
+      <!-- Cards Counter -->
+      <div style="font-size:0.88rem; font-weight:700; color:var(--f-text-secondary); margin-bottom:14px;">
+        Total: <strong style="color:#fff;">${r.length}</strong> tarjetas registradas
+      </div>
+
+      <!-- Cards Grid -->
+      <div style="display:flex; flex-direction:column; gap:12px;" id="lib-cards-mount">
+        ${r.map(e=>`
+          <div class="figma-card-item apple-glass-panel selectable-card-target" data-lib-card-id="${e.id}" data-lib-deck-id="${e.deckId}" style="cursor:pointer;" title="Toca para estudiar esta tarjeta">
+            <div class="figma-card-top-tag-row" style="margin-bottom:6px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="figma-tag-invertido" style="font-size:0.75rem; padding:2px 8px;">
+                  ${e.isInverted?"<span>⇄ Invertida</span>":e.type==="latex"?"<span>📐 LaTeX</span>":"<span>Estándar</span>"}
+                </div>
+                <span class="micro-study-badge" title="Estudiar">🎯</span>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button class="btn-lib-card-edit" data-edit-id="${e.id}" style="background:none; border:none; color:var(--f-blue); cursor:pointer; font-size:0.85rem; font-weight:700;">✏️</button>
+                <button class="btn-lib-card-del" data-del-id="${e.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem; font-weight:700;">🗑️</button>
+              </div>
+            </div>
+
+            <div class="figma-card-title-bold">${Yt.parseAndRender(e.front)}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `}function Co(r,e){var t;(t=r.querySelector("#btn-lib-add-card"))==null||t.addEventListener("click",()=>e.onAddCard()),r.querySelectorAll(".selectable-card-target").forEach(a=>{a.addEventListener("click",i=>{const s=i.target;if(s.classList.contains("btn-lib-card-edit")||s.classList.contains("btn-lib-card-del"))return;const o=a.dataset.libCardId,d=a.dataset.libDeckId;o&&d&&e.onStudySpecificCard(d,o)})}),r.querySelectorAll(".btn-lib-card-edit").forEach(a=>{a.addEventListener("click",i=>{i.stopPropagation();const s=a.dataset.editId;s&&e.onEditCard(s)})}),r.querySelectorAll(".btn-lib-card-del").forEach(a=>{a.addEventListener("click",i=>{i.stopPropagation();const s=a.dataset.delId;s&&he.showConfirm({title:"Eliminar Tarjeta",message:"¿Estás seguro de eliminar esta tarjeta definitivamente?",confirmText:"Eliminar",isDanger:!0,onConfirm:()=>{j.deleteCard(s)}})})})}function Eo(r){const e=r.settings.algorithmType==="fsrs"?"FSRS (Inteligente)":r.settings.algorithmType==="quick"?"Revisión rápida":r.settings.algorithmType==="languages"?"Aprendizaje de idiomas":r.settings.algorithmType==="medical"?"Aprendizaje médico":r.settings.algorithmType==="general"?"Repaso espaciado general":"Personalizado";return`
+    <div class="ios-fullscreen-view">
+      
+      <!-- iOS Native Header -->
+      <div class="ios-navbar">
+        <button class="ios-back-btn" id="btn-settings-back">
+          <span class="ios-back-chevron">‹</span> Volver
+        </button>
+        <h1 class="ios-nav-title">Ajustes del Mazo</h1>
+        <div style="width:60px;"></div>
+      </div>
+
+      <div class="ios-content-scroll">
+        
+        <div style="margin-bottom:12px;">
+          <h2 style="font-size:1.6rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">${r.name}</h2>
+          <p style="font-size:0.88rem; color:var(--f-text-secondary);">Configura los parámetros de repetición espaciada</p>
+        </div>
+
+        <!-- Inset Grouped Container (Foto 1) -->
+        <div class="apple-card-grouped" style="margin-bottom:20px;">
+          
+          <!-- Row 1: Algoritmo -->
+          <div class="apple-list-row" id="row-view-select-algo" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div class="apple-icon-circle-sm" style="background:rgba(56,189,248,0.15); color:var(--f-blue);">
+                ⥯
+              </div>
+              <span style="font-size:1.05rem; font-weight:700; color:#fff;">${e}</span>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+
+          <!-- Row 2: Tarjetas nuevas por día -->
+          <div class="apple-list-row" id="row-view-new-cards" style="cursor:pointer;">
+            <span style="font-size:1rem; font-weight:600; color:#fff;">Tarjetas nuevas por día</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="color:var(--f-blue); font-weight:800; font-size:1.05rem;" id="val-view-new-cards">${r.settings.newCardsPerDay}</span>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+
+          <!-- Row 3: Máximo de tarjetas por día -->
+          <div class="apple-list-row" id="row-view-max-cards" style="cursor:pointer;">
+            <span style="font-size:1rem; font-weight:600; color:#fff;">Máximo de tarjetas por día</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="color:var(--f-blue); font-weight:800; font-size:1.05rem;" id="val-view-max-cards">${r.settings.maxReviewsPerDay}</span>
+              <span class="apple-chevron">›</span>
+            </div>
+        <button class="ios-back-btn" id="btn-deck-settings-back">
+          <span class="ios-back-chevron">‹</span> Mazo
+        </button>
+        <h1 class="ios-nav-title">Opciones</h1>
+        <button class="ios-action-btn" id="btn-open-advanced-sheet">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </button>
+      </div>
+
+      <!-- Scrollable Settings List -->
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:20px;">
+
+        <!-- Group 1: General & Algoritmo -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="row-view-algo-selector">
+            <span class="apple-list-label">Algoritmo de aprendizaje</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="apple-list-value" id="val-view-algo-label">${e}</span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+
+          <div class="apple-list-row">
+            <span class="apple-list-label">Mezclar tarjetas</span>
+            <label class="apple-switch">
+              <input type="checkbox" id="toggle-view-mix-cards" ${r.settings.mixCards?"checked":""} />
+              <span class="apple-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Group 2: Límites Diarios -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="row-view-new-cards">
+            <span class="apple-list-label">Tarjetas nuevas por día</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="apple-list-value" id="val-view-new-cards">${r.settings.newCardsPerDay}</span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+
+          <div class="apple-list-row" id="row-view-max-cards">
+            <span class="apple-list-label">Máximo de tarjetas por día</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="apple-list-value" id="val-view-max-cards">${r.settings.maxReviewsPerDay}</span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 3: Minijuegos de Descanso -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row">
+            <div>
+              <span class="apple-list-label" style="display:block;">🎮 Minijuegos de descanso</span>
+              <span style="font-size:0.75rem; color:var(--f-text-muted); display:block;">Sin carga alostática ni fatiga cognitiva</span>
+            </div>
+            <label class="apple-switch">
+              <input type="checkbox" id="toggle-view-microgames" ${r.settings.enableMicroGames!==!1?"checked":""} />
+              <span class="apple-slider"></span>
+            </label>
+          </div>
+
+          <div class="apple-list-row" id="row-view-microgame-freq">
+            <span class="apple-list-label">Frecuencia de juego</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="apple-list-value" id="val-view-microgame-freq">
+                ${(r.settings.microGameInterval||5)===0?"Desactivado":`Cada ${r.settings.microGameInterval||5} tarjetas`}
+              </span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  `}function To(r,e,t){var s,o,d,c,m,h;(s=r.querySelector("#btn-deck-settings-back"))==null||s.addEventListener("click",()=>t.onBack()),(o=r.querySelector("#btn-open-advanced-sheet"))==null||o.addEventListener("click",()=>t.onOpenAdvancedMenu()),(d=r.querySelector("#row-view-algo-selector"))==null||d.addEventListener("click",()=>t.onOpenAlgorithmSelector());const a=r.querySelector("#toggle-view-mix-cards");a==null||a.addEventListener("change",()=>{j.updateDeck(e.id,{settings:{...e.settings,mixCards:a.checked}})});const i=r.querySelector("#toggle-view-microgames");i==null||i.addEventListener("change",()=>{j.updateDeck(e.id,{settings:{...e.settings,enableMicroGames:i.checked}})}),(c=r.querySelector("#row-view-microgame-freq"))==null||c.addEventListener("click",()=>{he.showPrompt({title:"Frecuencia de Minijuegos",message:"¿Cada cuántas tarjetas deseas una pausa de minijuego? (ej: 5, 10, 15, 20 o 0 para desactivar)",defaultValue:String(e.settings.microGameInterval!==void 0?e.settings.microGameInterval:5),inputType:"number",confirmText:"Guardar",onConfirm:f=>{if(f!==null&&!isNaN(Number(f))){const b=Math.max(0,parseInt(f,10));j.updateDeck(e.id,{settings:{...e.settings,microGameInterval:b,enableMicroGames:b>0}});const x=r.querySelector("#val-view-microgame-freq");x&&(x.textContent=b===0?"Desactivado":`Cada ${b} tarjetas`)}}})}),(m=r.querySelector("#row-view-new-cards"))==null||m.addEventListener("click",()=>{he.showPrompt({title:"Tarjetas Nuevas por Día",defaultValue:String(e.settings.newCardsPerDay),inputType:"number",confirmText:"Guardar",onConfirm:f=>{if(f&&!isNaN(Number(f))){const b=Math.max(1,parseInt(f,10));j.updateDeck(e.id,{settings:{...e.settings,newCardsPerDay:b}});const x=r.querySelector("#val-view-new-cards");x&&(x.textContent=String(b))}}})}),(h=r.querySelector("#row-view-max-cards"))==null||h.addEventListener("click",()=>{he.showPrompt({title:"Máximo de Tarjetas por Día",defaultValue:String(e.settings.maxReviewsPerDay),inputType:"number",confirmText:"Guardar",onConfirm:f=>{if(f&&!isNaN(Number(f))){const b=Math.max(1,parseInt(f,10));j.updateDeck(e.id,{settings:{...e.settings,maxReviewsPerDay:b}});const x=r.querySelector("#val-view-max-cards");x&&(x.textContent=String(b))}}})})}function Io(r){return`
+    <div class="ios-fullscreen-view">
+      
+      <!-- iOS Native Header -->
+      <div class="ios-navbar">
+        <button class="ios-back-btn" id="btn-adv-view-back">
+          <span class="ios-back-chevron">‹</span> Ajustes
+        </button>
+        <h1 class="ios-nav-title">Opciones de Mazo</h1>
+        <div style="width:60px;"></div>
+      </div>
+
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:16px;">
+        
+        <!-- Group 1: Algoritmo -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="adv-view-row-algo" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div class="apple-icon-circle-sm" style="background:rgba(56,189,248,0.15); color:var(--f-blue);">
+                ⥯
+              </div>
+              <div>
+                <div style="font-size:1.02rem; font-weight:700; color:#fff;">Personalizado</div>
+                <div style="font-size:0.78rem; color:var(--f-text-secondary);">Ajustes predeterminados del algoritmo</div>
+              </div>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+        </div>
+
+        <!-- Group 2: Audio, Tema & Estilo -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="adv-view-row-theme" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">🎨</span>
+              <div>
+                <div style="font-size:1.02rem; font-weight:600; color:#fff;">Tema Visual y Fondo de la App</div>
+                <div style="font-size:0.78rem; color:var(--f-text-secondary);">OLED, Liquid Glass o Emerald</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="color:var(--f-blue); font-size:0.92rem; font-weight:700; text-transform:capitalize;" id="lbl-active-theme">${localStorage.getItem("eureka_theme")||"oled"}</span>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-tts" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">🔊</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Texto a voz</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="color:var(--f-text-secondary); font-size:0.9rem;">${r.settings.ttsVoiceLang}</span>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 3: Compartir y Biblioteca -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="adv-view-row-share" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">⬆</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Compartir mazo</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="color:var(--f-text-secondary); font-size:0.9rem;">Off</span>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-publish" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">🖫</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Publicar en la biblioteca</span>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+        </div>
+
+        <!-- Group 4: Acciones Avanzadas -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="adv-view-row-ai" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem; color:#ec4899;">✨</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Generar tarjetas con IA</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="apple-badge-beta">Beta</span>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-import" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">⬇</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Importar tarjetas</span>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-rename" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">✏️</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Cambiar el nombre del mazo</span>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-move" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">↪</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Mover mazo</span>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-duplicate" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">🗎</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Duplicar mazo</span>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-reset" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">↺</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Restablecer progreso</span>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-archive" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">📥</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Archivar mazo</span>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-export" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem;">⬆</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Exportar mazo</span>
+            </div>
+            <span class="apple-chevron">›</span>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-delete" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:1.2rem; color:#ef4444;">🗑️</span>
+              <span style="font-size:1.02rem; font-weight:700; color:#ef4444;">Eliminar mazo</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  `}function Do(r,e,t){var a,i,s,o,d,c,m,h,f,b,x,z;(a=r.querySelector("#btn-adv-view-back"))==null||a.addEventListener("click",()=>t.onBack()),(i=r.querySelector("#adv-view-row-algo"))==null||i.addEventListener("click",()=>t.onOpenAlgorithmSelector()),(s=r.querySelector("#adv-view-row-ai"))==null||s.addEventListener("click",()=>t.onOpenAiBuilder()),(o=r.querySelector("#adv-view-row-import"))==null||o.addEventListener("click",()=>t.onOpenBatchImport()),(d=r.querySelector("#adv-view-row-theme"))==null||d.addEventListener("click",()=>{const S=["oled","glass","emerald"],M=localStorage.getItem("eureka_theme")||"oled",A=(S.indexOf(M)+1)%S.length,T=S[A];localStorage.setItem("eureka_theme",T),document.body.className="",document.body.classList.add(`theme-${T}`);const F=r.querySelector("#lbl-active-theme");F&&(F.textContent=T)}),(c=r.querySelector("#adv-view-row-rename"))==null||c.addEventListener("click",()=>{he.showPrompt({title:"Renombrar Mazo",defaultValue:e.name,confirmText:"Guardar",onConfirm:S=>{S&&S.trim()&&(j.renameDeck(e.id,S.trim()),t.onActionCompleted())}})}),(m=r.querySelector("#adv-view-row-duplicate"))==null||m.addEventListener("click",()=>{j.duplicateDeck(e.id),t.onActionCompleted()}),(h=r.querySelector("#adv-view-row-reset"))==null||h.addEventListener("click",()=>{he.showConfirm({title:"Restablecer Progreso",message:`¿Estás seguro de restablecer todo el progreso de estudio en "${e.name}"? Todas las tarjetas volverán al estado nuevo.`,confirmText:"Restablecer",isDanger:!0,onConfirm:()=>{j.resetDeckProgress(e.id),t.onActionCompleted()}})}),(f=r.querySelector("#adv-view-row-archive"))==null||f.addEventListener("click",()=>{he.showConfirm({title:"Archivar Mazo",message:`¿Deseas archivar el mazo "${e.name}"?`,confirmText:"Archivar",onConfirm:()=>{j.archiveDeck(e.id),t.onActionCompleted()}})}),(b=r.querySelector("#adv-view-row-export"))==null||b.addEventListener("click",()=>{const S=j.exportDeck(e.id),M=new Blob([S],{type:"application/json"}),A=URL.createObjectURL(M),T=document.createElement("a");T.href=A,T.download=`${e.name.toLowerCase().replace(/\s+/g,"_")}_backup.json`,T.click()}),(x=r.querySelector("#adv-view-row-delete"))==null||x.addEventListener("click",()=>{he.showConfirm({title:"Eliminar Mazo Definitivamente",message:`¿ELIMINAR DEFINITIVAMENTE el mazo "${e.name}" y todas sus tarjetas? Esta acción no se puede deshacer.`,confirmText:"Eliminar Mazo",isDanger:!0,onConfirm:()=>{j.deleteDeck(e.id),t.onActionCompleted()}})}),(z=r.querySelector("#adv-view-row-tts"))==null||z.addEventListener("click",()=>{he.showPrompt({title:"Voz y Pronunciación (TTS)",message:"Código de idioma de voz (ej: es-ES, en-US, fr-FR, de-DE, ja-JP):",defaultValue:e.settings.ttsVoiceLang||"es-ES",confirmText:"Guardar Idioma",onConfirm:S=>{S&&S.trim()&&(j.updateDeck(e.id,{settings:{...e.settings,ttsVoiceLang:S.trim()}}),t.onActionCompleted())}})})}function Bo(r){const e=r.settings.algorithmType||"custom";return`
+    <div class="ios-fullscreen-view">
+      
+      <!-- iOS Native Header -->
+      <div class="ios-navbar">
+        <button class="ios-back-btn" id="btn-algo-view-back">
+          <span class="ios-back-chevron">‹</span> Volver
+        </button>
+        <h1 class="ios-nav-title">Elegir algoritmo</h1>
+        <div style="width:60px;"></div>
+      </div>
+
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:16px;">
+        
+        <!-- Option 1: FSRS -->
+        <div class="apple-algo-card ${e==="fsrs"?"selected":""}" data-algo-key="fsrs">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="apple-algo-icon">🗎</span>
+              <span class="apple-algo-title">Repetición espaciada inteligente (FSRS)</span>
+              <span class="apple-badge-beta">Beta</span>
+            </div>
+            <input type="checkbox" class="apple-checkbox" ${e==="fsrs"?"checked":""} readonly />
+          </div>
+          <p class="apple-algo-desc">
+            El algoritmo de programación más reciente y avanzado: aprende tus patrones de memoria personales y programa cada repaso justo para el momento en que estás a punto de olvidar, para que recuerdes más con menos repasos.
+          </p>
+        </div>
+
+        <!-- Option 2: Revisión rápida -->
+        <div class="apple-algo-card ${e==="quick"?"selected":""}" data-algo-key="quick">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="apple-algo-icon">🗎</span>
+              <span class="apple-algo-title">Revisión rápida</span>
+            </div>
+            <input type="checkbox" class="apple-checkbox" ${e==="quick"?"checked":""} readonly />
+          </div>
+          <p class="apple-algo-desc">
+            Revisa tarjetas sin ningún horario, solo una por una. Las tarjetas siempre están disponibles para estudiar cuando lo desees, lo que te permite repasar el material a tu propio ritmo sin seguir los intervalos de repaso espaciado.
+          </p>
+        </div>
+
+        <!-- Option 3: Repaso espaciado general -->
+        <div class="apple-algo-card ${e==="general"?"selected":""}" data-algo-key="general">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="apple-algo-icon">🗎</span>
+              <span class="apple-algo-title">Repaso espaciado general</span>
+            </div>
+            <input type="checkbox" class="apple-checkbox" ${e==="general"?"checked":""} readonly />
+          </div>
+          <p class="apple-algo-desc">
+            Un sistema inteligente que programa las revisiones según qué tan bien recuerdas cada tarjeta. Las tarjetas fáciles aparecen con menos frecuencia, mientras que las más difíciles se muestran más seguido, ayudándote a aprender de forma eficiente y a retener el conocimiento a largo plazo.
+          </p>
+        </div>
+
+        <!-- Option 4: Aprendizaje de idiomas -->
+        <div class="apple-algo-card ${e==="languages"?"selected":""}" data-algo-key="languages">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="apple-algo-icon" style="color:#38bdf8;">🔤</span>
+              <span class="apple-algo-title">Aprendizaje de idiomas</span>
+            </div>
+            <span style="font-size:0.9rem; color:var(--f-blue);">🔓</span>
+          </div>
+          <div style="margin-bottom:8px;">
+            <span class="apple-badge-subpill">+ Repaso espaciado</span>
+          </div>
+          <p class="apple-algo-desc">
+            Una variación de repaso espaciado diseñada para aprender palabras nuevas. Las nuevas tarjetas se muestran con frecuencia al principio y luego se repasan en intervalos más largos para ayudarte a recordarlas a largo plazo.
+          </p>
+        </div>
+
+        <!-- Option 5: Aprendizaje médico -->
+        <div class="apple-algo-card ${e==="medical"?"selected":""}" data-algo-key="medical">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="apple-algo-icon" style="color:#38bdf8;">⚕️</span>
+              <span class="apple-algo-title">Aprendizaje médico</span>
+            </div>
+            <span style="font-size:0.9rem; color:var(--f-blue);">🔓</span>
+          </div>
+          <div style="margin-bottom:8px;">
+            <span class="apple-badge-subpill">+ Repaso espaciado</span>
+          </div>
+          <p class="apple-algo-desc">
+            Este ajuste predeterminado de repaso espaciado se basa en técnicas utilizadas por estudiantes de medicina de alto rendimiento. Elimina los límites diarios y evita la repetición excesiva de tarjetas, ayudándote a cubrir grandes volúmenes de material de manera eficiente a corto plazo.
+          </p>
+        </div>
+
+        <!-- Botón para personalizar los 12 pasos exactos (Foto 4) -->
+        <button class="apple-btn-secondary" id="btn-view-custom-phases" style="width:100%; padding:16px; border-radius:16px; margin-top:8px; font-weight:700; font-size:1.02rem;">
+          ⚙️ Personalizar Escalera de Fases (12 Pasos)
+        </button>
+
+      </div>
+
+    </div>
+  `}function Lo(r,e,t){var a,i;(a=r.querySelector("#btn-algo-view-back"))==null||a.addEventListener("click",()=>t.onBack()),(i=r.querySelector("#btn-view-custom-phases"))==null||i.addEventListener("click",()=>t.onOpenCustomLearningPhases()),r.querySelectorAll(".apple-algo-card").forEach(s=>{s.addEventListener("click",()=>{const o=s.dataset.algoKey;o&&(j.updateDeck(e.id,{settings:{...e.settings,algorithmType:o}}),t.onSaved())})})}function qo(r){return`
+    <div class="ios-fullscreen-view">
+      
+      <!-- iOS Native Header -->
+      <div class="ios-navbar">
+        <button class="ios-back-btn" id="btn-learning-phase-back">
+          <span class="ios-back-chevron">‹</span> Algoritmo
+        </button>
+        <h1 class="ios-nav-title">Fase de aprendizaje</h1>
+        <div style="width:60px;"></div>
+      </div>
+
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:16px;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="apple-btn-outline-pill" id="btn-view-how-it-works" style="font-weight:700;">
+            ¿Cómo funciona el algoritmo?
+          </button>
+          <span style="font-size:0.85rem; color:var(--f-text-secondary); font-weight:700;">${r.name}</span>
+        </div>
+
+        <div>
+          <h2 style="font-size:1.6rem; font-weight:800; color:#ffffff; margin-bottom:6px; letter-spacing:-0.02em;">Fase de aprendizaje</h2>
+          <div style="font-size:1.02rem; font-weight:700; color:#fff; margin-bottom:4px;">Pasos del aprendizaje</div>
+          <p style="font-size:0.86rem; color:var(--f-text-secondary); line-height:1.5;">
+            Durante la fase de aprendizaje, una tarjeta progresa a través de una serie de pasos de longitud fija. Cuando presionas <strong style="color:var(--f-green);">Bien</strong>, la tarjeta pasa al siguiente paso de aprendizaje hasta que se gradúa.
+          </p>
+        </div>
+
+        <!-- Steps List (Foto 4) -->
+        <div id="learning-phase-steps-container" class="apple-card-grouped" style="padding:4px 0;">
+        </div>
+
+        <!-- Add step button -->
+        <button class="apple-btn-secondary" id="btn-view-add-step" style="padding:14px; border-radius:14px; font-weight:700; font-size:0.95rem;">
+          + Agregar paso de revisión
+        </button>
+
+        <!-- Save button -->
+        <div style="margin-top:12px; padding-bottom:30px;">
+          <button class="apple-btn-primary" id="btn-view-save-steps" style="width:100%; padding:16px; border-radius:16px; font-size:1.05rem; justify-content:center; background:var(--f-blue); color:#07080a; font-weight:800;">
+            🔒 Guardar los cambios
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  `}function $o(r,e,t){var o,d,c,m;(o=r.querySelector("#btn-learning-phase-back"))==null||o.addEventListener("click",()=>t.onBack());let a=e.settings.learningSteps&&e.settings.learningSteps.length>0?[...e.settings.learningSteps]:[4,1440,2880,7200,15840,25920,41760,82080,146880,246240,400320,633600];const i=r.querySelector("#learning-phase-steps-container"),s=()=>{i&&(i.innerHTML=a.map((h,f)=>`
+      <div class="apple-list-row apple-step-editable-row" data-step-index="${f}" style="cursor:pointer;">
+        <div style="font-size:1.02rem; font-weight:600; color:#ffffff;">
+          Revisión ${f+1}: <span style="color:var(--f-blue); font-weight:800; margin-left:6px;" id="step-label-${f}">${Kt.formatMinutesToHuman(h)}</span>
+        </div>
+        
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button class="apple-btn-outline-pill btn-quick-edit-step" data-step-index="${f}" style="padding:4px 10px; font-size:0.75rem;">Editar</button>
+          ${f>0?`<button class="apple-icon-del-btn btn-del-step" data-step-index="${f}" title="Eliminar paso">×</button>`:'<span style="width:28px;"></span>'}
+        </div>
+      </div>
+    `).join(""),i.querySelectorAll(".apple-step-editable-row").forEach(h=>{h.addEventListener("click",f=>{if(f.target.classList.contains("btn-del-step"))return;const b=parseInt(h.dataset.stepIndex||"0",10);he.showIntervalPicker({title:`Modificar Revisión ${b+1}`,subtitle:"Ajusta el tiempo exacto en días, horas y minutos:",initialMinutes:a[b],onConfirm:x=>{a[b]=x,s()}})})}),i.querySelectorAll(".btn-del-step").forEach(h=>{h.addEventListener("click",f=>{f.stopPropagation();const b=parseInt(h.dataset.stepIndex||"0",10);a.splice(b,1),s()})}))};s(),(d=r.querySelector("#btn-view-add-step"))==null||d.addEventListener("click",()=>{he.showIntervalPicker({title:"Agregar Nuevo Paso de Revisión",subtitle:"Configura el intervalo para el nuevo escalón:",initialMinutes:864e3,onConfirm:h=>{a.push(h),s()}})}),(c=r.querySelector("#btn-view-how-it-works"))==null||c.addEventListener("click",()=>{he.showAlert({title:"¿Cómo funciona el algoritmo?",message:`1. Cada tarjeta inicia en la Revisión 1.
+2. Al calificar "Bien" o "Fácil", la tarjeta avanza secuencialmente al siguiente escalón de repaso.
+3. Al responder "Muy Difícil", regresa al paso 1 para consolidar la retención.
+4. Puedes personalizar cualquiera de los pasos tocando sobre él y ajustando días, horas o minutos.`})}),(m=r.querySelector("#btn-view-save-steps"))==null||m.addEventListener("click",()=>{j.updateDeck(e.id,{settings:{...e.settings,algorithmType:"custom",learningSteps:a}}),t.onSaved()})}function K0(){const r=Lt.getTheme();return`
+    <div class="ios-fullscreen-view">
+      
+      <!-- iOS Header -->
+      <div class="ios-navbar">
+        <button class="ios-back-btn" id="btn-app-settings-back">
+          <span class="ios-back-chevron">‹</span> Volver
+        </button>
+        <h1 class="ios-nav-title">Personalización & Estilo</h1>
+        <div style="width:60px;"></div>
+      </div>
+
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:20px; padding-bottom:40px;">
+        
+        <div>
+          <h2 style="font-size:1.8rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Atmósfera & Estilo Visual</h2>
+          <p style="font-size:0.92rem; color:var(--f-text-secondary); margin-top:4px;">Diseño moderno futurista con gradientes y mallas cromáticas</p>
+        </div>
+
+        <!-- 1. Atmósferas y Fondos Futuristas -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
+            Atmósfera y Fondo de la App
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
+            
+            <div class="theme-preset-card ${r.bgTheme==="modern_black"?"selected":""}" data-bg="modern_black">
+              <div class="theme-preview-box preview-modern-black">
+                <span class="theme-badge-glow">Default</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Modern Lead Black</div>
+                <div class="theme-card-desc">Plomo oscuro elegante y sutil, estilo Noji/AnkiPro nativo</div>
+              </div>
+            </div>
+
+            <div class="theme-preset-card ${r.bgTheme==="holo_cyber"?"selected":""}" data-bg="holo_cyber">
+              <div class="theme-preview-box preview-holo-cyber">
+                <span class="theme-badge-glow" style="background:#ec4899;">Holo 3D</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Holo Prism Chrome</div>
+                <div class="theme-card-desc">Efecto holográfico iridiscente con mallas de color</div>
+              </div>
+            </div>
+
+            <div class="theme-preset-card ${r.bgTheme==="digital_blue"?"selected":""}" data-bg="digital_blue">
+              <div class="theme-preview-box preview-digital-blue">
+                <span class="theme-badge-glow" style="background:#38bdf8;">Digital</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Digital Technology</div>
+                <div class="theme-card-desc">Aura azul eléctrico y cian futurista profundo</div>
+              </div>
+            </div>
+
+            <div class="theme-preset-card ${r.bgTheme==="emerald_vision"?"selected":""}" data-bg="emerald_vision">
+              <div class="theme-preview-box preview-emerald-vision">
+                <span class="theme-badge-glow" style="background:#10b981;">Vision</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Vision Emerald</div>
+                <div class="theme-card-desc">Anillo de luz verde neón y esmeralda cósmico</div>
+              </div>
+            </div>
+
+            <div class="theme-preset-card ${r.bgTheme==="sunset_magenta"?"selected":""}" data-bg="sunset_magenta">
+              <div class="theme-preview-box preview-sunset-magenta">
+                <span class="theme-badge-glow" style="background:#a855f7;">Unlocking</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Sunset Magenta</div>
+                <div class="theme-card-desc">Gradiente violeta, púrpura y magenta resplandeciente</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 2. Color de Acento -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
+            Color de Acento de Botones y Resaltados
+          </div>
+
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <button class="theme-color-circle ${r.accentName==="blue"?"active":""}" data-accent="blue" style="background:linear-gradient(135deg, #38bdf8, #0284c7);" title="Cyber Blue"></button>
+            <button class="theme-color-circle ${r.accentName==="green"?"active":""}" data-accent="green" style="background:linear-gradient(135deg, #10b981, #059669);" title="Neon Emerald"></button>
+            <button class="theme-color-circle ${r.accentName==="purple"?"active":""}" data-accent="purple" style="background:linear-gradient(135deg, #a855f7, #7e22ce);" title="Electric Purple"></button>
+            <button class="theme-color-circle ${r.accentName==="amber"?"active":""}" data-accent="amber" style="background:linear-gradient(135deg, #f59e0b, #d97706);" title="Sunset Amber"></button>
+            <button class="theme-color-circle ${r.accentName==="pink"?"active":""}" data-accent="pink" style="background:linear-gradient(135deg, #ec4899, #be185d);" title="Coral Pink"></button>
+            <button class="theme-color-circle ${r.accentName==="red"?"active":""}" data-accent="red" style="background:linear-gradient(135deg, #ef4444, #b91c1c);" title="Crimson"></button>
+          </div>
+        </div>
+
+        <!-- 3. Formas y Bordes de las Tarjetas -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
+            Formas y Bordes de las Flashcards
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px;">
+            <button class="apple-btn-outline-pill ${r.cardRadius==="super_rounded"?"active-pill":""}" data-radius="super_rounded" style="padding:16px 12px; font-weight:800; text-align:center;">
+              Super Redondo (28px)
+            </button>
+            <button class="apple-btn-outline-pill ${r.cardRadius==="standard"?"active-pill":""}" data-radius="standard" style="padding:16px 12px; font-weight:800; text-align:center;">
+              Estándar iOS (18px)
+            </button>
+            <button class="apple-btn-outline-pill ${r.cardRadius==="sharp"?"active-pill":""}" data-radius="sharp" style="padding:16px 12px; font-weight:800; text-align:center;">
+              Futurista Recto (10px)
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Escala Táctil de Botones Grandes -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
+            Tamaño de Botones y Ergonomía Táctil
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
+            <button class="apple-btn-secondary ${r.uiScale==="comfortable"?"active-pill":""}" data-scale="comfortable" style="padding:18px; border-radius:18px; font-weight:800; font-size:1.05rem;">
+              ✨ Cómodo y Grande (Recomendado)
+            </button>
+            <button class="apple-btn-secondary ${r.uiScale==="normal"?"active-pill":""}" data-scale="normal" style="padding:18px; border-radius:18px; font-weight:800; font-size:1.05rem;">
+              Normal
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  `}function Ro(r,e){var t;(t=r.querySelector("#btn-app-settings-back"))==null||t.addEventListener("click",()=>e.onBack()),r.querySelectorAll(".theme-color-circle").forEach(a=>{a.addEventListener("click",()=>{const i=a.dataset.accent;i&&(Lt.setTheme({accentName:i}),r.querySelectorAll(".theme-color-circle").forEach(s=>s.classList.remove("active")),a.classList.add("active"),e.onThemeChanged())})}),r.querySelectorAll(".theme-preset-card").forEach(a=>{a.addEventListener("click",()=>{const i=a.dataset.bg;i&&(Lt.setTheme({bgTheme:i}),r.querySelectorAll(".theme-preset-card").forEach(s=>s.classList.remove("selected")),a.classList.add("selected"),e.onThemeChanged())})}),r.querySelectorAll("button[data-radius]").forEach(a=>{a.addEventListener("click",()=>{const i=a.dataset.radius;i&&(Lt.setTheme({cardRadius:i}),r.querySelectorAll("button[data-radius]").forEach(s=>s.classList.remove("active-pill")),a.classList.add("active-pill"),e.onThemeChanged())})}),r.querySelectorAll("button[data-scale]").forEach(a=>{a.addEventListener("click",()=>{const i=a.dataset.scale;i&&(Lt.setTheme({uiScale:i}),r.querySelectorAll("button[data-scale]").forEach(s=>s.classList.remove("active-pill")),a.classList.add("active-pill"),e.onThemeChanged())})})}var Qa={};(function r(e,t,a,i){var s=!!(e.Worker&&e.Blob&&e.Promise&&e.OffscreenCanvas&&e.OffscreenCanvasRenderingContext2D&&e.HTMLCanvasElement&&e.HTMLCanvasElement.prototype.transferControlToOffscreen&&e.URL&&e.URL.createObjectURL),o=typeof Path2D=="function"&&typeof DOMMatrix=="function",d=(function(){if(!e.OffscreenCanvas)return!1;try{var k=new OffscreenCanvas(1,1),y=k.getContext("2d");y.fillRect(0,0,1,1);var N=k.transferToImageBitmap();y.createPattern(N,"no-repeat")}catch{return!1}return!0})();function c(){}function m(k){var y=t.exports.Promise,N=y!==void 0?y:e.Promise;return typeof N=="function"?new N(k):(k(c,c),null)}var h=(function(k,y){return{transform:function(N){if(k)return N;if(y.has(N))return y.get(N);var C=new OffscreenCanvas(N.width,N.height),R=C.getContext("2d");return R.drawImage(N,0,0),y.set(N,C),C},clear:function(){y.clear()}}})(d,new Map),f=(function(){var k=Math.floor(16.666666666666668),y,N,C={},R=0;return typeof requestAnimationFrame=="function"&&typeof cancelAnimationFrame=="function"?(y=function(L){var G=Math.random();return C[G]=requestAnimationFrame(function P(Y){R===Y||R+k-1<Y?(R=Y,delete C[G],L()):C[G]=requestAnimationFrame(P)}),G},N=function(L){C[L]&&cancelAnimationFrame(C[L])}):(y=function(L){return setTimeout(L,k)},N=function(L){return clearTimeout(L)}),{frame:y,cancel:N}})(),b=(function(){var k,y,N={};function C(R){function L(G,P){R.postMessage({options:G||{},callback:P})}R.init=function(P){var Y=P.transferControlToOffscreen();R.postMessage({canvas:Y},[Y])},R.fire=function(P,Y,oe){if(y)return L(P,null),y;var ge=Math.random().toString(36).slice(2);return y=m(function(fe){function be(Me){Me.data.callback===ge&&(delete N[ge],R.removeEventListener("message",be),y=null,h.clear(),oe(),fe())}R.addEventListener("message",be),L(P,ge),N[ge]=be.bind(null,{data:{callback:ge}})}),y},R.reset=function(){R.postMessage({reset:!0});for(var P in N)N[P](),delete N[P]}}return function(){if(k)return k;if(!a&&s){var R=["var CONFETTI, SIZE = {}, module = {};","("+r.toString()+")(this, module, true, SIZE);","onmessage = function(msg) {","  if (msg.data.options) {","    CONFETTI(msg.data.options).then(function () {","      if (msg.data.callback) {","        postMessage({ callback: msg.data.callback });","      }","    });","  } else if (msg.data.reset) {","    CONFETTI && CONFETTI.reset();","  } else if (msg.data.resize) {","    SIZE.width = msg.data.resize.width;","    SIZE.height = msg.data.resize.height;","  } else if (msg.data.canvas) {","    SIZE.width = msg.data.canvas.width;","    SIZE.height = msg.data.canvas.height;","    CONFETTI = module.exports.create(msg.data.canvas);","  }","}"].join(`
+`);try{k=new Worker(URL.createObjectURL(new Blob([R])))}catch(L){return typeof console<"u"&&typeof console.warn=="function"&&console.warn("🎊 Could not load worker",L),null}C(k)}return k}})(),x={particleCount:50,angle:90,spread:45,startVelocity:45,decay:.9,gravity:1,drift:0,ticks:200,x:.5,y:.5,shapes:["square","circle"],zIndex:100,colors:["#26ccff","#a25afd","#ff5e7e","#88ff5a","#fcff42","#ffa62d","#ff36ff"],disableForReducedMotion:!1,scalar:1};function z(k,y){return y?y(k):k}function S(k){return k!=null}function M(k,y,N){return z(k&&S(k[y])?k[y]:x[y],N)}function A(k){return k<0?0:Math.floor(k)}function T(k,y){return Math.floor(Math.random()*(y-k))+k}function F(k){return parseInt(k,16)}function W(k){return k.map(K)}function K(k){var y=String(k).replace(/[^0-9a-f]/gi,"");return y.length<6&&(y=y[0]+y[0]+y[1]+y[1]+y[2]+y[2]),{r:F(y.substring(0,2)),g:F(y.substring(2,4)),b:F(y.substring(4,6))}}function Q(k){var y=M(k,"origin",Object);return y.x=M(y,"x",Number),y.y=M(y,"y",Number),y}function X(k){k.width=document.documentElement.clientWidth,k.height=document.documentElement.clientHeight}function q(k){var y=k.getBoundingClientRect();k.width=y.width,k.height=y.height}function O(k){var y=document.createElement("canvas");return y.style.position="fixed",y.style.top="0px",y.style.left="0px",y.style.pointerEvents="none",y.style.zIndex=k,y}function ae(k,y,N,C,R,L,G,P,Y){k.save(),k.translate(y,N),k.rotate(L),k.scale(C,R),k.arc(0,0,1,G,P,Y),k.restore()}function _(k){var y=k.angle*(Math.PI/180),N=k.spread*(Math.PI/180);return{x:k.x,y:k.y,wobble:Math.random()*10,wobbleSpeed:Math.min(.11,Math.random()*.1+.05),velocity:k.startVelocity*.5+Math.random()*k.startVelocity,angle2D:-y+(.5*N-Math.random()*N),tiltAngle:(Math.random()*(.75-.25)+.25)*Math.PI,color:k.color,shape:k.shape,tick:0,totalTicks:k.ticks,decay:k.decay,drift:k.drift,random:Math.random()+2,tiltSin:0,tiltCos:0,wobbleX:0,wobbleY:0,gravity:k.gravity*3,ovalScalar:.6,scalar:k.scalar,flat:k.flat}}function J(k,y){y.x+=Math.cos(y.angle2D)*y.velocity+y.drift,y.y+=Math.sin(y.angle2D)*y.velocity+y.gravity,y.velocity*=y.decay,y.flat?(y.wobble=0,y.wobbleX=y.x+10*y.scalar,y.wobbleY=y.y+10*y.scalar,y.tiltSin=0,y.tiltCos=0,y.random=1):(y.wobble+=y.wobbleSpeed,y.wobbleX=y.x+10*y.scalar*Math.cos(y.wobble),y.wobbleY=y.y+10*y.scalar*Math.sin(y.wobble),y.tiltAngle+=.1,y.tiltSin=Math.sin(y.tiltAngle),y.tiltCos=Math.cos(y.tiltAngle),y.random=Math.random()+2);var N=y.tick++/y.totalTicks,C=y.x+y.random*y.tiltCos,R=y.y+y.random*y.tiltSin,L=y.wobbleX+y.random*y.tiltCos,G=y.wobbleY+y.random*y.tiltSin;if(k.fillStyle="rgba("+y.color.r+", "+y.color.g+", "+y.color.b+", "+(1-N)+")",k.beginPath(),o&&y.shape.type==="path"&&typeof y.shape.path=="string"&&Array.isArray(y.shape.matrix))k.fill(de(y.shape.path,y.shape.matrix,y.x,y.y,Math.abs(L-C)*.1,Math.abs(G-R)*.1,Math.PI/10*y.wobble));else if(y.shape.type==="bitmap"){var P=Math.PI/10*y.wobble,Y=Math.abs(L-C)*.1,oe=Math.abs(G-R)*.1,ge=y.shape.bitmap.width*y.scalar,fe=y.shape.bitmap.height*y.scalar,be=new DOMMatrix([Math.cos(P)*Y,Math.sin(P)*Y,-Math.sin(P)*oe,Math.cos(P)*oe,y.x,y.y]);be.multiplySelf(new DOMMatrix(y.shape.matrix));var Me=k.createPattern(h.transform(y.shape.bitmap),"no-repeat");Me.setTransform(be),k.globalAlpha=1-N,k.fillStyle=Me,k.fillRect(y.x-ge/2,y.y-fe/2,ge,fe),k.globalAlpha=1}else if(y.shape==="circle")k.ellipse?k.ellipse(y.x,y.y,Math.abs(L-C)*y.ovalScalar,Math.abs(G-R)*y.ovalScalar,Math.PI/10*y.wobble,0,2*Math.PI):ae(k,y.x,y.y,Math.abs(L-C)*y.ovalScalar,Math.abs(G-R)*y.ovalScalar,Math.PI/10*y.wobble,0,2*Math.PI);else if(y.shape==="star")for(var le=Math.PI/2*3,De=4*y.scalar,Ne=8*y.scalar,je=y.x,Ue=y.y,Ye=5,Le=Math.PI/Ye;Ye--;)je=y.x+Math.cos(le)*Ne,Ue=y.y+Math.sin(le)*Ne,k.lineTo(je,Ue),le+=Le,je=y.x+Math.cos(le)*De,Ue=y.y+Math.sin(le)*De,k.lineTo(je,Ue),le+=Le;else k.moveTo(Math.floor(y.x),Math.floor(y.y)),k.lineTo(Math.floor(y.wobbleX),Math.floor(R)),k.lineTo(Math.floor(L),Math.floor(G)),k.lineTo(Math.floor(C),Math.floor(y.wobbleY));return k.closePath(),k.fill(),y.tick<y.totalTicks}function Z(k,y,N,C,R){var L=y.slice(),G=k.getContext("2d"),P,Y,oe=m(function(ge){function fe(){P=Y=null,G.clearRect(0,0,C.width,C.height),h.clear(),R(),ge()}function be(){a&&!(C.width===i.width&&C.height===i.height)&&(C.width=k.width=i.width,C.height=k.height=i.height),!C.width&&!C.height&&(N(k),C.width=k.width,C.height=k.height),G.clearRect(0,0,C.width,C.height),L=L.filter(function(Me){return J(G,Me)}),L.length?P=f.frame(be):fe()}P=f.frame(be),Y=fe});return{addFettis:function(ge){return L=L.concat(ge),oe},canvas:k,promise:oe,reset:function(){P&&f.cancel(P),Y&&Y()}}}function te(k,y){var N=!k,C=!!M(y||{},"resize"),R=!1,L=M(y,"disableForReducedMotion",Boolean),G=s&&!!M(y||{},"useWorker"),P=G?b():null,Y=N?X:q,oe=k&&P?!!k.__confetti_initialized:!1,ge=typeof matchMedia=="function"&&matchMedia("(prefers-reduced-motion)").matches,fe;function be(le,De,Ne){for(var je=M(le,"particleCount",A),Ue=M(le,"angle",Number),Ye=M(le,"spread",Number),Le=M(le,"startVelocity",Number),qr=M(le,"decay",Number),$r=M(le,"gravity",Number),Vt=M(le,"drift",Number),Gt=M(le,"colors",W),tr=M(le,"ticks",Number),rr=M(le,"shapes"),Rr=M(le,"scalar"),Dt=!!M(le,"flat"),vt=Q(le),_a=je,Pr=[],Ki=k.width*vt.x,Ji=k.height*vt.y;_a--;)Pr.push(_({x:Ki,y:Ji,angle:Ue,spread:Ye,startVelocity:Le,color:Gt[_a%Gt.length],shape:rr[T(0,rr.length)],ticks:tr,decay:qr,gravity:$r,drift:Vt,scalar:Rr,flat:Dt}));return fe?fe.addFettis(Pr):(fe=Z(k,Pr,Y,De,Ne),fe.promise)}function Me(le){var De=L||M(le,"disableForReducedMotion",Boolean),Ne=M(le,"zIndex",Number);if(De&&ge)return m(function(Le){Le()});N&&fe?k=fe.canvas:N&&!k&&(k=O(Ne),document.body.appendChild(k)),C&&!oe&&Y(k);var je={width:k.width,height:k.height};P&&!oe&&P.init(k),oe=!0,P&&(k.__confetti_initialized=!0);function Ue(){if(P){var Le={getBoundingClientRect:function(){if(!N)return k.getBoundingClientRect()}};Y(Le),P.postMessage({resize:{width:Le.width,height:Le.height}});return}je.width=je.height=null}function Ye(){fe=null,C&&(R=!1,e.removeEventListener("resize",Ue)),N&&k&&(document.body.contains(k)&&document.body.removeChild(k),k=null,oe=!1)}return C&&!R&&(R=!0,e.addEventListener("resize",Ue,!1)),P?P.fire(le,je,Ye):be(le,je,Ye)}return Me.reset=function(){P&&P.reset(),fe&&fe.reset()},Me}var U;function se(){return U||(U=te(null,{useWorker:!0,resize:!0})),U}function de(k,y,N,C,R,L,G){var P=new Path2D(k),Y=new Path2D;Y.addPath(P,new DOMMatrix(y));var oe=new Path2D;return oe.addPath(Y,new DOMMatrix([Math.cos(G)*R,Math.sin(G)*R,-Math.sin(G)*L,Math.cos(G)*L,N,C])),oe}function pe(k){if(!o)throw new Error("path confetti are not supported in this browser");var y,N;typeof k=="string"?y=k:(y=k.path,N=k.matrix);var C=new Path2D(y),R=document.createElement("canvas"),L=R.getContext("2d");if(!N){for(var G=1e3,P=G,Y=G,oe=0,ge=0,fe,be,Me=0;Me<G;Me+=2)for(var le=0;le<G;le+=2)L.isPointInPath(C,Me,le,"nonzero")&&(P=Math.min(P,Me),Y=Math.min(Y,le),oe=Math.max(oe,Me),ge=Math.max(ge,le));fe=oe-P,be=ge-Y;var De=10,Ne=Math.min(De/fe,De/be);N=[Ne,0,0,Ne,-Math.round(fe/2+P)*Ne,-Math.round(be/2+Y)*Ne]}return{type:"path",path:y,matrix:N}}function we(k){var y,N=1,C="#000000",R='"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "EmojiOne Color", "Android Emoji", "Twemoji Mozilla", "system emoji", sans-serif';typeof k=="string"?y=k:(y=k.text,N="scalar"in k?k.scalar:N,R="fontFamily"in k?k.fontFamily:R,C="color"in k?k.color:C);var L=10*N,G=""+L+"px "+R,P=new OffscreenCanvas(L,L),Y=P.getContext("2d");Y.font=G;var oe=Y.measureText(y),ge=Math.ceil(oe.actualBoundingBoxRight+oe.actualBoundingBoxLeft),fe=Math.ceil(oe.actualBoundingBoxAscent+oe.actualBoundingBoxDescent),be=2,Me=oe.actualBoundingBoxLeft+be,le=oe.actualBoundingBoxAscent+be;ge+=be+be,fe+=be+be,P=new OffscreenCanvas(ge,fe),Y=P.getContext("2d"),Y.font=G,Y.fillStyle=C,Y.fillText(y,Me,le);var De=1/N;return{type:"bitmap",bitmap:P.transferToImageBitmap(),matrix:[De,0,0,De,-ge*De/2,-fe*De/2]}}t.exports=function(){return se().apply(this,arguments)},t.exports.reset=function(){se().reset()},t.exports.create=te,t.exports.shapeFromPath=pe,t.exports.shapeFromText=we})((function(){return typeof window<"u"?window:typeof self<"u"?self:this||{}})(),Qa,!1);const La=Qa.exports;Qa.exports.create;function Po(r){var c,m;const e=document.getElementById("modal-microgame-root");e&&e.remove();const t=["bubbles","breathing","rhythm"],a=r.gameType!=="all"?r.gameType:t[Math.floor(Math.random()*t.length)],i=document.createElement("div");i.id="modal-microgame-root",i.className="apple-modal-overlay",i.style.zIndex="99999";let s="";a==="bubbles"?s=`
+      <div style="text-align:center;">
+        <span class="apple-badge-subpill" style="font-size:0.8rem; background:rgba(56,189,248,0.16); color:var(--f-blue); margin-bottom:10px;">
+          🧠 Pausa Neuro-Ergonómica • ¡${r.streakCount} tarjetas!
+        </span>
+        <h2 style="font-size:1.45rem; font-weight:800; color:#ffffff; margin-bottom:6px; letter-spacing:-0.02em;">
+          🌌 Dopa-Burbujas Zen
+        </h2>
+        <p style="font-size:0.86rem; color:var(--f-text-secondary); margin-bottom:20px; line-height:1.4;">
+          Revienta las 5 esferas para reiniciar tu dopamina y despejar la mente sin estrés.
+        </p>
+
+        <!-- Bubble Play Area -->
+        <div id="bubble-play-area" style="position:relative; height:180px; width:100%; max-width:360px; margin:0 auto 20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:20px; overflow:hidden;">
+          <div class="zen-bubble" data-idx="1" style="top:25px; left:30px; background:radial-gradient(circle, #38bdf8, #0284c7);">✨</div>
+          <div class="zen-bubble" data-idx="2" style="top:85px; left:110px; background:radial-gradient(circle, #a855f7, #7e22ce);">🌸</div>
+          <div class="zen-bubble" data-idx="3" style="top:30px; right:40px; background:radial-gradient(circle, #10b981, #059669);">🌿</div>
+          <div class="zen-bubble" data-idx="4" style="bottom:25px; left:50px; background:radial-gradient(circle, #f59e0b, #d97706);">⚡</div>
+          <div class="zen-bubble" data-idx="5" style="bottom:30px; right:60px; background:radial-gradient(circle, #ec4899, #be185d);">💎</div>
+        </div>
+
+        <div id="microgame-status-msg" style="font-size:0.92rem; font-weight:700; color:var(--f-text-secondary); margin-bottom:16px;">
+          Toca las burbujas flotantes (0/5)
+        </div>
+      </div>
+    `:a==="breathing"?s=`
+      <div style="text-align:center;">
+        <span class="apple-badge-subpill" style="font-size:0.8rem; background:rgba(16,185,129,0.16); color:#10b981; margin-bottom:10px;">
+          🧠 Desconexión Parasimpática • ¡${r.streakCount} tarjetas!
+        </span>
+        <h2 style="font-size:1.45rem; font-weight:800; color:#ffffff; margin-bottom:6px; letter-spacing:-0.02em;">
+          🌸 Respiración de Enfoque
+        </h2>
+        <p style="font-size:0.86rem; color:var(--f-text-secondary); margin-bottom:20px; line-height:1.4;">
+          Sigue el ritmo del orbe para liberar carga alostática y oxigenar tu memoria.
+        </p>
+
+        <!-- Breathing Orb Area -->
+        <div style="height:190px; display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+          <div class="breathing-orb-container">
+            <div class="breathing-orb" id="zen-breath-orb"></div>
+          </div>
+        </div>
+
+        <div id="breathing-guide-text" style="font-size:1.05rem; font-weight:800; color:var(--f-blue); margin-bottom:16px; transition:all 0.4s ease;">
+          Inhala profundamente...
+        </div>
+      </div>
+    `:s=`
+      <div style="text-align:center;">
+        <span class="apple-badge-subpill" style="font-size:0.8rem; background:rgba(168,85,247,0.16); color:#c084fc; margin-bottom:10px;">
+          🧠 Reflejo Armónico • ¡${r.streakCount} tarjetas!
+        </span>
+        <h2 style="font-size:1.45rem; font-weight:800; color:#ffffff; margin-bottom:6px; letter-spacing:-0.02em;">
+          ⚡ Toque Armónico Zen
+        </h2>
+        <p style="font-size:0.86rem; color:var(--f-text-secondary); margin-bottom:20px; line-height:1.4;">
+          Toca en cualquier momento para sincronizar tus ondas cerebrales.
+        </p>
+
+        <div id="rhythm-tap-target" style="height:170px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; cursor:pointer;">
+          <div class="harmonic-ripple-core">
+            <span style="font-size:1.8rem;">✨</span>
+          </div>
+        </div>
+
+        <div id="rhythm-status-msg" style="font-size:0.92rem; font-weight:700; color:var(--f-text-secondary); margin-bottom:16px;">
+          Toca el núcleo central
+        </div>
+      </div>
+    `,i.innerHTML=`
+    <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:28px 24px; animation: modalPopIn 0.22s ease-out; position:relative;">
+      <button id="btn-skip-microgame-x" style="position:absolute; top:16px; right:16px; background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer; padding:4px;">✕</button>
+
+      ${s}
+
+      <div style="display:flex; justify-content:center; gap:10px; margin-top:8px;">
+        <button class="dialog-btn dialog-btn-primary" id="btn-continue-studying-now" style="width:100%; padding:14px; border-radius:14px; font-size:1rem; font-weight:800; background:var(--f-blue); color:#07080a; justify-content:center;">
+          ⚡ Continuar Estudiando ›
+        </button>
+      </div>
+    </div>
+  `,document.body.appendChild(i);const o=()=>{i.remove(),r.onContinue()};(c=i.querySelector("#btn-skip-microgame-x"))==null||c.addEventListener("click",o),(m=i.querySelector("#btn-continue-studying-now"))==null||m.addEventListener("click",o);const d=h=>{(h.key==="Escape"||h.key===" "||h.key==="Enter")&&(window.removeEventListener("keydown",d),o())};if(window.addEventListener("keydown",d),a==="bubbles"){let h=0;const f=i.querySelector("#microgame-status-msg");i.querySelectorAll(".zen-bubble").forEach(b=>{b.addEventListener("click",()=>{b.classList.contains("popped")||(b.classList.add("popped"),Ze.triggerHaptics("light"),h+=1,f.textContent=`¡Pop! (${h}/5)`,h===5&&(Ze.triggerHaptics("heavy"),La({particleCount:35,spread:60,origin:{y:.6}}),f.innerHTML='<span style="color:#10b981; font-weight:800;">✨ ¡Mente Despejada y Restaurada! (+15 XP)</span>',setTimeout(()=>{o()},1200)))})})}else if(a==="breathing"){const h=i.querySelector("#breathing-guide-text");let f="inhale";const b=setInterval(()=>{if(!document.getElementById("modal-microgame-root")){clearInterval(b);return}f==="inhale"?(f="exhale",h&&(h.textContent="Exhala suavemente... calma.",h.style.color="#10b981")):(f="inhale",h&&(h.textContent="Inhala profundamente...",h.style.color="var(--f-blue)"))},4e3)}else if(a==="rhythm"){const h=i.querySelector("#rhythm-tap-target"),f=i.querySelector("#rhythm-status-msg");h==null||h.addEventListener("click",()=>{Ze.triggerHaptics("medium"),La({particleCount:25,spread:50,origin:{y:.6}}),f&&(f.innerHTML='<span style="color:#a855f7; font-weight:800;">✨ ¡Armonía y Enfoque Sincronizados!</span>'),setTimeout(()=>o(),900)})}}class Fo{constructor(e){ce(this,"deck");ce(this,"queue",[]);ce(this,"currentCardIndex",0);ce(this,"isFlipped",!1);ce(this,"isSingleCardMode",!1);ce(this,"isTypeAnswerMode",!1);ce(this,"typedAnswer","");ce(this,"onExitCallback");ce(this,"onEditCardCallback");ce(this,"historyStack",[]);ce(this,"sessionStats",{startTime:Date.now(),againCount:0,hardCount:0,goodCount:0,easyCount:0,totalReviewed:0});const t=j.getDeckById(e.deckId);if(!t)throw new Error(`Deck not found: ${e.deckId}`);if(this.deck=t,this.onExitCallback=e.onExit,this.onEditCardCallback=e.onEditCard,e.specificCardId){const a=j.getCardById(e.specificCardId);a&&(this.queue=[a],this.isSingleCardMode=!0)}else if(e.forceAllCards){const a=j.getCardsByDeck(e.deckId,!0);this.queue=t.settings.mixCards?[...a].sort(()=>Math.random()-.5):[...a]}else{const a=j.getDueCardsByDeck(e.deckId,!0);this.queue=t.settings.mixCards?[...a].sort(()=>Math.random()-.5):[...a]}}render(e){if(this.queue.length===0){this.renderEmptyState(e);return}if(this.currentCardIndex>=this.queue.length){this.renderCompletionScreen(e);return}const t=this.queue[this.currentCardIndex],a=this.queue.length,i=this.currentCardIndex+1,s=a>0?Math.round(i/a*100):0,o=Kt.projectIntervals(t,this.deck.settings);if(this.deck.settings.autoPlayAudio&&!this.isFlipped){const d=t.audioText||t.front;d&&Zt.speak(d,t.audioLang||this.deck.settings.ttsVoiceLang)}e.innerHTML=`
+      <div class="cupertino-study-container">
+        
+        <!-- Header matching Reference Image 3 & 5 -->
+        <div class="cupertino-study-header">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+              <button class="ios-back-btn" id="btn-study-exit" style="padding:0; font-size:1.1rem; color:#fff; flex-shrink:0;">
+                <span class="ios-back-chevron">‹</span> Salir
+              </button>
+              <h2 style="font-size:1.45rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${this.deck.name}
+              </h2>
+            </div>
+
+            <button class="cupertino-icon-square" id="btn-study-audio" title="Pronunciación TTS">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+
+          <!-- Progress track matching Image 3 (Pill 1/10 + Green Dot Track) -->
+          <div class="cupertino-progress-row">
+            <div class="cupertino-progress-pill">${i}/${a}</div>
+            <div class="cupertino-track-bar">
+              <div class="cupertino-track-fill" style="width: ${s}%;"></div>
+              <div class="cupertino-track-thumb" style="left: ${s}%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Card Canvas (Responsive, Auto-Height, No Cut-Off Images) -->
+        <div class="cupertino-flashcard-box" id="f-study-scene">
+          
+          <!-- Top 3-dots icon for Card Actions / Editing -->
+          <div class="cupertino-card-top-action">
+            <button class="cupertino-btn-card-menu" id="btn-card-more-action" title="Editar o gestionar tarjeta">⋮</button>
+          </div>
+
+          <!-- Card Content (Front or Back) -->
+          <div class="cupertino-card-body-content">
+            ${this.isFlipped?this.renderBackContent(t):this.renderFrontContent(t)}
+          </div>
+
+          ${!this.isFlipped&&!this.isTypeAnswerMode?`
+            <div class="cupertino-card-hint-text">
+              Toca la tarjeta o presiona Espacio para voltear
+            </div>
+          `:""}
+        </div>
+
+        <!-- Bottom Controls matching Image 3 & Image 5 -->
+        <div class="cupertino-bottom-controls">
+          ${this.isFlipped?`
+            <!-- Rating Bar Back (Image 5): 4 Frosted Cupertino Buttons -->
+            <div class="cupertino-rating-row">
+              <button class="cupertino-rate-pill rate-again" data-rating="again" title="Presiona [1]">
+                <span class="c-rate-title">De nuevo</span>
+                <span class="c-rate-subtitle">${o[0].displayTime}</span>
+              </button>
+
+              <button class="cupertino-rate-pill rate-hard" data-rating="hard" title="Presiona [2]">
+                <span class="c-rate-title">Difícil</span>
+                <span class="c-rate-subtitle">${o[1].displayTime}</span>
+              </button>
+
+              <button class="cupertino-rate-pill rate-good" data-rating="good" title="Presiona [3]">
+                <span class="c-rate-title">Bien</span>
+                <span class="c-rate-subtitle">${o[2].displayTime}</span>
+              </button>
+
+              <button class="cupertino-rate-pill rate-easy" data-rating="easy" title="Presiona [4]">
+                <span class="c-rate-title">Fácil</span>
+                <span class="c-rate-subtitle">${o[3].displayTime}</span>
+              </button>
+            </div>
+          `:`
+            <!-- Control Bar Front: [⌨ Escribir respuesta] [Mostrar respuesta] [↶ Deshacer] -->
+            <div class="cupertino-front-controls-row">
+              <button class="cupertino-icon-square ${this.isTypeAnswerMode?"active-keyboard-mode":""}" id="btn-toggle-type-mode" title="Escribir la respuesta (Modo teclado)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="18" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
+              </button>
+
+              <button class="cupertino-btn-show-answer" id="btn-f-show-answer">
+                ${this.isTypeAnswerMode?"Comprobar respuesta":"Mostrar respuesta"}
+              </button>
+
+              <button class="cupertino-icon-square" id="btn-undo-card" title="Deshacer última tarjeta">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+              </button>
+            </div>
+          `}
+        </div>
+
+      </div>
+    `,this.bindEvents(e)}renderFrontContent(e){let t="";if(e.type==="image_occlusion"&&e.occlusionImage){const i=e.occlusionMode||"hide_all_reveal_one";t=`
+        <div class="cupertino-occlusion-wrap">
+          <div class="cupertino-occlusion-img-box">
+            <img src="${e.occlusionImage}" alt="Oclusión" draggable="false" class="cupertino-responsive-img" />
+            ${(e.occlusionMasks||[]).map(s=>s.id===e.activeMaskId?`<div class="figma-drawn-mask active-question-mask" style="left:${s.x}%; top:${s.y}%; width:${s.width}%; height:${s.height}%; background:#ef4444; border:2px solid #ffffff; font-size:1.1rem; font-weight:900; color:#fff;">?</div>`:i==="hide_all_reveal_one"?`<div class="figma-drawn-mask other-hidden-mask" style="left:${s.x}%; top:${s.y}%; width:${s.width}%; height:${s.height}%; background:#1c1d22; border:1px solid #3f3f46;"></div>`:"").join("")}
+          </div>
+        </div>
+      `}else e.frontImage&&(t=`<img src="${e.frontImage}" class="cupertino-responsive-img" alt="Front Attachment" />`);const a=this.isTypeAnswerMode?`
+      <div class="cupertino-type-answer-box" style="margin-top:16px; width:100%; max-width:440px;">
+        <input 
+          type="text" 
+          id="study-typed-answer-input" 
+          class="cupertino-typed-input" 
+          placeholder="Escribe la respuesta aquí..." 
+          value="${this.typedAnswer}" 
+          autocomplete="off" 
+          autocorrect="off" 
+          spellcheck="false" 
+        />
+      </div>
+    `:"";return`
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; width:100%;">
+        ${t}
+        <div class="cupertino-card-main-title">
+          ${Yt.parseAndRender(e.front)}
+        </div>
+        ${a}
+      </div>
+    `}renderBackContent(e){let t="";e.type==="image_occlusion"&&e.occlusionImage?t=`
+        <div class="cupertino-occlusion-wrap">
+          <div class="cupertino-occlusion-img-box">
+            <img src="${e.occlusionImage}" alt="Oclusión Revelada" draggable="false" class="cupertino-responsive-img" />
+            ${(e.occlusionMasks||[]).map(i=>i.id===e.activeMaskId?"":`<div class="figma-drawn-mask other-hidden-mask" style="left:${i.x}%; top:${i.y}%; width:${i.width}%; height:${i.height}%; background:#1c1d22; border:1px solid #3f3f46;"></div>`).join("")}
+          </div>
+        </div>
+      `:e.backImage&&(t=`<img src="${e.backImage}" class="cupertino-responsive-img" style="margin-bottom:14px;" alt="Back Attachment" />`);let a="";if(this.isTypeAnswerMode&&this.typedAnswer.trim()){const i=e.back.replace(/<[^>]*>?/gm,"").replace(/[*_#`$]/g,"").trim().toLowerCase(),o=this.typedAnswer.trim().toLowerCase()===i;a=`
+        <div class="cupertino-typed-comparison-card apple-glass-panel" style="margin-bottom:14px; width:100%; max-width:440px; padding:12px 16px; border-radius:14px; text-align:left;">
+          <div style="font-size:0.78rem; font-weight:800; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">
+            Tu respuesta escrita:
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <span style="font-size:1.05rem; font-weight:700; color:${o?"#10b981":"#f87171"};">
+              ${this.typedAnswer}
+            </span>
+            <span class="apple-badge-subpill" style="font-size:0.75rem; background:${o?"rgba(16,185,129,0.18)":"rgba(239,68,68,0.18)"}; color:${o?"#10b981":"#f87171"}; border:1px solid ${o?"#10b981":"#ef4444"};">
+              ${o?"✓ Exacto":"Discrepancia"}
+            </span>
+          </div>
+        </div>
+      `}return`
+      <div style="display:flex; flex-direction:column; align-items:center; text-align:center; width:100%;">
+        ${t}
+        <div class="cupertino-card-main-title" style="color:var(--f-text-secondary); font-size:1.15rem;">
+          ${Yt.parseAndRender(e.front)}
+        </div>
+        
+        <div class="cupertino-card-divider"></div>
+
+        ${a}
+
+        <div class="cupertino-card-answer-text">
+          ${Yt.parseAndRender(e.back)}
+        </div>
+      </div>
+    `}openCardMenu(e,t){var s,o,d,c;const a=document.createElement("div");a.className="apple-modal-overlay",a.innerHTML=`
+      <div class="apple-modal-content apple-glass-panel" style="max-width:380px; width:90%; padding:20px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <h3 style="font-size:1.15rem; font-weight:800; color:#fff;">Opciones de la Tarjeta</h3>
+          <button id="btn-close-card-menu" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="menu-action-item-btn" id="btn-menu-edit-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:left;">
+            <span style="font-size:1.2rem;">✏️</span>
+            <div>
+              <div>Editar esta tarjeta</div>
+              <div style="font-size:0.75rem; color:var(--f-text-secondary); font-weight:500;">Modificar anverso, reverso o multimedia</div>
+            </div>
+          </button>
+
+          <button class="menu-action-item-btn" id="btn-menu-reset-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:left;">
+            <span style="font-size:1.2rem;">🔄</span>
+            <div>
+              <div>Reiniciar progreso</div>
+              <div style="font-size:0.75rem; color:var(--f-text-secondary); font-weight:500;">Restablecer a tarjeta nueva</div>
+            </div>
+          </button>
+
+          <button class="menu-action-item-btn" id="btn-menu-delete-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); color:#f87171; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:left;">
+            <span style="font-size:1.2rem;">🗑️</span>
+            <div>
+              <div>Eliminar tarjeta</div>
+              <div style="font-size:0.75rem; color:#fca5a5; font-weight:500;">Borrar definitivamente del mazo</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    `,document.body.appendChild(a);const i=()=>a.remove();(s=a.querySelector("#btn-close-card-menu"))==null||s.addEventListener("click",i),a.addEventListener("click",m=>{m.target===a&&i()}),(o=a.querySelector("#btn-menu-edit-card"))==null||o.addEventListener("click",()=>{i(),window.onkeydown=null,this.onEditCardCallback&&this.onEditCardCallback(e.id)}),(d=a.querySelector("#btn-menu-reset-card"))==null||d.addEventListener("click",()=>{j.resetCardProgress(e.id),i(),this.render(t)}),(c=a.querySelector("#btn-menu-delete-card"))==null||c.addEventListener("click",()=>{he.showConfirm({title:"Eliminar Tarjeta",message:"¿Estás seguro de eliminar esta tarjeta definitivamente?",confirmText:"Eliminar",isDanger:!0,onConfirm:()=>{j.deleteCard(e.id),i(),this.queue.splice(this.currentCardIndex,1),this.isFlipped=!1,this.render(t)}})})}bindEvents(e){var i,s,o,d,c,m,h;const t=this.queue[this.currentCardIndex];if((i=document.getElementById("btn-study-exit"))==null||i.addEventListener("click",()=>{window.onkeydown=null,Zt.stop(),this.onExitCallback()}),(s=document.getElementById("btn-card-more-action"))==null||s.addEventListener("click",f=>{f.stopPropagation(),this.openCardMenu(t,e)}),this.isTypeAnswerMode&&!this.isFlipped){const f=document.getElementById("study-typed-answer-input");f&&(f.focus(),f.addEventListener("input",b=>{this.typedAnswer=b.target.value}),f.addEventListener("keydown",b=>{b.key==="Enter"&&(b.preventDefault(),a())}))}const a=()=>{if(!this.isFlipped){const f=document.getElementById("study-typed-answer-input");f&&(this.typedAnswer=f.value),this.historyStack.push({cardIndex:this.currentCardIndex,isFlipped:!1}),this.isFlipped=!0,this.render(e)}};(o=document.getElementById("btn-toggle-type-mode"))==null||o.addEventListener("click",()=>{this.isTypeAnswerMode=!this.isTypeAnswerMode,this.typedAnswer="",this.render(e)}),(d=document.getElementById("btn-f-show-answer"))==null||d.addEventListener("click",a),(c=document.getElementById("f-study-scene"))==null||c.addEventListener("click",f=>{const b=f.target;b.id==="btn-card-more-action"||b.tagName==="INPUT"||b.tagName==="BUTTON"||this.isTypeAnswerMode||a()}),(m=document.getElementById("btn-undo-card"))==null||m.addEventListener("click",()=>{this.currentCardIndex>0&&(this.currentCardIndex--,this.isFlipped=!1,this.typedAnswer="",this.render(e))}),(h=document.getElementById("btn-study-audio"))==null||h.addEventListener("click",f=>{f.stopPropagation();const b=this.isFlipped?t.back:t.front;Zt.speak(b,t.audioLang||this.deck.settings.ttsVoiceLang)}),e.querySelectorAll(".cupertino-rate-pill").forEach(f=>{f.addEventListener("click",b=>{b.stopPropagation();const x=f.dataset.rating;x&&this.handleRating(x,e)})}),window.onkeydown=f=>{const b=document.activeElement,x=b&&(b.tagName==="INPUT"||b.tagName==="TEXTAREA");if(!this.isFlipped)(f.code==="Space"||f.code==="Enter")&&(f.preventDefault(),a());else{if(x)return;f.key==="1"||f.code==="Numpad1"?(f.preventDefault(),this.handleRating("again",e)):f.key==="2"||f.code==="Numpad2"?(f.preventDefault(),this.handleRating("hard",e)):f.key==="3"||f.code==="Numpad3"?(f.preventDefault(),this.handleRating("good",e)):f.key==="4"||f.code==="Numpad4"?(f.preventDefault(),this.handleRating("easy",e)):f.code==="Space"||f.code==="Enter"?(f.preventDefault(),this.handleRating("good",e)):(f.key==="z"||f.key==="Z")&&this.currentCardIndex>0&&(this.currentCardIndex--,this.isFlipped=!1,this.typedAnswer="",this.render(e))}}}handleRating(e,t){const a=this.queue[this.currentCardIndex];j.reviewCard(a.id,e),this.sessionStats.totalReviewed++,e==="again"?(this.sessionStats.againCount++,this.isSingleCardMode||this.queue.push(a)):e==="hard"?this.sessionStats.hardCount++:e==="good"?this.sessionStats.goodCount++:e==="easy"&&this.sessionStats.easyCount++,this.currentCardIndex++,this.isFlipped=!1,this.typedAnswer="";const i=this.deck.settings.microGameInterval!==void 0?this.deck.settings.microGameInterval:5,s=this.deck.settings.enableMicroGames!==!1,o=this.currentCardIndex<this.queue.length;if(s&&i>0&&this.sessionStats.totalReviewed>0&&this.sessionStats.totalReviewed%i===0&&o){Po({streakCount:this.sessionStats.totalReviewed,gameType:this.deck.settings.preferredMicroGame||"all",onContinue:()=>{this.render(t)}});return}this.render(t)}renderCompletionScreen(e){var i;window.onkeydown=null;try{La({particleCount:90,spread:75,origin:{y:.6}})}catch{}const t=this.sessionStats.goodCount+this.sessionStats.easyCount,a=this.sessionStats.totalReviewed>0?Math.round(t/this.sessionStats.totalReviewed*100):100;e.innerHTML=`
+      <div class="cupertino-study-container" style="align-items:center; text-align:center; padding:40px 10px;">
+        <div style="font-size:3.5rem; margin-bottom:12px;">🎉</div>
+        <h2 style="font-size:2rem; font-weight:800; color:#ffffff; margin-bottom:8px;">¡Sesión Completada!</h2>
+        <p style="color:var(--f-text-secondary); margin-bottom:24px; font-size:1rem;">
+          Repasaste ${this.sessionStats.totalReviewed} tarjetas con ${a}% de retención.
+        </p>
+
+        <div class="apple-card-grouped" style="width:100%; max-width:480px; text-align:left; margin-bottom:24px;">
+          <div class="apple-list-row" style="padding:14px 20px;">
+            <span style="color:#f87171; font-weight:700;">🔴 De nuevo</span>
+            <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.againCount}</strong>
+          </div>
+          <div class="apple-list-row" style="padding:14px 20px;">
+            <span style="color:#fbbf24; font-weight:700;">🟠 Difícil</span>
+            <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.hardCount}</strong>
+          </div>
+          <div class="apple-list-row" style="padding:14px 20px;">
+            <span style="color:#10b981; font-weight:700;">🔵 Bien</span>
+            <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.goodCount}</strong>
+          </div>
+          <div class="apple-list-row" style="padding:14px 20px;">
+            <span style="color:#38bdf8; font-weight:700;">🟢 Fácil</span>
+            <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.easyCount}</strong>
+          </div>
+        </div>
+
+        <button class="figma-btn-blue-pill" id="btn-study-finish-all" style="padding:16px 36px; font-size:1.05rem;">
+          Volver a Mis Mazos
+        </button>
+      </div>
+    `,(i=document.getElementById("btn-study-finish-all"))==null||i.addEventListener("click",()=>{this.onExitCallback()})}renderEmptyState(e){var t,a;e.innerHTML=`
+      <div class="cupertino-study-container" style="align-items:center; text-align:center; padding:60px 10px;">
+        <div style="font-size:4rem; margin-bottom:12px;">🏆</div>
+        <h2 style="font-size:2rem; font-weight:800; color:#ffffff; margin-bottom:8px;">¡Todo al día!</h2>
+        <p style="color:var(--f-text-secondary); margin-bottom:28px; font-size:1.05rem; max-width:460px; line-height:1.5;">
+          Has repasado todas las tarjetas programadas para este momento. Tus próximas revisiones se habilitarán automáticamente al cumplirse sus intervalos espaciados.
+        </p>
+
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;">
+          <button class="figma-btn-blue-pill" id="btn-study-finish-all" style="padding:16px 32px; font-size:1.05rem;">
+            Volver a Mis Mazos
+          </button>
+          <button class="apple-btn-secondary" id="btn-study-force-all" style="padding:16px 26px; border-radius:9999px; font-weight:700;">
+            🎯 Repasar mazo completo
+          </button>
+        </div>
+      </div>
+    `,(t=document.getElementById("btn-study-finish-all"))==null||t.addEventListener("click",()=>{this.onExitCallback()}),(a=document.getElementById("btn-study-force-all"))==null||a.addEventListener("click",()=>{const i=j.getCardsByDeck(this.deck.id,!0);this.queue=this.deck.settings.mixCards?[...i].sort(()=>Math.random()-.5):[...i],this.currentCardIndex=0,this.isFlipped=!1,this.render(e)})}}class No{constructor(){ce(this,"currentTab","inicio");ce(this,"currentView","root");ce(this,"selectedRootDeckId","deck-mates");ce(this,"selectedSubdeckId","deck-mates-sub");ce(this,"editingCardId",null);ce(this,"appElement");ce(this,"activeStudySession",null);ce(this,"toastTimeout",null);const e=document.getElementById("app");if(!e)throw new Error("Root container #app not found");this.appElement=e}async init(){Lt.applyTheme(),await Ze.initialize(),j.subscribe(()=>{this.currentView!=="study"&&this.render()}),this.render()}showToast(e){const t=document.getElementById("eureka-toast");t&&t.remove();const a=document.createElement("div");a.id="eureka-toast",a.className="toast-notice",a.innerHTML=`<span>${e}</span>`,document.body.appendChild(a),requestAnimationFrame(()=>a.classList.add("show")),this.toastTimeout&&window.clearTimeout(this.toastTimeout),this.toastTimeout=window.setTimeout(()=>{a.classList.remove("show"),setTimeout(()=>a.remove(),250)},2400)}startStudy(e,t){Ze.triggerHaptics("medium"),this.currentView="study",this.activeStudySession=new Fo({deckId:e,specificCardId:t,onExit:()=>{this.activeStudySession=null,this.currentView="dashboard",this.render()},onEditCard:i=>{this.activeStudySession=null,this.editingCardId=i,this.currentView="editor",this.render()}}),this.appElement.innerHTML=`
+      <div class="figma-app-layout" id="study-mount"></div>
+    `;const a=document.getElementById("study-mount");a&&this.activeStudySession.render(a)}openBatchImport(e){Ze.triggerHaptics("light"),_0({deckId:e,onImported:t=>{this.showToast(`¡${t} tarjetas importadas con éxito!`),this.render()},onClose:()=>{}})}promptCreateDeck(e){const t=e?j.getDeckById(e):void 0;he.showPrompt({title:t?`Nuevo Submazo en "${t.name}"`:"Crear Nuevo Mazo",placeholder:"Nombre del mazo...",confirmText:"Crear Mazo",onConfirm:a=>{a&&a.trim()&&(j.createDeck({name:a.trim(),parentId:e||null}),this.showToast(`Mazo "${a}" creado con éxito`),this.render())}})}render(){if(this.currentView==="study")return;const e=j.getDeckById(this.selectedRootDeckId)||j.getRootDecks()[0],t=j.getDeckById(this.selectedSubdeckId)||e,a=this.editingCardId?j.getCardById(this.editingCardId):void 0;let i="",s=!0;if(this.currentTab==="biblioteca")i=Ao();else if(this.currentTab==="ajustes")i=K0();else switch(this.currentView){case"root":i=u0();break;case"subdeck":i=ys(e);break;case"dashboard":i=wo(t,e.id!==t.id?e:void 0);break;case"deck_settings":s=!1,i=Eo(t);break;case"advanced_menu":s=!1,i=Io(t);break;case"algorithm_selector":s=!1,i=Bo(t);break;case"learning_phase":s=!1,i=qo(t);break;case"app_settings":i=K0();break;case"editor":s=!1,i=Mo(t,e.id!==t.id?e:void 0,a);break;default:i=u0();break}this.appElement.innerHTML=`
+      <div class="figma-app-layout" id="main-layout-mount">
+        ${s?hs(this.currentTab):""}
+        <main>
+          ${i}
+        </main>
+      </div>
+    `,this.bindEvents()}bindEvents(){var i,s,o,d,c;const e=document.getElementById("main-layout-mount");if(!e)return;e.querySelectorAll(".figma-nav-tab-btn, .mobile-nav-item").forEach(m=>{m.addEventListener("click",()=>{const h=m.dataset.tab;h&&h!==this.currentTab&&(Ze.triggerHaptics("light"),this.currentTab=h,h==="inicio"&&(this.currentView="root"),this.render())})}),(i=e.querySelector("#nav-brand-logo"))==null||i.addEventListener("click",()=>{this.currentTab="inicio",this.currentView="root",this.render()}),(s=e.querySelector("#btn-header-avatar"))==null||s.addEventListener("click",()=>{this.currentTab="ajustes",this.render()}),(o=e.querySelector("#btn-header-theme-mobile"))==null||o.addEventListener("click",()=>{this.currentTab="ajustes",this.render()}),(d=e.querySelector("#btn-fab-gift"))==null||d.addEventListener("click",()=>{this.showToast("🎁 ¡Racha de hoy completada! +50 XP")}),(c=e.querySelector("#btn-fab-help"))==null||c.addEventListener("click",()=>{this.showToast("Atajos: Espacio = Voltear | 1, 2, 3, 4 = Calificar")});const t=j.getDeckById(this.selectedRootDeckId)||j.getRootDecks()[0],a=j.getDeckById(this.selectedSubdeckId)||t;if(this.currentTab==="ajustes"||this.currentView==="app_settings"){Ro(e,{onBack:()=>{this.currentTab="inicio",this.currentView="root",this.render()},onThemeChanged:()=>{this.showToast("Estilo visual aplicado"),this.render()}});return}if(this.currentTab==="inicio"&&this.currentView==="root")fs(e,{onSelectDeck:m=>{Ze.triggerHaptics("light"),this.selectedRootDeckId=m;const h=j.getSubdecks(m);h.length>0?(this.selectedSubdeckId=h[0].id,this.currentView="subdeck"):(this.selectedSubdeckId=m,this.currentView="dashboard"),this.render()},onAddCard:()=>{Ze.triggerHaptics("light"),this.editingCardId=null,this.currentView="editor",this.render()},onCreateDeck:()=>this.promptCreateDeck(),onImportBatch:()=>this.openBatchImport(this.selectedSubdeckId),onManageDecks:()=>{this.currentView="deck_settings",this.render()}});else if(this.currentTab==="inicio"&&this.currentView==="subdeck")xs(e,t,{onBack:()=>{this.currentView="root",this.render()},onSelectSubdeck:m=>{Ze.triggerHaptics("light"),this.selectedSubdeckId=m,this.currentView="dashboard",this.render()},onAddCard:()=>{this.editingCardId=null,this.currentView="editor",this.render()},onImportBatch:m=>this.openBatchImport(m),onConfigureDeck:()=>{this.currentView="deck_settings",this.render()}});else if(this.currentTab==="inicio"&&this.currentView==="dashboard")ko(e,a,{onBackToSubdecks:()=>{this.currentView="subdeck",this.render()},onBackToRoot:()=>{this.currentView="root",this.render()},onStudy:m=>this.startStudy(m),onStudySpecificCard:(m,h)=>{this.startStudy(m,h)},onAddCard:()=>{this.editingCardId=null,this.currentView="editor",this.render()},onConfigureDeck:()=>{this.currentView="deck_settings",this.render()},onEditCard:m=>{this.editingCardId=m,this.currentView="editor",this.render()}});else if(this.currentTab==="inicio"&&this.currentView==="deck_settings")To(e,a,{onBack:()=>{this.currentView="dashboard",this.render()},onOpenAlgorithmSelector:()=>{this.currentView="algorithm_selector",this.render()},onOpenAdvancedMenu:()=>{this.currentView="advanced_menu",this.render()},onSaved:()=>{this.showToast("Ajustes guardados"),this.render()}});else if(this.currentTab==="inicio"&&this.currentView==="advanced_menu")Do(e,a,{onBack:()=>{this.currentView="deck_settings",this.render()},onOpenAlgorithmSelector:()=>{this.currentView="algorithm_selector",this.render()},onOpenAiBuilder:()=>{$a({deckId:a.id,onBatchAdded:()=>{this.showToast("Tarjetas añadidas"),this.currentView="dashboard",this.render()},onClose:()=>{}})},onOpenBatchImport:()=>{this.openBatchImport(a.id)},onActionCompleted:()=>{this.showToast("Acción completada"),this.currentView="dashboard",this.render()}});else if(this.currentTab==="inicio"&&this.currentView==="algorithm_selector")Lo(e,a,{onBack:()=>{this.currentView="deck_settings",this.render()},onOpenCustomLearningPhases:()=>{this.currentView="learning_phase",this.render()},onSaved:()=>{this.showToast("Algoritmo actualizado"),this.currentView="deck_settings",this.render()}});else if(this.currentTab==="inicio"&&this.currentView==="learning_phase")$o(e,a,{onBack:()=>{this.currentView="algorithm_selector",this.render()},onSaved:()=>{this.showToast("Escalera de 12 pasos guardada"),this.currentView="deck_settings",this.render()}});else if(this.currentTab==="inicio"&&this.currentView==="editor"){const m=this.editingCardId?j.getCardById(this.editingCardId):void 0;zo(e,a,m,{onBack:()=>{this.editingCardId=null,this.currentView="dashboard",this.render()},onSaved:()=>{this.showToast("¡Tarjeta guardada con éxito!"),this.editingCardId=null,this.currentView="dashboard",this.render()}})}else this.currentTab==="biblioteca"&&Co(e,{onAddCard:()=>{this.editingCardId=null,this.currentTab="inicio",this.currentView="editor",this.render()},onEditCard:m=>{this.editingCardId=m,this.currentTab="inicio",this.currentView="editor",this.render()},onStudySpecificCard:(m,h)=>{this.startStudy(m,h)}})}}window.addEventListener("DOMContentLoaded",()=>{new No().init()});export{Wt as I,ia as N,Q0 as W};
+//# sourceMappingURL=index-EmIGiOSu.js.map

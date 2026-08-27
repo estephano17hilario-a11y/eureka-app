@@ -122,6 +122,30 @@ export function renderFigmaDeckSettingsView(deck: Deck): string {
           </div>
         </div>
 
+        <!-- Group 3: Minijuegos de Descanso -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row">
+            <div>
+              <span class="apple-list-label" style="display:block;">🎮 Minijuegos de descanso</span>
+              <span style="font-size:0.75rem; color:var(--f-text-muted); display:block;">Sin carga alostática ni fatiga cognitiva</span>
+            </div>
+            <label class="apple-switch">
+              <input type="checkbox" id="toggle-view-microgames" ${deck.settings.enableMicroGames !== false ? 'checked' : ''} />
+              <span class="apple-slider"></span>
+            </label>
+          </div>
+
+          <div class="apple-list-row" id="row-view-microgame-freq">
+            <span class="apple-list-label">Frecuencia de juego</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="apple-list-value" id="val-view-microgame-freq">
+                ${(deck.settings.microGameInterval || 5) === 0 ? 'Desactivado' : `Cada ${deck.settings.microGameInterval || 5} tarjetas`}
+              </span>
+              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -142,6 +166,35 @@ export function bindFigmaDeckSettingsViewEvents(
   mixToggle?.addEventListener('change', () => {
     deckService.updateDeck(deck.id, {
       settings: { ...deck.settings, mixCards: mixToggle.checked }
+    });
+  });
+
+  // Toggle microgames
+  const microToggle = container.querySelector('#toggle-view-microgames') as HTMLInputElement | null;
+  microToggle?.addEventListener('change', () => {
+    deckService.updateDeck(deck.id, {
+      settings: { ...deck.settings, enableMicroGames: microToggle.checked }
+    });
+  });
+
+  // Microgame freq
+  container.querySelector('#row-view-microgame-freq')?.addEventListener('click', () => {
+    dialogService.showPrompt({
+      title: 'Frecuencia de Minijuegos',
+      message: '¿Cada cuántas tarjetas deseas una pausa de minijuego? (ej: 5, 10, 15, 20 o 0 para desactivar)',
+      defaultValue: String(deck.settings.microGameInterval !== undefined ? deck.settings.microGameInterval : 5),
+      inputType: 'number',
+      confirmText: 'Guardar',
+      onConfirm: (val) => {
+        if (val !== null && !isNaN(Number(val))) {
+          const num = Math.max(0, parseInt(val, 10));
+          deckService.updateDeck(deck.id, {
+            settings: { ...deck.settings, microGameInterval: num, enableMicroGames: num > 0 }
+          });
+          const el = container.querySelector('#val-view-microgame-freq');
+          if (el) el.textContent = num === 0 ? 'Desactivado' : `Cada ${num} tarjetas`;
+        }
+      }
     });
   });
 

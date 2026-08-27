@@ -5,6 +5,7 @@ import { srsService } from '../services/srs.service';
 import { katexService } from '../services/katex.service';
 import { ttsService } from '../services/tts.service';
 import { dialogService } from '../services/dialog.service';
+import { openMicroGameModal } from './MicroGameModal';
 
 export interface FigmaStudyOptions {
   deckId: string;
@@ -543,6 +544,23 @@ export class FigmaStudySession {
     this.currentCardIndex++;
     this.isFlipped = false;
     this.typedAnswer = '';
+
+    // Check if Neuro-Ergonomic Micro-Game break is enabled and interval reached
+    const interval = this.deck.settings.microGameInterval !== undefined ? this.deck.settings.microGameInterval : 5;
+    const isEnabled = this.deck.settings.enableMicroGames !== false;
+    const hasMoreCards = this.currentCardIndex < this.queue.length;
+
+    if (isEnabled && interval > 0 && this.sessionStats.totalReviewed > 0 && this.sessionStats.totalReviewed % interval === 0 && hasMoreCards) {
+      openMicroGameModal({
+        streakCount: this.sessionStats.totalReviewed,
+        gameType: this.deck.settings.preferredMicroGame || 'all',
+        onContinue: () => {
+          this.render(container);
+        }
+      });
+      return;
+    }
+
     this.render(container);
   }
 

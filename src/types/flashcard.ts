@@ -61,6 +61,9 @@ export interface DeckSettings {
   mixCards: boolean;
   autoPlayAudio: boolean;
   ttsVoiceLang: string;
+  enableMicroGames?: boolean;
+  microGameInterval?: number; // Cada cuántas tarjetas se activa (ej: 5, 10, 15, 20, o 0 para desactivar)
+  preferredMicroGame?: 'all' | 'bubbles' | 'breathing' | 'rhythm';
   cardStyle?: {
     fontSize?: 'sm' | 'md' | 'lg';
     theme?: 'oled' | 'liquid_glass' | 'emerald_forest';
