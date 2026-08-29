@@ -72,16 +72,14 @@ export class DeckService {
           }
         });
       } else {
-        // Si no hay datos para este usuario, inicializar con plantilla limpia
-        const demo = getInitialDemoDecks();
-        this.decks = demo.decks;
-        this.cards = demo.cards;
+        // Nueva cuenta de usuario: inicia 100% limpia sin carpetas creadas
+        this.decks = [];
+        this.cards = [];
         this.saveToStorage();
       }
     } catch {
-      const demo = getInitialDemoDecks();
-      this.decks = demo.decks;
-      this.cards = demo.cards;
+      this.decks = [];
+      this.cards = [];
     }
   }
 

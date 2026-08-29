@@ -36,8 +36,8 @@ type AppView =
 class EurekaFigmaApp {
   private currentTab: FigmaMainTab = 'inicio';
   private currentView: AppView = 'root';
-  private selectedRootDeckId: string = 'deck-mates';
-  private selectedSubdeckId: string = 'deck-mates-sub';
+  private selectedRootDeckId: string = '';
+  private selectedSubdeckId: string = '';
   private editingCardId: string | null = null;
   private appElement: HTMLElement;
   private activeStudySession: FigmaStudySession | null = null;
