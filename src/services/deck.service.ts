@@ -3,16 +3,15 @@ import { getInitialDemoDecks } from './demo-data';
 import { srsService } from './srs.service';
 import { eurekaSupabase } from './supabase.service';
 
-const DECKS_STORAGE_KEY = 'eureka_flashcards_decks_v4';
-const CARDS_STORAGE_KEY = 'eureka_flashcards_cards_v4';
-
 export class DeckService {
   private static instance: DeckService;
+  private currentUserId: string = '';
   private decks: Deck[] = [];
   private cards: Flashcard[] = [];
   private listeners: Array<() => void> = [];
 
   private constructor() {
+    this.currentUserId = eurekaSupabase.getUserId();
     this.loadFromStorage();
     this.syncWithCloud();
   }
@@ -22,6 +21,13 @@ export class DeckService {
       DeckService.instance = new DeckService();
     }
     return DeckService.instance;
+  }
+
+  public async setUser(userId: string): Promise<void> {
+    this.currentUserId = userId;
+    this.loadFromStorage();
+    await this.syncWithCloud();
+    this.notify();
   }
 
   public subscribe(listener: () => void): () => void {
@@ -36,10 +42,18 @@ export class DeckService {
     this.listeners.forEach(fn => fn());
   }
 
+  private getDecksStorageKey(): string {
+    return `eureka_decks_user_${this.currentUserId || 'default'}`;
+  }
+
+  private getCardsStorageKey(): string {
+    return `eureka_cards_user_${this.currentUserId || 'default'}`;
+  }
+
   private loadFromStorage(): void {
     try {
-      const storedDecks = localStorage.getItem(DECKS_STORAGE_KEY);
-      const storedCards = localStorage.getItem(CARDS_STORAGE_KEY);
+      const storedDecks = localStorage.getItem(this.getDecksStorageKey());
+      const storedCards = localStorage.getItem(this.getCardsStorageKey());
 
       if (storedDecks && storedCards) {
         this.decks = JSON.parse(storedDecks);
@@ -58,6 +72,7 @@ export class DeckService {
           }
         });
       } else {
+        // Si no hay datos para este usuario, inicializar con plantilla limpia
         const demo = getInitialDemoDecks();
         this.decks = demo.decks;
         this.cards = demo.cards;
@@ -72,10 +87,10 @@ export class DeckService {
 
   private saveToStorage(): void {
     try {
-      localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(this.decks));
-      localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(this.cards));
+      localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
+      localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
       
-      // Sincronización instantánea a la nube en el VPS (Eureka Database)
+      // Sincronización instantánea a la base de datos de Eureka para este usuario
       eurekaSupabase.syncDecks(this.decks);
       eurekaSupabase.syncCards(this.cards);
     } catch (err) {
@@ -94,12 +109,14 @@ export class DeckService {
         this.decks = remoteDecks;
         if (remoteCards && remoteCards.length > 0) {
           this.cards = remoteCards;
+        } else {
+          this.cards = [];
         }
-        localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(this.decks));
-        localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(this.cards));
+        localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
+        localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
         this.listeners.forEach(fn => fn());
       } else if (this.decks.length > 0) {
-        // Subida inicial a la base de datos de Eureka
+        // Subida inicial a la base de datos de Eureka para este usuario
         await Promise.all([
           eurekaSupabase.syncDecks(this.decks),
           eurekaSupabase.syncCards(this.cards)

@@ -1,9 +1,10 @@
 import type { Deck, Flashcard, OcclusionMask, OcclusionMode } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { ttsService } from '../services/tts.service';
+import { katexService } from '../services/katex.service';
 import { openImageOcclusionModal } from './ImageOcclusionModal';
 import { openFigmaAiBuilderModal } from './FigmaAiBuilderModal';
-import { HEART_ANATOMY_SVG_URI } from '../services/demo-data';
+import { CLEAN_CANVAS_PLACEHOLDER } from '../services/demo-data';
 
 export interface FigmaCardEditorCallbacks {
   onBack: () => void;
@@ -14,7 +15,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
   return `
     <div class="ios-fullscreen-view">
       
-      <!-- Top Action Navigation Header matching Reference Images 2 & 3 -->
+      <!-- Top Action Navigation Header -->
       <div class="ios-navbar" style="padding-bottom:12px; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
         <div style="display:flex; align-items:center; gap:8px; font-size:1.15rem; font-weight:700;">
           <button class="ios-back-btn" id="btn-card-edit-back" style="padding:0; margin-right:4px;" title="Volver">
@@ -36,33 +37,36 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
         </div>
 
         <div style="display:flex; align-items:center; gap:10px; margin-left:auto;">
-          <button class="cupertino-icon-square" id="btn-toggle-editor-split" style="width:44px; height:44px;" title="Vista dividida">
+          <button class="cupertino-icon-square" id="btn-toggle-editor-split" style="width:44px; height:44px;" title="Alternar Vista Previa en Vivo">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
           </button>
 
-          <button class="cupertino-btn-check-save" id="btn-save-card-check" style="width:auto; padding:0 20px; gap:8px; font-weight:800; font-size:0.95rem; color:#07080a;" title="${editCard ? 'Confirmar cambios' : 'Crear'}">
+          <button class="cupertino-btn-check-save" id="btn-save-card-check" style="width:auto; padding:0 22px; gap:8px; font-weight:800; font-size:0.95rem; color:#07080a;" title="${editCard ? 'Confirmar cambios' : 'Crear'}">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#07080a" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
             <span>${editCard ? 'Confirmar cambios' : 'Crear'}</span>
           </button>
         </div>
       </div>
 
-      <!-- Editor Container (Matching Images 2 & 3 Exactly) -->
+      <!-- Editor Container -->
       <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:18px;">
         
         <!-- ANVERSO -->
         <div class="cupertino-editor-block">
-          <label class="cupertino-editor-label">Anverso</label>
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <label class="cupertino-editor-label">Anverso (Pregunta / Concepto)</label>
+            <span style="font-size:0.75rem; color:var(--f-text-muted);">Soporta Markdown & KaTeX</span>
+          </div>
           
           <div class="cupertino-editor-card-box" id="drop-zone-anverso">
             
             <textarea 
               id="f-anverso-input" 
               class="cupertino-editor-textarea" 
-              placeholder="Introduce el texto aquí"
+              placeholder="Introduce la pregunta o concepto aquí... Puedes usar formato o fórmulas como $$E=mc^2$$"
             >${editCard?.front || ''}</textarea>
 
-            <!-- Image Attachment Thumbnail Inside the Card (Matching Image 3) -->
+            <!-- Image Attachment Thumbnail Inside the Card -->
             <div id="f-anverso-img-preview" class="cupertino-thumbnail-box ${editCard?.frontImage || editCard?.occlusionImage ? '' : 'hidden'}">
               <img src="${editCard?.frontImage || editCard?.occlusionImage || ''}" id="f-anverso-img-tag" alt="Anverso preview" class="cupertino-thumb-img" />
               <button type="button" class="cupertino-thumb-del-badge" id="btn-del-anverso-img" title="Eliminar imagen">×</button>
@@ -71,8 +75,14 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
               </div>
             </div>
 
-            <!-- Toolbar Anverso (Matching Image 2 & 3) -->
-            <div class="cupertino-rich-toolbar-dock">
+            <!-- Live Preview KaTeX & Markdown Anverso -->
+            <div id="f-anverso-live-preview" class="cupertino-live-preview-box ${editCard?.front ? '' : 'hidden'}">
+              <div style="font-size:0.72rem; font-weight:800; color:var(--f-blue); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">👁️ Vista Previa en Vivo:</div>
+              <div id="f-anverso-preview-body">${katexService.parseAndRender(editCard?.front || '')}</div>
+            </div>
+
+            <!-- Toolbar Anverso -->
+            <div class="cupertino-rich-toolbar-dock" id="toolbar-dock-anverso">
               <button type="button" class="cupertino-btn-ai-pill" id="btn-ai-anverso">
                 <span>✨ AI Builder</span>
               </button>
@@ -82,34 +92,28 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
               </button>
               <input type="file" id="f-file-anverso" accept="image/*" style="display:none;" />
 
-              <button type="button" class="cupertino-tool-icon" id="tool-draw-anverso" title="Dibujo libre">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
-              </button>
-
-              <button type="button" class="cupertino-tool-icon" id="tool-occlusion-btn" title="Oclusión de Imagen" style="color:var(--f-blue);">
+              <button type="button" class="cupertino-tool-icon" id="tool-occlusion-btn" title="Oclusión de Imagen (Tapar partes de diagramas)" style="color:var(--f-blue);">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
               </button>
 
-              <button type="button" class="cupertino-tool-icon" id="tool-audio-anverso" title="Audio TTS">
+              <button type="button" class="cupertino-tool-icon" id="tool-audio-anverso" title="Escuchar pronunciación TTS">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
               </button>
 
-              <button type="button" class="cupertino-tool-icon" id="tool-a-anverso" title="Tamaño de Fuente" style="font-weight:800;">A</button>
-
               <span class="cupertino-tool-divider"></span>
 
-              <button type="button" class="cupertino-tool-icon" data-fmt="**" title="Negrita"><strong>B</strong></button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="*" title="Cursiva"><em>I</em></button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="__" title="Subrayado"><u>U</u></button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="~~" title="Tachado"><s>S</s></button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="## " title="Encabezado">H</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="- " title="Lista con viñetas">≡</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="1. " title="Lista numerada">1≡</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="$_2$" title="Subíndice">X₂</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="$^2$" title="Superíndice">X²</button>
-              <button type="button" class="cupertino-tool-icon" id="tool-katex-anverso" title="Fórmula KaTeX" style="color:var(--f-blue); font-weight:800;">fx</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="\`\`\`" title="Bloque de código">&lt;/&gt;</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt="[enlace](url)" title="Hipervínculo">🔗</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="**" title="Negrita (**texto**)"><strong>B</strong></button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="*" title="Cursiva (*texto*)"><em>I</em></button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="__" title="Subrayado (__texto__)"><u>U</u></button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="~~" title="Tachado (~~texto~~)"><s>S</s></button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="## " title="Encabezado H3">H</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="- " title="Lista con viñetas">≡</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="1. " title="Lista numerada">1≡</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="$_" data-suffix="$" title="Subíndice ($x_2$)">X₂</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="$^" data-suffix="$" title="Superíndice ($x^2$)">X²</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="$$" title="Fórmula KaTeX ($$fórmula$$)" style="color:var(--f-blue); font-weight:800;">fx</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="\`" title="Código inline">&lt;/&gt;</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="[enlace](url)" title="Hipervínculo">🔗</button>
             </div>
 
           </div>
@@ -117,17 +121,20 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
 
         <!-- REVERSO -->
         <div class="cupertino-editor-block">
-          <label class="cupertino-editor-label">Reverso</label>
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <label class="cupertino-editor-label">Reverso (Respuesta / Explicación)</label>
+            <span style="font-size:0.75rem; color:var(--f-text-muted);">Soporta Markdown & KaTeX</span>
+          </div>
           
           <div class="cupertino-editor-card-box" id="drop-zone-reverso">
             
             <textarea 
               id="f-reverso-input" 
               class="cupertino-editor-textarea" 
-              placeholder="Introduce el texto aquí"
+              placeholder="Introduce la respuesta detallada o desarrollo aquí..."
             >${editCard?.back || ''}</textarea>
 
-            <!-- Image Attachment Thumbnail Inside the Card (Matching Image 3) -->
+            <!-- Image Attachment Thumbnail Inside the Card -->
             <div id="f-reverso-img-preview" class="cupertino-thumbnail-box ${editCard?.backImage ? '' : 'hidden'}">
               <img src="${editCard?.backImage || ''}" id="f-reverso-img-tag" alt="Reverso preview" class="cupertino-thumb-img" />
               <button type="button" class="cupertino-thumb-del-badge" id="btn-del-reverso-img" title="Eliminar imagen">×</button>
@@ -136,8 +143,14 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
               </div>
             </div>
 
-            <!-- Toolbar Reverso (Matching Image 2 & 3) -->
-            <div class="cupertino-rich-toolbar-dock">
+            <!-- Live Preview KaTeX & Markdown Reverso -->
+            <div id="f-reverso-live-preview" class="cupertino-live-preview-box ${editCard?.back ? '' : 'hidden'}">
+              <div style="font-size:0.72rem; font-weight:800; color:var(--f-blue); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">👁️ Vista Previa en Vivo:</div>
+              <div id="f-reverso-preview-body">${katexService.parseAndRender(editCard?.back || '')}</div>
+            </div>
+
+            <!-- Toolbar Reverso -->
+            <div class="cupertino-rich-toolbar-dock" id="toolbar-dock-reverso">
               <button type="button" class="cupertino-btn-ai-pill" id="btn-ai-reverso">
                 <span>✨ AI Builder</span>
               </button>
@@ -147,28 +160,30 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
               </button>
               <input type="file" id="f-file-reverso" accept="image/*" style="display:none;" />
 
-              <button type="button" class="cupertino-tool-icon" id="tool-audio-reverso" title="Audio TTS">
+              <button type="button" class="cupertino-tool-icon" id="tool-audio-reverso" title="Escuchar pronunciación TTS">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
               </button>
 
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="**" title="Negrita"><strong>B</strong></button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="*" title="Cursiva"><em>I</em></button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="__" title="Subrayado"><u>U</u></button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="~~" title="Tachado"><s>S</s></button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="## " title="Encabezado">H</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="- " title="Lista">≡</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="1. " title="Lista numerada">1≡</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="$_2$" title="Subíndice">X₂</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="$^2$" title="Superíndice">X²</button>
-              <button type="button" class="cupertino-tool-icon" id="tool-katex-reverso" title="Fórmula KaTeX" style="color:var(--f-blue); font-weight:800;">fx</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="\`\`\`" title="Código">&lt;/&gt;</button>
-              <button type="button" class="cupertino-tool-icon" data-fmt-r="[enlace](url)" title="Hipervínculo">🔗</button>
+              <span class="cupertino-tool-divider"></span>
+
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="**" title="Negrita (**texto**)"><strong>B</strong></button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="*" title="Cursiva (*texto*)"><em>I</em></button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="__" title="Subrayado (__texto__)"><u>U</u></button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="~~" title="Tachado (~~texto~~)"><s>S</s></button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="## " title="Encabezado H3">H</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="- " title="Lista con viñetas">≡</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="1. " title="Lista numerada">1≡</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="$_" data-suffix-r="$" title="Subíndice ($x_2$)">X₂</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="$^" data-suffix-r="$" title="Superíndice ($x^2$)">X²</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="$$" title="Fórmula KaTeX ($$fórmula$$)" style="color:var(--f-blue); font-weight:800;">fx</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="\`" title="Código inline">&lt;/&gt;</button>
+              <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="[enlace](url)" title="Hipervínculo">🔗</button>
             </div>
 
           </div>
         </div>
 
-        <!-- Toggle Tarjetas Invertidas (Matching Image 2) -->
+        <!-- Toggle Tarjetas Invertidas -->
         <div class="apple-card-grouped" style="padding:18px 22px;">
           <div style="display:flex; align-items:center; justify-content:space-between;">
             <div style="display:flex; align-items:center; gap:12px;">
@@ -198,13 +213,35 @@ export function bindFigmaCardEditorEvents(
 ): void {
   const anversoInput = container.querySelector('#f-anverso-input') as HTMLTextAreaElement | null;
   const reversoInput = container.querySelector('#f-reverso-input') as HTMLTextAreaElement | null;
+  const anversoPreviewBox = container.querySelector('#f-anverso-live-preview') as HTMLElement | null;
+  const anversoPreviewBody = container.querySelector('#f-anverso-preview-body') as HTMLElement | null;
+  const reversoPreviewBox = container.querySelector('#f-reverso-live-preview') as HTMLElement | null;
+  const reversoPreviewBody = container.querySelector('#f-reverso-preview-body') as HTMLElement | null;
   const invertedToggle = container.querySelector('#toggle-inverted-cards') as HTMLInputElement | null;
 
   let frontImage: string | undefined = editCard?.frontImage;
   let backImage: string | undefined = editCard?.backImage;
   let occlusionImage: string | undefined = editCard?.occlusionImage;
   let occlusionMasks: OcclusionMask[] = editCard?.occlusionMasks || [];
-  let currentOcclusionMode: OcclusionMode = editCard?.occlusionMode || 'hide_all_reveal_one';
+  let currentOcclusionMode: OcclusionMode = editCard?.occlusionMode || 'hide_one_reveal_one';
+
+  const updateLivePreviews = () => {
+    const frontText = anversoInput?.value || '';
+    if (frontText.trim()) {
+      if (anversoPreviewBox) anversoPreviewBox.classList.remove('hidden');
+      if (anversoPreviewBody) anversoPreviewBody.innerHTML = katexService.parseAndRender(frontText);
+    } else {
+      if (anversoPreviewBox) anversoPreviewBox.classList.add('hidden');
+    }
+
+    const backText = reversoInput?.value || '';
+    if (backText.trim()) {
+      if (reversoPreviewBox) reversoPreviewBox.classList.remove('hidden');
+      if (reversoPreviewBody) reversoPreviewBody.innerHTML = katexService.parseAndRender(backText);
+    } else {
+      if (reversoPreviewBox) reversoPreviewBox.classList.add('hidden');
+    }
+  };
 
   const updateThumbnailBoxes = () => {
     const prevA = container.querySelector('#f-anverso-img-preview') as HTMLElement | null;
@@ -327,7 +364,7 @@ export function bindFigmaCardEditorEvents(
   const openOcclusionTool = () => {
     openImageOcclusionModal({
       deckId: deck.id,
-      initialImage: frontImage || occlusionImage || HEART_ANATOMY_SVG_URI,
+      initialImage: frontImage || occlusionImage || CLEAN_CANVAS_PLACEHOLDER,
       initialMasks: occlusionMasks,
       initialMode: currentOcclusionMode,
       onConfirm: (img, masks, mode) => {
@@ -344,29 +381,149 @@ export function bindFigmaCardEditorEvents(
   container.querySelector('#btn-manage-anverso-img')?.addEventListener('click', openOcclusionTool);
   container.querySelector('#tool-occlusion-btn')?.addEventListener('click', openOcclusionTool);
 
-  // Text formatting
-  const insertFormatting = (textarea: HTMLTextAreaElement | null, prefix: string, suffix: string = '') => {
+  // --- CONTROLADOR DE FORMATO DE TEXTO INTELIGENTE (SOLICITUD #3) ---
+  const setupSmartToolbar = (
+    textarea: HTMLTextAreaElement | null,
+    btnSelector: string,
+    dataAttr: string,
+    suffixAttr?: string
+  ) => {
     if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-    const selected = text.substring(start, end) || 'texto';
-    textarea.value = text.substring(0, start) + prefix + selected + (suffix || prefix) + text.substring(end);
-    textarea.focus();
+
+    const buttons = container.querySelectorAll<HTMLButtonElement>(btnSelector);
+
+    const updateActiveButtonStates = () => {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const val = textarea.value;
+
+      buttons.forEach((btn) => {
+        const prefix = btn.getAttribute(dataAttr) || '';
+        const suffix = (suffixAttr ? btn.getAttribute(suffixAttr) : '') || prefix;
+
+        if (prefix === '[enlace](url)' || prefix === '## ' || prefix === '- ' || prefix === '1. ') {
+          btn.classList.remove('active-format-tool');
+          return;
+        }
+
+        // Si el cursor o la selección está dentro de delimitadores
+        const before = val.substring(Math.max(0, start - prefix.length), start);
+        const after = val.substring(end, end + suffix.length);
+        const isInside = before === prefix && after === suffix;
+
+        btn.classList.toggle('active-format-tool', isInside);
+      });
+    };
+
+    const applySmartFormat = (prefix: string, suffix: string, btn: HTMLButtonElement) => {
+      textarea.focus();
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const val = textarea.value;
+      const selected = val.substring(start, end);
+
+      // CASO A: Hay texto seleccionado
+      if (selected.length > 0) {
+        if (prefix === '## ' || prefix === '- ' || prefix === '1. ') {
+          // Prefijos de línea
+          const lines = selected.split('\n');
+          const formatted = lines.map((l) => (l.startsWith(prefix) ? l.substring(prefix.length) : prefix + l)).join('\n');
+          textarea.value = val.substring(0, start) + formatted + val.substring(end);
+          textarea.setSelectionRange(start, start + formatted.length);
+        } else if (prefix === '[enlace](url)') {
+          const wrap = `[${selected}](https://)`;
+          textarea.value = val.substring(0, start) + wrap + val.substring(end);
+          const urlPos = start + selected.length + 3;
+          textarea.setSelectionRange(urlPos, urlPos + 8);
+        } else {
+          // Formatos normales: Negrita, Cursiva, KaTeX, Subrayado, etc.
+          const isWrappedInside =
+            start >= prefix.length &&
+            val.substring(start - prefix.length, start) === prefix &&
+            val.substring(end, end + suffix.length) === suffix;
+
+          const isSelfWrapped =
+            selected.startsWith(prefix) &&
+            selected.endsWith(suffix) &&
+            selected.length >= prefix.length + suffix.length;
+
+          if (isSelfWrapped) {
+            // Desenvolver selección completa
+            const unwrapped = selected.substring(prefix.length, selected.length - suffix.length);
+            textarea.value = val.substring(0, start) + unwrapped + val.substring(end);
+            textarea.setSelectionRange(start, start + unwrapped.length);
+            btn.classList.remove('active-format-tool');
+          } else if (isWrappedInside) {
+            // Desenvolver exterior
+            textarea.value = val.substring(0, start - prefix.length) + selected + val.substring(end + suffix.length);
+            textarea.setSelectionRange(start - prefix.length, end - prefix.length);
+            btn.classList.remove('active-format-tool');
+          } else {
+            // Envolver texto seleccionado
+            const wrap = prefix + selected + suffix;
+            textarea.value = val.substring(0, start) + wrap + val.substring(end);
+            textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+            btn.classList.add('active-format-tool');
+          }
+        }
+      } else {
+        // CASO B: NO hay texto seleccionado (el usuario activa o desactiva formato para escribir)
+        if (prefix === '## ' || prefix === '- ' || prefix === '1. ') {
+          textarea.value = val.substring(0, start) + prefix + val.substring(start);
+          textarea.setSelectionRange(start + prefix.length, start + prefix.length);
+        } else if (prefix === '[enlace](url)') {
+          const insertStr = '[enlace](https://)';
+          textarea.value = val.substring(0, start) + insertStr + val.substring(start);
+          textarea.setSelectionRange(start + 1, start + 7);
+        } else {
+          const before = val.substring(Math.max(0, start - prefix.length), start);
+          const after = val.substring(start, start + suffix.length);
+
+          if (before === prefix && after === suffix) {
+            // El usuario pulsa el botón de nuevo para cancelar -> borra el par vacío
+            textarea.value = val.substring(0, start - prefix.length) + val.substring(start + suffix.length);
+            textarea.setSelectionRange(start - prefix.length, start - prefix.length);
+            btn.classList.remove('active-format-tool');
+          } else if (after === suffix) {
+            // El usuario estaba escribiendo dentro y pulsa para saltar fuera del formato
+            textarea.setSelectionRange(start + suffix.length, start + suffix.length);
+            btn.classList.remove('active-format-tool');
+          } else {
+            // Activar modo de formato: insertar delimitadores y posicionar cursor en el medio
+            const insertStr = prefix + suffix;
+            textarea.value = val.substring(0, start) + insertStr + val.substring(start);
+            textarea.setSelectionRange(start + prefix.length, start + prefix.length);
+            btn.classList.add('active-format-tool');
+          }
+        }
+      }
+
+      updateLivePreviews();
+    };
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const prefix = btn.getAttribute(dataAttr);
+        const suffix = (suffixAttr ? btn.getAttribute(suffixAttr) : '') || prefix;
+        if (prefix) applySmartFormat(prefix, suffix || prefix, btn);
+      });
+    });
+
+    textarea.addEventListener('input', updateLivePreviews);
+    textarea.addEventListener('keyup', updateActiveButtonStates);
+    textarea.addEventListener('click', updateActiveButtonStates);
+    textarea.addEventListener('select', updateActiveButtonStates);
   };
 
-  container.querySelectorAll<HTMLButtonElement>('[data-fmt]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const fmt = btn.dataset.fmt;
-      if (fmt) insertFormatting(anversoInput, fmt);
-    });
-  });
+  // Inicializar barras de formato inteligente para Anverso y Reverso
+  setupSmartToolbar(anversoInput, '#toolbar-dock-anverso .tool-fmt-btn', 'data-fmt', 'data-suffix');
+  setupSmartToolbar(reversoInput, '#toolbar-dock-reverso .tool-fmt-btn', 'data-fmt-r', 'data-suffix-r');
 
-  container.querySelectorAll<HTMLButtonElement>('[data-fmt-r]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const fmt = btn.dataset.fmtR;
-      if (fmt) insertFormatting(reversoInput, fmt);
-    });
+  // Alternar vista dividida / Previews
+  container.querySelector('#btn-toggle-editor-split')?.addEventListener('click', () => {
+    if (anversoPreviewBox) anversoPreviewBox.classList.toggle('hidden');
+    if (reversoPreviewBox) reversoPreviewBox.classList.toggle('hidden');
   });
 
   container.querySelector('#btn-card-edit-back')?.addEventListener('click', () => callbacks.onBack());
@@ -381,6 +538,7 @@ export function bindFigmaCardEditorEvents(
       onInsertToEditor: (card) => {
         if (anversoInput) anversoInput.value = card.front;
         if (reversoInput) reversoInput.value = card.back;
+        updateLivePreviews();
       },
       onBatchAdded: () => {
         callbacks.onSaved();
@@ -391,21 +549,6 @@ export function bindFigmaCardEditorEvents(
 
   container.querySelector('#btn-ai-anverso')?.addEventListener('click', openAi);
   container.querySelector('#btn-ai-reverso')?.addEventListener('click', openAi);
-
-  // LaTeX shortcut
-  container.querySelector('#tool-katex-anverso')?.addEventListener('click', () => {
-    if (anversoInput) {
-      anversoInput.value += ' $$E = mc^2$$ ';
-      anversoInput.focus();
-    }
-  });
-
-  container.querySelector('#tool-katex-reverso')?.addEventListener('click', () => {
-    if (reversoInput) {
-      reversoInput.value += ' $$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$ ';
-      reversoInput.focus();
-    }
-  });
 
   // Audio TTS
   container.querySelector('#tool-audio-anverso')?.addEventListener('click', () => {
@@ -418,7 +561,7 @@ export function bindFigmaCardEditorEvents(
     ttsService.speak(text, deck.settings.ttsVoiceLang);
   });
 
-  // Save Card
+  // Guardar Tarjeta
   const saveCard = () => {
     const front = anversoInput?.value.trim() || 'Pregunta';
     const back = reversoInput?.value.trim() || 'Respuesta';
@@ -457,7 +600,7 @@ export function bindFigmaCardEditorEvents(
       if (isOcclusion) {
         deckService.createOcclusionCards(
           deck.id,
-          occlusionImage || frontImage || HEART_ANATOMY_SVG_URI,
+          occlusionImage || frontImage || CLEAN_CANVAS_PLACEHOLDER,
           occlusionMasks,
           currentOcclusionMode
         );
@@ -479,8 +622,7 @@ export function bindFigmaCardEditorEvents(
         );
       }
 
-      // Solicitud #5: Mantenerse en el cuadro de creación al crear tarjeta
-      // Mostrar feedback visual y limpiar campos para la siguiente tarjeta
+      // Limpiar campos para la siguiente tarjeta
       if (anversoInput) anversoInput.value = '';
       if (reversoInput) reversoInput.value = '';
       frontImage = undefined;
@@ -488,6 +630,7 @@ export function bindFigmaCardEditorEvents(
       occlusionImage = undefined;
       occlusionMasks = [];
       updateThumbnailBoxes();
+      updateLivePreviews();
       anversoInput?.focus();
 
       // Banner flotante de éxito

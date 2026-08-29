@@ -222,7 +222,7 @@ export class FigmaStudySession {
   private renderFrontContent(card: Flashcard): string {
     let mediaHtml = '';
     if (card.type === 'image_occlusion' && card.occlusionImage) {
-      const mode = card.occlusionMode || 'hide_all_reveal_one';
+      const mode = card.occlusionMode || 'hide_one_reveal_one';
       mediaHtml = `
         <div class="cupertino-occlusion-wrap">
           <div class="cupertino-occlusion-img-box">
@@ -231,10 +231,10 @@ export class FigmaStudySession {
               .map((m) => {
                 const isActive = m.id === card.activeMaskId;
                 if (isActive) {
-                  return `<div class="figma-drawn-mask active-question-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#ef4444; border:2px solid #ffffff; font-size:1.1rem; font-weight:900; color:#fff;">?</div>`;
+                  return `<div class="figma-drawn-mask active-question-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#ef4444; border:2px solid #ffffff; font-size:1.1rem; font-weight:900; color:#fff; box-shadow:0 0 16px rgba(239,68,68,0.7);">?</div>`;
                 } else {
                   if (mode === 'hide_all_reveal_one') {
-                    return `<div class="figma-drawn-mask other-hidden-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#1c1d22; border:1px solid #3f3f46;"></div>`;
+                    return `<div class="figma-drawn-mask other-hidden-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#18191f; border:1px solid #3f3f46;"></div>`;
                   }
                   return '';
                 }
@@ -278,6 +278,7 @@ export class FigmaStudySession {
   private renderBackContent(card: Flashcard): string {
     let mediaHtml = '';
     if (card.type === 'image_occlusion' && card.occlusionImage) {
+      const mode = card.occlusionMode || 'hide_one_reveal_one';
       mediaHtml = `
         <div class="cupertino-occlusion-wrap">
           <div class="cupertino-occlusion-img-box">
@@ -286,10 +287,15 @@ export class FigmaStudySession {
               .map((m) => {
                 const isActive = m.id === card.activeMaskId;
                 if (isActive) {
-                  // Solicitud #4: Eliminar recuadro pintado y borde verde neón. El área revelada se muestra totalmente limpia y transparente
-                  return '';
+                  // El recuadro objetivo se muestra totalmente revelado y limpio
+                  return `<div class="figma-drawn-mask revealed-active-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:rgba(16,185,129,0.06); border:2px dashed rgba(16,185,129,0.7); pointer-events:none;"></div>`;
                 }
-                return `<div class="figma-drawn-mask other-hidden-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#1c1d22; border:1px solid #3f3f46;"></div>`;
+                // Si el modo es ocultar todas, las no activas siguen tapadas
+                if (mode === 'hide_all_reveal_one') {
+                  return `<div class="figma-drawn-mask other-hidden-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#18191f; border:1px solid #3f3f46;"></div>`;
+                }
+                // En modo hide_one_reveal_one, no se tapa NINGUNA otra etiqueta al voltear
+                return '';
               })
               .join('')}
           </div>

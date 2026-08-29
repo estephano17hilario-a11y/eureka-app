@@ -1,8 +1,22 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import type { Deck, Flashcard, StudyRating } from '../types/flashcard';
 
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || 'https://api.89.117.73.97.sslip.io').trim();
 const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc4Nzg0OTc2MCwiZXhwIjo0OTQzNTIzMzYwLCJyb2xlIjoiYW5vbiJ9._DvifLx6sViDd5UePak7xswzmT6dQp9FoQZqPnyxeRU').trim();
+
+const AUTH_STORAGE_KEY = 'eureka_auth_session_v1';
+const LOCAL_USERS_KEY = 'eureka_local_registered_users_v1';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  username: string;
+  avatarUrl?: string;
+  xp?: number;
+  level?: number;
+  streakDays?: number;
+  createdAt?: string;
+}
 
 export interface UserProfile {
   id: string;
@@ -17,14 +31,27 @@ export interface UserProfile {
 class EurekaSupabaseService {
   private static instance: EurekaSupabaseService;
   public client: SupabaseClient;
-  private userId: string;
+  private currentUser: AuthUser | null = null;
+  private authListeners: Array<(user: AuthUser | null) => void> = [];
 
   private constructor() {
     this.client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true },
       realtime: { params: { eventsPerSecond: 15 } }
     });
-    this.userId = this.getOrCreateDeviceId();
+
+    this.restoreSession();
+
+    // Escuchar cambios de sesión de Supabase Auth
+    this.client.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await this.syncAuthUserProfile(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        this.currentUser = null;
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+        this.notifyAuthListeners();
+      }
+    });
   }
 
   public static getInstance(): EurekaSupabaseService {
@@ -34,26 +61,270 @@ class EurekaSupabaseService {
     return EurekaSupabaseService.instance;
   }
 
+  private restoreSession(): void {
+    try {
+      const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (stored) {
+        this.currentUser = JSON.parse(stored);
+      }
+    } catch {
+      this.currentUser = null;
+    }
+  }
+
+  public getCurrentUser(): AuthUser | null {
+    return this.currentUser;
+  }
+
   public getUserId(): string {
-    return this.userId;
+    return this.currentUser?.id || this.getOrCreateDeviceId();
+  }
+
+  public onAuthChange(callback: (user: AuthUser | null) => void): () => void {
+    this.authListeners.push(callback);
+    return () => {
+      this.authListeners = this.authListeners.filter((fn) => fn !== callback);
+    };
+  }
+
+  private notifyAuthListeners(): void {
+    this.authListeners.forEach((fn) => fn(this.currentUser));
   }
 
   private getOrCreateDeviceId(): string {
     let id = localStorage.getItem('eureka_user_device_id');
     if (!id) {
-      id = 'user_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36);
+      id = 'guest_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36);
       localStorage.setItem('eureka_user_device_id', id);
     }
     return id;
   }
 
-  // --- SINCRONIZACIÓN DE MAZOS ---
+  // --- REGISTRO DE USUARIO ---
+  public async signUp(email: string, password: string, username: string): Promise<{ user?: AuthUser; error?: string }> {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanUsername = username.trim() || cleanEmail.split('@')[0];
+
+    try {
+      // 1. Intento de registro en Supabase Auth
+      const { data, error } = await this.client.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: { username: cleanUsername }
+        }
+      });
+
+      let userId = data?.user?.id;
+
+      if (error) {
+        console.warn('[EUREKA AUTH] Supabase Auth notice:', error.message);
+        // Si hay error en Supabase auth (ej: rate limit o servidor local), crear usuario local inteligente
+        userId = 'usr_' + btoa(cleanEmail).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16) + '_' + Date.now().toString(36);
+      }
+
+      if (!userId) {
+        userId = 'usr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+      }
+
+      const authUser: AuthUser = {
+        id: userId,
+        email: cleanEmail,
+        username: cleanUsername,
+        avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${cleanUsername}`,
+        xp: 0,
+        level: 1,
+        streakDays: 1,
+        createdAt: new Date().toISOString()
+      };
+
+      // Guardar en tabla eureka_users
+      await this.saveUserProfile({
+        id: authUser.id,
+        username: authUser.username,
+        avatarUrl: authUser.avatarUrl,
+        xp: 0,
+        level: 1,
+        streakDays: 1
+      });
+
+      // Guardar localmente
+      this.saveUserLocally(cleanEmail, password, authUser);
+      this.currentUser = authUser;
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+      this.notifyAuthListeners();
+
+      return { user: authUser };
+    } catch (err: any) {
+      console.error('[EUREKA AUTH] Error en signUp:', err);
+      // Fallback local robusto
+      const fallbackId = 'usr_local_' + Date.now();
+      const authUser: AuthUser = {
+        id: fallbackId,
+        email: cleanEmail,
+        username: cleanUsername,
+        avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${cleanUsername}`,
+        xp: 0,
+        level: 1,
+        streakDays: 1,
+        createdAt: new Date().toISOString()
+      };
+      this.currentUser = authUser;
+      this.saveUserLocally(cleanEmail, password, authUser);
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+      this.notifyAuthListeners();
+      return { user: authUser };
+    }
+  }
+
+  // --- INICIO DE SESIÓN ---
+  public async signIn(email: string, password: string): Promise<{ user?: AuthUser; error?: string }> {
+    const cleanEmail = email.trim().toLowerCase();
+
+    try {
+      // 1. Intento con Supabase Auth
+      const { data, error } = await this.client.auth.signInWithPassword({
+        email: cleanEmail,
+        password
+      });
+
+      if (!error && data?.user) {
+        const username = data.user.user_metadata?.username || cleanEmail.split('@')[0];
+        const authUser: AuthUser = {
+          id: data.user.id,
+          email: cleanEmail,
+          username,
+          avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${username}`,
+          xp: 0,
+          level: 1,
+          streakDays: 1,
+          createdAt: data.user.created_at
+        };
+
+        this.currentUser = authUser;
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+        this.saveUserLocally(cleanEmail, password, authUser);
+        this.notifyAuthListeners();
+        return { user: authUser };
+      }
+
+      // 2. Si falla en Supabase Auth, comprobar registro en tabla o local
+      const localUser = this.checkLocalUser(cleanEmail, password);
+      if (localUser) {
+        this.currentUser = localUser;
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(localUser));
+        this.notifyAuthListeners();
+        return { user: localUser };
+      }
+
+      // 3. Consultar en base de datos si existe el perfil en eureka_users
+      const { data: dbUsers } = await this.client
+        .from('eureka_users')
+        .select('*')
+        .eq('device_id', cleanEmail)
+        .limit(1);
+
+      if (dbUsers && dbUsers.length > 0) {
+        const dbU = dbUsers[0];
+        const authUser: AuthUser = {
+          id: dbU.id,
+          email: cleanEmail,
+          username: dbU.username || cleanEmail.split('@')[0],
+          avatarUrl: dbU.avatar_url,
+          xp: dbU.xp || 0,
+          level: dbU.level || 1,
+          streakDays: dbU.streak_days || 1
+        };
+        this.currentUser = authUser;
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+        this.saveUserLocally(cleanEmail, password, authUser);
+        this.notifyAuthListeners();
+        return { user: authUser };
+      }
+
+      return { error: 'Correo o contraseña incorrectos. Si no tienes cuenta, pulsa en Registrarse.' };
+    } catch (err: any) {
+      console.warn('[EUREKA AUTH] Error en signIn:', err);
+      const localUser = this.checkLocalUser(cleanEmail, password);
+      if (localUser) {
+        this.currentUser = localUser;
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(localUser));
+        this.notifyAuthListeners();
+        return { user: localUser };
+      }
+      return { error: 'No se pudo iniciar sesión. Verifica tus credenciales.' };
+    }
+  }
+
+  // --- CERRAR SESIÓN ---
+  public async signOut(): Promise<void> {
+    try {
+      await this.client.auth.signOut();
+    } catch {}
+    this.currentUser = null;
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    this.notifyAuthListeners();
+  }
+
+  // --- MODO INVITADO / OFFLINE ---
+  public setGuestSession(guestName: string = 'Estudiante'): AuthUser {
+    const guestId = this.getOrCreateDeviceId();
+    const guestUser: AuthUser = {
+      id: guestId,
+      email: 'guest@eureka.local',
+      username: guestName,
+      avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${guestName}`,
+      xp: 0,
+      level: 1,
+      streakDays: 1,
+      createdAt: new Date().toISOString()
+    };
+    this.currentUser = guestUser;
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(guestUser));
+    this.notifyAuthListeners();
+    return guestUser;
+  }
+
+  private saveUserLocally(email: string, passwordHash: string, user: AuthUser): void {
+    try {
+      const all = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '{}');
+      all[email] = { password: passwordHash, user };
+      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(all));
+    } catch {}
+  }
+
+  private checkLocalUser(email: string, passwordHash: string): AuthUser | null {
+    try {
+      const all = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '{}');
+      if (all[email] && all[email].password === passwordHash) {
+        return all[email].user;
+      }
+    } catch {}
+    return null;
+  }
+
+  private async syncAuthUserProfile(supabaseUser: User): Promise<void> {
+    const username = supabaseUser.user_metadata?.username || supabaseUser.email?.split('@')[0] || 'Estudiante';
+    const authUser: AuthUser = {
+      id: supabaseUser.id,
+      email: supabaseUser.email || '',
+      username,
+      avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${username}`,
+      createdAt: supabaseUser.created_at
+    };
+    this.currentUser = authUser;
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+    this.notifyAuthListeners();
+  }
+
+  // --- SINCRONIZACIÓN DE MAZOS AISLADA POR USUARIO ---
   public async syncDecks(decks: Deck[]): Promise<void> {
+    const activeUserId = this.getUserId();
     try {
       if (!decks.length) return;
       const payload = decks.map(d => ({
         id: d.id,
-        user_id: this.userId,
+        user_id: activeUserId,
         parent_id: d.parentId || null,
         name: d.name,
         description: d.description || '',
@@ -77,11 +348,12 @@ class EurekaSupabaseService {
   }
 
   public async fetchDecks(): Promise<Deck[] | null> {
+    const activeUserId = this.getUserId();
     try {
       const { data, error } = await this.client
         .from('eureka_decks')
         .select('*')
-        .eq('user_id', this.userId);
+        .eq('user_id', activeUserId);
 
       if (error || !data) return null;
 
@@ -103,14 +375,15 @@ class EurekaSupabaseService {
     }
   }
 
-  // --- SINCRONIZACIÓN DE TARJETAS (FLASHCARDS) ---
+  // --- SINCRONIZACIÓN DE TARJETAS (FLASHCARDS) AISLADA POR USUARIO ---
   public async syncCards(cards: Flashcard[]): Promise<void> {
+    const activeUserId = this.getUserId();
     try {
       if (!cards.length) return;
       const payload = cards.map(c => ({
         id: c.id,
         deck_id: c.deckId,
-        user_id: this.userId,
+        user_id: activeUserId,
         type: c.type || 'standard',
         front: c.front,
         back: c.back,
@@ -149,11 +422,12 @@ class EurekaSupabaseService {
   }
 
   public async fetchCards(): Promise<Flashcard[] | null> {
+    const activeUserId = this.getUserId();
     try {
       const { data, error } = await this.client
         .from('eureka_flashcards')
         .select('*')
-        .eq('user_id', this.userId);
+        .eq('user_id', activeUserId);
 
       if (error || !data) return null;
 
@@ -200,9 +474,10 @@ class EurekaSupabaseService {
     easeFactor: number;
     timeSpentMs?: number;
   }): Promise<void> {
+    const activeUserId = this.getUserId();
     try {
       await this.client.from('eureka_study_logs').insert({
-        user_id: this.userId,
+        user_id: activeUserId,
         deck_id: data.deckId,
         card_id: data.cardId,
         rating: data.rating,
@@ -217,10 +492,11 @@ class EurekaSupabaseService {
 
   // --- PERFIL DE USUARIO Y EXPERIENCIA ---
   public async saveUserProfile(profile: Partial<UserProfile>): Promise<void> {
+    const activeUserId = profile.id || this.getUserId();
     try {
       await this.client.from('eureka_users').upsert({
-        id: this.userId,
-        device_id: this.userId,
+        id: activeUserId,
+        device_id: activeUserId,
         username: profile.username || 'Estudiante',
         avatar_url: profile.avatarUrl,
         xp: profile.xp || 0,

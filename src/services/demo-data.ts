@@ -1,53 +1,16 @@
 import type { Deck, Flashcard } from '../types/flashcard';
 
-export const HEART_ANATOMY_SVG_URI = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" width="600" height="450" style="background:#111216; font-family:-apple-system, BlinkMacSystemFont, sans-serif;">
-  <defs>
-    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ef4444"/>
-      <stop offset="70%" stop-color="#991b1b"/>
-      <stop offset="100%" stop-color="#1e1b4b"/>
-    </linearGradient>
-    <linearGradient id="aortaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f87171"/>
-      <stop offset="100%" stop-color="#dc2626"/>
-    </linearGradient>
-    <linearGradient id="venaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#38bdf8"/>
-      <stop offset="0%" stop-color="#0284c7"/>
-    </linearGradient>
-  </defs>
-
-  <text x="300" y="34" fill="#ffffff" font-size="16" font-weight="700" text-anchor="middle" letter-spacing="0.5">ANATOMÍA DEL CORAZÓN HUMANO</text>
-  <text x="300" y="52" fill="#94a3b8" font-size="11" text-anchor="middle">Esquema de Cámaras y Grandes Vasos</text>
-
-  <g transform="translate(140, 65)">
-    <!-- Vena Cava -->
-    <path d="M70,30 L70,120 C70,140 85,155 105,155 L105,30 Z" fill="url(#venaGrad)" stroke="#38bdf8" stroke-width="2"/>
-    <!-- Aorta -->
-    <path d="M120,40 C120,-10 200,-10 200,60 L180,90 C170,50 145,50 140,80 Z" fill="url(#aortaGrad)" stroke="#fca5a5" stroke-width="2"/>
-    <!-- Pulmonary Artery -->
-    <path d="M150,55 L220,95 L205,115 L145,85 Z" fill="#818cf8" opacity="0.85"/>
-    <!-- Ventricles Body -->
-    <path d="M50,130 C30,220 120,320 160,330 C210,320 280,210 250,130 C230,80 180,100 150,115 C120,100 70,80 50,130 Z" fill="url(#heartGrad)" stroke="#f87171" stroke-width="3"/>
-    <!-- Septum separator -->
-    <path d="M150,125 C145,200 155,270 160,330" stroke="#fecaca" stroke-width="2.5" stroke-dasharray="4,4" fill="none"/>
-  </g>
-
-  <!-- Labels -->
-  <rect x="25" y="100" width="150" height="32" rx="8" fill="#1e1f24" stroke="#38bdf8" stroke-width="1.5"/>
-  <text x="100" y="121" fill="#38bdf8" font-size="12" font-weight="600" text-anchor="middle">Vena Cava Superior</text>
-
-  <rect x="420" y="70" width="150" height="32" rx="8" fill="#1e1f24" stroke="#f87171" stroke-width="1.5"/>
-  <text x="495" y="91" fill="#f87171" font-size="12" font-weight="600" text-anchor="middle">Cayado de la Aorta</text>
-
-  <rect x="25" y="195" width="150" height="32" rx="8" fill="#1e1f24" stroke="#818cf8" stroke-width="1.5"/>
-  <text x="100" y="216" fill="#818cf8" font-size="12" font-weight="600" text-anchor="middle">Aurícula Derecha</text>
-
-  <rect x="420" y="275" width="155" height="32" rx="8" fill="#1e1f24" stroke="#ec4899" stroke-width="1.5"/>
-  <text x="497" y="296" fill="#ec4899" font-size="12" font-weight="600" text-anchor="middle">Ventrículo Izquierdo</text>
+// Placeholder transparente limpio para cuando no hay imagen
+export const CLEAN_CANVAS_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400" style="background:#0c0d12; font-family:-apple-system, BlinkMacSystemFont, sans-serif;">
+  <rect width="600" height="400" fill="#0c0d12"/>
+  <circle cx="300" cy="180" r="45" fill="none" stroke="#38bdf8" stroke-width="3" stroke-dasharray="6,6"/>
+  <path d="M285,180 L315,180 M300,165 L300,195" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+  <text x="300" y="260" fill="#ffffff" font-size="16" font-weight="700" text-anchor="middle">Carga o arrastra una imagen aquí</text>
+  <text x="300" y="285" fill="#71717a" font-size="13" text-anchor="middle">Formatos soportados: PNG, JPG, WEBP, SVG</text>
 </svg>
 `)}`;
+
 
 export function getInitialDemoDecks(): { decks: Deck[]; cards: Flashcard[] } {
   const now = Date.now();
@@ -240,22 +203,13 @@ export function getInitialDemoDecks(): { decks: Deck[]; cards: Flashcard[] } {
       updatedAt: now
     },
     {
-      id: 'card-figma-occlusion',
+      id: 'card-figma-humans-1',
       deckId: 'deck-humans',
-      type: 'image_occlusion',
-      front: 'Identifica la estructura anatómica señalada con la máscara luminosa:',
-      back: 'La **Vena Cava Superior** transporta sangre desoxigenada desde la parte superior del cuerpo hacia la aurícula derecha.',
-      occlusionImage: HEART_ANATOMY_SVG_URI,
-      occlusionMasks: [
-        { id: 'mask-1', x: 4.1, y: 22.2, width: 25.0, height: 7.2, label: 'Vena Cava Superior' },
-        { id: 'mask-2', x: 70.0, y: 15.5, width: 25.0, height: 7.2, label: 'Cayado de la Aorta' },
-        { id: 'mask-3', x: 4.1, y: 43.3, width: 25.0, height: 7.2, label: 'Aurícula Derecha' },
-        { id: 'mask-4', x: 70.0, y: 61.1, width: 25.8, height: 7.2, label: 'Ventrículo Izquierdo' }
-      ],
-      activeMaskId: 'mask-1',
-      occlusionMode: 'hide_all_reveal_one',
+      type: 'standard',
+      front: '¿Cuál es la función principal de la Mielina en los axones neuronales?',
+      back: 'Actúa como aislante eléctrico permitiendo la **conducción saltatoria** de los potenciales de acción a través de los Nodos de Ranvier, aumentando drásticamente la velocidad del impulso nervioso.',
       audioLang: 'es-ES',
-      audioText: 'Vena Cava Superior.',
+      audioText: 'Función principal de la Mielina en los axones neuronales.',
       state: 'new',
       stepIndex: 0,
       intervalMinutes: 4,

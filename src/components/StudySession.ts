@@ -160,6 +160,7 @@ export class StudySession {
   private renderFaceContent(card: Flashcard, isBack: boolean): string {
     // 1. Caso Oclusión de Imagen
     if (card.type === 'image_occlusion' && card.occlusionImage) {
+      const mode = card.occlusionMode || 'hide_one_reveal_one';
       return `
         <div>
           <div class="study-occlusion-img-wrapper">
@@ -169,10 +170,12 @@ export class StudySession {
                 const isActive = m.id === card.activeMaskId;
                 if (isActive) {
                   return isBack
-                    ? `<div class="occlusion-mask-revealed" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%;"></div>`
+                    ? `<div class="occlusion-mask-revealed" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:rgba(16,185,129,0.06); border:2px dashed rgba(16,185,129,0.7);"></div>`
                     : `<div class="occlusion-mask-target" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%;">?</div>`;
                 } else {
-                  return `<div class="occlusion-mask-dormant" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%;"></div>`;
+                  return mode === 'hide_all_reveal_one'
+                    ? `<div class="occlusion-mask-dormant" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%;"></div>`
+                    : '';
                 }
               })
               .join('')}

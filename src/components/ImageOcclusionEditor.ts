@@ -1,39 +1,5 @@
 import type { OcclusionMask } from '../types/flashcard';
-import { HEART_ANATOMY_SVG_URI } from '../services/demo-data';
-
-// Preset anatómico del cerebro en SVG
-export const BRAIN_ANATOMY_SVG_URI = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400" style="background:#000000; font-family:-apple-system, BlinkMacSystemFont, sans-serif;">
-  <text x="300" y="36" fill="#ffffff" font-size="16" font-weight="700" text-anchor="middle">LÓBULOS CEREBRALES</text>
-  
-  <!-- Silhouette -->
-  <g transform="translate(150, 60)">
-    <!-- Lóbulo Frontal -->
-    <path d="M50,120 C30,70 100,20 180,20 L180,140 C120,140 80,160 50,120 Z" fill="#0a84ff" opacity="0.8"/>
-    <!-- Lóbulo Parietal -->
-    <path d="M180,20 C240,20 300,50 300,120 L180,140 Z" fill="#30d158" opacity="0.8"/>
-    <!-- Lóbulo Occipital -->
-    <path d="M300,120 C320,160 300,220 250,230 L180,140 Z" fill="#ff9f0a" opacity="0.8"/>
-    <!-- Lóbulo Temporal -->
-    <path d="M80,150 C100,200 200,220 250,230 L180,140 C140,140 100,150 80,150 Z" fill="#bf5af2" opacity="0.8"/>
-    <!-- Cerebelo -->
-    <path d="M210,230 C240,240 250,280 200,280 C170,280 160,250 210,230 Z" fill="#ff453a" opacity="0.8"/>
-  </g>
-
-  <!-- Labels -->
-  <rect x="30" y="80" width="130" height="28" rx="6" fill="#1c1c1e" stroke="#0a84ff" stroke-width="1.5"/>
-  <text x="95" y="99" fill="#0a84ff" font-size="12" font-weight="600" text-anchor="middle">Lóbulo Frontal</text>
-
-  <rect x="440" y="80" width="130" height="28" rx="6" fill="#1c1c1e" stroke="#30d158" stroke-width="1.5"/>
-  <text x="505" y="99" fill="#30d158" font-size="12" font-weight="600" text-anchor="middle">Lóbulo Parietal</text>
-
-  <rect x="440" y="190" width="130" height="28" rx="6" fill="#1c1c1e" stroke="#ff9f0a" stroke-width="1.5"/>
-  <text x="505" y="209" fill="#ff9f0a" font-size="12" font-weight="600" text-anchor="middle">Lóbulo Occipital</text>
-
-  <rect x="30" y="220" width="130" height="28" rx="6" fill="#1c1c1e" stroke="#bf5af2" stroke-width="1.5"/>
-  <text x="95" y="239" fill="#bf5af2" font-size="12" font-weight="600" text-anchor="middle">Lóbulo Temporal</text>
-</svg>
-`)}`;
+import { CLEAN_CANVAS_PLACEHOLDER } from '../services/demo-data';
 
 export interface ImageOcclusionEditorOptions {
   containerId: string;
@@ -55,7 +21,7 @@ export class ImageOcclusionEditor {
 
   constructor(options: ImageOcclusionEditorOptions) {
     this.container = document.getElementById(options.containerId);
-    this.imageSrc = options.initialImage || HEART_ANATOMY_SVG_URI;
+    this.imageSrc = options.initialImage || CLEAN_CANVAS_PLACEHOLDER;
     this.masks = options.initialMasks ? [...options.initialMasks] : [];
     this.onChangeCallback = options.onChange;
     this.render();
@@ -87,20 +53,14 @@ export class ImageOcclusionEditor {
 
     this.container.innerHTML = `
       <div class="occlusion-editor-box">
-        <div class="occlusion-actions-bar">
-          <label class="btn-apple-mini primary" style="cursor:pointer;">
-            <span>📁 Seleccionar Imagen</span>
+        <div class="occlusion-actions-bar" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <label class="btn-apple-mini primary" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+            <span>📁 Cargar Foto / Diagrama</span>
             <input type="file" id="apple-io-file" accept="image/*" style="display:none;" />
           </label>
-          <button type="button" class="btn-apple-mini" id="apple-io-clear" ${this.masks.length === 0 ? 'disabled' : ''}>
-            Limpiar (${this.masks.length})
+          <button type="button" class="btn-apple-mini" id="apple-io-clear" ${this.masks.length === 0 ? 'disabled' : ''} style="color:#f87171;">
+            Limpiar Máscaras (${this.masks.length})
           </button>
-
-          <div class="occlusion-presets-group">
-            <span>Plantillas:</span>
-            <button type="button" class="btn-preset-chip" id="preset-corazon">🫀 Corazón</button>
-            <button type="button" class="btn-preset-chip" id="preset-cerebro">🧠 Cerebro</button>
-          </div>
         </div>
 
         <div class="occlusion-canvas-stage" id="apple-io-stage">
@@ -144,14 +104,6 @@ export class ImageOcclusionEditor {
         };
         reader.readAsDataURL(file);
       }
-    });
-
-    // Preset buttons
-    this.container?.querySelector('#preset-corazon')?.addEventListener('click', () => {
-      this.setImage(HEART_ANATOMY_SVG_URI);
-    });
-    this.container?.querySelector('#preset-cerebro')?.addEventListener('click', () => {
-      this.setImage(BRAIN_ANATOMY_SVG_URI);
     });
 
     // Clear all

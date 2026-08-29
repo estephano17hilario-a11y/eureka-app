@@ -1,5 +1,5 @@
 import type { OcclusionMask, OcclusionMode } from '../types/flashcard';
-import { HEART_ANATOMY_SVG_URI } from '../services/demo-data';
+import { CLEAN_CANVAS_PLACEHOLDER } from '../services/demo-data';
 
 export interface ImageOcclusionModalOptions {
   deckId: string;
@@ -14,76 +14,92 @@ export function openImageOcclusionModal(options: ImageOcclusionModalOptions): vo
   const existing = document.getElementById('modal-occlusion-root');
   if (existing) existing.remove();
 
-  let currentImage = options.initialImage || HEART_ANATOMY_SVG_URI;
+  let currentImage = options.initialImage || CLEAN_CANVAS_PLACEHOLDER;
   let masks: OcclusionMask[] = options.initialMasks ? [...options.initialMasks] : [];
-  let currentMode: OcclusionMode = options.initialMode || 'hide_all_reveal_one';
+  let currentMode: OcclusionMode = options.initialMode || 'hide_one_reveal_one';
 
   const modalHtml = `
     <div class="modal-backdrop figma-modal-backdrop" id="modal-occlusion-root">
-      <div class="apple-glass-modal" style="max-width:920px; max-height:92vh; display:flex; flex-direction:column;">
+      <div class="apple-glass-modal" style="max-width:960px; max-height:94vh; display:flex; flex-direction:column;">
         
         <!-- Header -->
         <div class="figma-modal-header" style="padding:16px 22px; border-bottom:1px solid var(--f-border);">
           <div style="display:flex; align-items:center; gap:12px;">
-            <div class="apple-glass-icon-circle">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <div class="apple-glass-icon-circle" style="background:rgba(56,189,248,0.15); color:#38bdf8;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             </div>
             <div>
-              <h3 style="font-size:1.18rem; font-weight:800; color:#fff;">Oclusión de Imágenes Inteligente</h3>
-              <p style="font-size:0.78rem; color:var(--f-text-secondary);">Arrastra para dibujar máscaras, muévelas o bórralas libremente</p>
+              <h3 style="font-size:1.22rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">Oclusión de Imágenes Inteligente</h3>
+              <p style="font-size:0.8rem; color:var(--f-text-secondary);">Dibuja recuadros sobre las partes a memorizar. Cada recuadro generará su propia flashcard.</p>
             </div>
           </div>
 
           <div style="display:flex; align-items:center; gap:12px;">
             <button class="figma-btn-ghost" id="btn-cancel-occlusion">Cancelar</button>
-            <button class="figma-btn-blue-pill" id="btn-confirm-occlusion" style="padding:10px 22px;">
-              <span id="btn-confirm-text">✓ Listo</span>
+            <button class="figma-btn-blue-pill" id="btn-confirm-occlusion" style="padding:10px 24px; font-weight:800;">
+              <span id="btn-confirm-text">✓ Confirmar (${masks.length} tarjetas)</span>
             </button>
           </div>
         </div>
 
-        <!-- Toolbar Superior con Botones con Nombre -->
-        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 22px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--f-border); flex-wrap:wrap; gap:10px;">
+        <!-- Guía Explicativa Rápida -->
+        <div style="padding:10px 22px; background:rgba(56,189,248,0.06); border-bottom:1px solid rgba(56,189,248,0.18); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; color:#e0f2fe;">
+            <span>ℹ️ <strong>¿Cómo funciona?</strong></span>
+            <span>1. Carga tu imagen ➔ 2. Arrastra el cursor para tapar textos o estructuras ➔ 3. Elige el modo de estudio abajo.</span>
+          </div>
+          <div style="font-size:0.78rem; color:#94a3b8;">
+            (Puedes arrastrar recuadros existentes para moverlos o pulsar la ✕ para borrarlos)
+          </div>
+        </div>
+
+        <!-- Toolbar Superior -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 22px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--f-border); flex-wrap:wrap; gap:12px;">
           <div style="display:flex; align-items:center; gap:10px;">
-            <button class="apple-btn-outline-pill" id="btn-load-photo">
-              📷 Cargar Foto
+            <button class="figma-btn-blue-pill" id="btn-load-photo" style="padding:8px 16px; font-size:0.85rem; font-weight:700;">
+              📷 Cargar Mi Imagen
             </button>
             <input type="file" id="occ-file-input" accept="image/*" style="display:none;" />
 
-            <button class="apple-btn-outline-pill" id="btn-template-heart">
-              🫀 Plantilla Corazón
-            </button>
-
-            <button class="apple-btn-outline-pill" id="btn-clear-all-masks" style="color:#f87171;">
-              🗑️ Borrar Todo
+            <button class="apple-btn-outline-pill" id="btn-clear-all-masks" style="color:#f87171; border-color:rgba(248,113,113,0.3);">
+              🗑️ Borrar Todas las Máscaras
             </button>
           </div>
 
-          <!-- Switch Modo Oclusión -->
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:0.85rem; font-weight:700; color:var(--f-text-secondary);">Modo de Estudio:</span>
-            <div style="display:flex; background:#1c1d22; border-radius:10px; padding:3px; border:1px solid var(--f-border);">
-              <button class="apple-tab-pill ${currentMode === 'hide_all_reveal_one' ? 'active' : ''}" id="btn-mode-hide-all" style="font-size:0.78rem; padding:5px 10px; border-radius:8px; border:none; cursor:pointer;">
-                🔒 Ocluir 1, Ocultar Todas
-              </button>
-              <button class="apple-tab-pill ${currentMode === 'hide_one_reveal_one' ? 'active' : ''}" id="btn-mode-hide-one" style="font-size:0.78rem; padding:5px 10px; border-radius:8px; border:none; cursor:pointer;">
+          <!-- Switch Modo Oclusión con Explicación Dinámica -->
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:0.82rem; font-weight:800; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em;">Modo de Estudio:</span>
+            <div style="display:flex; background:#18191f; border-radius:10px; padding:3px; border:1px solid var(--f-border);">
+              <button class="apple-tab-pill ${currentMode === 'hide_one_reveal_one' ? 'active' : ''}" id="btn-mode-hide-one" style="font-size:0.8rem; padding:6px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:700;" title="Solo oculta la máscara objetivo en cada tarjeta">
                 👁️ Ocluir 1, Ocultar 1
+              </button>
+              <button class="apple-tab-pill ${currentMode === 'hide_all_reveal_one' ? 'active' : ''}" id="btn-mode-hide-all" style="font-size:0.8rem; padding:6px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:700;" title="Oculta todas las máscaras para evitar pistas">
+                🔒 Ocluir 1, Ocultar Todas
               </button>
             </div>
           </div>
         </div>
 
+        <!-- Banner descriptivo del modo actual -->
+        <div id="occ-mode-explanation-banner" style="padding:7px 22px; font-size:0.78rem; background:rgba(255,255,255,0.03); border-bottom:1px solid var(--f-border); color:var(--f-text-secondary); display:flex; align-items:center; gap:6px;">
+          ${
+            currentMode === 'hide_one_reveal_one'
+              ? '✨ <strong>Modo Activo:</strong> Solo se tapa 1 etiqueta por flashcard. Las demás etiquetas permanecen visibles en la pregunta y en la respuesta.'
+              : '🔒 <strong>Modo Activo:</strong> Se tapan todas las etiquetas para no dar pistas. La activa se pregunta en rojo y las demás permanecen tapadas.'
+          }
+        </div>
+
         <!-- Canvas Stage -->
-        <div style="flex:1; overflow:auto; padding:20px; display:flex; justify-content:center; align-items:center; min-height:380px; background:#07080a;" id="occ-drop-canvas-zone">
+        <div style="flex:1; overflow:auto; padding:20px; display:flex; justify-content:center; align-items:center; min-height:360px; background:#07080a;" id="occ-drop-canvas-zone">
           <div class="figma-stage-inner" id="occ-canvas-stage">
-            <img src="${currentImage}" id="occ-target-img" alt="Lienzo de Oclusión" draggable="false" style="max-height:55vh; width:auto; max-width:100%; border-radius:14px; display:block;" />
+            <img src="${currentImage}" id="occ-target-img" alt="Lienzo de Oclusión" draggable="false" style="max-height:54vh; width:auto; max-width:100%; border-radius:14px; display:block; border:1px solid rgba(255,255,255,0.1);" />
             <div class="figma-mask-overlay" id="occ-overlay-layer"></div>
           </div>
         </div>
 
         <!-- Footer Info -->
         <div style="padding:14px 22px; border-top:1px solid var(--f-border); display:flex; align-items:center; justify-content:space-between; font-size:0.86rem; color:var(--f-text-secondary);">
-          <span style="color:#fbbf24;">💡 <strong>División Inteligente:</strong> Cada máscara se convertirá en una tarjeta independiente. Puedes mover las máscaras arrastrándolas.</span>
+          <span style="color:#fbbf24;">💡 <strong>Generador Automático:</strong> Se generará una tarjeta por cada máscara dibujada (${masks.length} tarjetas en total).</span>
           <span style="font-weight:800; color:var(--f-blue);" id="lbl-active-masks">Máscaras activas: ${masks.length}</span>
         </div>
 
@@ -307,19 +323,6 @@ export function openImageOcclusionModal(options: ImageOcclusionModalOptions): vo
     }
   });
 
-  // Template heart
-  document.getElementById('btn-template-heart')?.addEventListener('click', () => {
-    currentImage = HEART_ANATOMY_SVG_URI;
-    imgEl.src = currentImage;
-    masks = [
-      { id: 'm1', x: 4.1, y: 22.2, width: 25.0, height: 7.2, label: 'Vena Cava Superior' },
-      { id: 'm2', x: 70.0, y: 15.5, width: 25.0, height: 7.2, label: 'Cayado de la Aorta' },
-      { id: 'm3', x: 4.1, y: 43.3, width: 25.0, height: 7.2, label: 'Aurícula Derecha' },
-      { id: 'm4', x: 70.0, y: 61.1, width: 25.8, height: 7.2, label: 'Ventrículo Izquierdo' }
-    ];
-    renderMasks();
-  });
-
   // Clear all
   document.getElementById('btn-clear-all-masks')?.addEventListener('click', () => {
     masks = [];
@@ -329,17 +332,24 @@ export function openImageOcclusionModal(options: ImageOcclusionModalOptions): vo
   // Mode toggles
   const btnHideAll = document.getElementById('btn-mode-hide-all');
   const btnHideOne = document.getElementById('btn-mode-hide-one');
+  const bannerExpl = document.getElementById('occ-mode-explanation-banner');
 
   btnHideAll?.addEventListener('click', () => {
     currentMode = 'hide_all_reveal_one';
     btnHideAll.classList.add('active');
     btnHideOne?.classList.remove('active');
+    if (bannerExpl) {
+      bannerExpl.innerHTML = '🔒 <strong>Modo Activo:</strong> Se tapan todas las etiquetas para no dar pistas. La activa se pregunta en rojo y las demás permanecen tapadas.';
+    }
   });
 
   btnHideOne?.addEventListener('click', () => {
     currentMode = 'hide_one_reveal_one';
     btnHideOne.classList.add('active');
     btnHideAll?.classList.remove('active');
+    if (bannerExpl) {
+      bannerExpl.innerHTML = '✨ <strong>Modo Activo:</strong> Solo se tapa 1 etiqueta por flashcard. Las demás etiquetas permanecen visibles en la pregunta y en la respuesta.';
+    }
   });
 
   // Confirm

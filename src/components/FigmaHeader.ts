@@ -1,6 +1,12 @@
+import { eurekaSupabase } from '../services/supabase.service';
+
 export type FigmaMainTab = 'inicio' | 'biblioteca' | 'ajustes';
 
 export function renderFigmaHeader(activeTab: FigmaMainTab = 'inicio'): string {
+  const user = eurekaSupabase.getCurrentUser();
+  const displayName = user?.username || 'Estudiante';
+  const initial = displayName.charAt(0).toUpperCase() || 'E';
+
   return `
     <!-- Top Nav Header (Responsive for Desktop & Mobile APK) -->
     <header class="figma-global-nav">
@@ -39,7 +45,7 @@ export function renderFigmaHeader(activeTab: FigmaMainTab = 'inicio'): string {
         <!-- Streak Badge -->
         <div class="figma-streak-badge" title="Racha activa">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-          <span>0</span>
+          <span>${user?.streakDays || 1}</span>
         </div>
 
         <!-- Quick Theme Switcher Button (Mobile) -->
@@ -47,9 +53,9 @@ export function renderFigmaHeader(activeTab: FigmaMainTab = 'inicio'): string {
           🎨
         </button>
 
-        <!-- Profile Avatar -->
-        <button class="figma-avatar-circle" id="btn-header-avatar" title="Ajustes de la App">
-          <span>E</span>
+        <!-- Profile Avatar & User Badge -->
+        <button class="figma-avatar-circle" id="btn-header-avatar" title="Cuenta: ${displayName} (${user?.email || 'Local'})" style="display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg, #38bdf8, #8b5cf6); color:#fff; font-weight:800; border:2px solid rgba(255,255,255,0.2);">
+          <span>${initial}</span>
         </button>
       </div>
     </header>

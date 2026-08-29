@@ -2,6 +2,8 @@ import './index.css';
 import { nativeService } from './services/native.service';
 import { deckService } from './services/deck.service';
 import { themeService } from './services/theme.service';
+import { eurekaSupabase, type AuthUser } from './services/supabase.service';
+import { openAuthModal } from './components/AuthModal';
 import { renderFigmaHeader, type FigmaMainTab } from './components/FigmaHeader';
 import { renderFigmaDeckList, bindFigmaDeckListEvents } from './components/FigmaDeckList';
 import { renderFigmaSubdeckList, bindFigmaSubdeckEvents } from './components/FigmaSubdeckList';
@@ -50,12 +52,52 @@ class EurekaFigmaApp {
   public async init(): Promise<void> {
     themeService.applyTheme();
     await nativeService.initialize();
+
+    // Suscribirse a cambios en los mazos y tarjetas
     deckService.subscribe(() => {
       if (this.currentView !== 'study') {
         this.render();
       }
     });
-    this.render();
+
+    // Suscribirse a cambios de autenticación
+    eurekaSupabase.onAuthChange(async (user) => {
+      const activeId = user?.id || 'guest';
+      await deckService.setUser(activeId);
+      const rootDecks = deckService.getRootDecks();
+      if (rootDecks.length > 0) {
+        this.selectedRootDeckId = rootDecks[0].id;
+        const sub = deckService.getSubdecks(rootDecks[0].id);
+        this.selectedSubdeckId = sub.length > 0 ? sub[0].id : rootDecks[0].id;
+      }
+      this.render();
+    });
+
+    // Comprobar si hay usuario conectado al inicio
+    const currentUser = eurekaSupabase.getCurrentUser();
+    if (!currentUser) {
+      this.promptAuth(false);
+    } else {
+      await deckService.setUser(currentUser.id);
+      this.render();
+    }
+  }
+
+  public promptAuth(allowDismiss: boolean = true): void {
+    openAuthModal({
+      allowDismiss,
+      onSuccess: async (user: AuthUser) => {
+        this.showToast(`👋 ¡Bienvenido de nuevo, ${user.username}!`);
+        await deckService.setUser(user.id);
+        this.render();
+      },
+      onClose: () => {
+        if (!eurekaSupabase.getCurrentUser()) {
+          eurekaSupabase.setGuestSession();
+        }
+        this.render();
+      }
+    });
   }
 
   public showToast(message: string): void {
@@ -75,6 +117,25 @@ class EurekaFigmaApp {
       toast.classList.remove('show');
       setTimeout(() => toast.remove(), 250);
     }, 2400);
+  }
+
+  private openUserAccountMenu(): void {
+    const user = eurekaSupabase.getCurrentUser();
+    const displayName = user?.username || 'Invitado (Local)';
+    const email = user?.email || 'Modo sin cuenta';
+
+    dialogService.showConfirm({
+      title: `👤 ${displayName}`,
+      message: `Correo: ${email}\nBase de datos: Aislada y sincronizada en la nube.\n\n¿Qué acción deseas realizar?`,
+      confirmText: '🚪 Cerrar Sesión',
+      cancelText: 'Cerrar',
+      isDanger: true,
+      onConfirm: async () => {
+        await eurekaSupabase.signOut();
+        this.showToast('Sesión cerrada correctamente');
+        this.promptAuth(false);
+      }
+    });
   }
 
   private startStudy(deckId: string, specificCardId?: string): void {
@@ -203,7 +264,8 @@ class EurekaFigmaApp {
   public render(): void {
     if (this.currentView === 'study') return;
 
-    const rootDeck = deckService.getDeckById(this.selectedRootDeckId) || deckService.getRootDecks()[0];
+    const rootDecks = deckService.getRootDecks();
+    const rootDeck = deckService.getDeckById(this.selectedRootDeckId) || rootDecks[0] || deckService.getAllDecks()[0];
     const subdeck = deckService.getDeckById(this.selectedSubdeckId) || rootDeck;
     const editCard = this.editingCardId ? deckService.getCardById(this.editingCardId) : undefined;
 
@@ -212,7 +274,7 @@ class EurekaFigmaApp {
 
     if (this.currentView === 'editor') {
       showGlobalHeader = false;
-      bodyHtml = renderFigmaCardEditor(subdeck, rootDeck.id !== subdeck.id ? rootDeck : undefined, editCard);
+      bodyHtml = renderFigmaCardEditor(subdeck, rootDeck && rootDeck.id !== subdeck.id ? rootDeck : undefined, editCard);
     } else if (this.currentView === 'deck_settings') {
       showGlobalHeader = false;
       bodyHtml = renderFigmaDeckSettingsView(subdeck);
@@ -240,7 +302,7 @@ class EurekaFigmaApp {
           break;
 
         case 'dashboard':
-          bodyHtml = renderFigmaDeckDashboard(subdeck, rootDeck.id !== subdeck.id ? rootDeck : undefined);
+          bodyHtml = renderFigmaDeckDashboard(subdeck, rootDeck && rootDeck.id !== subdeck.id ? rootDeck : undefined);
           break;
 
         default:
@@ -284,9 +346,9 @@ class EurekaFigmaApp {
       this.render();
     });
 
+    // Menú de Cuenta / Avatar
     layout.querySelector('#btn-header-avatar')?.addEventListener('click', () => {
-      this.currentTab = 'ajustes';
-      this.render();
+      this.openUserAccountMenu();
     });
 
     layout.querySelector('#btn-header-theme-mobile')?.addEventListener('click', () => {
@@ -303,7 +365,8 @@ class EurekaFigmaApp {
       this.showToast('Atajos: Espacio = Voltear | 1, 2, 3, 4 = Calificar');
     });
 
-    const rootDeck = deckService.getDeckById(this.selectedRootDeckId) || deckService.getRootDecks()[0];
+    const rootDecks = deckService.getRootDecks();
+    const rootDeck = deckService.getDeckById(this.selectedRootDeckId) || rootDecks[0] || deckService.getAllDecks()[0];
     const subdeck = deckService.getDeckById(this.selectedSubdeckId) || rootDeck;
 
     // View: Card Editor (Top Priority)
