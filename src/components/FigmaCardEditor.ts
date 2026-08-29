@@ -266,6 +266,16 @@ export function bindFigmaCardEditorEvents(
         prevR.classList.add('hidden');
       }
     }
+
+    const invertedWrap = container.querySelector('#wrapper-inverted-toggle') as HTMLElement | null;
+    if (invertedWrap) {
+      if (occlusionMasks.length > 0 || occlusionImage) {
+        invertedWrap.style.display = 'none';
+        if (invertedToggle) invertedToggle.checked = false;
+      } else {
+        invertedWrap.style.display = 'block';
+      }
+    }
   };
 
   // Helper File -> DataURL
@@ -373,6 +383,15 @@ export function bindFigmaCardEditorEvents(
         occlusionMasks = masks;
         currentOcclusionMode = mode;
         updateThumbnailBoxes();
+        const invertedWrap = container.querySelector('#wrapper-inverted-toggle') as HTMLElement | null;
+        if (invertedWrap) {
+          if (occlusionMasks.length > 0 || occlusionImage) {
+            invertedWrap.style.display = 'none';
+            if (invertedToggle) invertedToggle.checked = false;
+          } else {
+            invertedWrap.style.display = 'block';
+          }
+        }
       },
       onClose: () => {}
     });
@@ -502,6 +521,10 @@ export function bindFigmaCardEditorEvents(
     };
 
     buttons.forEach((btn) => {
+      // Evitar que el textarea pierda el foco o la selección en dispositivos móviles y de escritorio
+      btn.addEventListener('mousedown', (e) => e.preventDefault());
+      btn.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         const prefix = btn.getAttribute(dataAttr);
@@ -567,7 +590,7 @@ export function bindFigmaCardEditorEvents(
     const back = reversoInput?.value.trim() || 'Respuesta';
     const isOcclusion = occlusionMasks.length > 0;
     const isLatex = front.includes('$') || back.includes('$');
-    const createInverted = invertedToggle?.checked || false;
+    const createInverted = !isOcclusion && (invertedToggle?.checked || false);
 
     const cardType = isOcclusion ? 'image_occlusion' : isLatex ? 'latex' : 'standard';
 

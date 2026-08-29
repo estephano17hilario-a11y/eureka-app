@@ -433,6 +433,171 @@ export class DialogService {
       if (e.target === modal) closeModal();
     });
   }
+
+  /**
+   * Modal para editar Carpeta (Nombre y Descripción)
+   */
+  public showEditFolderModal(options: {
+    initialName: string;
+    initialDescription?: string;
+    onConfirm: (name: string, description: string) => void;
+    onDelete?: () => void;
+  }): void {
+    const modal = document.createElement('div');
+    modal.className = 'apple-modal-overlay';
+    modal.innerHTML = `
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:36px; height:36px; border-radius:10px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; display:flex; align-items:center; justify-content:center;">
+              📁
+            </div>
+            <h3 style="font-size:1.25rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">Editar Carpeta</h3>
+          </div>
+          <button id="btn-edit-f-close" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">Nombre de la Carpeta</label>
+            <input type="text" id="input-edit-folder-name" class="cupertino-dialog-input" value="${options.initialName || ''}" placeholder="Ej: Anatomía, Idiomas..." />
+          </div>
+
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">Descripción</label>
+            <input type="text" id="input-edit-folder-desc" class="cupertino-dialog-input" value="${options.initialDescription || ''}" placeholder="Descripción opcional..." />
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          ${
+            options.onDelete
+              ? `
+            <button class="dialog-btn dialog-btn-danger" id="btn-edit-f-delete" style="padding:10px 14px; font-size:0.88rem;">
+              🗑️ Eliminar
+            </button>
+          `
+              : '<div></div>'
+          }
+
+          <div style="display:flex; gap:10px;">
+            <button class="dialog-btn dialog-btn-cancel" id="btn-edit-f-cancel">Cancelar</button>
+            <button class="dialog-btn dialog-btn-primary" id="btn-edit-f-save">Guardar</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const inputName = modal.querySelector('#input-edit-folder-name') as HTMLInputElement;
+    const inputDesc = modal.querySelector('#input-edit-folder-desc') as HTMLInputElement;
+    inputName.focus();
+
+    const closeModal = () => modal.remove();
+
+    modal.querySelector('#btn-edit-f-close')?.addEventListener('click', closeModal);
+    modal.querySelector('#btn-edit-f-cancel')?.addEventListener('click', closeModal);
+
+    modal.querySelector('#btn-edit-f-save')?.addEventListener('click', () => {
+      const name = inputName.value.trim();
+      const desc = inputDesc.value.trim();
+      if (name) {
+        closeModal();
+        options.onConfirm(name, desc);
+      }
+    });
+
+    if (options.onDelete) {
+      modal.querySelector('#btn-edit-f-delete')?.addEventListener('click', () => {
+        closeModal();
+        options.onDelete?.();
+      });
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  /**
+   * Modal para editar Mazo (Nombre)
+   */
+  public showEditDeckModal(options: {
+    initialName: string;
+    onConfirm: (name: string) => void;
+    onDelete?: () => void;
+  }): void {
+    const modal = document.createElement('div');
+    modal.className = 'apple-modal-overlay';
+    modal.innerHTML = `
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:36px; height:36px; border-radius:10px; background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.3); color:#a855f7; display:flex; align-items:center; justify-content:center;">
+              🎴
+            </div>
+            <h3 style="font-size:1.25rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">Editar Mazo</h3>
+          </div>
+          <button id="btn-edit-d-close" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">Nombre del Mazo</label>
+            <input type="text" id="input-edit-deck-name" class="cupertino-dialog-input" value="${options.initialName || ''}" placeholder="Ej: Fórmulas, Verbos..." />
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          ${
+            options.onDelete
+              ? `
+            <button class="dialog-btn dialog-btn-danger" id="btn-edit-d-delete" style="padding:10px 14px; font-size:0.88rem;">
+              🗑️ Eliminar
+            </button>
+          `
+              : '<div></div>'
+          }
+
+          <div style="display:flex; gap:10px;">
+            <button class="dialog-btn dialog-btn-cancel" id="btn-edit-d-cancel">Cancelar</button>
+            <button class="dialog-btn dialog-btn-primary" id="btn-edit-d-save">Guardar</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const inputName = modal.querySelector('#input-edit-deck-name') as HTMLInputElement;
+    inputName.focus();
+
+    const closeModal = () => modal.remove();
+
+    modal.querySelector('#btn-edit-d-close')?.addEventListener('click', closeModal);
+    modal.querySelector('#btn-edit-d-cancel')?.addEventListener('click', closeModal);
+
+    modal.querySelector('#btn-edit-d-save')?.addEventListener('click', () => {
+      const name = inputName.value.trim();
+      if (name) {
+        closeModal();
+        options.onConfirm(name);
+      }
+    });
+
+    if (options.onDelete) {
+      modal.querySelector('#btn-edit-d-delete')?.addEventListener('click', () => {
+        closeModal();
+        options.onDelete?.();
+      });
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
 }
 
 export const dialogService = DialogService.getInstance();
+

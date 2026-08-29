@@ -3164,6 +3164,33 @@ option {
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 0 16px rgba(56, 189, 248, 0.12) !important;
 }
 
+/* ==========================================================================
+   IMAGE OCCLUSION LIVE DRAWING RECTANGLE (MATCHING REFERENCE SCREENSHOT)
+   ========================================================================== */
 
+#apple-io-layer {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none !important;
+  cursor: crosshair !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
 
+.occlusion-rect.drawing {
+  position: absolute !important;
+  border: 3px dashed #10b981 !important;
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.45) !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+  box-sizing: border-box !important;
+  transition: none !important;
+}
 
+.figma-drawn-mask.revealed-active-mask {
+  display: none !important;
+}

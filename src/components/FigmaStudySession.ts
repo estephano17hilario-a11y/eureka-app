@@ -287,8 +287,8 @@ export class FigmaStudySession {
               .map((m) => {
                 const isActive = m.id === card.activeMaskId;
                 if (isActive) {
-                  // El recuadro objetivo se muestra totalmente revelado y limpio
-                  return `<div class="figma-drawn-mask revealed-active-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:rgba(16,185,129,0.06); border:2px dashed rgba(16,185,129,0.7); pointer-events:none;"></div>`;
+                  // El recuadro objetivo simplemente se desocluya sin puntos ni recuadros superpuestos
+                  return '';
                 }
                 // Si el modo es ocultar todas, las no activas siguen tapadas
                 if (mode === 'hide_all_reveal_one') {

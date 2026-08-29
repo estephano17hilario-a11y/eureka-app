@@ -170,7 +170,7 @@ export class StudySession {
                 const isActive = m.id === card.activeMaskId;
                 if (isActive) {
                   return isBack
-                    ? `<div class="occlusion-mask-revealed" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:rgba(16,185,129,0.06); border:2px dashed rgba(16,185,129,0.7);"></div>`
+                    ? ''
                     : `<div class="occlusion-mask-target" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%;">?</div>`;
                 } else {
                   return mode === 'hide_all_reveal_one'

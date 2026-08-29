@@ -1,11 +1,14 @@
 import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
+import { dialogService } from '../services/dialog.service';
+import { nativeService } from '../services/native.service';
 
 export interface FigmaSubdeckCallbacks {
   onBack: () => void;
   onSelectSubdeck: (subdeckId: string) => void;
   onAdd: (parentId: string) => void;
   onConfigureDeck: (deckId: string) => void;
+  onRefresh?: () => void;
 }
 
 export function renderFigmaSubdeckList(deck: Deck): string {
@@ -50,7 +53,7 @@ export function renderFigmaSubdeckList(deck: Deck): string {
                   const s = deckService.getDeckStats(sub.id);
                   const isFolder = sub.icon === 'folder' || sub.icon === 'folder-sub';
                   return `
-            <div class="figma-deck-row" data-subdeck-id="${sub.id}">
+            <div class="figma-deck-row" data-subdeck-id="${sub.id}" title="Mantén presionado para editar">
               <div class="figma-deck-left">
                 <div class="figma-deck-folder-icon" style="background:${sub.color}15; border-color:${sub.color}; color:${sub.color};">
                   ${
@@ -61,7 +64,7 @@ export function renderFigmaSubdeckList(deck: Deck): string {
                 </div>
                 <div>
                   <div class="figma-deck-title" style="font-size:1.05rem;">${sub.name}</div>
-                  <div class="figma-deck-subtext">${isFolder ? 'Carpeta' : `Tarjetas para hoy: ${s.dueCards > 0 ? s.dueCards : s.totalCards}`}</div>
+                  <div class="figma-deck-subtext">${isFolder ? (sub.description || 'Carpeta') : `Tarjetas para hoy: ${s.dueCards > 0 ? s.dueCards : s.totalCards}`}</div>
                 </div>
               </div>
 
@@ -85,9 +88,93 @@ export function bindFigmaSubdeckEvents(
   container.querySelector('#btn-back-to-inicio')?.addEventListener('click', () => callbacks.onBack());
   container.querySelector('#crumb-inicio')?.addEventListener('click', () => callbacks.onBack());
 
-  container.querySelectorAll('.figma-deck-row').forEach((row) => {
-    row.addEventListener('click', () => {
-      const id = (row as HTMLElement).dataset.subdeckId;
+  container.querySelectorAll<HTMLElement>('.figma-deck-row').forEach((row) => {
+    let pressTimer: number | null = null;
+    let isLongPress = false;
+
+    const cancelPress = () => {
+      if (pressTimer) {
+        window.clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    };
+
+    const triggerLongPress = () => {
+      isLongPress = true;
+      nativeService.triggerHaptics('heavy');
+      const id = row.dataset.subdeckId;
+      if (!id) return;
+      const target = deckService.getDeckById(id);
+      if (!target) return;
+
+      if (deckService.isFolder(target)) {
+        dialogService.showEditFolderModal({
+          initialName: target.name,
+          initialDescription: target.description || '',
+          onConfirm: (name, description) => {
+            deckService.updateDeck(target.id, { name, description });
+            callbacks.onRefresh?.();
+          },
+          onDelete: () => {
+            dialogService.showConfirm({
+              title: `¿Eliminar "${target.name}"?`,
+              message: 'Se eliminarán todos los elementos dentro de esta carpeta.',
+              isDanger: true,
+              confirmText: 'Sí, eliminar',
+              onConfirm: () => {
+                deckService.deleteDeck(target.id);
+                callbacks.onRefresh?.();
+              }
+            });
+          }
+        });
+      } else {
+        dialogService.showEditDeckModal({
+          initialName: target.name,
+          onConfirm: (name) => {
+            deckService.updateDeck(target.id, { name });
+            callbacks.onRefresh?.();
+          },
+          onDelete: () => {
+            dialogService.showConfirm({
+              title: `¿Eliminar "${target.name}"?`,
+              message: 'Se eliminarán todas las flashcards de este mazo.',
+              isDanger: true,
+              confirmText: 'Sí, eliminar',
+              onConfirm: () => {
+                deckService.deleteDeck(target.id);
+                callbacks.onRefresh?.();
+              }
+            });
+          }
+        });
+      }
+    };
+
+    row.addEventListener('touchstart', () => {
+      isLongPress = false;
+      pressTimer = window.setTimeout(triggerLongPress, 460);
+    }, { passive: true });
+
+    row.addEventListener('touchend', cancelPress);
+    row.addEventListener('touchmove', cancelPress);
+
+    row.addEventListener('mousedown', () => {
+      isLongPress = false;
+      pressTimer = window.setTimeout(triggerLongPress, 460);
+    });
+
+    row.addEventListener('mouseup', cancelPress);
+    row.addEventListener('mouseleave', cancelPress);
+
+    row.addEventListener('click', (e) => {
+      if (isLongPress) {
+        e.preventDefault();
+        e.stopPropagation();
+        isLongPress = false;
+        return;
+      }
+      const id = row.dataset.subdeckId;
       if (id) callbacks.onSelectSubdeck(id);
     });
   });

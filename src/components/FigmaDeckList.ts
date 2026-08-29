@@ -1,8 +1,11 @@
 import { deckService } from '../services/deck.service';
+import { dialogService } from '../services/dialog.service';
+import { nativeService } from '../services/native.service';
 
 export interface FigmaDeckListCallbacks {
   onSelectDeck: (deckId: string) => void;
   onAdd: () => void;
+  onRefresh?: () => void;
 }
 
 export function renderFigmaDeckList(): string {
@@ -61,7 +64,7 @@ export function renderFigmaDeckList(): string {
         ${rootDecks
           .map(
             (d) => `
-          <div class="figma-deck-row" data-deck-id="${d.id}">
+          <div class="figma-deck-row" data-deck-id="${d.id}" title="Mantén presionado para editar">
             <div class="figma-deck-left">
               <div class="figma-deck-folder-icon" style="background:${d.color}15; border-color:${d.color}; color:${d.color};">
                 ${
@@ -76,7 +79,9 @@ export function renderFigmaDeckList(): string {
               </div>
             </div>
 
-            <span class="figma-chevron">›</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="figma-chevron">›</span>
+            </div>
           </div>
         `
           )
@@ -87,9 +92,93 @@ export function renderFigmaDeckList(): string {
 }
 
 export function bindFigmaDeckListEvents(container: HTMLElement, callbacks: FigmaDeckListCallbacks): void {
-  container.querySelectorAll('.figma-deck-row').forEach((card) => {
-    card.addEventListener('click', () => {
-      const id = (card as HTMLElement).dataset.deckId;
+  container.querySelectorAll<HTMLElement>('.figma-deck-row').forEach((card) => {
+    let pressTimer: number | null = null;
+    let isLongPress = false;
+
+    const cancelPress = () => {
+      if (pressTimer) {
+        window.clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    };
+
+    const triggerLongPress = () => {
+      isLongPress = true;
+      nativeService.triggerHaptics('heavy');
+      const id = card.dataset.deckId;
+      if (!id) return;
+      const target = deckService.getDeckById(id);
+      if (!target) return;
+
+      if (deckService.isFolder(target)) {
+        dialogService.showEditFolderModal({
+          initialName: target.name,
+          initialDescription: target.description || '',
+          onConfirm: (name, description) => {
+            deckService.updateDeck(target.id, { name, description });
+            callbacks.onRefresh?.();
+          },
+          onDelete: () => {
+            dialogService.showConfirm({
+              title: `¿Eliminar "${target.name}"?`,
+              message: 'Se eliminarán todos los submazos y tarjetas que contiene.',
+              isDanger: true,
+              confirmText: 'Sí, eliminar',
+              onConfirm: () => {
+                deckService.deleteDeck(target.id);
+                callbacks.onRefresh?.();
+              }
+            });
+          }
+        });
+      } else {
+        dialogService.showEditDeckModal({
+          initialName: target.name,
+          onConfirm: (name) => {
+            deckService.updateDeck(target.id, { name });
+            callbacks.onRefresh?.();
+          },
+          onDelete: () => {
+            dialogService.showConfirm({
+              title: `¿Eliminar "${target.name}"?`,
+              message: 'Se eliminarán todas las flashcards de este mazo.',
+              isDanger: true,
+              confirmText: 'Sí, eliminar',
+              onConfirm: () => {
+                deckService.deleteDeck(target.id);
+                callbacks.onRefresh?.();
+              }
+            });
+          }
+        });
+      }
+    };
+
+    card.addEventListener('touchstart', () => {
+      isLongPress = false;
+      pressTimer = window.setTimeout(triggerLongPress, 460);
+    }, { passive: true });
+
+    card.addEventListener('touchend', cancelPress);
+    card.addEventListener('touchmove', cancelPress);
+
+    card.addEventListener('mousedown', () => {
+      isLongPress = false;
+      pressTimer = window.setTimeout(triggerLongPress, 460);
+    });
+
+    card.addEventListener('mouseup', cancelPress);
+    card.addEventListener('mouseleave', cancelPress);
+
+    card.addEventListener('click', (e) => {
+      if (isLongPress) {
+        e.preventDefault();
+        e.stopPropagation();
+        isLongPress = false;
+        return;
+      }
+      const id = card.dataset.deckId;
       if (id) callbacks.onSelectDeck(id);
     });
   });

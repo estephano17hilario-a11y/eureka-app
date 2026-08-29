@@ -513,7 +513,8 @@ class EurekaFigmaApp {
           }
           this.render();
         },
-        onAdd: () => this.handleOpenAddMenu(null)
+        onAdd: () => this.handleOpenAddMenu(null),
+        onRefresh: () => this.render()
       });
     }
 
@@ -540,7 +541,8 @@ class EurekaFigmaApp {
         onConfigureDeck: () => {
           this.currentView = 'deck_settings';
           this.render();
-        }
+        },
+        onRefresh: () => this.render()
       });
     }
 

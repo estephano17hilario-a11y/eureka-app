@@ -226,17 +226,27 @@ export class ImageOcclusionEditor {
         if (this.isDrawing) end(e.clientX, e.clientY);
       });
 
-      // Touch events for mobile
-      layer.addEventListener('touchstart', (e) => {
+      // Touch events for mobile / Capacitor
+      layer.addEventListener('touchstart', (e: TouchEvent) => {
         if ((e.target as HTMLElement).classList.contains('rect-del')) return;
-        const touch = e.touches[0];
-        start(touch.clientX, touch.clientY);
-      });
-      window.addEventListener('touchmove', (e) => {
-        if (this.isDrawing && e.touches[0]) move(e.touches[0].clientX, e.touches[0].clientY);
-      });
-      window.addEventListener('touchend', (e) => {
-        if (this.isDrawing && e.changedTouches[0]) end(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        if (e.touches && e.touches[0]) {
+          e.preventDefault();
+          const touch = e.touches[0];
+          start(touch.clientX, touch.clientY);
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchmove', (e: TouchEvent) => {
+        if (this.isDrawing && e.touches && e.touches[0]) {
+          e.preventDefault();
+          move(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchend', (e: TouchEvent) => {
+        if (this.isDrawing && e.changedTouches && e.changedTouches[0]) {
+          end(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        }
       });
     }
   }
