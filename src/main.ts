@@ -388,19 +388,15 @@ class EurekaFigmaApp {
       return;
     }
 
-    // View: Fullscreen Deck Settings
+    // View: Fullscreen Deck Settings (Configuración de Intervalos)
     if (this.currentView === 'deck_settings') {
       bindFigmaDeckSettingsViewEvents(layout, subdeck, {
         onBack: () => {
-          this.currentView = 'dashboard';
+          this.currentView = 'advanced_menu';
           this.render();
         },
         onOpenAlgorithmSelector: () => {
           this.currentView = 'algorithm_selector';
-          this.render();
-        },
-        onOpenAdvancedMenu: () => {
-          this.currentView = 'advanced_menu';
           this.render();
         },
         onSaved: () => {
@@ -411,10 +407,14 @@ class EurekaFigmaApp {
       return;
     }
 
-    // View: Fullscreen Advanced Menu
+    // View: Fullscreen Advanced Menu (Opciones de Mazo - Vista Principal)
     if (this.currentView === 'advanced_menu') {
       bindFigmaAdvancedDeckMenuViewEvents(layout, subdeck, {
         onBack: () => {
+          this.currentView = 'dashboard';
+          this.render();
+        },
+        onOpenDeckSettings: () => {
           this.currentView = 'deck_settings';
           this.render();
         },
@@ -539,7 +539,7 @@ class EurekaFigmaApp {
         },
         onAdd: (parentId) => this.handleOpenAddMenu(parentId),
         onConfigureDeck: () => {
-          this.currentView = 'deck_settings';
+          this.currentView = 'advanced_menu';
           this.render();
         },
         onRefresh: () => this.render()
@@ -571,7 +571,7 @@ class EurekaFigmaApp {
           this.render();
         },
         onConfigureDeck: () => {
-          this.currentView = 'deck_settings';
+          this.currentView = 'advanced_menu';
           this.render();
         },
         onEditCard: (cardId) => {

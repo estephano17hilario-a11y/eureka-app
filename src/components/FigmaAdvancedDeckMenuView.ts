@@ -4,6 +4,7 @@ import { dialogService } from '../services/dialog.service';
 
 export interface FigmaAdvancedDeckMenuViewCallbacks {
   onBack: () => void;
+  onOpenDeckSettings: () => void;
   onOpenAlgorithmSelector: () => void;
   onOpenAiBuilder: () => void;
   onOpenBatchImport: () => void;
@@ -13,37 +14,87 @@ export interface FigmaAdvancedDeckMenuViewCallbacks {
 export function renderFigmaAdvancedDeckMenuView(deck: Deck): string {
   const currentTheme = localStorage.getItem('eureka_theme') || 'oled';
 
+  const algoLabel =
+    deck.settings.algorithmType === 'fsrs'
+      ? 'FSRS (Inteligente)'
+      : deck.settings.algorithmType === 'quick'
+      ? 'Revisión rápida'
+      : deck.settings.algorithmType === 'languages'
+      ? 'Aprendizaje de idiomas'
+      : deck.settings.algorithmType === 'medical'
+      ? 'Aprendizaje médico'
+      : deck.settings.algorithmType === 'general'
+      ? 'Repaso general'
+      : 'Personalizado';
+
   return `
     <div class="ios-fullscreen-view">
       
       <!-- iOS Native Header -->
       <div class="ios-navbar">
-        <button class="ios-back-btn" id="btn-adv-view-back">
-          <span class="ios-back-chevron">‹</span> Ajustes
+        <button class="ios-back-btn" id="btn-adv-view-back" title="Volver al Mazo">
+          <span class="ios-back-chevron">‹</span> Mazo
         </button>
-        <h1 class="ios-nav-title">Opciones de Mazo</h1>
+        <h1 class="ios-nav-title">Opciones del Mazo</h1>
         <div style="width:60px;"></div>
       </div>
 
       <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:16px;">
         
-        <!-- Group 1: Algoritmo -->
-        <div class="apple-card-grouped">
-          <div class="apple-list-row" id="adv-view-row-algo" style="cursor:pointer;">
+        <div style="margin-bottom:4px;">
+          <h2 style="font-size:1.55rem; font-weight:900; color:#ffffff; letter-spacing:-0.02em; margin:0 0 4px 0;">${deck.name}</h2>
+          <p style="font-size:0.88rem; color:var(--f-text-secondary); margin:0;">Gestión general, creación con IA y configuración</p>
+        </div>
+
+        <!-- Grupo Principal: CONFIGURACIÓN DE INTERVALOS Y ALGORITMO (Solicitud #1) -->
+        <div class="apple-card-grouped" style="border:1.5px solid rgba(56,189,248,0.3); background:rgba(56,189,248,0.06);">
+          <div class="apple-list-row" id="adv-view-row-settings" style="cursor:pointer;" title="Configuración de intervalos">
             <div style="display:flex; align-items:center; gap:14px;">
-              <div class="apple-icon-circle-sm" style="background:rgba(56,189,248,0.15); color:var(--f-blue);">
-                ⥯
+              <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, #38bdf8, #818cf8); display:flex; align-items:center; justify-content:center; color:#07080a; font-weight:900; font-size:1.25rem; box-shadow:0 6px 18px rgba(56,189,248,0.35);">
+                ⚙️
               </div>
               <div>
-                <div style="font-size:1.02rem; font-weight:700; color:#fff;">Personalizado</div>
-                <div style="font-size:0.78rem; color:var(--f-text-secondary);">Ajustes predeterminados del algoritmo</div>
+                <div style="font-size:1.06rem; font-weight:800; color:#fff;">Configuración de Intervalos & Algoritmo</div>
+                <div style="font-size:0.82rem; color:var(--f-blue); font-weight:600;">Algoritmo activo: ${algoLabel} · ${deck.settings.newCardsPerDay} nuevas/día</div>
+              </div>
+            </div>
+            <span class="apple-chevron" style="color:var(--f-blue); font-size:1.4rem;">›</span>
+          </div>
+        </div>
+
+        <!-- Grupo 2: Herramientas de Creación e Importación -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="adv-view-row-ai" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div style="width:36px; height:36px; border-radius:10px; background:rgba(236,72,153,0.15); color:#ec4899; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                ✨
+              </div>
+              <div>
+                <div style="font-size:1.02rem; font-weight:700; color:#fff;">Generar tarjetas con IA</div>
+                <div style="font-size:0.78rem; color:var(--f-text-secondary);">Crea flashcards automáticas a partir de texto o PDFs</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="apple-badge-beta" style="background:#ec4899; color:#fff; font-size:0.75rem; padding:3px 8px; border-radius:6px; font-weight:800;">AI Builder</span>
+              <span class="apple-chevron">›</span>
+            </div>
+          </div>
+
+          <div class="apple-list-row" id="adv-view-row-import" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div style="width:36px; height:36px; border-radius:10px; background:rgba(16,185,129,0.15); color:#10b981; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                ⬇
+              </div>
+              <div>
+                <div style="font-size:1.02rem; font-weight:700; color:#fff;">Importar tarjetas masivamente</div>
+                <div style="font-size:0.78rem; color:var(--f-text-secondary);">Cargar desde Excel (.xlsx), CSV, TXT o Anki</div>
               </div>
             </div>
             <span class="apple-chevron">›</span>
           </div>
         </div>
 
-        <!-- Group 2: Audio, Tema & Estilo -->
+        <!-- Grupo 3: Audio y Estilo Visual -->
         <div class="apple-card-grouped">
           <div class="apple-list-row" id="adv-view-row-theme" style="cursor:pointer;">
             <div style="display:flex; align-items:center; gap:14px;">
@@ -62,7 +113,10 @@ export function renderFigmaAdvancedDeckMenuView(deck: Deck): string {
           <div class="apple-list-row" id="adv-view-row-tts" style="cursor:pointer;">
             <div style="display:flex; align-items:center; gap:14px;">
               <span style="font-size:1.2rem;">🔊</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Texto a voz</span>
+              <div>
+                <div style="font-size:1.02rem; font-weight:600; color:#fff;">Voz y Pronunciación (TTS)</div>
+                <div style="font-size:0.78rem; color:var(--f-text-secondary);">Idioma de lectura en voz alta</div>
+              </div>
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
               <span style="color:var(--f-text-secondary); font-size:0.9rem;">${deck.settings.ttsVoiceLang}</span>
@@ -71,61 +125,12 @@ export function renderFigmaAdvancedDeckMenuView(deck: Deck): string {
           </div>
         </div>
 
-        <!-- Group 3: Compartir y Biblioteca -->
+        <!-- Grupo 4: Gestión y Copias de Seguridad -->
         <div class="apple-card-grouped">
-          <div class="apple-list-row" id="adv-view-row-share" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:1.2rem;">⬆</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Compartir mazo</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span style="color:var(--f-text-secondary); font-size:0.9rem;">Off</span>
-              <span class="apple-chevron">›</span>
-            </div>
-          </div>
-
-          <div class="apple-list-row" id="adv-view-row-publish" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:1.2rem;">🖫</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Publicar en la biblioteca</span>
-            </div>
-            <span class="apple-chevron">›</span>
-          </div>
-        </div>
-
-        <!-- Group 4: Acciones Avanzadas -->
-        <div class="apple-card-grouped">
-          <div class="apple-list-row" id="adv-view-row-ai" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:1.2rem; color:#ec4899;">✨</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Generar tarjetas con IA</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="apple-badge-beta">Beta</span>
-              <span class="apple-chevron">›</span>
-            </div>
-          </div>
-
-          <div class="apple-list-row" id="adv-view-row-import" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:1.2rem;">⬇</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Importar tarjetas</span>
-            </div>
-            <span class="apple-chevron">›</span>
-          </div>
-
           <div class="apple-list-row" id="adv-view-row-rename" style="cursor:pointer;">
             <div style="display:flex; align-items:center; gap:14px;">
               <span style="font-size:1.2rem;">✏️</span>
               <span style="font-size:1.02rem; font-weight:600; color:#fff;">Cambiar el nombre del mazo</span>
-            </div>
-            <span class="apple-chevron">›</span>
-          </div>
-
-          <div class="apple-list-row" id="adv-view-row-move" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:1.2rem;">↪</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Mover mazo</span>
             </div>
             <span class="apple-chevron">›</span>
           </div>
@@ -141,15 +146,7 @@ export function renderFigmaAdvancedDeckMenuView(deck: Deck): string {
           <div class="apple-list-row" id="adv-view-row-reset" style="cursor:pointer;">
             <div style="display:flex; align-items:center; gap:14px;">
               <span style="font-size:1.2rem;">↺</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Restablecer progreso</span>
-            </div>
-            <span class="apple-chevron">›</span>
-          </div>
-
-          <div class="apple-list-row" id="adv-view-row-archive" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:1.2rem;">📥</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Archivar mazo</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Restablecer progreso de estudio</span>
             </div>
             <span class="apple-chevron">›</span>
           </div>
@@ -157,7 +154,7 @@ export function renderFigmaAdvancedDeckMenuView(deck: Deck): string {
           <div class="apple-list-row" id="adv-view-row-export" style="cursor:pointer;">
             <div style="display:flex; align-items:center; gap:14px;">
               <span style="font-size:1.2rem;">⬆</span>
-              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Exportar mazo</span>
+              <span style="font-size:1.02rem; font-weight:600; color:#fff;">Exportar copia de seguridad (JSON)</span>
             </div>
             <span class="apple-chevron">›</span>
           </div>
@@ -165,7 +162,7 @@ export function renderFigmaAdvancedDeckMenuView(deck: Deck): string {
           <div class="apple-list-row" id="adv-view-row-delete" style="cursor:pointer;">
             <div style="display:flex; align-items:center; gap:14px;">
               <span style="font-size:1.2rem; color:#ef4444;">🗑️</span>
-              <span style="font-size:1.02rem; font-weight:700; color:#ef4444;">Eliminar mazo</span>
+              <span style="font-size:1.02rem; font-weight:700; color:#ef4444;">Eliminar mazo definitivamente</span>
             </div>
           </div>
         </div>
@@ -182,11 +179,11 @@ export function bindFigmaAdvancedDeckMenuViewEvents(
   callbacks: FigmaAdvancedDeckMenuViewCallbacks
 ): void {
   container.querySelector('#btn-adv-view-back')?.addEventListener('click', () => callbacks.onBack());
-  container.querySelector('#adv-view-row-algo')?.addEventListener('click', () => callbacks.onOpenAlgorithmSelector());
+  container.querySelector('#adv-view-row-settings')?.addEventListener('click', () => callbacks.onOpenDeckSettings());
   container.querySelector('#adv-view-row-ai')?.addEventListener('click', () => callbacks.onOpenAiBuilder());
   container.querySelector('#adv-view-row-import')?.addEventListener('click', () => callbacks.onOpenBatchImport());
 
-  // Theme Selector (Requirement 4: modificar la UI de las flashcards y el fondo de la app)
+  // Theme Selector
   container.querySelector('#adv-view-row-theme')?.addEventListener('click', () => {
     const themes = ['oled', 'glass', 'emerald'];
     const current = localStorage.getItem('eureka_theme') || 'oled';
@@ -231,19 +228,6 @@ export function bindFigmaAdvancedDeckMenuViewEvents(
       isDanger: true,
       onConfirm: () => {
         deckService.resetDeckProgress(deck.id);
-        callbacks.onActionCompleted();
-      }
-    });
-  });
-
-  // Archive
-  container.querySelector('#adv-view-row-archive')?.addEventListener('click', () => {
-    dialogService.showConfirm({
-      title: 'Archivar Mazo',
-      message: `¿Deseas archivar el mazo "${deck.name}"?`,
-      confirmText: 'Archivar',
-      onConfirm: () => {
-        deckService.archiveDeck(deck.id);
         callbacks.onActionCompleted();
       }
     });

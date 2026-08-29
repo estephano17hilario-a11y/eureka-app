@@ -5,7 +5,6 @@ import { dialogService } from '../services/dialog.service';
 export interface FigmaDeckSettingsViewCallbacks {
   onBack: () => void;
   onOpenAlgorithmSelector: () => void;
-  onOpenAdvancedMenu: () => void;
   onSaved: () => void;
 }
 
@@ -28,120 +27,95 @@ export function renderFigmaDeckSettingsView(deck: Deck): string {
       
       <!-- iOS Native Header -->
       <div class="ios-navbar">
-        <button class="ios-back-btn" id="btn-deck-settings-back">
-          <span class="ios-back-chevron">‹</span> Volver
+        <button class="ios-back-btn" id="btn-deck-settings-back" title="Volver a Opciones">
+          <span class="ios-back-chevron">‹</span> Opciones
         </button>
-        <h1 class="ios-nav-title">Ajustes del Mazo</h1>
+        <h1 class="ios-nav-title">Configuración de Intervalos</h1>
         <div style="width:60px;"></div>
       </div>
 
-      <div class="ios-content-scroll">
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:18px;">
         
-        <div style="margin-bottom:12px;">
-          <h2 style="font-size:1.6rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">${deck.name}</h2>
-          <p style="font-size:0.88rem; color:var(--f-text-secondary);">Configura los parámetros de repetición espaciada</p>
+        <div style="margin-bottom:6px;">
+          <h2 style="font-size:1.55rem; font-weight:900; color:#ffffff; letter-spacing:-0.02em; margin:0 0 4px 0;">${deck.name}</h2>
+          <p style="font-size:0.88rem; color:var(--f-text-secondary); margin:0;">Parámetros del algoritmo de repetición espaciada (SRS)</p>
         </div>
 
-        <!-- Inset Grouped Container (Foto 1) -->
-        <div class="apple-card-grouped" style="margin-bottom:20px;">
-          
-          <!-- Row 1: Algoritmo -->
-          <div class="apple-list-row" id="row-view-select-algo" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <div class="apple-icon-circle-sm" style="background:rgba(56,189,248,0.15); color:var(--f-blue);">
+        <!-- Grupo 1: Algoritmo de Aprendizaje -->
+        <div class="apple-card-grouped">
+          <div class="apple-list-row" id="row-view-algo-selector" style="cursor:pointer;" title="Cambiar algoritmo">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div class="apple-icon-circle-sm" style="background:rgba(56,189,248,0.15); color:var(--f-blue); width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">
                 ⥯
               </div>
-              <span style="font-size:1.05rem; font-weight:700; color:#fff;">${algoLabel}</span>
+              <div>
+                <span class="apple-list-label" style="display:block; font-weight:700;">Algoritmo de aprendizaje</span>
+                <span style="font-size:0.78rem; color:var(--f-text-muted);">Elige el motor matemático o FSRS</span>
+              </div>
             </div>
-            <span class="apple-chevron">›</span>
-          </div>
-
-          <!-- Row 2: Tarjetas nuevas por día -->
-          <div class="apple-list-row" id="row-view-new-cards" style="cursor:pointer;">
-            <span style="font-size:1rem; font-weight:600; color:#fff;">Tarjetas nuevas por día</span>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span style="color:var(--f-blue); font-weight:800; font-size:1.05rem;" id="val-view-new-cards">${deck.settings.newCardsPerDay}</span>
-              <span class="apple-chevron">›</span>
-            </div>
-          </div>
-
-          <!-- Row 3: Máximo de tarjetas por día -->
-          <div class="apple-list-row" id="row-view-max-cards" style="cursor:pointer;">
-            <span style="font-size:1rem; font-weight:600; color:#fff;">Máximo de tarjetas por día</span>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span style="color:var(--f-blue); font-weight:800; font-size:1.05rem;" id="val-view-max-cards">${deck.settings.maxReviewsPerDay}</span>
-              <span class="apple-chevron">›</span>
-            </div>
-        <button class="ios-back-btn" id="btn-deck-settings-back">
-          <span class="ios-back-chevron">‹</span> Mazo
-        </button>
-        <h1 class="ios-nav-title">Opciones</h1>
-        <button class="ios-action-btn" id="btn-open-advanced-sheet">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-        </button>
-      </div>
-
-      <!-- Scrollable Settings List -->
-      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:20px;">
-
-        <!-- Group 1: General & Algoritmo -->
-        <div class="apple-card-grouped">
-          <div class="apple-list-row" id="row-view-algo-selector">
-            <span class="apple-list-label">Algoritmo de aprendizaje</span>
             <div style="display:flex; align-items:center; gap:8px;">
-              <span class="apple-list-value" id="val-view-algo-label">${algoLabel}</span>
-              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+              <span class="apple-list-value" id="val-view-algo-label" style="color:var(--f-blue); font-weight:800;">${algoLabel}</span>
+              <span class="apple-chevron">›</span>
             </div>
           </div>
 
           <div class="apple-list-row">
-            <span class="apple-list-label">Mezclar tarjetas</span>
-            <label class="apple-switch">
+            <div>
+              <span class="apple-list-label" style="display:block; font-weight:700;">Mezclar tarjetas</span>
+              <span style="font-size:0.78rem; color:var(--f-text-muted);">Barajar orden aleatorio en el repaso</span>
+            </div>
+            <label class="figma-switch">
               <input type="checkbox" id="toggle-view-mix-cards" ${deck.settings.mixCards ? 'checked' : ''} />
-              <span class="apple-slider"></span>
+              <span class="figma-slider"></span>
             </label>
           </div>
         </div>
 
-        <!-- Group 2: Límites Diarios -->
+        <!-- Grupo 2: Límites Diarios -->
         <div class="apple-card-grouped">
-          <div class="apple-list-row" id="row-view-new-cards">
-            <span class="apple-list-label">Tarjetas nuevas por día</span>
+          <div class="apple-list-row" id="row-view-new-cards" style="cursor:pointer;" title="Modificar tarjetas nuevas">
+            <div>
+              <span class="apple-list-label" style="display:block; font-weight:700;">Tarjetas nuevas por día</span>
+              <span style="font-size:0.78rem; color:var(--f-text-muted);">Nuevas flashcards a introducir diariamente</span>
+            </div>
             <div style="display:flex; align-items:center; gap:8px;">
-              <span class="apple-list-value" id="val-view-new-cards">${deck.settings.newCardsPerDay}</span>
-              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+              <span class="apple-list-value" id="val-view-new-cards" style="color:var(--f-blue); font-weight:800; font-size:1.05rem;">${deck.settings.newCardsPerDay}</span>
+              <span class="apple-chevron">›</span>
             </div>
           </div>
 
-          <div class="apple-list-row" id="row-view-max-cards">
-            <span class="apple-list-label">Máximo de tarjetas por día</span>
+          <div class="apple-list-row" id="row-view-max-cards" style="cursor:pointer;" title="Modificar máximo de repasos">
+            <div>
+              <span class="apple-list-label" style="display:block; font-weight:700;">Máximo de repasos por día</span>
+              <span style="font-size:0.78rem; color:var(--f-text-muted);">Límite total de repasos acumulados</span>
+            </div>
             <div style="display:flex; align-items:center; gap:8px;">
-              <span class="apple-list-value" id="val-view-max-cards">${deck.settings.maxReviewsPerDay}</span>
-              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+              <span class="apple-list-value" id="val-view-max-cards" style="color:var(--f-blue); font-weight:800; font-size:1.05rem;">${deck.settings.maxReviewsPerDay}</span>
+              <span class="apple-chevron">›</span>
             </div>
           </div>
         </div>
 
-        <!-- Group 3: Minijuegos de Descanso -->
+        <!-- Grupo 3: Minijuegos de Descanso y Pausas Activas -->
         <div class="apple-card-grouped">
           <div class="apple-list-row">
             <div>
-              <span class="apple-list-label" style="display:block;">🎮 Minijuegos de descanso</span>
-              <span style="font-size:0.75rem; color:var(--f-text-muted); display:block;">Sin carga alostática ni fatiga cognitiva</span>
+              <span class="apple-list-label" style="display:block; font-weight:700;">🎮 Minijuegos de descanso</span>
+              <span style="font-size:0.78rem; color:var(--f-text-muted); display:block;">Pausas lúdicas sin fatiga cognitiva</span>
             </div>
-            <label class="apple-switch">
+            <label class="figma-switch">
               <input type="checkbox" id="toggle-view-microgames" ${deck.settings.enableMicroGames !== false ? 'checked' : ''} />
-              <span class="apple-slider"></span>
+              <span class="figma-slider"></span>
             </label>
           </div>
 
-          <div class="apple-list-row" id="row-view-microgame-freq">
-            <span class="apple-list-label">Frecuencia de juego</span>
+          <div class="apple-list-row" id="row-view-microgame-freq" style="cursor:pointer;">
+            <span class="apple-list-label" style="font-weight:700;">Frecuencia de minijuego</span>
             <div style="display:flex; align-items:center; gap:8px;">
-              <span class="apple-list-value" id="val-view-microgame-freq">
+              <span class="apple-list-value" id="val-view-microgame-freq" style="color:var(--f-blue); font-weight:700;">
                 ${(deck.settings.microGameInterval || 5) === 0 ? 'Desactivado' : `Cada ${deck.settings.microGameInterval || 5} tarjetas`}
               </span>
-              <span style="color:var(--f-text-muted); font-size:1.2rem;">›</span>
+              <span class="apple-chevron">›</span>
             </div>
           </div>
         </div>
@@ -158,7 +132,6 @@ export function bindFigmaDeckSettingsViewEvents(
   callbacks: FigmaDeckSettingsViewCallbacks
 ): void {
   container.querySelector('#btn-deck-settings-back')?.addEventListener('click', () => callbacks.onBack());
-  container.querySelector('#btn-open-advanced-sheet')?.addEventListener('click', () => callbacks.onOpenAdvancedMenu());
   container.querySelector('#row-view-algo-selector')?.addEventListener('click', () => callbacks.onOpenAlgorithmSelector());
 
   // Toggle mix cards
@@ -167,6 +140,7 @@ export function bindFigmaDeckSettingsViewEvents(
     deckService.updateDeck(deck.id, {
       settings: { ...deck.settings, mixCards: mixToggle.checked }
     });
+    callbacks.onSaved();
   });
 
   // Toggle microgames
@@ -175,6 +149,7 @@ export function bindFigmaDeckSettingsViewEvents(
     deckService.updateDeck(deck.id, {
       settings: { ...deck.settings, enableMicroGames: microToggle.checked }
     });
+    callbacks.onSaved();
   });
 
   // Microgame freq
@@ -193,6 +168,7 @@ export function bindFigmaDeckSettingsViewEvents(
           });
           const el = container.querySelector('#val-view-microgame-freq');
           if (el) el.textContent = num === 0 ? 'Desactivado' : `Cada ${num} tarjetas`;
+          callbacks.onSaved();
         }
       }
     });
@@ -213,6 +189,7 @@ export function bindFigmaDeckSettingsViewEvents(
           });
           const el = container.querySelector('#val-view-new-cards');
           if (el) el.textContent = String(num);
+          callbacks.onSaved();
         }
       }
     });
@@ -233,6 +210,7 @@ export function bindFigmaDeckSettingsViewEvents(
           });
           const el = container.querySelector('#val-view-max-cards');
           if (el) el.textContent = String(num);
+          callbacks.onSaved();
         }
       }
     });
