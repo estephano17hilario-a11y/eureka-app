@@ -406,8 +406,6 @@ export class UltraFastMindMap {
    * 1. ARQUITECTURA E INICIALIZACIÓN SÚPER LIGERA
    */
   public mount(): void {
-    const flashcards = this.getTopicFlashcards();
-
     this.container.innerHTML = `
       <div class="mindmap-viewport-wrapper">
         <!-- 1. Top Action Header Compacto (Solo 2 Botones: 'Mapa' y 'Recuadro' + Controles básicos) -->
@@ -422,16 +420,14 @@ export class UltraFastMindMap {
             </div>
           </div>
 
-          <!-- LOS 2 BOTONES CHICOS SOLICITADOS: 'MAPA' Y 'RECUADRO' -->
+          <!-- LOS 2 BOTONES CHICOS SOLICITADOS (SIN NOMBRES): '🗺️' Y '🔲' -->
           <div class="mindmap-top-two-buttons">
-            <button class="mindmap-header-action-pill" id="btn-toggle-menu-map" title="Configurar mapa y lienzo">
+            <button class="mindmap-header-action-pill mindmap-icon-only-pill" id="btn-toggle-menu-map" title="Configuración del mapa">
               <span class="pill-icon">🗺️</span>
-              <span class="pill-label">Mapa</span>
               <span class="pill-chevron">▾</span>
             </button>
-            <button class="mindmap-header-action-pill" id="btn-toggle-menu-node" title="Configurar recuadro seleccionado">
+            <button class="mindmap-header-action-pill mindmap-icon-only-pill" id="btn-toggle-menu-node" title="Configuración del recuadro">
               <span class="pill-icon">🔲</span>
-              <span class="pill-label">Recuadro</span>
               <span class="pill-chevron">▾</span>
             </button>
           </div>
@@ -453,31 +449,17 @@ export class UltraFastMindMap {
         <!-- Input Oculto para Cargar Fotos en los Recuadros -->
         <input type="file" id="mindmap-photo-file-input" accept="image/*" style="display:none;" />
 
-        <!-- Panel Desplegable: 'MAPA' (Formato Horizontal Ribbon) -->
+        <!-- Panel Desplegable: 'MAPA' (Ultra Compacto y Plegable para Móviles) -->
         <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-map" style="display:none;">
           <div class="dropdown-h-group">
-            <span class="dropdown-h-title">🗺️ Mapa</span>
-          </div>
-
-          <div class="dropdown-h-divider"></div>
-
-          <!-- Botones pequeños de Deshacer y Rehacer solicitados -->
-          <div class="dropdown-h-group">
-            <button class="dropdown-tool-btn-sm" id="btn-ribbon-undo" title="Deshacer último cambio (Ctrl+Z)">↶ Deshacer</button>
-            <button class="dropdown-tool-btn-sm" id="btn-ribbon-redo" title="Rehacer cambio (Ctrl+Y)">↷ Rehacer</button>
-          </div>
-
-          <div class="dropdown-h-divider"></div>
-
-          <div class="dropdown-h-group">
             <label class="dropdown-h-label">Esquema:</label>
-            <select id="select-map-layout" class="dropdown-select-clean-sm" title="Cambiar tipo de estructura">
-              <option value="logicalStructure" ${this.currentLayout === 'logicalStructure' ? 'selected' : ''}>🌲 Lógica (Izq ➔ Der)</option>
+            <select id="select-map-layout" class="dropdown-select-clean-sm dropdown-select-compact" title="Cambiar tipo de estructura">
+              <option value="logicalStructure" ${this.currentLayout === 'logicalStructure' ? 'selected' : ''}>🌲 Lógica</option>
               <option value="mindMap" ${this.currentLayout === 'mindMap' ? 'selected' : ''}>🧠 Radial</option>
               <option value="organizationStructure" ${this.currentLayout === 'organizationStructure' ? 'selected' : ''}>🏛️ Organigrama</option>
               <option value="catalogOrganization" ${this.currentLayout === 'catalogOrganization' ? 'selected' : ''}>📑 Catálogo</option>
-              <option value="timeline" ${this.currentLayout === 'timeline' ? 'selected' : ''}>⏳ Línea Horizontal</option>
-              <option value="timeline2" ${this.currentLayout === 'timeline2' ? 'selected' : ''}>⌛ Línea Vertical</option>
+              <option value="timeline" ${this.currentLayout === 'timeline' ? 'selected' : ''}>⏳ Línea H</option>
+              <option value="timeline2" ${this.currentLayout === 'timeline2' ? 'selected' : ''}>⌛ Línea V</option>
               <option value="fishbone" ${this.currentLayout === 'fishbone' ? 'selected' : ''}>🐟 Ishikawa</option>
               <option value="verticalMindMap" ${this.currentLayout === 'verticalMindMap' ? 'selected' : ''}>🏢 Jerárquico</option>
             </select>
@@ -487,58 +469,40 @@ export class UltraFastMindMap {
 
           <div class="dropdown-h-group">
             <label class="dropdown-h-label">Fondo:</label>
-            <div class="theme-chips-row-sm">
-              <button class="theme-chip-btn ${this.currentTheme === 'cyberDark' ? 'active' : ''}" data-theme="cyberDark">🌌 Cyber</button>
-              <button class="theme-chip-btn ${this.currentTheme === 'oceanBlue' ? 'active' : ''}" data-theme="oceanBlue">🌊 Ocean</button>
-              <button class="theme-chip-btn ${this.currentTheme === 'bioEmerald' ? 'active' : ''}" data-theme="bioEmerald">🍃 Bio</button>
-              <button class="theme-chip-btn ${this.currentTheme === 'midnightPurple' ? 'active' : ''}" data-theme="midnightPurple">🔮 Purple</button>
-              <button class="theme-chip-btn ${this.currentTheme === 'obsidianGold' ? 'active' : ''}" data-theme="obsidianGold">⚡ Gold</button>
-              <button class="theme-chip-btn ${this.currentTheme === 'draculaNeon' ? 'active' : ''}" data-theme="draculaNeon">🧛 Dracula</button>
-              <button class="theme-chip-btn ${this.currentTheme === 'nordArctic' ? 'active' : ''}" data-theme="nordArctic">❄️ Nord</button>
-              <button class="theme-chip-btn ${this.currentTheme === 'sunsetCrimson' ? 'active' : ''}" data-theme="sunsetCrimson">🌅 Sunset</button>
-              <button class="theme-chip-btn ${this.currentTheme === 'sakuraRose' ? 'active' : ''}" data-theme="sakuraRose">🌸 Sakura</button>
-              <button class="theme-chip-btn ${this.currentTheme === 'cleanOled' ? 'active' : ''}" data-theme="cleanOled">🖤 OLED</button>
-            </div>
+            <select id="select-map-theme" class="dropdown-select-clean-sm dropdown-select-compact" title="Cambiar tema de fondo">
+              <option value="cyberDark" ${this.currentTheme === 'cyberDark' ? 'selected' : ''}>🌌 Cyber</option>
+              <option value="oceanBlue" ${this.currentTheme === 'oceanBlue' ? 'selected' : ''}>🌊 Ocean</option>
+              <option value="bioEmerald" ${this.currentTheme === 'bioEmerald' ? 'selected' : ''}>🍃 Bio</option>
+              <option value="midnightPurple" ${this.currentTheme === 'midnightPurple' ? 'selected' : ''}>🔮 Purple</option>
+              <option value="obsidianGold" ${this.currentTheme === 'obsidianGold' ? 'selected' : ''}>⚡ Gold</option>
+              <option value="draculaNeon" ${this.currentTheme === 'draculaNeon' ? 'selected' : ''}>🧛 Dracula</option>
+              <option value="nordArctic" ${this.currentTheme === 'nordArctic' ? 'selected' : ''}>❄️ Nord</option>
+              <option value="sunsetCrimson" ${this.currentTheme === 'sunsetCrimson' ? 'selected' : ''}>🌅 Sunset</option>
+              <option value="sakuraRose" ${this.currentTheme === 'sakuraRose' ? 'selected' : ''}>🌸 Sakura</option>
+              <option value="cleanOled" ${this.currentTheme === 'cleanOled' ? 'selected' : ''}>🖤 OLED</option>
+            </select>
           </div>
 
           <div class="dropdown-h-divider"></div>
 
           <div class="dropdown-h-group">
-            <label class="dropdown-h-label">Recuadros:</label>
-            <div class="color-dots-row-sm" id="map-global-color-palette">
-              <button class="color-dot-btn" data-color="blue" style="background:#0ea5e9;" title="Azul Cyan"></button>
-              <button class="color-dot-btn" data-color="purple" style="background:#a855f7;" title="Violeta Cyber"></button>
-              <button class="color-dot-btn" data-color="emerald" style="background:#10b981;" title="Esmeralda Bio"></button>
-              <button class="color-dot-btn" data-color="amber" style="background:#f59e0b;" title="Ámbar"></button>
-              <button class="color-dot-btn" data-color="rose" style="background:#ec4899;" title="Rosa Neón"></button>
-              <button class="color-dot-btn" data-color="dark" style="background:#334155;" title="Pizarra"></button>
-            </div>
-          </div>
-
-          <div class="dropdown-h-divider"></div>
-
-          <div class="dropdown-h-group dropdown-h-actions">
-            <button class="dropdown-tool-btn-sm" id="btn-map-fit-menu">🎯 Centrar</button>
-            <button class="dropdown-tool-btn-sm" id="btn-map-expand-all">📂 Desplegar</button>
-            <button class="dropdown-tool-btn-sm" id="btn-map-collapse-all">📁 Plegar</button>
-            <button class="dropdown-tool-btn-sm" id="btn-map-search-toggle">🔍 Buscar</button>
-            <button class="dropdown-tool-btn-sm" id="btn-map-view-flashcards">🎴 Flashcards (${flashcards.length})</button>
-            <button class="dropdown-tool-btn-sm" id="btn-map-shortcuts">⌨️ Atajos</button>
-            <button class="dropdown-tool-btn-sm" id="btn-map-export-png">🖼️ PNG</button>
-            <button class="dropdown-tool-btn-sm" id="btn-map-export-json">💾 JSON</button>
+            <label class="dropdown-h-label">Color:</label>
+            <select id="select-map-global-color" class="dropdown-select-clean-sm dropdown-select-compact" title="Cambiar color de los recuadros">
+              <option value="" disabled selected>🎨 Color...</option>
+              <option value="blue">🔵 Cyan</option>
+              <option value="purple">🟣 Violeta</option>
+              <option value="emerald">🟢 Esmeralda</option>
+              <option value="amber">🟡 Ámbar</option>
+              <option value="rose">🔴 Rosa</option>
+              <option value="dark">⚫ Pizarra</option>
+            </select>
           </div>
 
           <button type="button" class="btn-dropdown-close-sm" id="btn-close-map-dropdown" title="Cerrar barra">✕</button>
         </div>
 
-        <!-- Panel Desplegable: 'RECUADRO' (Formato Horizontal Ribbon) -->
+        <!-- Panel Desplegable: 'RECUADRO' (Ultra Compacto y Plegable para Móviles) -->
         <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-node" style="display:none;">
-          <div class="dropdown-h-group">
-            <span class="dropdown-h-title">🔲 Recuadro</span>
-          </div>
-
-          <div class="dropdown-h-divider"></div>
-
           <div id="node-dropdown-empty-notice" class="dropdown-h-group" style="display:none; align-items:center; gap:8px;">
             <span style="font-size:0.8rem; color:var(--f-text-secondary);">Toca un recuadro o</span>
             <button class="figma-btn-white-pill-sm" id="btn-select-root-node">
@@ -546,47 +510,49 @@ export class UltraFastMindMap {
             </button>
           </div>
 
-          <div id="node-dropdown-content" style="display:inline-flex; align-items:center; gap:12px;">
-            <!-- Color de Fondo -->
+          <div id="node-dropdown-content" style="display:inline-flex; align-items:center; gap:10px;">
+            <!-- Fondo del Recuadro (Desplegable) -->
             <div class="dropdown-h-group">
               <label class="dropdown-h-label">Fondo:</label>
-              <div class="color-dots-row-sm" id="node-color-palette">
-                <button class="color-dot-btn" data-color="blue" style="background:#0ea5e9;" title="Azul Cyan"></button>
-                <button class="color-dot-btn" data-color="purple" style="background:#a855f7;" title="Violeta Cyber"></button>
-                <button class="color-dot-btn" data-color="emerald" style="background:#10b981;" title="Esmeralda Bio"></button>
-                <button class="color-dot-btn" data-color="amber" style="background:#f59e0b;" title="Ámbar"></button>
-                <button class="color-dot-btn" data-color="rose" style="background:#ec4899;" title="Rosa Neón"></button>
-                <button class="color-dot-btn" data-color="dark" style="background:#334155;" title="Pizarra"></button>
-              </div>
+              <select id="select-node-bg-color" class="dropdown-select-clean-sm dropdown-select-compact" title="Color de fondo del recuadro">
+                <option value="" disabled selected>🎨 Fondo...</option>
+                <option value="blue">🔵 Cyan</option>
+                <option value="purple">🟣 Violeta</option>
+                <option value="emerald">🟢 Esmeralda</option>
+                <option value="amber">🟡 Ámbar</option>
+                <option value="rose">🔴 Rosa</option>
+                <option value="dark">⚫ Pizarra</option>
+              </select>
             </div>
 
             <div class="dropdown-h-divider"></div>
 
-            <!-- Color de Texto -->
+            <!-- Color de Texto (Desplegable) -->
             <div class="dropdown-h-group">
               <label class="dropdown-h-label">Texto:</label>
-              <div class="color-dots-row-sm" id="node-text-color-palette">
-                <button class="color-dot-btn" data-text-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
-                <button class="color-dot-btn" data-text-color="#38bdf8" style="background:#38bdf8;" title="Cyan"></button>
-                <button class="color-dot-btn" data-text-color="#34d399" style="background:#34d399;" title="Verde"></button>
-                <button class="color-dot-btn" data-text-color="#fbbf24" style="background:#fbbf24;" title="Dorado"></button>
-                <button class="color-dot-btn" data-text-color="#f472b6" style="background:#f472b6;" title="Rosa"></button>
-                <button class="color-dot-btn" data-text-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
-              </div>
+              <select id="select-node-text-color" class="dropdown-select-clean-sm dropdown-select-compact" title="Color del texto">
+                <option value="" disabled selected>✏️ Color...</option>
+                <option value="#ffffff">⚪ Blanco</option>
+                <option value="#38bdf8">🔵 Cyan</option>
+                <option value="#34d399">🟢 Verde</option>
+                <option value="#fbbf24">🟡 Dorado</option>
+                <option value="#f472b6">🔴 Rosa</option>
+                <option value="#94a3b8">⚪ Gris</option>
+              </select>
             </div>
 
             <div class="dropdown-h-divider"></div>
 
-            <!-- Tamaño / Estilo de Texto -->
+            <!-- Tamaño y Estilo de Texto (Desplegable) -->
             <div class="dropdown-h-group">
               <label class="dropdown-h-label">Tamaño:</label>
-              <div class="text-size-chips-row-sm">
-                <button class="text-size-btn text-size-btn-sm" data-size="12">12</button>
-                <button class="text-size-btn text-size-btn-sm active" data-size="14">14</button>
-                <button class="text-size-btn text-size-btn-sm" data-size="18">18</button>
-                <button class="text-size-btn text-size-btn-sm" data-size="22">22</button>
-                <button class="text-size-btn text-size-btn-sm" id="btn-toggle-bold"><strong>B</strong></button>
-              </div>
+              <select id="select-node-font-size" class="dropdown-select-clean-sm dropdown-select-compact" style="max-width:88px;" title="Tamaño de texto">
+                <option value="12">12 px</option>
+                <option value="14" selected>14 px</option>
+                <option value="18">18 px</option>
+                <option value="22">22 px</option>
+              </select>
+              <button class="text-size-btn text-size-btn-sm" id="btn-toggle-bold" title="Alternar Negrita"><strong>B</strong></button>
             </div>
 
             <div class="dropdown-h-divider"></div>
@@ -605,10 +571,10 @@ export class UltraFastMindMap {
 
             <!-- Acciones de Edición -->
             <div class="dropdown-h-group">
-              <button class="figma-btn-study-sm" id="btn-open-direct-text-editor">
+              <button class="figma-btn-study-sm" id="btn-open-direct-text-editor" title="Editar texto">
                 ✏️ Texto
               </button>
-              <button class="figma-btn-white-pill-sm" id="btn-open-katex-from-node-menu">
+              <button class="figma-btn-white-pill-sm" id="btn-open-katex-from-node-menu" title="Fórmulas KaTeX">
                 📐 KaTeX
               </button>
             </div>
@@ -1229,17 +1195,12 @@ export class UltraFastMindMap {
       this.fitToScreenBounds();
     });
 
-    root.querySelector('#btn-map-fit-menu')?.addEventListener('click', () => {
-      this.fitToScreenBounds();
-      this.closeAllDropdowns();
-    });
-
     root.querySelector('#btn-floating-fit')?.addEventListener('click', () => {
       this.fitToScreenBounds();
     });
 
     // ============================================================
-    // 🗺️ CONTROL DE MENÚ DESPLEGABLE: 'MAPA'
+    // 🗺️ CONTROL DE MENÚ DESPLEGABLE: 'MAPA' (Ultra Compacto)
     // ============================================================
     root.querySelector('#btn-toggle-menu-map')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1250,7 +1211,7 @@ export class UltraFastMindMap {
       this.closeAllDropdowns();
     });
 
-    // Selector de Estructura / Tipo de Esquema (8 Layouts)
+    // Selector de Estructura / Tipo de Esquema
     const selectLayout = root.querySelector('#select-map-layout') as HTMLSelectElement | null;
     selectLayout?.addEventListener('change', () => {
       const layout = selectLayout.value;
@@ -1263,64 +1224,27 @@ export class UltraFastMindMap {
       }
     });
 
-    // Selector de Temas Visuales (Fondo del Mapa)
-    root.querySelectorAll<HTMLButtonElement>('.theme-chip-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const themeKey = btn.dataset.theme;
-        if (!themeKey || !this.mindMapInstance) return;
-        root.querySelectorAll('.theme-chip-btn').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
+    // Selector de Temas Visuales (Fondo del Mapa Desplegable)
+    const selectTheme = root.querySelector('#select-map-theme') as HTMLSelectElement | null;
+    selectTheme?.addEventListener('change', () => {
+      const themeKey = selectTheme.value;
+      if (themeKey && this.mindMapInstance) {
         this.applyTheme(themeKey);
-      });
+      }
     });
 
-    // Color Global de Recuadros
-    root.querySelectorAll<HTMLButtonElement>('#map-global-color-palette .color-dot-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const colorKey = btn.dataset.color;
-        if (!colorKey) return;
+    // Selector de Color Global de Recuadros (Desplegable)
+    const selectGlobalColor = root.querySelector('#select-map-global-color') as HTMLSelectElement | null;
+    selectGlobalColor?.addEventListener('change', () => {
+      const colorKey = selectGlobalColor.value;
+      if (colorKey) {
         this.applyGlobalNodesColor(colorKey);
-      });
-    });
-
-    // Acciones de mapa en el menú desplegable
-    root.querySelector('#btn-map-expand-all')?.addEventListener('click', () => {
-      this.expandAllNodes();
-      this.closeAllDropdowns();
-    });
-
-    root.querySelector('#btn-map-collapse-all')?.addEventListener('click', () => {
-      this.collapseAllNodes();
-      this.closeAllDropdowns();
-    });
-
-    root.querySelector('#btn-map-search-toggle')?.addEventListener('click', () => {
-      this.closeAllDropdowns();
-      this.toggleSearchBar();
-    });
-
-    root.querySelector('#btn-map-view-flashcards')?.addEventListener('click', () => {
-      this.closeAllDropdowns();
-      this.openFlashcardsDrawer();
-    });
-
-    root.querySelector('#btn-map-shortcuts')?.addEventListener('click', () => {
-      this.closeAllDropdowns();
-      this.openShortcutsModal();
-    });
-
-    root.querySelector('#btn-map-export-png')?.addEventListener('click', () => {
-      this.closeAllDropdowns();
-      this.exportPngImage();
-    });
-
-    root.querySelector('#btn-map-export-json')?.addEventListener('click', () => {
-      this.closeAllDropdowns();
-      this.exportJson();
+        selectGlobalColor.value = '';
+      }
     });
 
     // ============================================================
-    // 🔲 CONTROL DE MENÚ DESPLEGABLE: 'RECUADRO'
+    // 🔲 CONTROL DE MENÚ DESPLEGABLE: 'RECUADRO' (Ultra Compacto)
     // ============================================================
     root.querySelector('#btn-toggle-menu-node')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1335,41 +1259,41 @@ export class UltraFastMindMap {
       this.selectRootNode();
     });
 
-    // Paleta de Color de Fondo del Recuadro
-    root.querySelectorAll<HTMLButtonElement>('#node-color-palette .color-dot-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const colorKey = btn.dataset.color;
-        if (!colorKey) return;
+    // Selector de Color de Fondo del Recuadro (Desplegable)
+    const selectNodeBgColor = root.querySelector('#select-node-bg-color') as HTMLSelectElement | null;
+    selectNodeBgColor?.addEventListener('change', () => {
+      const colorKey = selectNodeBgColor.value;
+      if (colorKey && this.activeNode && this.mindMapInstance) {
         this.applyNodeColor(colorKey);
-      });
+        selectNodeBgColor.value = '';
+      }
     });
 
-    // Paleta de Color del Texto del Recuadro
-    root.querySelectorAll<HTMLButtonElement>('[data-text-color]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const textColor = btn.dataset.textColor;
-        if (!textColor || !this.activeNode || !this.mindMapInstance) return;
+    // Selector de Color de Texto del Recuadro (Desplegable)
+    const selectNodeTextColor = root.querySelector('#select-node-text-color') as HTMLSelectElement | null;
+    selectNodeTextColor?.addEventListener('change', () => {
+      const textColor = selectNodeTextColor.value;
+      if (textColor && this.activeNode && this.mindMapInstance) {
         this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
           color: textColor
         });
         this.triggerHaptic();
         this.scheduleDebouncedSave();
-      });
+        selectNodeTextColor.value = '';
+      }
     });
 
-    // Tamaño de Texto del Recuadro
-    root.querySelectorAll<HTMLButtonElement>('.text-size-btn[data-size]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const size = Number(btn.dataset.size);
-        if (!size || !this.activeNode || !this.mindMapInstance) return;
-        root.querySelectorAll('.text-size-btn[data-size]').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
+    // Selector de Tamaño de Texto del Recuadro (Desplegable)
+    const selectNodeFontSize = root.querySelector('#select-node-font-size') as HTMLSelectElement | null;
+    selectNodeFontSize?.addEventListener('change', () => {
+      const size = Number(selectNodeFontSize.value);
+      if (size && this.activeNode && this.mindMapInstance) {
         this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
           fontSize: size
         });
         this.triggerHaptic();
         this.scheduleDebouncedSave();
-      });
+      }
     });
 
     // Alternar Negrita en Texto
@@ -1382,29 +1306,6 @@ export class UltraFastMindMap {
       });
       this.triggerHaptic();
       this.scheduleDebouncedSave();
-    });
-
-    // Stickers Rápidos en Menú Recuadro
-    root.querySelectorAll<HTMLButtonElement>('#node-menu-stickers-bar .sticker-chip').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const sticker = btn.dataset.sticker;
-        if (!sticker || !this.activeNode || !this.mindMapInstance) return;
-        const curText = (this.activeNode.getData ? this.activeNode.getData('text') : this.activeNode.nodeData?.data?.text) || '';
-        const newText = `${sticker} ${curText}`;
-        if (typeof this.activeNode.setData === 'function') {
-          this.activeNode.setData({ text: newText, rawText: newText });
-        } else if (this.activeNode.nodeData?.data) {
-          this.activeNode.nodeData.data.text = newText;
-          this.activeNode.nodeData.data.rawText = newText;
-        }
-        if (typeof this.mindMapInstance.render === 'function') {
-          this.mindMapInstance.render();
-        } else {
-          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, newText);
-        }
-        this.triggerHaptic();
-        this.scheduleDebouncedSave();
-      });
     });
 
     // 📷 Inserción de Fotos en Recuadros
@@ -1645,6 +1546,11 @@ export class UltraFastMindMap {
     this.currentTheme = themeKey;
     const themeObj = THEME_PRESETS[themeKey];
 
+    const selectTheme = this.container.querySelector('#select-map-theme') as HTMLSelectElement | null;
+    if (selectTheme && selectTheme.value !== themeKey) {
+      selectTheme.value = themeKey;
+    }
+
     try {
       this.mindMapInstance.setThemeConfig({
         backgroundColor: themeObj.backgroundColor,
@@ -1777,7 +1683,7 @@ export class UltraFastMindMap {
   /**
    * Plegar / Desplegar todos los nodos
    */
-  private expandAllNodes(): void {
+  public expandAllNodes(): void {
     if (!this.mindMapInstance) return;
     try {
       this.mindMapInstance.execCommand('EXPAND_ALL');
@@ -1788,7 +1694,7 @@ export class UltraFastMindMap {
     }
   }
 
-  private collapseAllNodes(): void {
+  public collapseAllNodes(): void {
     if (!this.mindMapInstance) return;
     try {
       this.mindMapInstance.execCommand('UNEXPAND_ALL');
@@ -1802,7 +1708,7 @@ export class UltraFastMindMap {
   /**
    * Abre el Visor Drawer de las Flashcards con inserción directa al mapa mental
    */
-  private openFlashcardsDrawer(): void {
+  public openFlashcardsDrawer(): void {
     const flashcards = this.getTopicFlashcards();
     this.triggerHaptic();
 
@@ -1916,7 +1822,7 @@ export class UltraFastMindMap {
   /**
    * Abre el Modal de Atajos de Teclado
    */
-  private openShortcutsModal(): void {
+  public openShortcutsModal(): void {
     const existing = document.getElementById('mindmap-shortcuts-modal-overlay');
     if (existing) existing.remove();
 
@@ -1992,7 +1898,7 @@ export class UltraFastMindMap {
   /**
    * Exporta el estado actual a una imagen PNG de alta resolución
    */
-  private async exportPngImage(): Promise<void> {
+  public async exportPngImage(): Promise<void> {
     if (!this.mindMapInstance) return;
     this.triggerHaptic();
 
@@ -2021,7 +1927,7 @@ export class UltraFastMindMap {
   /**
    * Exporta el estado actual a un archivo JSON descargable
    */
-  private exportJson(): void {
+  public exportJson(): void {
     if (!this.mindMapInstance) return;
     try {
       const data = this.mindMapInstance.getData(false);
@@ -2173,6 +2079,12 @@ export class UltraFastMindMap {
       const hasPhoto = Boolean(this.activeNode.getData ? this.activeNode.getData('image') : (this.activeNode.nodeData?.data?.image || this.activeNode.getData?.('imageUrl')));
       if (btnRemovePhoto) {
         btnRemovePhoto.style.display = hasPhoto ? 'inline-flex' : 'none';
+      }
+
+      const selectFontSize = this.container.querySelector('#select-node-font-size') as HTMLSelectElement | null;
+      const curFontSize = typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('fontSize', false) : 14;
+      if (selectFontSize && curFontSize) {
+        selectFontSize.value = String(curFontSize);
       }
     }
   }
