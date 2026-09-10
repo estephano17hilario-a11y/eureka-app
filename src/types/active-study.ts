@@ -44,15 +44,18 @@ export type ActiveStudyState =
   | 'CHUNK_COMPLETED'
   | 'TOPIC_CONSOLIDATED';
 
-// Tema completo de estudio activo
+// Tema o Cuaderno completo de estudio activo
 export interface ActiveStudyTopic {
   id: string;
   deckId: string;
   title: string;
   description?: string;
+  coverImage?: string; // Foto o portada del cuaderno (opcional)
+  subject?: string;    // Materia del cuaderno (una de las 20 más populares)
   chunks: StudyChunk[];
   currentChunkIndex: number;
   state: ActiveStudyState;
   createdAt: number;
   updatedAt: number;
 }
+

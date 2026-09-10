@@ -206,7 +206,12 @@ class ActiveStudyService {
   public createTopic(
     deckId: string = 'global_study',
     title: string,
-    chunksData: { title: string; content: string }[]
+    chunksData: { title: string; content: string }[],
+    options?: {
+      description?: string;
+      coverImage?: string;
+      subject?: string;
+    }
   ): ActiveStudyTopic {
     const topicId = 'topic_' + Math.random().toString(36).substring(2, 9);
     const now = Date.now();
@@ -224,6 +229,9 @@ class ActiveStudyService {
       id: topicId,
       deckId,
       title: title || 'Tema de Estudio Activo',
+      description: options?.description,
+      coverImage: options?.coverImage,
+      subject: options?.subject,
       chunks,
       currentChunkIndex: 0,
       state: 'READING_CHUNK',
@@ -233,6 +241,16 @@ class ActiveStudyService {
 
     this.topics.set(topicId, topic);
     this.outlineNodes.set(topicId, []);
+    this.saveToStorage();
+    return topic;
+  }
+
+  public updateTopic(topicId: string, updates: Partial<ActiveStudyTopic>): ActiveStudyTopic | null {
+    const topic = this.topics.get(topicId);
+    if (!topic) return null;
+
+    Object.assign(topic, updates);
+    topic.updatedAt = Date.now();
     this.saveToStorage();
     return topic;
   }

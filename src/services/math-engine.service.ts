@@ -44,6 +44,19 @@ export interface MathValidationResult {
   parsedExpectedLatex?: string;
 }
 
+export interface MathEvaluationResult {
+  raw: string;
+  exactLatex?: string;
+  decimalLatex?: string;
+  simplifiedLatex?: string;
+  numericValue?: number;
+  isEquation?: boolean;
+  lhs?: string;
+  rhs?: string;
+  steps?: string[];
+  scopeUsed?: Record<string, number>;
+}
+
 /**
  * Limpia y extrae LaTeX puro removiendo delimitadores de bloque, inline y etiquetas HTML.
  */
@@ -59,7 +72,193 @@ export function cleanLatex(raw: string): string {
 }
 
 /**
- * Directiva 4: Motor de Validación Semántica de Exámenes.
+ * Extrae asignaciones de variables de una cadena (ej. "x = 5", "y=10.5", "a = 1/2")
+ */
+export function parseVariableAssignments(text: string): Record<string, number> {
+  const vars: Record<string, number> = {};
+  if (!text) return vars;
+
+  const clean = cleanLatex(text);
+  // Match patterns like x = 5 or x = -3.2 or x = \frac{1}{2}
+  const regex = /([a-zA-Zα-ωΑ-Ω])\s*=\s*([+-]?\s*(?:\\frac\{\s*[-+]?\d+\s*\}\{\s*[-+]?\d+\s*\}|\d+(?:\.\d+)?))/g;
+  let match;
+  while ((match = regex.exec(clean)) !== null) {
+    const varName = match[1];
+    let valStr = match[2].replace(/\s+/g, '');
+    if (valStr.includes('\\frac')) {
+      const fracMatch = /\\frac\{([-+]?\d+)\}\{([-+]?\d+)\}/.exec(valStr);
+      if (fracMatch) {
+        const num = parseFloat(fracMatch[1]);
+        const den = parseFloat(fracMatch[2]);
+        if (den !== 0) {
+          vars[varName] = num / den;
+        }
+      }
+    } else {
+      const parsed = parseFloat(valStr);
+      if (!isNaN(parsed)) {
+        vars[varName] = parsed;
+      }
+    }
+  }
+
+  return vars;
+}
+
+/**
+ * Recorre los ancestros de un nodo de simple-mind-map para recolectar el ámbito de variables declaradas.
+ */
+export function extractContextVariablesFromTree(node: any): Record<string, number> {
+  const scope: Record<string, number> = {};
+  let current = node?.parent;
+
+  const visited = new Set();
+  while (current && !visited.has(current)) {
+    visited.add(current);
+    const text = current.getData ? current.getData('text') : current.nodeData?.data?.text;
+    if (text && typeof text === 'string') {
+      const nodeVars = parseVariableAssignments(text);
+      Object.assign(scope, nodeVars);
+    }
+    current = current.parent;
+  }
+
+  return scope;
+}
+
+/**
+ * Evalúa expresiones matemáticas con soporte de fracciones, variables contextuales y simplificación.
+ */
+export function evaluateMathExpression(rawExpr: string, scope: Record<string, number> = {}): MathEvaluationResult {
+  let expr = cleanLatex(rawExpr).trim();
+  if (!expr) {
+    return { raw: rawExpr };
+  }
+
+  // Quitar el '=' final si existe (ej. "1/2 + 3/4 =")
+  if (expr.endsWith('=')) {
+    expr = expr.slice(0, -1).trim();
+  }
+
+  // Si tiene un igual intermedio "y = 2x + 1", separar lhs y rhs
+  let lhs = '';
+  let rhs = expr;
+  let isEquation = false;
+  if (expr.includes('=')) {
+    const parts = expr.split('=');
+    if (parts.length === 2) {
+      lhs = parts[0].trim();
+      rhs = parts[1].trim();
+      isEquation = true;
+    }
+  }
+
+  const engine = getComputeEngine();
+  const steps: string[] = [];
+
+  // Reemplazar variables conocidas del scope en la expresión
+  let targetExpr = isEquation ? rhs : expr;
+  let substitutedExpr = targetExpr;
+
+  const varKeys = Object.keys(scope);
+  if (varKeys.length > 0) {
+    varKeys.forEach((k) => {
+      const v = scope[k];
+      const re = new RegExp(`\\b${k}\\b`, 'g');
+      if (re.test(substitutedExpr)) {
+        steps.push(`Sustituir ${k} = ${v}`);
+        substitutedExpr = substitutedExpr.replace(re, `(${v})`);
+      }
+    });
+  }
+
+  try {
+    if (engine) {
+      // Asignar variables al engine si es posible
+      if (engine.assign && varKeys.length > 0) {
+        varKeys.forEach((k) => {
+          try {
+            engine.assign(k, scope[k]);
+          } catch {}
+        });
+      }
+
+      const parsed = engine.parse(substitutedExpr);
+      const evaluated = parsed.evaluate();
+      const numEval = parsed.N();
+      const simplified = parsed.simplify();
+
+      let exactLatex = evaluated?.latex || '';
+      let decimalLatex = numEval?.latex || '';
+      let simplifiedLatex = simplified?.latex || '';
+
+      // Si exactLatex es igual a la entrada y hay un valor numérico
+      let numericValue: number | undefined = undefined;
+      const numParsed = parseFloat(decimalLatex);
+      if (!isNaN(numParsed)) {
+        numericValue = numParsed;
+      }
+
+      return {
+        raw: rawExpr,
+        exactLatex,
+        decimalLatex: decimalLatex !== exactLatex ? decimalLatex : undefined,
+        simplifiedLatex: simplifiedLatex !== exactLatex ? simplifiedLatex : undefined,
+        numericValue,
+        isEquation,
+        lhs: isEquation ? lhs : undefined,
+        rhs: isEquation ? rhs : undefined,
+        steps,
+        scopeUsed: varKeys.length > 0 ? scope : undefined
+      };
+    }
+  } catch (err) {
+    console.warn('[evaluateMathExpression] CE error, fallback evaluation:', err);
+  }
+
+  // Fallback aritmético simple para fracciones y números (ej: 1/2 + 3/4)
+  try {
+    // Normalizar fracciones LaTeX \frac{a}{b} a (a/b)
+    let jsExpr = substitutedExpr
+      .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '($1)/($2)')
+      .replace(/\\times/g, '*')
+      .replace(/\\cdot/g, '*')
+      .replace(/\\div/g, '/')
+      .replace(/\\pi/g, 'Math.PI')
+      .replace(/\\sqrt\{([^{}]+)\}/g, 'Math.sqrt($1)')
+      .replace(/\^\{([^{}]+)\}/g, '**($1)')
+      .replace(/\^(\d+)/g, '**$1');
+
+    // Limpiar caracteres no seguros
+    if (/^[0-9+\-*/().\s,MathPIsqrt]+$/.test(jsExpr)) {
+      // eslint-disable-next-line no-new-func
+      const val = Function(`'use strict'; return (${jsExpr})`)();
+      if (typeof val === 'number' && !isNaN(val) && isFinite(val)) {
+        const rounded = Math.round(val * 10000) / 10000;
+        return {
+          raw: rawExpr,
+          exactLatex: String(rounded),
+          decimalLatex: String(rounded),
+          numericValue: rounded,
+          isEquation,
+          lhs: isEquation ? lhs : undefined,
+          rhs: isEquation ? rhs : undefined,
+          steps,
+          scopeUsed: varKeys.length > 0 ? scope : undefined
+        };
+      }
+    }
+  } catch {}
+
+  return {
+    raw: rawExpr,
+    isEquation,
+    lhs: isEquation ? lhs : undefined,
+    rhs: isEquation ? rhs : undefined
+  };
+}
+
+/**
  * Valida equivalencia matemática real mediante Árbol Sintáctico Abstracto (AST),
  * impidiendo falsos negativos debidos a formato (ej. \frac{1}{2}x vs \frac{x}{2}, 2+3 vs 5).
  */
@@ -161,11 +360,7 @@ export function evaluateDetailedMathAnswer(userLaTeX: string, expectedLaTeX: str
 }
 
 /**
- * Directiva 3: Teclado Virtual Mobile para Exámenes con pestañas adaptadas:
- * - Álgebra
- * - Cálculo
- * - Símbolos Griegos
- * - Química (incluyendo notación isotópica nuclear)
+ * Teclado Virtual Mobile para Exámenes con pestañas adaptadas.
  */
 export function setupMathVirtualKeyboard(): void {
   try {

@@ -221,6 +221,7 @@ export class UltraFastMindMap {
   private currentTheme: string = 'cyberDark';
   private searchMatches: any[] = [];
   private currentSearchIndex: number = -1;
+  public activeDropdown: 'map' | 'node' | null = null;
 
   constructor(container: HTMLElement, config: MindMapConfig = {}) {
     this.container = container;
@@ -254,7 +255,7 @@ export class UltraFastMindMap {
 
     this.container.innerHTML = `
       <div class="mindmap-viewport-wrapper">
-        <!-- 1. Top Action Header Completo ($10M Studio) -->
+        <!-- 1. Top Action Header Compacto (Solo 2 Botones: 'Mapa' y 'Recuadro' + Controles básicos) -->
         <header class="mindmap-top-bar">
           <div class="top-bar-left">
             <button class="mindmap-touch-btn" id="btn-map-back" title="Volver al estudio" aria-label="Volver">
@@ -266,10 +267,47 @@ export class UltraFastMindMap {
             </div>
           </div>
 
-          <!-- Controles de Estructura y Temas -->
-          <div class="mindmap-pro-controls-group">
-            <!-- 8 Tipos de Esquemas -->
-            <select id="select-map-layout" class="mindmap-select-pill" title="Cambiar tipo de estructura">
+          <!-- LOS 2 BOTONES CHICOS SOLICITADOS: 'MAPA' Y 'RECUADRO' -->
+          <div class="mindmap-top-two-buttons">
+            <button class="mindmap-header-action-pill" id="btn-toggle-menu-map" title="Configurar mapa y lienzo">
+              <span class="pill-icon">🗺️</span>
+              <span class="pill-label">Mapa</span>
+              <span class="pill-chevron">▾</span>
+            </button>
+            <button class="mindmap-header-action-pill" id="btn-toggle-menu-node" title="Configurar recuadro seleccionado">
+              <span class="pill-icon">🔲</span>
+              <span class="pill-label">Recuadro</span>
+              <span class="pill-chevron">▾</span>
+            </button>
+          </div>
+
+          <div class="top-bar-right">
+            <button class="mindmap-touch-btn" id="btn-map-undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+            </button>
+            <button class="mindmap-touch-btn" id="btn-map-redo" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+            </button>
+            <!-- BOTÓN PRINCIPAL DE CENTRADO PERFECTO A LÍMITES -->
+            <button class="mindmap-touch-btn mindmap-fit-main-btn" id="btn-map-fit" title="Centrar y Ajustar a Límites (Espacio / F)" aria-label="Ajustar límites">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Input Oculto para Cargar Fotos en los Recuadros -->
+        <input type="file" id="mindmap-photo-file-input" accept="image/*" style="display:none;" />
+
+        <!-- Panel Desplegable: 'MAPA' -->
+        <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-map" style="display:none;">
+          <div class="dropdown-header">
+            <span class="dropdown-title">🗺️ Configuración del Mapa</span>
+            <button type="button" class="btn-dropdown-close" id="btn-close-map-dropdown">✕</button>
+          </div>
+          
+          <div class="dropdown-section">
+            <label class="dropdown-section-label">Tipo de Esquema:</label>
+            <select id="select-map-layout" class="mindmap-select-pill-full" title="Cambiar tipo de estructura">
               <option value="logicalStructure" ${this.currentLayout === 'logicalStructure' ? 'selected' : ''}>🌲 Estructura Lógica (Izq ➔ Der)</option>
               <option value="mindMap" ${this.currentLayout === 'mindMap' ? 'selected' : ''}>🧠 Mapa Mental Radial</option>
               <option value="organizationStructure" ${this.currentLayout === 'organizationStructure' ? 'selected' : ''}>🏛️ Organigrama Vertical</option>
@@ -279,18 +317,22 @@ export class UltraFastMindMap {
               <option value="fishbone" ${this.currentLayout === 'fishbone' ? 'selected' : ''}>🐟 Espina de Pescado (Ishikawa)</option>
               <option value="verticalMindMap" ${this.currentLayout === 'verticalMindMap' ? 'selected' : ''}>🏢 Esquema Jerárquico Vertical</option>
             </select>
+          </div>
 
-            <!-- 5 Temas Visuales en Caliente -->
-            <select id="select-map-theme" class="mindmap-select-pill" title="Cambiar tema de color del lienzo">
-              <option value="cyberDark" selected>🌌 Cyber Dark</option>
-              <option value="oceanBlue">🌊 Ocean Blue</option>
-              <option value="bioEmerald">🍃 Bio Emerald</option>
-              <option value="midnightPurple">🔮 Midnight Purple</option>
-              <option value="obsidianGold">⚡ Obsidian Gold</option>
-            </select>
+          <div class="dropdown-section">
+            <label class="dropdown-section-label">Color de Fondo del Mapa:</label>
+            <div class="theme-chips-row">
+              <button class="theme-chip-btn ${this.currentTheme === 'cyberDark' ? 'active' : ''}" data-theme="cyberDark">🌌 Cyber</button>
+              <button class="theme-chip-btn ${this.currentTheme === 'oceanBlue' ? 'active' : ''}" data-theme="oceanBlue">🌊 Ocean</button>
+              <button class="theme-chip-btn ${this.currentTheme === 'bioEmerald' ? 'active' : ''}" data-theme="bioEmerald">🍃 Bio</button>
+              <button class="theme-chip-btn ${this.currentTheme === 'midnightPurple' ? 'active' : ''}" data-theme="midnightPurple">🔮 Purple</button>
+              <button class="theme-chip-btn ${this.currentTheme === 'obsidianGold' ? 'active' : ''}" data-theme="obsidianGold">⚡ Gold</button>
+            </div>
+          </div>
 
-            <!-- Paleta de Colores Rápida para el Nodo Seleccionado -->
-            <div class="mindmap-color-bar" id="map-color-palette" title="Colorear el concepto seleccionado">
+          <div class="dropdown-section">
+            <label class="dropdown-section-label">Color Global de Recuadros:</label>
+            <div class="color-dots-row" id="map-global-color-palette">
               <button class="color-dot-btn" data-color="blue" style="background:#0ea5e9;" title="Azul Cyan"></button>
               <button class="color-dot-btn" data-color="purple" style="background:#a855f7;" title="Violeta Cyber"></button>
               <button class="color-dot-btn" data-color="emerald" style="background:#10b981;" title="Esmeralda Bio"></button>
@@ -298,58 +340,112 @@ export class UltraFastMindMap {
               <button class="color-dot-btn" data-color="rose" style="background:#ec4899;" title="Rosa Neón"></button>
               <button class="color-dot-btn" data-color="dark" style="background:#334155;" title="Pizarra"></button>
             </div>
+          </div>
 
-            <!-- Botón KaTeX Científico Directo -->
-            <button class="mindmap-top-action-chip" id="btn-map-katex-direct" title="Asistente de Fórmulas y Notación Científica">
-              📐 KaTeX
-            </button>
+          <div class="dropdown-actions-grid">
+            <button class="dropdown-tool-btn" id="btn-map-fit-menu">🎯 Centrar Límites</button>
+            <button class="dropdown-tool-btn" id="btn-map-expand-all">📂 Desplegar Todo</button>
+            <button class="dropdown-tool-btn" id="btn-map-collapse-all">📁 Plegar Todo</button>
+            <button class="dropdown-tool-btn" id="btn-map-search-toggle">🔍 Buscar Nodo</button>
+            <button class="dropdown-tool-btn" id="btn-map-view-flashcards">🎴 Flashcards (${flashcards.length})</button>
+            <button class="dropdown-tool-btn" id="btn-map-shortcuts">⌨️ Atajos de Teclado</button>
+            <button class="dropdown-tool-btn" id="btn-map-export-png">🖼️ Exportar PNG</button>
+            <button class="dropdown-tool-btn" id="btn-map-export-json">💾 Exportar JSON</button>
+          </div>
+        </div>
 
-            <!-- Botón Búsqueda de Nodos -->
-            <button class="mindmap-top-action-chip" id="btn-map-search-toggle" title="Buscar conceptos en el mapa">
-              🔍 Buscar
-            </button>
+        <!-- Panel Desplegable: 'RECUADRO' -->
+        <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-node" style="display:none;">
+          <div class="dropdown-header">
+            <span class="dropdown-title">🔲 Configuración del Recuadro</span>
+            <button type="button" class="btn-dropdown-close" id="btn-close-node-dropdown">✕</button>
+          </div>
 
-            <!-- Botones de Colapsar / Desplegar -->
-            <button class="mindmap-top-action-chip" id="btn-map-expand-all" title="Desplegar todas las ramas">
-              📂 Desplegar
-            </button>
-            <button class="mindmap-top-action-chip" id="btn-map-collapse-all" title="Plegar ramas">
-              📁 Plegar
-            </button>
-
-            <!-- Botón Flashcards del Repaso -->
-            <button class="mindmap-top-action-chip badge-glow" id="btn-map-view-flashcards" title="Ver flashcards creadas en este tema">
-              <span>🎴 Flashcards</span>
-              <span id="map-flashcards-count-badge">(${flashcards.length})</span>
-            </button>
-
-            <!-- Atajos de Teclado -->
-            <button class="mindmap-top-action-chip" id="btn-map-shortcuts" title="Ver atajos de teclado (Tab, Enter, Delete...)">
-              ⌨️ Atajos
-            </button>
-
-            <!-- Exportar Imagen PNG y JSON -->
-            <button class="mindmap-top-action-chip" id="btn-map-export-png" title="Exportar como Imagen PNG">
-              🖼️ PNG
-            </button>
-            <button class="mindmap-top-action-chip" id="btn-map-export-json" title="Descargar copia del esquema JSON">
-              💾 JSON
+          <div id="node-dropdown-empty-notice" style="padding:14px; text-align:center; color:var(--f-text-secondary); font-size:0.86rem; display:none;">
+            <span>ℹ️ Toca un recuadro en el mapa para seleccionarlo y editarlo.</span>
+            <button class="figma-btn-white-pill" id="btn-select-root-node" style="margin-top:10px; width:100%; font-size:0.8rem; padding:6px 12px;">
+              Seleccionar Recuadro Raíz
             </button>
           </div>
 
-          <div class="top-bar-right">
-            <button class="mindmap-touch-btn" id="btn-map-undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-            </button>
-            <button class="mindmap-touch-btn" id="btn-map-redo" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
-            </button>
-            <!-- BOTÓN PRINCIPAL DE CENTRADO PERFECTO A LÍMITES -->
-            <button class="mindmap-touch-btn mindmap-fit-main-btn" id="btn-map-fit" title="Centrar y Ajustar a Límites (Espacio / F)" aria-label="Ajustar límites">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
+          <div id="node-dropdown-content" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Color de Fondo del Recuadro -->
+            <div class="dropdown-section">
+              <label class="dropdown-section-label">Color de Fondo del Recuadro:</label>
+              <div class="color-dots-row" id="node-color-palette">
+                <button class="color-dot-btn" data-color="blue" style="background:#0ea5e9;" title="Azul Cyan"></button>
+                <button class="color-dot-btn" data-color="purple" style="background:#a855f7;" title="Violeta Cyber"></button>
+                <button class="color-dot-btn" data-color="emerald" style="background:#10b981;" title="Esmeralda Bio"></button>
+                <button class="color-dot-btn" data-color="amber" style="background:#f59e0b;" title="Ámbar"></button>
+                <button class="color-dot-btn" data-color="rose" style="background:#ec4899;" title="Rosa Neón"></button>
+                <button class="color-dot-btn" data-color="dark" style="background:#334155;" title="Pizarra"></button>
+              </div>
+            </div>
+
+            <!-- Color de Texto del Recuadro -->
+            <div class="dropdown-section">
+              <label class="dropdown-section-label">Color del Texto:</label>
+              <div class="color-dots-row" id="node-text-color-palette">
+                <button class="color-dot-btn" data-text-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
+                <button class="color-dot-btn" data-text-color="#38bdf8" style="background:#38bdf8;" title="Cyan"></button>
+                <button class="color-dot-btn" data-text-color="#34d399" style="background:#34d399;" title="Verde"></button>
+                <button class="color-dot-btn" data-text-color="#fbbf24" style="background:#fbbf24;" title="Dorado"></button>
+                <button class="color-dot-btn" data-text-color="#f472b6" style="background:#f472b6;" title="Rosa"></button>
+                <button class="color-dot-btn" data-text-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
+              </div>
+            </div>
+
+            <!-- Tamaño y Estilo de Texto -->
+            <div class="dropdown-section">
+              <label class="dropdown-section-label">Tamaño / Estilo de Texto:</label>
+              <div class="text-size-chips-row">
+                <button class="text-size-btn" data-size="12">Pequeño</button>
+                <button class="text-size-btn active" data-size="14">Normal</button>
+                <button class="text-size-btn" data-size="18">Grande</button>
+                <button class="text-size-btn" data-size="22">Título</button>
+                <button class="text-size-btn" id="btn-toggle-bold"><strong>B</strong></button>
+              </div>
+            </div>
+
+            <!-- Efectos y Stickers Rápidos -->
+            <div class="dropdown-section">
+              <label class="dropdown-section-label">Efectos y Marcadores:</label>
+              <div class="sheet-stickers-row" id="node-menu-stickers-bar" style="margin-top:4px;">
+                <button type="button" class="sticker-chip" data-sticker="⭐">⭐</button>
+                <button type="button" class="sticker-chip" data-sticker="🔬">🔬</button>
+                <button type="button" class="sticker-chip" data-sticker="⚡">⚡</button>
+                <button type="button" class="sticker-chip" data-sticker="📌">📌</button>
+                <button type="button" class="sticker-chip" data-sticker="✅">✅</button>
+                <button type="button" class="sticker-chip" data-sticker="💡">💡</button>
+                <button type="button" class="sticker-chip" data-sticker="❓">❓</button>
+                <button type="button" class="sticker-chip" data-sticker="🎯">🎯</button>
+              </div>
+            </div>
+
+            <!-- Foto del Recuadro -->
+            <div class="dropdown-section">
+              <label class="dropdown-section-label">📷 Foto del Recuadro:</label>
+              <div style="display:flex; gap:8px;">
+                <button class="figma-btn-white-pill" id="btn-upload-node-photo" style="flex:1; padding:8px 12px; font-size:0.82rem; color:#38bdf8; border-color:rgba(56,189,248,0.4);">
+                  📷 Añadir Foto
+                </button>
+                <button class="figma-btn-white-pill" id="btn-remove-node-photo" style="padding:8px 12px; font-size:0.82rem; color:#ef4444; border-color:rgba(239,68,68,0.3); display:none;">
+                  🗑️ Quitar Foto
+                </button>
+              </div>
+            </div>
+
+            <!-- Acciones de Edición de Texto y KaTeX -->
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+              <button class="figma-btn-study-large" id="btn-open-direct-text-editor" style="width:100%; padding:10px 16px; font-size:0.88rem;">
+                ✏️ Escribir Texto Multilínea
+              </button>
+              <button class="figma-btn-white-pill" id="btn-open-katex-from-node-menu" style="width:100%; padding:8px 14px; font-size:0.82rem; color:#38bdf8; border-color:rgba(56,189,248,0.4);">
+                📐 + Asistente KaTeX
+              </button>
+            </div>
           </div>
-        </header>
+        </div>
 
         <!-- Barra de Búsqueda Flotante -->
         <div class="mindmap-search-floating-bar" id="mindmap-search-bar" style="display: none;">
@@ -393,17 +489,20 @@ export class UltraFastMindMap {
           </button>
         </footer>
 
-        <!-- 4. Overlay de Edición Antiteclado con Actualización Reactiva en Vivo y Asistente Científico KaTeX -->
+        <!-- 4. Overlay de Edición Directa Multilínea (Con saltos de reglón por Enter) -->
         <div class="mindmap-edit-overlay" id="mindmap-edit-sheet" style="display: none;">
           <div class="edit-sheet-panel">
             <div class="edit-sheet-header">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-weight:800; font-size:1.05rem; color:#fff;">Editar Concepto</span>
-                <span style="font-size:0.75rem; color:#38bdf8; background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:999px;">⚡ En Vivo</span>
+                <span style="font-weight:800; font-size:1.05rem; color:#fff;">Editar Recuadro</span>
+                <span style="font-size:0.75rem; color:#38bdf8; background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:999px;">↵ Enter para nuevo reglón</span>
               </div>
               <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" class="figma-btn-white-pill" id="btn-node-sheet-photo" style="padding:4px 10px; font-size:0.75rem; color:#38bdf8; border-color:rgba(56,189,248,0.3);">
+                  📷 Foto
+                </button>
                 <button type="button" class="figma-btn-white-pill" id="btn-node-sheet-katex" style="padding:4px 10px; font-size:0.75rem; border-color:rgba(56,189,248,0.4); color:#38bdf8;">
-                  📐 Fórmulas KaTeX
+                  📐 KaTeX
                 </button>
                 <button id="btn-sheet-close" class="btn-sheet-close" aria-label="Cerrar">✕</button>
               </div>
@@ -423,12 +522,19 @@ export class UltraFastMindMap {
               <button type="button" class="sticker-chip" data-sticker="🧪">🧪</button>
             </div>
 
-            <!-- Input de texto con actualización instantánea y cursor de alto contraste -->
-            <textarea id="input-sheet-text" rows="3" placeholder="Escribe el concepto o fórmula LaTeX ($E=mc^2$)..." autocomplete="off" spellcheck="false"></textarea>
+            <!-- Miniatura de foto del recuadro si existe -->
+            <div id="sheet-photo-preview-wrap" style="display:none; align-items:center; gap:10px; padding:6px 10px; background:rgba(255,255,255,0.04); border-radius:10px;">
+              <img id="sheet-photo-preview-img" style="max-height:45px; max-width:60px; object-fit:cover; border-radius:6px;" />
+              <span style="font-size:0.8rem; color:#38bdf8; flex:1;">Foto adjunta al recuadro</span>
+              <button type="button" class="figma-icon-btn-ghost" id="btn-sheet-remove-photo" style="color:#ef4444; font-size:0.8rem;">🗑️ Quitar</button>
+            </div>
 
-            <!-- Preview KaTeX en Tiempo Real dentro del Sheet -->
+            <!-- Input de texto con soporte nativo de reglones con Enter -->
+            <textarea id="input-sheet-text" rows="4" placeholder="Escribe el texto aquí... Presiona Enter para dejar reglón y escribir abajo..." autocomplete="off" spellcheck="false"></textarea>
+
+            <!-- Preview KaTeX en Tiempo Real dentro del Sheet si se usa notación -->
             <div class="sheet-katex-live-preview-box" id="sheet-katex-preview" style="display:none;">
-              <span class="preview-tag">Vista Previa Científica:</span>
+              <span class="preview-tag">Vista Previa:</span>
               <div class="preview-content" id="sheet-katex-preview-rendered"></div>
             </div>
 
@@ -494,6 +600,63 @@ export class UltraFastMindMap {
       defaultInsertBelowSecondLevelNodeText: 'Idea secundaria',
       defaultGeneralizationText: 'Resumen',
 
+      // Renderizado de multilínea, fotos e información KaTeX optimizado en el nodo
+      isUseCustomNodeContent: true,
+      customCreateNodeContent: (node: any) => {
+        const text = node.getData ? (node.getData('text') ?? '') : (node.nodeData?.data?.text ?? '');
+        const image = node.getData ? node.getData('image') : (node.nodeData?.data?.image || node.getData?.('imageUrl'));
+
+        const div = document.createElement('div');
+        div.className = 'eureka-mindmap-custom-node';
+
+        const color = (typeof node.getStyle === 'function' ? node.getStyle('color', false) : null) || '#f8fafc';
+        const fontSize = (typeof node.getStyle === 'function' ? node.getStyle('fontSize', false) : null) || 14;
+        const fontWeight = (typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : null) || 'normal';
+
+        div.style.color = color;
+        div.style.fontSize = `${fontSize}px`;
+        div.style.fontWeight = fontWeight;
+        div.style.lineHeight = '1.4';
+        div.style.display = 'flex';
+        div.style.flexDirection = 'column';
+        div.style.alignItems = 'center';
+        div.style.textAlign = 'center';
+        div.style.maxWidth = '360px';
+        div.style.wordBreak = 'break-word';
+        div.style.whiteSpace = 'pre-wrap';
+        div.style.padding = '6px 10px';
+
+        // 📷 Renderizado de Foto en el Recuadro
+        if (image) {
+          const imgEl = document.createElement('img');
+          imgEl.src = image;
+          imgEl.className = 'eureka-node-img-rendered';
+          imgEl.style.maxWidth = '180px';
+          imgEl.style.maxHeight = '130px';
+          imgEl.style.borderRadius = '8px';
+          imgEl.style.objectFit = 'cover';
+          imgEl.style.display = 'block';
+          imgEl.style.marginBottom = '6px';
+          div.appendChild(imgEl);
+        }
+
+        // ✍️ Renderizado de Texto Multilínea (Respetando saltos de línea con Enter)
+        const textStr = String(text);
+        const textEl = document.createElement('div');
+        textEl.style.whiteSpace = 'pre-wrap';
+        textEl.style.wordBreak = 'break-word';
+        textEl.style.width = '100%';
+
+        if (textStr.includes('class="katex"') || textStr.includes("<span class='katex'")) {
+          textEl.innerHTML = textStr;
+        } else {
+          textEl.innerHTML = katexService.parseAndRender(textStr);
+        }
+        div.appendChild(textEl);
+
+        return div;
+      },
+
       themeConfig: {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         backgroundColor: themeObj.backgroundColor,
@@ -509,9 +672,16 @@ export class UltraFastMindMap {
     this.mindMapInstance.on('node_active', (node: any) => {
       this.activeNode = node;
       this.updateDockButtons(Boolean(node));
+      this.updateNodeDropdownUI();
       if (node) {
         this.triggerHaptic();
       }
+    });
+
+    // Doble clic o toque en nodo: Abre inmediatamente el editor multilínea directo
+    this.mindMapInstance.on('node_dblclick', (node: any) => {
+      this.activeNode = node;
+      this.openDirectTextEditor();
     });
 
     // Guardado debounced ante cambios en la estructura
@@ -519,10 +689,10 @@ export class UltraFastMindMap {
       this.scheduleDebouncedSave();
     });
 
-    // Interceptar el editor nativo de la librería para usar el Bottom Sheet Overlay con KaTeX
+    // Interceptar el editor nativo de la librería para usar el editor multilínea directo
     if (this.mindMapInstance.textEdit) {
       this.mindMapInstance.textEdit.show = () => {
-        this.openEditOverlay();
+        this.openDirectTextEditor();
       };
     }
 
@@ -789,18 +959,18 @@ export class UltraFastMindMap {
       return;
     }
 
-    // F2: Editar texto
+    // F2: Editar texto directo
     if (e.key === 'F2') {
       e.preventDefault();
       if (this.activeNode) {
-        this.openEditOverlay();
+        this.openDirectTextEditor();
       }
       return;
     }
   };
 
   /**
-   * Enlace de controles táctiles UI
+   * Enlace de controles táctiles UI (Optimizados con 2 botones principales: 'Mapa' y 'Recuadro')
    */
   private bindDOMEvents(): void {
     const root = this.container;
@@ -827,11 +997,28 @@ export class UltraFastMindMap {
       this.fitToScreenBounds();
     });
 
+    root.querySelector('#btn-map-fit-menu')?.addEventListener('click', () => {
+      this.fitToScreenBounds();
+      this.closeAllDropdowns();
+    });
+
     root.querySelector('#btn-floating-fit')?.addEventListener('click', () => {
       this.fitToScreenBounds();
     });
 
-    // Selector de Tipo de Esquema en Caliente (8 Estructuras)
+    // ============================================================
+    // 🗺️ CONTROL DE MENÚ DESPLEGABLE: 'MAPA'
+    // ============================================================
+    root.querySelector('#btn-toggle-menu-map')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleDropdown('map');
+    });
+
+    root.querySelector('#btn-close-map-dropdown')?.addEventListener('click', () => {
+      this.closeAllDropdowns();
+    });
+
+    // Selector de Estructura / Tipo de Esquema (8 Layouts)
     const selectLayout = root.querySelector('#select-map-layout') as HTMLSelectElement | null;
     selectLayout?.addEventListener('change', () => {
       const layout = selectLayout.value;
@@ -843,17 +1030,80 @@ export class UltraFastMindMap {
       }
     });
 
-    // Selector de Temas Visuales (5 Paletas)
-    const selectTheme = root.querySelector('#select-map-theme') as HTMLSelectElement | null;
-    selectTheme?.addEventListener('change', () => {
-      const themeKey = selectTheme.value;
-      if (themeKey && this.mindMapInstance) {
+    // Selector de Temas Visuales (Fondo del Mapa)
+    root.querySelectorAll<HTMLButtonElement>('.theme-chip-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const themeKey = btn.dataset.theme;
+        if (!themeKey || !this.mindMapInstance) return;
+        root.querySelectorAll('.theme-chip-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
         this.applyTheme(themeKey);
-      }
+      });
     });
 
-    // Paleta de Colores en Caliente para el nodo seleccionado
-    root.querySelectorAll<HTMLButtonElement>('.color-dot-btn').forEach((btn) => {
+    // Color Global de Recuadros
+    root.querySelectorAll<HTMLButtonElement>('#map-global-color-palette .color-dot-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const colorKey = btn.dataset.color;
+        if (!colorKey) return;
+        this.applyGlobalNodesColor(colorKey);
+      });
+    });
+
+    // Acciones de mapa en el menú desplegable
+    root.querySelector('#btn-map-expand-all')?.addEventListener('click', () => {
+      this.expandAllNodes();
+      this.closeAllDropdowns();
+    });
+
+    root.querySelector('#btn-map-collapse-all')?.addEventListener('click', () => {
+      this.collapseAllNodes();
+      this.closeAllDropdowns();
+    });
+
+    root.querySelector('#btn-map-search-toggle')?.addEventListener('click', () => {
+      this.closeAllDropdowns();
+      this.toggleSearchBar();
+    });
+
+    root.querySelector('#btn-map-view-flashcards')?.addEventListener('click', () => {
+      this.closeAllDropdowns();
+      this.openFlashcardsDrawer();
+    });
+
+    root.querySelector('#btn-map-shortcuts')?.addEventListener('click', () => {
+      this.closeAllDropdowns();
+      this.openShortcutsModal();
+    });
+
+    root.querySelector('#btn-map-export-png')?.addEventListener('click', () => {
+      this.closeAllDropdowns();
+      this.exportPngImage();
+    });
+
+    root.querySelector('#btn-map-export-json')?.addEventListener('click', () => {
+      this.closeAllDropdowns();
+      this.exportJson();
+    });
+
+    // ============================================================
+    // 🔲 CONTROL DE MENÚ DESPLEGABLE: 'RECUADRO'
+    // ============================================================
+    root.querySelector('#btn-toggle-menu-node')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleDropdown('node');
+    });
+
+    root.querySelector('#btn-close-node-dropdown')?.addEventListener('click', () => {
+      this.closeAllDropdowns();
+    });
+
+    root.querySelector('#btn-select-root-node')?.addEventListener('click', () => {
+      this.selectRootNode();
+    });
+
+    // Paleta de Color de Fondo del Recuadro
+    root.querySelectorAll<HTMLButtonElement>('#node-color-palette .color-dot-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const colorKey = btn.dataset.color;
         if (!colorKey) return;
@@ -861,64 +1111,153 @@ export class UltraFastMindMap {
       });
     });
 
-    // Botón Asistente KaTeX Directo
-    root.querySelector('#btn-map-katex-direct')?.addEventListener('click', () => {
+    // Paleta de Color del Texto del Recuadro
+    root.querySelectorAll<HTMLButtonElement>('[data-text-color]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const textColor = btn.dataset.textColor;
+        if (!textColor || !this.activeNode || !this.mindMapInstance) return;
+        this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+          color: textColor
+        });
+        this.triggerHaptic();
+        this.scheduleDebouncedSave();
+      });
+    });
+
+    // Tamaño de Texto del Recuadro
+    root.querySelectorAll<HTMLButtonElement>('.text-size-btn[data-size]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const size = Number(btn.dataset.size);
+        if (!size || !this.activeNode || !this.mindMapInstance) return;
+        root.querySelectorAll('.text-size-btn[data-size]').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+          fontSize: size
+        });
+        this.triggerHaptic();
+        this.scheduleDebouncedSave();
+      });
+    });
+
+    // Alternar Negrita en Texto
+    root.querySelector('#btn-toggle-bold')?.addEventListener('click', () => {
+      if (!this.activeNode || !this.mindMapInstance) return;
+      const curWeight = typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('fontWeight', false) : 'normal';
+      const newWeight = curWeight === 'bold' || curWeight === '700' ? 'normal' : 'bold';
+      this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+        fontWeight: newWeight
+      });
       this.triggerHaptic();
+      this.scheduleDebouncedSave();
+    });
+
+    // Stickers Rápidos en Menú Recuadro
+    root.querySelectorAll<HTMLButtonElement>('#node-menu-stickers-bar .sticker-chip').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const sticker = btn.dataset.sticker;
+        if (!sticker || !this.activeNode || !this.mindMapInstance) return;
+        const curText = (this.activeNode.getData ? this.activeNode.getData('text') : this.activeNode.nodeData?.data?.text) || '';
+        const newText = `${sticker} ${curText}`;
+        if (typeof this.activeNode.setData === 'function') {
+          this.activeNode.setData({ text: newText, rawText: newText });
+        } else if (this.activeNode.nodeData?.data) {
+          this.activeNode.nodeData.data.text = newText;
+          this.activeNode.nodeData.data.rawText = newText;
+        }
+        if (typeof this.mindMapInstance.render === 'function') {
+          this.mindMapInstance.render();
+        } else {
+          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, newText);
+        }
+        this.triggerHaptic();
+        this.scheduleDebouncedSave();
+      });
+    });
+
+    // 📷 Inserción de Fotos en Recuadros
+    const photoInput = root.querySelector('#mindmap-photo-file-input') as HTMLInputElement | null;
+    const triggerPhotoPick = () => {
+      if (!this.activeNode) {
+        this.selectRootNode();
+      }
+      photoInput?.click();
+    };
+
+    root.querySelector('#btn-upload-node-photo')?.addEventListener('click', triggerPhotoPick);
+    root.querySelector('#btn-node-sheet-photo')?.addEventListener('click', triggerPhotoPick);
+
+    photoInput?.addEventListener('change', () => {
+      const file = photoInput.files?.[0];
+      if (!file || !this.activeNode || !this.mindMapInstance) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        if (dataUrl) {
+          this.setNodePhoto(dataUrl);
+        }
+      };
+      reader.readAsDataURL(file);
+      photoInput.value = '';
+    });
+
+    root.querySelector('#btn-remove-node-photo')?.addEventListener('click', () => {
+      this.setNodePhoto(null);
+    });
+
+    root.querySelector('#btn-sheet-remove-photo')?.addEventListener('click', () => {
+      this.setNodePhoto(null);
+      const photoPreviewWrap = root.querySelector('#sheet-photo-preview-wrap') as HTMLElement | null;
+      if (photoPreviewWrap) photoPreviewWrap.style.display = 'none';
+    });
+
+    // Botón para abrir el editor directo multilínea desde el menú de recuadro
+    root.querySelector('#btn-open-direct-text-editor')?.addEventListener('click', () => {
+      this.closeAllDropdowns();
+      this.openDirectTextEditor();
+    });
+
+    // Asistente KaTeX desde el menú de recuadro
+    root.querySelector('#btn-open-katex-from-node-menu')?.addEventListener('click', () => {
+      this.closeAllDropdowns();
+      if (!this.activeNode) {
+        this.selectRootNode();
+      }
+      const curText = (this.activeNode.getData ? this.activeNode.getData('text') : this.activeNode.nodeData?.data?.text) || '';
       openScientificFormulaAssistant({
-        initialLatex: this.activeNode?.nodeData?.data?.text || '',
+        initialLatex: curText,
         onInsert: (formula) => {
           if (this.activeNode && this.mindMapInstance) {
-            const current = this.activeNode.nodeData?.data?.text || '';
-            const next = current ? `${current} ${formula}` : formula;
-            this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, next);
+            const newText = `${curText} ${formula}`.trim();
+            if (typeof this.activeNode.setData === 'function') {
+              this.activeNode.setData({ text: newText, rawText: newText });
+            } else if (this.activeNode.nodeData?.data) {
+              this.activeNode.nodeData.data.text = newText;
+              this.activeNode.nodeData.data.rawText = newText;
+            }
+            if (typeof this.mindMapInstance.render === 'function') {
+              this.mindMapInstance.render();
+            } else {
+              this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, newText);
+            }
             this.triggerHaptic();
-          } else {
-            // Si no hay nodo seleccionado, crear uno hijo de la raíz
-            this.mindMapInstance?.execCommand('INSERT_CHILD_NODE');
-            setTimeout(() => {
-              if (this.activeNode) {
-                this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, formula);
-              }
-            }, 60);
+            this.scheduleDebouncedSave();
           }
         }
       });
     });
 
-    // Toggle Barra de Búsqueda
-    root.querySelector('#btn-map-search-toggle')?.addEventListener('click', () => {
-      this.toggleSearchBar();
+    // Cerrar dropdowns al hacer clic fuera
+    root.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.mindmap-dropdown-menu-panel') && !target.closest('.mindmap-header-action-pill')) {
+        this.closeAllDropdowns();
+      }
     });
 
-    // Colapsar / Desplegar Todo
-    root.querySelector('#btn-map-expand-all')?.addEventListener('click', () => {
-      this.expandAllNodes();
-    });
-
-    root.querySelector('#btn-map-collapse-all')?.addEventListener('click', () => {
-      this.collapseAllNodes();
-    });
-
-    // Botón para ver flashcards creadas en el tema
-    root.querySelector('#btn-map-view-flashcards')?.addEventListener('click', () => {
-      this.openFlashcardsDrawer();
-    });
-
-    // Botón de Atajos de Teclado
-    root.querySelector('#btn-map-shortcuts')?.addEventListener('click', () => {
-      this.openShortcutsModal();
-    });
-
-    // Botones de Exportar PNG y JSON
-    root.querySelector('#btn-map-export-png')?.addEventListener('click', () => {
-      this.exportPngImage();
-    });
-
-    root.querySelector('#btn-map-export-json')?.addEventListener('click', () => {
-      this.exportJson();
-    });
-
-    // Acciones del Bottom Action Dock (100% táctiles)
+    // ============================================================
+    // DOCK INFERIOR
+    // ============================================================
     root.querySelector('#btn-node-child')?.addEventListener('click', () => {
       this.triggerHaptic();
       this.mindMapInstance?.execCommand('INSERT_CHILD_NODE');
@@ -931,7 +1270,7 @@ export class UltraFastMindMap {
 
     root.querySelector('#btn-node-edit')?.addEventListener('click', () => {
       this.triggerHaptic();
-      this.openEditOverlay();
+      this.openDirectTextEditor();
     });
 
     root.querySelector('#btn-node-delete')?.addEventListener('click', () => {
@@ -939,7 +1278,9 @@ export class UltraFastMindMap {
       this.mindMapInstance?.execCommand('REMOVE_NODE');
     });
 
-    // Controles de la Barra de Búsqueda
+    // ============================================================
+    // BARRA DE BÚSQUEDA
+    // ============================================================
     const searchInput = root.querySelector('#mindmap-search-input') as HTMLInputElement | null;
     searchInput?.addEventListener('input', () => {
       this.handleSearchNodes(searchInput.value.trim());
@@ -955,7 +1296,9 @@ export class UltraFastMindMap {
     root.querySelector('#btn-search-next')?.addEventListener('click', () => this.navigateSearch(1));
     root.querySelector('#btn-search-close')?.addEventListener('click', () => this.toggleSearchBar(false));
 
-    // Modal Sheet de Edición con Actualización en Tiempo Real
+    // ============================================================
+    // ✍️ OVERLAY DE EDICIÓN MULTILÍNEA DIRECTO (CON REGLONES POR ENTER)
+    // ============================================================
     const sheet = root.querySelector('#mindmap-edit-sheet') as HTMLElement;
     const input = root.querySelector('#input-sheet-text') as HTMLTextAreaElement;
     const previewBox = root.querySelector('#sheet-katex-preview') as HTMLElement;
@@ -965,10 +1308,20 @@ export class UltraFastMindMap {
       const text = input.value;
       // 1. Actualizar inmediatamente en el mapa mental en vivo
       if (this.activeNode && this.mindMapInstance) {
-        this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, text || ' ');
+        if (typeof this.activeNode.setData === 'function') {
+          this.activeNode.setData({ text: text || ' ', rawText: text });
+        } else if (this.activeNode.nodeData?.data) {
+          this.activeNode.nodeData.data.text = text || ' ';
+          this.activeNode.nodeData.data.rawText = text;
+        }
+        if (typeof this.mindMapInstance.render === 'function') {
+          this.mindMapInstance.render();
+        } else {
+          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, text || ' ');
+        }
       }
 
-      // 2. Renderizar preview KaTeX si contiene notación matemática o química
+      // 2. Renderizar preview KaTeX si contiene notación
       if (text.includes('$') || text.includes('\\') || text.includes('^') || text.includes('_') || text.includes('{')) {
         previewBox.style.display = 'block';
         previewRendered.innerHTML = katexService.parseAndRender(text);
@@ -979,8 +1332,16 @@ export class UltraFastMindMap {
 
     input?.addEventListener('input', updateLivePreviewAndNode);
 
-    // Fila de Stickers
-    root.querySelectorAll<HTMLButtonElement>('.sticker-chip').forEach((btn) => {
+    // Permite salto de reglón nativo con Enter. Si presiona Ctrl+Enter o Cmd+Enter: guardar y salir
+    input?.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        saveAndCloseSheet();
+      }
+    });
+
+    // Stickers en el Sheet
+    root.querySelectorAll<HTMLButtonElement>('#sheet-stickers-bar .sticker-chip').forEach((btn) => {
       btn.addEventListener('click', () => {
         const sticker = btn.dataset.sticker;
         if (!sticker) return;
@@ -998,17 +1359,30 @@ export class UltraFastMindMap {
       Keyboard.hide().catch(() => {});
     };
 
-    root.querySelector('#btn-sheet-close')?.addEventListener('click', closeSheet);
-    root.querySelector('#btn-sheet-cancel')?.addEventListener('click', closeSheet);
+    const saveAndCloseSheet = () => {
+      const text = input.value;
+      if (this.activeNode && this.mindMapInstance) {
+        if (typeof this.activeNode.setData === 'function') {
+          this.activeNode.setData({ text: text || ' ', rawText: text });
+        } else if (this.activeNode.nodeData?.data) {
+          this.activeNode.nodeData.data.text = text || ' ';
+          this.activeNode.nodeData.data.rawText = text;
+        }
 
-    root.querySelector('#btn-sheet-save')?.addEventListener('click', () => {
-      const text = input.value.trim();
-      if (this.activeNode && text) {
-        this.mindMapInstance?.execCommand('SET_NODE_TEXT', this.activeNode, text);
+        if (typeof this.mindMapInstance.render === 'function') {
+          this.mindMapInstance.render();
+        } else {
+          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, text || ' ');
+        }
         this.triggerHaptic();
+        this.scheduleDebouncedSave();
       }
       closeSheet();
-    });
+    };
+
+    root.querySelector('#btn-sheet-close')?.addEventListener('click', closeSheet);
+    root.querySelector('#btn-sheet-cancel')?.addEventListener('click', closeSheet);
+    root.querySelector('#btn-sheet-save')?.addEventListener('click', saveAndCloseSheet);
 
     // Asistente KaTeX dentro de la edición de nodos
     root.querySelector('#btn-node-sheet-katex')?.addEventListener('click', () => {
@@ -1426,34 +1800,208 @@ export class UltraFastMindMap {
   }
 
   /**
-   * 4. GESTIÓN DEL FOCO, INPUT Y TECLADO VIRTUAL CON ACTUALIZACIÓN EN VIVO
+   * 4. GESTIÓN DEL EDITOR MULTILÍNEA DIRECTO Y CONTROLES DE RECUADRO Y MAPA
    */
-  private openEditOverlay(): void {
-    if (!this.activeNode) return;
-    const sheet = this.container.querySelector('#mindmap-edit-sheet') as HTMLElement;
-    const input = this.container.querySelector('#input-sheet-text') as HTMLTextAreaElement;
-    const previewBox = this.container.querySelector('#sheet-katex-preview') as HTMLElement;
-    const previewRendered = this.container.querySelector('#sheet-katex-preview-rendered') as HTMLElement;
+  private openDirectTextEditor(): void {
+    if (!this.activeNode || !this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    const sheet = this.container.querySelector('#mindmap-edit-sheet') as HTMLElement | null;
+    const input = this.container.querySelector('#input-sheet-text') as HTMLTextAreaElement | null;
+    const previewBox = this.container.querySelector('#sheet-katex-preview') as HTMLElement | null;
+    const previewRendered = this.container.querySelector('#sheet-katex-preview-rendered') as HTMLElement | null;
+    const photoPreviewWrap = this.container.querySelector('#sheet-photo-preview-wrap') as HTMLElement | null;
+    const photoPreviewImg = this.container.querySelector('#sheet-photo-preview-img') as HTMLImageElement | null;
+
     if (!sheet || !input) return;
 
-    const currentText = this.activeNode.nodeData?.data?.text || '';
-    input.value = currentText;
-    sheet.style.display = 'flex';
-
-    // Disparar preview KaTeX si ya tenía fórmulas
-    if (currentText.includes('$') || currentText.includes('\\') || currentText.includes('^') || currentText.includes('_')) {
-      if (previewBox && previewRendered) {
-        previewBox.style.display = 'block';
-        previewRendered.innerHTML = katexService.parseAndRender(currentText);
-      }
-    } else if (previewBox) {
-      previewBox.style.display = 'none';
+    // Obtener texto actual (si tiene rawText guardado se usa preferentemente)
+    let currentText = (this.activeNode.getData ? this.activeNode.getData('text') : this.activeNode.nodeData?.data?.text) || '';
+    const rawText = this.activeNode.getData ? this.activeNode.getData('rawText') : this.activeNode.nodeData?.data?.rawText;
+    if (rawText !== undefined && rawText !== null) {
+      currentText = rawText;
+    } else {
+      currentText = currentText.replace(/<br\s*\/?>/gi, '\n');
     }
 
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 100);
+    input.value = currentText;
+
+    // Miniatura de foto del recuadro
+    const curImg = this.activeNode.getData ? this.activeNode.getData('image') : (this.activeNode.nodeData?.data?.image || this.activeNode.getData?.('imageUrl'));
+    if (photoPreviewWrap && photoPreviewImg) {
+      if (curImg) {
+        photoPreviewImg.src = curImg;
+        photoPreviewWrap.style.display = 'flex';
+      } else {
+        photoPreviewWrap.style.display = 'none';
+      }
+    }
+
+    // Preview KaTeX si aplica
+    if (previewBox && previewRendered) {
+      if (currentText.includes('$') || currentText.includes('\\') || currentText.includes('{')) {
+        previewBox.style.display = 'block';
+        previewRendered.innerHTML = katexService.parseAndRender(currentText);
+      } else {
+        previewBox.style.display = 'none';
+      }
+    }
+
+    sheet.style.display = 'flex';
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+
+  /**
+   * Conmuta la visibilidad de los paneles desplegables 'Mapa' y 'Recuadro'
+   */
+  private toggleDropdown(type: 'map' | 'node'): void {
+    const mapDropdown = this.container.querySelector('#mindmap-dropdown-map') as HTMLElement | null;
+    const nodeDropdown = this.container.querySelector('#mindmap-dropdown-node') as HTMLElement | null;
+    const btnMap = this.container.querySelector('#btn-toggle-menu-map');
+    const btnNode = this.container.querySelector('#btn-toggle-menu-node');
+
+    if (type === 'map') {
+      const isVisible = mapDropdown?.style.display === 'flex';
+      if (isVisible) {
+        if (mapDropdown) mapDropdown.style.display = 'none';
+        btnMap?.classList.remove('active');
+        this.activeDropdown = null;
+      } else {
+        if (mapDropdown) mapDropdown.style.display = 'flex';
+        if (nodeDropdown) nodeDropdown.style.display = 'none';
+        btnMap?.classList.add('active');
+        btnNode?.classList.remove('active');
+        this.activeDropdown = 'map';
+      }
+    } else {
+      const isVisible = nodeDropdown?.style.display === 'flex';
+      if (isVisible) {
+        if (nodeDropdown) nodeDropdown.style.display = 'none';
+        btnNode?.classList.remove('active');
+        this.activeDropdown = null;
+      } else {
+        if (nodeDropdown) nodeDropdown.style.display = 'flex';
+        if (mapDropdown) mapDropdown.style.display = 'none';
+        btnNode?.classList.add('active');
+        btnMap?.classList.remove('active');
+        this.activeDropdown = 'node';
+        this.updateNodeDropdownUI();
+      }
+    }
+    this.triggerHaptic();
+  }
+
+  /**
+   * Cierra todos los dropdowns
+   */
+  private closeAllDropdowns(): void {
+    const mapDropdown = this.container.querySelector('#mindmap-dropdown-map') as HTMLElement | null;
+    const nodeDropdown = this.container.querySelector('#mindmap-dropdown-node') as HTMLElement | null;
+    const btnMap = this.container.querySelector('#btn-toggle-menu-map');
+    const btnNode = this.container.querySelector('#btn-toggle-menu-node');
+
+    if (mapDropdown) mapDropdown.style.display = 'none';
+    if (nodeDropdown) nodeDropdown.style.display = 'none';
+    btnMap?.classList.remove('active');
+    btnNode?.classList.remove('active');
+    this.activeDropdown = null;
+  }
+
+  /**
+   * Actualiza el contenido del panel Recuadro según el nodo activo
+   */
+  private updateNodeDropdownUI(): void {
+    const emptyNotice = this.container.querySelector('#node-dropdown-empty-notice') as HTMLElement | null;
+    const content = this.container.querySelector('#node-dropdown-content') as HTMLElement | null;
+    const btnRemovePhoto = this.container.querySelector('#btn-remove-node-photo') as HTMLElement | null;
+
+    if (!emptyNotice || !content) return;
+
+    if (!this.activeNode) {
+      emptyNotice.style.display = 'block';
+      content.style.display = 'none';
+    } else {
+      emptyNotice.style.display = 'none';
+      content.style.display = 'flex';
+
+      const hasPhoto = Boolean(this.activeNode.getData ? this.activeNode.getData('image') : (this.activeNode.nodeData?.data?.image || this.activeNode.getData?.('imageUrl')));
+      if (btnRemovePhoto) {
+        btnRemovePhoto.style.display = hasPhoto ? 'block' : 'none';
+      }
+    }
+  }
+
+  /**
+   * Selecciona el nodo raíz si no hay ninguno seleccionado
+   */
+  private selectRootNode(): void {
+    if (!this.mindMapInstance) return;
+    const root = this.mindMapInstance.renderer?.root;
+    if (root) {
+      this.mindMapInstance.execCommand('SET_NODE_ACTIVE', root);
+      this.activeNode = root;
+      this.updateDockButtons(true);
+      this.updateNodeDropdownUI();
+    }
+  }
+
+  /**
+   * Guarda o elimina una foto en el recuadro seleccionado
+   */
+  private setNodePhoto(dataUrl: string | null): void {
+    if (!this.activeNode || !this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    if (typeof this.activeNode.setData === 'function') {
+      this.activeNode.setData({ image: dataUrl });
+    } else if (this.activeNode.nodeData?.data) {
+      this.activeNode.nodeData.data.image = dataUrl;
+    }
+
+    try {
+      this.mindMapInstance.execCommand('SET_NODE_IMAGE', this.activeNode, {
+        url: dataUrl || '',
+        width: 140,
+        height: 100
+      });
+    } catch {}
+
+    if (typeof this.mindMapInstance.render === 'function') {
+      this.mindMapInstance.render();
+    }
+    this.updateNodeDropdownUI();
+    this.scheduleDebouncedSave();
+    setTimeout(() => this.fitToScreenBounds(), 80);
+  }
+
+  /**
+   * Aplica color global a todos los recuadros
+   */
+  private applyGlobalNodesColor(colorKey: string): void {
+    if (!this.mindMapInstance) return;
+    const preset = COLOR_PRESETS[colorKey];
+    if (!preset) return;
+
+    try {
+      const traverse = (node: any) => {
+        if (!node) return;
+        this.mindMapInstance.execCommand('SET_NODE_STYLES', node, {
+          fillColor: preset.fill,
+          borderColor: preset.border,
+          color: preset.text,
+          borderWidth: 2
+        });
+        if (node.children && Array.isArray(node.children)) {
+          node.children.forEach(traverse);
+        }
+      };
+      traverse(this.mindMapInstance.renderer?.root);
+      this.triggerHaptic();
+      this.scheduleDebouncedSave();
+    } catch (e) {
+      console.warn('[UltraFastMindMap] Error aplicando color global:', e);
+    }
   }
 
   private initKeyboardAdaptiveHandler(): void {
