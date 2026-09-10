@@ -32,6 +32,7 @@ export interface Flashcard {
   audioLang?: string;
   audioText?: string;
   isInverted?: boolean; // True si es una tarjeta invertida (Reverso -> Anverso)
+  chunkId?: string; // Relación con el fragmento del Módulo de Estudio Activo
   
   // Agrupación de Oclusiones Múltiples y Pares Invertidos
   groupId?: string;

@@ -6,6 +6,7 @@ import { katexService } from '../services/katex.service';
 import { ttsService } from '../services/tts.service';
 import { dialogService } from '../services/dialog.service';
 import { openMicroGameModal } from './MicroGameModal';
+import { setupMathVirtualKeyboard, validateMathAnswer, evaluateDetailedMathAnswer } from '../services/math-engine.service';
 
 export interface FigmaStudyOptions {
   deckId: string;
@@ -249,17 +250,23 @@ export class FigmaStudySession {
 
     const typeAnswerInputHtml = this.isTypeAnswerMode
       ? `
-      <div class="cupertino-type-answer-box" style="margin-top:16px; width:100%; max-width:440px;">
-        <input 
-          type="text" 
-          id="study-typed-answer-input" 
-          class="cupertino-typed-input" 
-          placeholder="Escribe la respuesta aquí..." 
-          value="${this.typedAnswer}" 
-          autocomplete="off" 
-          autocorrect="off" 
-          spellcheck="false" 
-        />
+      <div class="cupertino-type-answer-box" style="margin-top:16px; width:100%; max-width:480px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font-size:0.75rem; color:var(--f-text-secondary); font-weight:700;">
+          <span style="display:flex; align-items:center; gap:5px;">
+            <span>⌨️</span> Entrada Táctil de Respuestas (MathLive)
+          </span>
+          <span class="apple-badge-subpill" style="font-size:0.7rem; background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.25);">
+            Álgebra • Cálculo • Griego • Química
+          </span>
+        </div>
+        <math-field 
+          id="exam-input" 
+          virtual-keyboard-mode="on" 
+          class="cupertino-mathfield-input"
+        >${this.typedAnswer}</math-field>
+        <div style="font-size:0.72rem; color:var(--f-text-muted); margin-top:6px; text-align:right;">
+          Toca para abrir el teclado virtual adaptado a mobile
+        </div>
       </div>
     `
       : '';
@@ -307,21 +314,42 @@ export class FigmaStudySession {
 
     let typedComparisonHtml = '';
     if (this.isTypeAnswerMode && this.typedAnswer.trim()) {
-      const cleanExpected = card.back.replace(/<[^>]*>?/gm, '').replace(/[*_#`$]/g, '').trim().toLowerCase();
-      const cleanUser = this.typedAnswer.trim().toLowerCase();
-      const isExactMatch = cleanUser === cleanExpected;
+      const evaluation = evaluateDetailedMathAnswer(this.typedAnswer, card.back);
+      const isMatch = evaluation.isEquivalent || validateMathAnswer(this.typedAnswer, card.back);
+
+      let badgeLabel = 'Discrepancia';
+      let badgeColor = '#f87171';
+      let badgeBg = 'rgba(239,68,68,0.18)';
+      let badgeBorder = '#ef4444';
+
+      if (isMatch) {
+        badgeColor = '#10b981';
+        badgeBg = 'rgba(16,185,129,0.18)';
+        badgeBorder = '#10b981';
+
+        if (evaluation.isSymbolicEquivalent && !evaluation.isExactString) {
+          badgeLabel = '✓ Equivalente Semántico (AST)';
+        } else if (evaluation.isNumericEquivalent && !evaluation.isExactString) {
+          badgeLabel = '✓ Equivalente Numérico';
+        } else {
+          badgeLabel = '✓ Exacto';
+        }
+      }
 
       typedComparisonHtml = `
-        <div class="cupertino-typed-comparison-card apple-glass-panel" style="margin-bottom:14px; width:100%; max-width:440px; padding:12px 16px; border-radius:14px; text-align:left;">
-          <div style="font-size:0.78rem; font-weight:800; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">
-            Tu respuesta escrita:
-          </div>
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-            <span style="font-size:1.05rem; font-weight:700; color:${isExactMatch ? '#10b981' : '#f87171'};">
-              ${this.typedAnswer}
+        <div class="cupertino-typed-comparison-card apple-glass-panel" style="margin-bottom:14px; width:100%; max-width:480px; padding:14px 18px; border-radius:14px; text-align:left;">
+          <div style="font-size:0.75rem; font-weight:800; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+            <span>Tu respuesta:</span>
+            <span style="color:${badgeColor}; font-weight:900;">
+              ${isMatch ? 'Validación Semántica: Correcta' : 'Discrepancia Semántica'}
             </span>
-            <span class="apple-badge-subpill" style="font-size:0.75rem; background:${isExactMatch ? 'rgba(16,185,129,0.18)' : 'rgba(239,68,68,0.18)'}; color:${isExactMatch ? '#10b981' : '#f87171'}; border:1px solid ${isExactMatch ? '#10b981' : '#ef4444'};">
-              ${isExactMatch ? '✓ Exacto' : 'Discrepancia'}
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <span style="font-size:1.15rem; font-weight:700; color:${badgeColor};">
+              ${katexService.parseAndRender(this.typedAnswer) || this.typedAnswer}
+            </span>
+            <span class="apple-badge-subpill" style="font-size:0.75rem; background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeBorder};">
+              ${badgeLabel}
             </span>
           </div>
         </div>
@@ -525,15 +553,24 @@ export class FigmaStudySession {
       return;
     }
 
-    // Focus typed answer input if active (Modo Estudio Normal)
+    // Configurar e inicializar entrada táctil de respuestas MathLive (Modo Examen / Teclado)
     if (this.isTypeAnswerMode && !this.isFlipped) {
-      const input = document.getElementById('study-typed-answer-input') as HTMLInputElement | null;
-      if (input) {
-        input.focus();
-        input.addEventListener('input', (e) => {
-          this.typedAnswer = (e.target as HTMLInputElement).value;
+      setupMathVirtualKeyboard();
+      const mathField = document.getElementById('exam-input') as (HTMLElement & { value: string; focus: () => void }) | null;
+      if (mathField) {
+        setTimeout(() => {
+          try {
+            mathField.focus();
+          } catch {}
+        }, 80);
+
+        mathField.addEventListener('input', () => {
+          this.typedAnswer = mathField.value;
         });
-        input.addEventListener('keydown', (e) => {
+        mathField.addEventListener('change', () => {
+          this.typedAnswer = mathField.value;
+        });
+        mathField.addEventListener('keydown', (e: KeyboardEvent) => {
           if (e.key === 'Enter') {
             e.preventDefault();
             triggerFlip();
@@ -544,10 +581,10 @@ export class FigmaStudySession {
 
     const triggerFlip = () => {
       if (!this.isFlipped) {
-        // Save typed answer from input if exists
-        const input = document.getElementById('study-typed-answer-input') as HTMLInputElement | null;
-        if (input) {
-          this.typedAnswer = input.value;
+        // Extraer la respuesta del estudiante en formato LaTeX estándar mediante la propiedad reactiva mathfield.value
+        const mathField = document.getElementById('exam-input') as (HTMLElement & { value: string }) | null;
+        if (mathField && mathField.value !== undefined) {
+          this.typedAnswer = mathField.value;
         }
         this.historyStack.push({ cardIndex: this.currentCardIndex, isFlipped: false });
         this.isFlipped = true;

@@ -4,6 +4,7 @@ import { ttsService } from '../services/tts.service';
 import { katexService } from '../services/katex.service';
 import { openImageOcclusionModal } from './ImageOcclusionModal';
 import { openFigmaAiBuilderModal } from './FigmaAiBuilderModal';
+import { openScientificFormulaAssistant } from './ScientificFormulaAssistant';
 import { CLEAN_CANVAS_PLACEHOLDER } from '../services/demo-data';
 
 export interface FigmaCardEditorCallbacks {
@@ -112,6 +113,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="$_" data-suffix="$" title="Subíndice ($x_2$)">X₂</button>
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="$^" data-suffix="$" title="Superíndice ($x^2$)">X²</button>
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="$$" title="Fórmula KaTeX ($$fórmula$$)" style="color:var(--f-blue); font-weight:800;">fx</button>
+              <button type="button" class="cupertino-tool-icon" id="btn-open-formula-assistant-anverso" title="Asistente Científico KaTeX / LaTeX" style="color:#38bdf8; font-weight:800;">📐</button>
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="\`" title="Código inline">&lt;/&gt;</button>
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt="[enlace](url)" title="Hipervínculo">🔗</button>
             </div>
@@ -176,6 +178,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="$_" data-suffix-r="$" title="Subíndice ($x_2$)">X₂</button>
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="$^" data-suffix-r="$" title="Superíndice ($x^2$)">X²</button>
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="$$" title="Fórmula KaTeX ($$fórmula$$)" style="color:var(--f-blue); font-weight:800;">fx</button>
+              <button type="button" class="cupertino-tool-icon" id="btn-open-formula-assistant-reverso" title="Asistente Científico KaTeX / LaTeX" style="color:#38bdf8; font-weight:800;">📐</button>
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="\`" title="Código inline">&lt;/&gt;</button>
               <button type="button" class="cupertino-tool-icon tool-fmt-btn" data-fmt-r="[enlace](url)" title="Hipervínculo">🔗</button>
             </div>
@@ -547,6 +550,35 @@ export function bindFigmaCardEditorEvents(
   container.querySelector('#btn-toggle-editor-split')?.addEventListener('click', () => {
     if (anversoPreviewBox) anversoPreviewBox.classList.toggle('hidden');
     if (reversoPreviewBox) reversoPreviewBox.classList.toggle('hidden');
+  });
+
+  // Botones de Asistente Científico KaTeX / LaTeX
+  container.querySelector('#btn-open-formula-assistant-anverso')?.addEventListener('click', () => {
+    if (!anversoInput) return;
+    openScientificFormulaAssistant({
+      initialLatex: anversoInput.value,
+      onInsert: (formula) => {
+        const cur = anversoInput.value;
+        const pos = anversoInput.selectionStart ?? cur.length;
+        anversoInput.value = `${cur.slice(0, pos)} ${formula} ${cur.slice(pos)}`.trim();
+        anversoInput.focus();
+        updateLivePreviews();
+      }
+    });
+  });
+
+  container.querySelector('#btn-open-formula-assistant-reverso')?.addEventListener('click', () => {
+    if (!reversoInput) return;
+    openScientificFormulaAssistant({
+      initialLatex: reversoInput.value,
+      onInsert: (formula) => {
+        const cur = reversoInput.value;
+        const pos = reversoInput.selectionStart ?? cur.length;
+        reversoInput.value = `${cur.slice(0, pos)} ${formula} ${cur.slice(pos)}`.trim();
+        reversoInput.focus();
+        updateLivePreviews();
+      }
+    });
   });
 
   container.querySelector('#btn-card-edit-back')?.addEventListener('click', () => callbacks.onBack());

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "bundle:ce": "esbuild node_modules/@cortex-js/compute-engine/dist/esm-min/compute-engine.js --bundle --minify --format=iife --global-name=ComputeEngineBundle --outfile=public/compute-engine.min.js",
+    "postinstall": "npm run bundle:ce",
+    "build": "npm run bundle:ce && tsc && vite build",
     "preview": "vite preview",
     "cap:sync": "npx cap sync",
     "cap:add:android": "npx cap add android",
@@ -25,15 +27,20 @@
     "@capacitor/preferences": "^6.0.3",
     "@capacitor/splash-screen": "^6.0.3",
     "@capacitor/status-bar": "^6.0.2",
+    "@cortex-js/compute-engine": "^0.128.0",
     "@supabase/supabase-js": "^2.112.4",
     "canvas-confetti": "^1.9.4",
-    "katex": "^0.16.21",
-    "lucide": "^0.475.0"
+    "katex": "^0.16.47",
+    "lucide": "^0.475.0",
+    "mathlive": "^0.110.0",
+    "simple-mind-map": "^0.14.0-fix.3",
+    "sortablejs": "^1.15.7"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.2.0",
     "@types/canvas-confetti": "^1.9.0",
     "@types/katex": "^0.16.7",
+    "@types/sortablejs": "^1.15.9",
     "typescript": "^5.7.3",
     "vite": "^6.2.0"
   }

@@ -1,4 +1,5 @@
 import katex from 'katex';
+import 'katex/dist/contrib/mhchem.js';
 import 'katex/dist/katex.min.css';
 
 export class KatexService {
@@ -46,6 +47,11 @@ export class KatexService {
     // 3. Reemplaza inline KaTeX $ ... $
     result = result.replace(/\$([^\$\n]+?)\$/g, (_, math) => {
       return `<span class="katex-inline-container" style="display:inline-block; padding:0 2px;">${this.renderMath(math.trim(), false)}</span>`;
+    });
+
+    // 4. Soporta notación química/nuclear \ce{...} explícita fuera de $
+    result = result.replace(/\\ce\{([^\n]+?)\}/g, (_, chem) => {
+      return `<span class="katex-inline-container" style="display:inline-block; padding:0 2px;">${this.renderMath(`\\ce{${chem}}`, false)}</span>`;
     });
 
     // 4. Bloques de código ``` ... ```

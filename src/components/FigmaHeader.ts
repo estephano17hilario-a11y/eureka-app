@@ -1,11 +1,12 @@
 import { eurekaSupabase } from '../services/supabase.service';
 
-export type FigmaMainTab = 'inicio' | 'biblioteca' | 'ajustes';
+export type FigmaMainTab = 'flashcards' | 'estudio' | 'biblioteca' | 'ajustes' | 'inicio';
 
-export function renderFigmaHeader(activeTab: FigmaMainTab = 'inicio'): string {
+export function renderFigmaHeader(activeTab: FigmaMainTab = 'flashcards'): string {
   const user = eurekaSupabase.getCurrentUser();
   const displayName = user?.username || 'Estudiante';
   const initial = displayName.charAt(0).toUpperCase() || 'E';
+  const isFlashcards = activeTab === 'flashcards' || activeTab === 'inicio';
 
   return `
     <!-- Top Nav Header (Responsive for Desktop & Mobile APK) -->
@@ -23,11 +24,14 @@ export function renderFigmaHeader(activeTab: FigmaMainTab = 'inicio'): string {
 
         <!-- Desktop Navigation Tabs (Hidden on Mobile) -->
         <nav class="figma-nav-tabs desktop-only">
-          <button class="figma-nav-tab-btn ${activeTab === 'inicio' ? 'active' : ''}" data-tab="inicio">
-            Inicio
+          <button class="figma-nav-tab-btn ${isFlashcards ? 'active' : ''}" data-tab="flashcards">
+            🎴 Flashcards
+          </button>
+          <button class="figma-nav-tab-btn ${activeTab === 'estudio' ? 'active' : ''}" data-tab="estudio">
+            🧠 Estudio
           </button>
           <button class="figma-nav-tab-btn ${activeTab === 'biblioteca' ? 'active' : ''}" data-tab="biblioteca">
-            Biblioteca
+            📚 Biblioteca
           </button>
           <button class="figma-nav-tab-btn ${activeTab === 'ajustes' ? 'active' : ''}" data-tab="ajustes">
             🎨 Personalización
@@ -62,9 +66,23 @@ export function renderFigmaHeader(activeTab: FigmaMainTab = 'inicio'): string {
 
     <!-- Mobile Native Bottom Navigation Bar (iOS & Android APK) -->
     <nav class="mobile-bottom-nav mobile-only">
-      <button class="mobile-nav-item ${activeTab === 'inicio' ? 'active' : ''}" data-tab="inicio">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span>Inicio</span>
+      <button class="mobile-nav-item ${isFlashcards ? 'active' : ''}" data-tab="flashcards">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="16" height="20" x="4" y="2" rx="2"/>
+          <line x1="8" x2="16" y1="6" y2="6"/>
+          <line x1="8" x2="16" y1="10" y2="10"/>
+          <line x1="8" x2="12" y1="14" y2="14"/>
+        </svg>
+        <span>Flashcards</span>
+      </button>
+
+      <button class="mobile-nav-item ${activeTab === 'estudio' ? 'active' : ''}" data-tab="estudio">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a5 5 0 0 1 5 5c0 1.93-1.07 3.6-2.66 4.46a3 3 0 0 0-1.34 2.54V15"/>
+          <path d="M12 18h.01"/>
+          <circle cx="12" cy="12" r="9"/>
+        </svg>
+        <span>Estudio</span>
       </button>
 
       <button class="mobile-nav-item ${activeTab === 'biblioteca' ? 'active' : ''}" data-tab="biblioteca">

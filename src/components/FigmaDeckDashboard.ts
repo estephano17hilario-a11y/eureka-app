@@ -11,6 +11,7 @@ export interface FigmaDashboardCallbacks {
   onAddCard: (deckId: string) => void;
   onConfigureDeck: (deckId: string) => void;
   onEditCard: (cardId: string) => void;
+  onRefresh?: () => void;
 }
 
 export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string {
@@ -274,53 +275,64 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
         </button>
       </div>
 
-      <!-- Progress Section: Tarjetas en el mazo -->
-      <div class="figma-progress-section">
-        <div class="figma-progress-title-row">
-          <span>Tarjetas en el mazo (${totalInDeck})</span>
-          <span style="color:var(--f-text-muted); cursor:pointer;" id="btn-deck-info-icon">ⓘ</span>
-        </div>
-
-        <div class="figma-segment-bar">
-          <div class="f-seg-gray" style="width: ${pctGray}%;"></div>
-          <div class="f-seg-green" style="width: ${pctGreen}%;"></div>
-          <div class="f-seg-blue" style="width: ${pctBlue}%;"></div>
-        </div>
-
-        <div class="figma-bar-legend">
-          <div class="f-legend-item">
-            <div class="f-dot" style="background:#64748b;"></div>
-            <span><strong>${newCount}</strong> No estudiadas</span>
-          </div>
-          <div class="f-legend-item">
-            <div class="f-dot" style="background:#10b981;"></div>
-            <span><strong>${learningCount}</strong> En aprendizaje</span>
-          </div>
-          <div class="f-legend-item">
-            <div class="f-dot" style="background:#38bdf8;"></div>
-            <span><strong>${masteredCount}</strong> Dominadas</span>
-          </div>
-        </div>
-
-        <!-- Search and Action Bar -->
-        <div class="figma-search-bar-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <div class="figma-search-input-wrap" style="flex:1; min-width:180px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="figma-search-input" placeholder="Buscar tarjetas en el mazo..." id="dash-search-input" />
+      <!-- Bottom Board: Sección de Tarjetas -->
+      <div class="figma-dashboard-bottom-board">
+        <div class="figma-bottom-tabs-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><line x1="7" y1="9" x2="13" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/></svg>
+            <strong style="color:#fff; font-size:1.05rem;">Tarjetas del Mazo</strong>
+            <span class="figma-tab-count-chip">${totalInDeck}</span>
           </div>
 
-          <button class="figma-btn-white-pill" id="btn-dash-add-card" style="padding:10px 18px; font-size:0.88rem;">
-            + Agregar tarjetas
+          <button class="figma-icon-btn-ghost" id="btn-deck-info-icon" title="Ajustes del mazo">
+            ⓘ
           </button>
         </div>
 
-        <!-- Cards List Container with Accordions and Long-Press Multi-Selection -->
-        <div id="dash-cards-list-mount" style="margin-top:18px;">
-          ${cardItemsHtml.length > 0 ? cardItemsHtml.join('') : `
-            <div style="text-align:center; padding:36px 16px; color:var(--f-text-muted);">
-              No hay tarjetas en este mazo todavía. ¡Agrega una con el botón de arriba!
+        <!-- SECCIÓN DE FLASHCARDS -->
+        <div id="dash-section-flashcards" class="dash-bottom-section active">
+          <!-- Progress Bar & Legend -->
+          <div class="figma-segment-bar">
+            <div class="f-seg-gray" style="width: ${pctGray}%;"></div>
+            <div class="f-seg-green" style="width: ${pctGreen}%;"></div>
+            <div class="f-seg-blue" style="width: ${pctBlue}%;"></div>
+          </div>
+
+          <div class="figma-bar-legend">
+            <div class="f-legend-item">
+              <div class="f-dot" style="background:#64748b;"></div>
+              <span><strong>${newCount}</strong> No estudiadas</span>
             </div>
-          `}
+            <div class="f-legend-item">
+              <div class="f-dot" style="background:#10b981;"></div>
+              <span><strong>${learningCount}</strong> En aprendizaje</span>
+            </div>
+            <div class="f-legend-item">
+              <div class="f-dot" style="background:#38bdf8;"></div>
+              <span><strong>${masteredCount}</strong> Dominadas</span>
+            </div>
+          </div>
+
+          <!-- Search and Action Bar -->
+          <div class="figma-search-bar-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div class="figma-search-input-wrap" style="flex:1; min-width:180px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="figma-search-input" placeholder="Buscar tarjetas en el mazo..." id="dash-search-input" />
+            </div>
+
+            <button class="figma-btn-white-pill" id="btn-dash-add-card" style="padding:10px 18px; font-size:0.88rem;">
+              + Agregar tarjetas
+            </button>
+          </div>
+
+          <!-- Cards List Container with Accordions and Long-Press Multi-Selection -->
+          <div id="dash-cards-list-mount" style="margin-top:18px;">
+            ${cardItemsHtml.length > 0 ? cardItemsHtml.join('') : `
+              <div style="text-align:center; padding:36px 16px; color:var(--f-text-muted);">
+                No hay tarjetas en este mazo todavía. ¡Agrega una con el botón de arriba!
+              </div>
+            `}
+          </div>
         </div>
       </div>
 
@@ -422,6 +434,20 @@ export function bindFigmaDashboardEvents(
       }
     });
   };
+
+  // Filtro de búsqueda en tiempo real
+  const searchInput = container.querySelector('#dash-search-input') as HTMLInputElement | null;
+  searchInput?.addEventListener('input', (e) => {
+    const q = (e.target as HTMLInputElement).value.toLowerCase().trim();
+    container.querySelectorAll<HTMLElement>('.selectable-card-target, .figma-card-stacked-wrapper').forEach((el) => {
+      if (!q) {
+        el.style.display = '';
+        return;
+      }
+      const text = el.textContent?.toLowerCase() || '';
+      el.style.display = text.includes(q) ? '' : 'none';
+    });
+  });
 
   // Edit single card from batch selection
   btnBatchEdit?.addEventListener('click', () => {

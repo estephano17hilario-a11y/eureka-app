@@ -1,4 +1,12 @@
 import './index.css';
+import katex from 'katex';
+import 'katex/dist/contrib/mhchem.js';
+import 'katex/dist/katex.min.css';
+import 'mathlive';
+import 'mathlive/static.css';
+
+(window as any).katex = katex;
+
 import { nativeService } from './services/native.service';
 import { deckService } from './services/deck.service';
 import { themeService } from './services/theme.service';
@@ -19,6 +27,9 @@ import { FigmaStudySession } from './components/FigmaStudySession';
 import { dialogService } from './services/dialog.service';
 import { openFigmaBatchImportModal } from './components/FigmaBatchImportModal';
 import { openFigmaAiBuilderModal } from './components/FigmaAiBuilderModal';
+import { renderActiveStudyDashboard, bindActiveStudyDashboardEvents } from './components/ActiveStudyView';
+import { UltraFastMindMap } from './components/UltraFastMindMap';
+import { activeStudyService } from './services/active-study.service';
 
 type AppView =
   | 'root'
@@ -34,13 +45,16 @@ type AppView =
   | 'study';
 
 class EurekaFigmaApp {
-  private currentTab: FigmaMainTab = 'inicio';
+  private currentTab: FigmaMainTab = 'flashcards';
   private currentView: AppView = 'root';
   private selectedRootDeckId: string = '';
   private selectedSubdeckId: string = '';
+  private selectedStudyTopicId: string = '';
   private editingCardId: string | null = null;
   private appElement: HTMLElement;
   private activeStudySession: FigmaStudySession | null = null;
+  private activeMindMapInstance: UltraFastMindMap | null = null;
+  private cleanupActiveStudyEvents: (() => void) | null = null;
   private toastTimeout: number | null = null;
 
   constructor() {
@@ -190,6 +204,59 @@ class EurekaFigmaApp {
     });
   }
 
+  public openMindMap(topicId?: string): void {
+    nativeService.triggerHaptics('medium');
+    if (this.cleanupActiveStudyEvents) {
+      this.cleanupActiveStudyEvents();
+      this.cleanupActiveStudyEvents = null;
+    }
+
+    let initialData: any = undefined;
+    let topicTitle = 'Mapa Mental Táctil';
+
+    if (topicId) {
+      const topic = activeStudyService.getTopicById(topicId);
+      if (topic) {
+        topicTitle = topic.title;
+        const roots = activeStudyService.getOutlineTree(topicId);
+        if (roots.length > 0) {
+          const mapNode = (n: any): any => ({
+            data: { text: n.text, id: n.id },
+            children: n.children && n.children.length > 0 ? n.children.map(mapNode) : []
+          });
+          initialData = {
+            data: { text: topic.title },
+            children: roots.map(mapNode)
+          };
+        }
+      }
+    }
+
+    // Montar en un contenedor de pantalla completa fijo de 100vw y 100vh
+    const mount = document.createElement('div');
+    mount.id = 'eureka-mindmap-fullscreen-mount';
+    document.body.appendChild(mount);
+
+    this.activeMindMapInstance = new UltraFastMindMap(mount, {
+      topicId,
+      topicTitle,
+      initialData,
+      onBack: () => {
+        if (this.activeMindMapInstance) {
+          this.activeMindMapInstance.destroy();
+          this.activeMindMapInstance = null;
+        }
+        mount.remove();
+        this.render();
+      },
+      onSave: () => {
+        this.showToast('🧠 Mapa mental sincronizado');
+      }
+    });
+
+    this.activeMindMapInstance.mount();
+  }
+
   private handleOpenAddMenu(parentId?: string | null): void {
     nativeService.triggerHaptics('light');
     const parent = parentId ? deckService.getDeckById(parentId) : undefined;
@@ -287,6 +354,8 @@ class EurekaFigmaApp {
     } else if (this.currentView === 'learning_phase') {
       showGlobalHeader = false;
       bodyHtml = renderFigmaLearningPhaseView(subdeck);
+    } else if (this.currentTab === 'estudio') {
+      bodyHtml = renderActiveStudyDashboard(this.selectedStudyTopicId);
     } else if (this.currentTab === 'biblioteca') {
       bodyHtml = renderFigmaLibraryView();
     } else if (this.currentTab === 'ajustes' || this.currentView === 'app_settings') {
@@ -327,6 +396,12 @@ class EurekaFigmaApp {
     const layout = document.getElementById('main-layout-mount');
     if (!layout) return;
 
+    // Limpiar temporizadores previos de la sección de estudio
+    if (this.cleanupActiveStudyEvents) {
+      this.cleanupActiveStudyEvents();
+      this.cleanupActiveStudyEvents = null;
+    }
+
     // Header tabs & Mobile Bottom Nav items
     layout.querySelectorAll<HTMLButtonElement>('.figma-nav-tab-btn, .mobile-nav-item').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -334,14 +409,16 @@ class EurekaFigmaApp {
         if (tab && tab !== this.currentTab) {
           nativeService.triggerHaptics('light');
           this.currentTab = tab;
-          if (tab === 'inicio') this.currentView = 'root';
+          if (tab === 'flashcards' || tab === 'inicio') {
+            this.currentView = 'root';
+          }
           this.render();
         }
       });
     });
 
     layout.querySelector('#nav-brand-logo')?.addEventListener('click', () => {
-      this.currentTab = 'inicio';
+      this.currentTab = 'flashcards';
       this.currentView = 'root';
       this.render();
     });
@@ -355,6 +432,21 @@ class EurekaFigmaApp {
       this.currentTab = 'ajustes';
       this.render();
     });
+
+    // Pestaña ESTUDIO ACTIVO (Sección independiente completa)
+    if (this.currentTab === 'estudio') {
+      this.cleanupActiveStudyEvents = bindActiveStudyDashboardEvents(
+        layout,
+        () => this.render(),
+        (topicId) => {
+          this.selectedStudyTopicId = topicId;
+        },
+        (topicId) => {
+          this.openMindMap(topicId);
+        }
+      );
+      return;
+    }
 
     // Floating actions
     layout.querySelector('#btn-fab-gift')?.addEventListener('click', () => {
@@ -485,7 +577,7 @@ class EurekaFigmaApp {
     if (this.currentTab === 'ajustes' || this.currentView === 'app_settings') {
       bindFigmaAppSettingsViewEvents(layout, {
         onBack: () => {
-          this.currentTab = 'inicio';
+          this.currentTab = 'flashcards';
           this.currentView = 'root';
           this.render();
         },
@@ -497,8 +589,10 @@ class EurekaFigmaApp {
       return;
     }
 
+    const isFlashcards = this.currentTab === 'flashcards' || this.currentTab === 'inicio';
+
     // View 1: Root Deck List
-    if (this.currentTab === 'inicio' && this.currentView === 'root') {
+    if (isFlashcards && this.currentView === 'root') {
       bindFigmaDeckListEvents(layout, {
         onSelectDeck: (deckId) => {
           nativeService.triggerHaptics('light');
@@ -519,7 +613,7 @@ class EurekaFigmaApp {
     }
 
     // View 2: Subdeck Explorer
-    else if (this.currentTab === 'inicio' && this.currentView === 'subdeck') {
+    else if (isFlashcards && this.currentView === 'subdeck') {
       bindFigmaSubdeckEvents(layout, rootDeck, {
         onBack: () => {
           this.currentView = 'root';
@@ -547,7 +641,7 @@ class EurekaFigmaApp {
     }
 
     // View 3: Dashboard
-    else if (this.currentTab === 'inicio' && this.currentView === 'dashboard') {
+    else if (isFlashcards && this.currentView === 'dashboard') {
       bindFigmaDashboardEvents(layout, subdeck, {
         onBackToSubdecks: () => {
           if (subdeck.parentId) {
@@ -578,6 +672,9 @@ class EurekaFigmaApp {
           this.editingCardId = cardId;
           this.currentView = 'editor';
           this.render();
+        },
+        onRefresh: () => {
+          this.render();
         }
       });
     }
@@ -587,13 +684,13 @@ class EurekaFigmaApp {
       bindFigmaLibraryEvents(layout, {
         onAddCard: () => {
           this.editingCardId = null;
-          this.currentTab = 'inicio';
+          this.currentTab = 'flashcards';
           this.currentView = 'editor';
           this.render();
         },
         onEditCard: (cardId) => {
           this.editingCardId = cardId;
-          this.currentTab = 'inicio';
+          this.currentTab = 'flashcards';
           this.currentView = 'editor';
           this.render();
         },
