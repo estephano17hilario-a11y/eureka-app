@@ -5054,12 +5054,18 @@ math-field.cupertino-mathfield-input:focus-within {
   right: 0;
   z-index: 100;
   gap: 12px;
+  overflow-x: auto;
+}
+
+.mindmap-top-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .mindmap-pro-controls-group {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .mindmap-select-pill {
@@ -5072,10 +5078,12 @@ math-field.cupertino-mathfield-input:focus-within {
   font-weight: 700;
   outline: none;
   cursor: pointer;
+  transition: all 0.15s;
 }
 
 .mindmap-select-pill:focus {
   border-color: #38bdf8;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .mindmap-top-action-chip {
@@ -5106,6 +5114,18 @@ math-field.cupertino-mathfield-input:focus-within {
   color: #d8b4fe;
 }
 
+.mindmap-fit-main-btn {
+  background: rgba(56, 189, 248, 0.18) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  color: #38bdf8 !important;
+}
+
+.mindmap-fit-main-btn:hover {
+  background: #38bdf8 !important;
+  color: #07080d !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
+}
+
 .mindmap-color-bar {
   display: flex;
   align-items: center;
@@ -5131,12 +5151,204 @@ math-field.cupertino-mathfield-input:focus-within {
   border-color: #fff;
 }
 
+/* Barra de Búsqueda Flotante */
+.mindmap-search-floating-bar {
+  position: absolute;
+  top: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 18, 28, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  border-radius: 999px;
+  padding: 6px 14px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.2);
+  animation: searchSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes searchSlideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.mindmap-search-floating-bar input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 0.88rem;
+  width: 200px;
+  outline: none;
+}
+
+.search-counter {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.search-nav-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.search-nav-btn:hover {
+  background: rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+}
+
+/* Botón Flotante Ergonómico de Centrado a Límites */
+.mindmap-floating-fit-btn {
+  position: absolute;
+  bottom: 84px;
+  right: 20px;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(56, 189, 248, 0.9));
+  color: #07080d;
+  font-size: 0.85rem;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 10px 18px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.45), 0 0 12px rgba(56, 189, 248, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mindmap-floating-fit-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 12px 30px rgba(14, 165, 233, 0.65), 0 0 20px rgba(56, 189, 248, 0.5);
+}
+
+.mindmap-floating-fit-btn:active {
+  transform: translateY(1px) scale(0.96);
+}
+
+/* Efecto de Flash/Highlight al Calzar Límites */
+.mindmap-fit-highlight {
+  animation: fitPulse 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fitPulse {
+  0% {
+    box-shadow: inset 0 0 0 3px rgba(56, 189, 248, 0.8), 0 0 30px rgba(56, 189, 248, 0.35);
+  }
+  100% {
+    box-shadow: inset 0 0 0 0 transparent, 0 0 0 transparent;
+  }
+}
+
+/* Fila de Stickers Rápidos en Sheet de Edición */
+.sheet-stickers-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sheet-stickers-row::-webkit-scrollbar {
+  display: none;
+}
+
+.sticker-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: transform 0.12s, background 0.12s;
+  flex-shrink: 0;
+}
+
+.sticker-chip:hover {
+  transform: scale(1.2);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Input de Edición de Nodo con Cursor de Alto Contraste */
+#input-sheet-text {
+  width: 100%;
+  box-sizing: border-box;
+  background: #090b12;
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  caret-color: #38bdf8;
+  resize: vertical;
+  min-height: 72px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#input-sheet-text:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+}
+
+/* Live Preview KaTeX en Sheet */
+.sheet-katex-live-preview-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.sheet-katex-live-preview-box .preview-tag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.sheet-katex-live-preview-box .preview-content {
+  color: #f1f5f9;
+  font-size: 1.05rem;
+  overflow-x: auto;
+}
+
 /* Modal Drawer de Flashcards del Tema */
 .mindmap-flashcards-modal {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   z-index: 1000;
   display: flex;
   align-items: center;
