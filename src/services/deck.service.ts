@@ -406,7 +406,8 @@ export class DeckService {
     deckId: string,
     imageSrc: string,
     masks: OcclusionMask[],
-    mode: OcclusionMode = 'hide_all_reveal_one'
+    mode: OcclusionMode = 'hide_all_reveal_one',
+    chunkId?: string
   ): Flashcard[] {
     const created: Flashcard[] = [];
     const deck = this.getDeckById(deckId);
@@ -423,6 +424,7 @@ export class DeckService {
         type: 'image_occlusion',
         front: `Identifica la estructura anatómica #${index + 1}:`,
         back: mask.label ? `**${mask.label}**` : `Estructura #${index + 1} revelada.`,
+        chunkId,
         occlusionImage: imageSrc,
         occlusionMasks: masks,
         activeMaskId: mask.id,

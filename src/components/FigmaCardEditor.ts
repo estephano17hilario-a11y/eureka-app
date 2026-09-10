@@ -12,7 +12,7 @@ export interface FigmaCardEditorCallbacks {
   onSaved: () => void;
 }
 
-export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: Flashcard): string {
+export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: Flashcard, chunkId?: string): string {
   return `
     <div class="ios-fullscreen-view">
       
@@ -35,6 +35,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
           <span class="figma-crumb-link" id="crumb-e-deck" style="color:var(--f-text-secondary); cursor:pointer;">${deck.name}</span>
           <span style="color:var(--f-text-muted);">/</span>
           <span style="color:#ffffff; font-weight:800;">${editCard ? 'Editar tarjeta' : 'Agregar nueva tarjeta'}</span>
+          ${chunkId ? `<span class="atomic-deck-link-chip" style="margin-left:8px; font-size:0.75rem;">🔬 Vinculado al estudio activo</span>` : ''}
         </div>
 
         <div style="display:flex; align-items:center; gap:10px; margin-left:auto;">
@@ -212,7 +213,8 @@ export function bindFigmaCardEditorEvents(
   container: HTMLElement,
   deck: Deck,
   editCard: Flashcard | undefined,
-  callbacks: FigmaCardEditorCallbacks
+  callbacks: FigmaCardEditorCallbacks,
+  chunkId?: string
 ): void {
   const anversoInput = container.querySelector('#f-anverso-input') as HTMLTextAreaElement | null;
   const reversoInput = container.querySelector('#f-reverso-input') as HTMLTextAreaElement | null;
@@ -657,7 +659,8 @@ export function bindFigmaCardEditorEvents(
           deck.id,
           occlusionImage || frontImage || CLEAN_CANVAS_PLACEHOLDER,
           occlusionMasks,
-          currentOcclusionMode
+          currentOcclusionMode,
+          chunkId
         );
       } else {
         deckService.createCard(
@@ -668,6 +671,7 @@ export function bindFigmaCardEditorEvents(
             back,
             frontImage,
             backImage,
+            chunkId: chunkId,
             occlusionImage: undefined,
             occlusionMasks: undefined,
             activeMaskId: undefined,

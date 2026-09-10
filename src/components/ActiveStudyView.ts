@@ -321,7 +321,7 @@ function renderCenteredAtomicReadingScreen(
   deckName: string
 ): string {
   return `
-    <div class="atomic-study-immersive-container">
+    <div class="active-study-topic-workspace atomic-study-immersive-container" data-topic-id="${topic.id}">
       <div class="atomic-reading-card">
         <!-- Barra Superior del Átomo -->
         <div class="atomic-card-top-meta">
@@ -678,13 +678,17 @@ export function bindActiveStudyDashboardEvents(
   container: HTMLElement,
   onRefresh: () => void,
   onSelectTopic: (topicId: string) => void,
-  onOpenMindMap?: (topicId?: string) => void
+  onOpenMindMap?: (topicId?: string) => void,
+  onOpenCardCreator?: (deckId: string, chunkId?: string) => void
 ): () => void {
+  const allTopics = activeStudyService.getAllTopics();
+
   // 1. Selector de Píldoras de Tema
   container.querySelectorAll<HTMLButtonElement>('.study-topic-pill-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const topicId = btn.dataset.topicId;
       if (topicId) {
+        activeStudyingTopicId = null;
         onSelectTopic(topicId);
         onRefresh();
       }
@@ -723,11 +727,6 @@ export function bindActiveStudyDashboardEvents(
     onRefresh();
   });
 
-  // Lanzador directo de Mapa Mental desde la barra de temas
-  container.querySelector('#btn-launch-free-mindmap')?.addEventListener('click', () => {
-    onOpenMindMap?.(currentTopicId);
-  });
-
   // 3. Recarga de Monedas de Prueba para el Bypass
   container.querySelector('#btn-add-demo-coins')?.addEventListener('click', () => {
     activeStudyService.addCoins(100);
@@ -735,16 +734,24 @@ export function bindActiveStudyDashboardEvents(
   });
 
   // Comprobar si hay un tema activo seleccionado
-  const activeWorkspace = container.querySelector('.active-study-topic-workspace') as HTMLElement | null;
-  const currentTopicId = activeWorkspace?.dataset.topicId;
+  const activeWorkspace = container.querySelector('[data-topic-id]') as HTMLElement | null;
+  const currentTopicId = activeWorkspace?.dataset.topicId || (allTopics.length > 0 ? allTopics[0].id : undefined);
+
+  // Lanzador directo de Mapa Mental desde la barra de temas
+  container.querySelector('#btn-launch-free-mindmap')?.addEventListener('click', () => {
+    nativeService.triggerHaptics('medium');
+    onOpenMindMap?.(currentTopicId);
+  });
 
   // Botones para abrir el esquema como Mapa Mental
   container.querySelectorAll<HTMLButtonElement>('.btn-open-topic-mindmap').forEach((btn) => {
     btn.addEventListener('click', () => {
       const tid = btn.dataset.topicId || currentTopicId;
+      nativeService.triggerHaptics('medium');
       onOpenMindMap?.(tid);
     });
   });
+
   if (!currentTopicId) return () => {};
 
   const topic = activeStudyService.getTopicById(currentTopicId);
@@ -766,7 +773,19 @@ export function bindActiveStudyDashboardEvents(
   const currentChunk = topic.chunks[topic.currentChunkIndex] || topic.chunks[0];
 
   container.querySelector('#btn-atomic-add-card')?.addEventListener('click', () => {
-    if (currentChunk) {
+    nativeService.triggerHaptics('light');
+    let targetDeckId = topic.deckId;
+    if (!targetDeckId) {
+      const allDecks = deckService.getAllDecks();
+      const defaultDeck = allDecks[0] || deckService.createDeck({ name: topic.title, icon: 'deck', color: '#38bdf8' });
+      targetDeckId = defaultDeck.id;
+      topic.deckId = targetDeckId;
+      activeStudyService.saveToStorage();
+    }
+
+    if (onOpenCardCreator) {
+      onOpenCardCreator(targetDeckId, currentChunk?.id);
+    } else if (currentChunk) {
       openAddFlashcardModal(topic, currentChunk, () => {
         onRefresh();
       });

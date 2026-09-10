@@ -4443,6 +4443,16 @@ math-field.cupertino-mathfield-input:focus-within {
    ULTRA-FAST TACTILE MIND MAP (CAPACITOR 60 FPS MOBILE HYBRID)
    ========================================================================== */
 
+#eureka-mindmap-fullscreen-mount {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  background: #07080d;
+  overflow: hidden;
+}
+
 .mindmap-viewport-wrapper {
   position: fixed;
   inset: 0;
@@ -4454,7 +4464,7 @@ math-field.cupertino-mathfield-input:focus-within {
   user-select: none;
   -webkit-user-select: none;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  z-index: 1000;
+  z-index: 99999;
 }
 
 .mindmap-canvas-container {

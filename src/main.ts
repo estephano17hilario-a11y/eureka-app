@@ -55,6 +55,8 @@ class EurekaFigmaApp {
   private activeStudySession: FigmaStudySession | null = null;
   private activeMindMapInstance: UltraFastMindMap | null = null;
   private cleanupActiveStudyEvents: (() => void) | null = null;
+  private returnToStudyOnCardEditorClose: boolean = false;
+  private activeStudyChunkIdForNewCards: string | null = null;
   private toastTimeout: number | null = null;
 
   constructor() {
@@ -211,14 +213,23 @@ class EurekaFigmaApp {
       this.cleanupActiveStudyEvents = null;
     }
 
+    // Resolver tema activo por orden de prioridad
+    let resolvedTopicId = topicId || this.selectedStudyTopicId;
+    if (!resolvedTopicId) {
+      const allTopics = activeStudyService.getAllTopics();
+      if (allTopics.length > 0) {
+        resolvedTopicId = allTopics[0].id;
+      }
+    }
+
     let initialData: any = undefined;
     let topicTitle = 'Mapa Mental Táctil';
 
-    if (topicId) {
-      const topic = activeStudyService.getTopicById(topicId);
+    if (resolvedTopicId) {
+      const topic = activeStudyService.getTopicById(resolvedTopicId);
       if (topic) {
         topicTitle = topic.title;
-        const roots = activeStudyService.getOutlineTree(topicId);
+        const roots = activeStudyService.getOutlineTree(resolvedTopicId);
         if (roots.length > 0) {
           const mapNode = (n: any): any => ({
             data: { text: n.text, id: n.id },
@@ -232,13 +243,17 @@ class EurekaFigmaApp {
       }
     }
 
+    // Limpiar instancia previa si existiera
+    const prevMount = document.getElementById('eureka-mindmap-fullscreen-mount');
+    if (prevMount) prevMount.remove();
+
     // Montar en un contenedor de pantalla completa fijo de 100vw y 100vh
     const mount = document.createElement('div');
     mount.id = 'eureka-mindmap-fullscreen-mount';
     document.body.appendChild(mount);
 
     this.activeMindMapInstance = new UltraFastMindMap(mount, {
-      topicId,
+      topicId: resolvedTopicId,
       topicTitle,
       initialData,
       onBack: () => {
@@ -341,7 +356,12 @@ class EurekaFigmaApp {
 
     if (this.currentView === 'editor') {
       showGlobalHeader = false;
-      bodyHtml = renderFigmaCardEditor(subdeck, rootDeck && rootDeck.id !== subdeck.id ? rootDeck : undefined, editCard);
+      bodyHtml = renderFigmaCardEditor(
+        subdeck,
+        rootDeck && rootDeck.id !== subdeck.id ? rootDeck : undefined,
+        editCard,
+        this.activeStudyChunkIdForNewCards || undefined
+      );
     } else if (this.currentView === 'deck_settings') {
       showGlobalHeader = false;
       bodyHtml = renderFigmaDeckSettingsView(subdeck);
@@ -443,6 +463,20 @@ class EurekaFigmaApp {
         },
         (topicId) => {
           this.openMindMap(topicId);
+        },
+        (deckId, chunkId) => {
+          this.returnToStudyOnCardEditorClose = true;
+          this.activeStudyChunkIdForNewCards = chunkId || null;
+          this.selectedSubdeckId = deckId;
+          const targetDeck = deckService.getDeckById(deckId);
+          if (targetDeck?.parentId) {
+            this.selectedRootDeckId = targetDeck.parentId;
+          } else {
+            this.selectedRootDeckId = deckId;
+          }
+          this.editingCardId = null;
+          this.currentView = 'editor';
+          this.render();
         }
       );
       return;
@@ -464,19 +498,39 @@ class EurekaFigmaApp {
     // View: Card Editor (Top Priority)
     if (this.currentView === 'editor') {
       const editCard = this.editingCardId ? deckService.getCardById(this.editingCardId) : undefined;
-      bindFigmaCardEditorEvents(layout, subdeck, editCard, {
-        onBack: () => {
-          this.editingCardId = null;
-          this.currentView = 'dashboard';
-          this.render();
+      bindFigmaCardEditorEvents(
+        layout,
+        subdeck,
+        editCard,
+        {
+          onBack: () => {
+            this.editingCardId = null;
+            if (this.returnToStudyOnCardEditorClose) {
+              this.returnToStudyOnCardEditorClose = false;
+              this.activeStudyChunkIdForNewCards = null;
+              this.currentTab = 'estudio';
+              this.currentView = 'root';
+            } else {
+              this.currentView = 'dashboard';
+            }
+            this.render();
+          },
+          onSaved: () => {
+            this.showToast('¡Tarjeta guardada con éxito!');
+            this.editingCardId = null;
+            if (this.returnToStudyOnCardEditorClose) {
+              this.returnToStudyOnCardEditorClose = false;
+              this.activeStudyChunkIdForNewCards = null;
+              this.currentTab = 'estudio';
+              this.currentView = 'root';
+            } else {
+              this.currentView = 'dashboard';
+            }
+            this.render();
+          }
         },
-        onSaved: () => {
-          this.showToast('¡Tarjeta guardada con éxito!');
-          this.editingCardId = null;
-          this.currentView = 'dashboard';
-          this.render();
-        }
-      });
+        this.activeStudyChunkIdForNewCards || undefined
+      );
       return;
     }
 
