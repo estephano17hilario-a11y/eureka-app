@@ -5039,6 +5039,53 @@ math-field.cupertino-mathfield-input:focus-within {
 /* ==========================================================================
    MAPA MENTAL ENTERPRISE $10M STUDIO
    ========================================================================== */
+#eureka-mindmap-fullscreen-mount {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  background: #07080d !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.mindmap-viewport-wrapper {
+  position: absolute !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  background: #07080d !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.mindmap-canvas-container,
+#mindmap-render-canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  z-index: 1 !important;
+}
+
+.mindmap-canvas-container svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
 .mindmap-top-bar {
   display: flex;
   align-items: center;

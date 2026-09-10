@@ -481,11 +481,13 @@ export class UltraFastMindMap {
       layout: this.currentLayout,
       theme: 'classic4',
       readonly: false,
-      enableFreeDrag: false,
+      enableFreeDrag: true,
       isTouch: true,
       mousewheelAction: 'zoom',
       enableAnimation: false,
       customLineType: 'straight',
+      isLimitMindMapInCanvas: false,
+      fitPadding: 45,
 
       // LOCALIZACIÓN 100% ESPAÑOL (Supresión total de caracteres chinos)
       defaultInsertSecondLevelNodeText: 'Subconcepto',
@@ -524,31 +526,67 @@ export class UltraFastMindMap {
       };
     }
 
-    // Auto-ajuste de vista centrado inicial a límites
+    // Auto-ajuste de vista centrado inicial infalible al terminar el renderizado
+    let initialRenderAttempts = 0;
+    this.mindMapInstance.on('node_tree_render_end', () => {
+      if (initialRenderAttempts < 3) {
+        initialRenderAttempts++;
+        requestAnimationFrame(() => {
+          this.fitToScreenBounds();
+        });
+      }
+    });
+
     setTimeout(() => {
       if (this.mindMapInstance && !this.isDestroyed) {
         this.fitToScreenBounds();
       }
-    }, 150);
+    }, 60);
+
+    setTimeout(() => {
+      if (this.mindMapInstance && !this.isDestroyed) {
+        this.fitToScreenBounds();
+      }
+    }, 200);
 
     this.initKeyboardAdaptiveHandler();
   }
 
   /**
-   * 🎯 FIT TO SCREEN BOUNDS (Centrado de Límites Perfecto)
-   * Calza milimétricamente todo el contenido del mapa en el centro de la pantalla,
-   * garantizando que los nodos más lejanos rocen los límites sin desbordar.
+   * 🎯 FIT TO SCREEN BOUNDS (Centrado de Límites Perfecto y Milimétrico)
+   * Calza matemáticamente todo el contenido del mapa en el centro de la pantalla,
+   * garantizando que los nodos más lejanos rocen los límites del viewport sin desbordar
+   * y compensando los márgenes del header y bottom dock.
    */
   public fitToScreenBounds(): void {
     if (!this.mindMapInstance || this.isDestroyed) return;
 
     try {
-      // 1. Ejecutar el fit nativo de la librería con padding equilibrado
-      if (this.mindMapInstance.view) {
-        this.mindMapInstance.view.fit();
+      // 1. Forzar recálculo exacto del tamaño del contenedor con el viewport real
+      if (typeof this.mindMapInstance.resize === 'function') {
+        this.mindMapInstance.resize();
       }
 
-      // 2. Efecto visual de flash/glow en el lienzo para retroalimentación
+      // 2. Ejecutar fit con enlarge=true para que el contenido se escale y calce 
+      // de modo que los nodos más alejados rocen los bordes con un margen de 45px
+      if (this.mindMapInstance.view) {
+        this.mindMapInstance.view.fit(undefined, true, 45);
+
+        // 3. Compensación del centro visual entre el Header (~56px) y el Bottom Dock (~75px)
+        const topBar = this.container.querySelector('.mindmap-top-bar') as HTMLElement | null;
+        const bottomDock = this.container.querySelector('.mindmap-bottom-dock') as HTMLElement | null;
+        const topH = topBar ? topBar.offsetHeight : 56;
+        const bottomH = bottomDock ? bottomDock.offsetHeight : 75;
+        const visualCenterOffsetY = (topH - bottomH) / 2;
+
+        if (visualCenterOffsetY !== 0) {
+          this.mindMapInstance.view.translateY(visualCenterOffsetY);
+        }
+      } else {
+        this.mindMapInstance.renderer?.setRootNodeCenter?.();
+      }
+
+      // 4. Efecto visual de flash/glow en el lienzo para retroalimentación instantánea
       const canvasEl = this.container.querySelector('#mindmap-render-canvas');
       if (canvasEl) {
         canvasEl.classList.remove('mindmap-fit-highlight');
@@ -559,6 +597,9 @@ export class UltraFastMindMap {
       this.triggerHaptic();
     } catch (e) {
       console.warn('[UltraFastMindMap] Error al ajustar límites:', e);
+      try {
+        this.mindMapInstance?.renderer?.setRootNodeCenter?.();
+      } catch {}
     }
   }
 
