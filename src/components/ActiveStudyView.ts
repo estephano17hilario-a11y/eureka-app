@@ -241,7 +241,7 @@ function renderSelectedTopicWorkspace(topic: ActiveStudyTopic, userCoins: number
         <div class="study-topic-info">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <span class="study-topic-chip">TEMA ACTIVO</span>
-            <span class="atomic-deck-link-chip">🎴 Baraja: ${escapeAttr(deckName)}</span>
+            <button class="atomic-deck-link-chip btn-change-topic-deck" data-topic-id="${topic.id}" title="Toca para cambiar de baraja vinculada" style="border:none; cursor:pointer;">🎴 Baraja: ${escapeAttr(deckName)} ✎</button>
             <span class="study-topic-date">${new Date(topic.createdAt).toLocaleDateString()}</span>
           </div>
           <h3 class="study-topic-title">${escapeHtml(topic.title)}</h3>
@@ -327,7 +327,7 @@ function renderCenteredAtomicReadingScreen(
         <div class="atomic-card-top-meta">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <span class="atomic-tag-badge">🔬 Átomo ${topic.currentChunkIndex + 1} de ${topic.chunks.length}</span>
-            <span class="atomic-deck-link-chip">🎴 Baraja: ${escapeAttr(deckName)}</span>
+            <button class="atomic-deck-link-chip btn-change-topic-deck" data-topic-id="${topic.id}" title="Toca para cambiar de baraja vinculada" style="border:none; cursor:pointer;">🎴 Baraja: ${escapeAttr(deckName)} ✎</button>
           </div>
           <button class="figma-btn-white-pill" id="btn-exit-atomic-reading" style="padding:6px 14px; font-size:0.8rem;">
             ✕ Volver al Resumen
@@ -749,6 +749,20 @@ export function bindActiveStudyDashboardEvents(
       const tid = btn.dataset.topicId || currentTopicId;
       nativeService.triggerHaptics('medium');
       onOpenMindMap?.(tid);
+    });
+  });
+
+  // Botón interactivo para cambiar o re-vincular baraja de un tema
+  container.querySelectorAll<HTMLButtonElement>('.btn-change-topic-deck').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tid = btn.dataset.topicId || currentTopicId;
+      if (tid) {
+        const t = activeStudyService.getTopicById(tid);
+        if (t) {
+          openChangeTopicDeckModal(t, () => onRefresh());
+        }
+      }
     });
   });
 
@@ -1223,43 +1237,113 @@ function openAddFlashcardModal(
 }
 
 /**
- * Modal para crear un nuevo tema ligándolo obligatoriamente a una baraja de flashcards
+ * Modal interactivo y visual para crear un nuevo tema ligándolo obligatoriamente a una baraja de flashcards
  */
 function openCreateTopicModal(onCreated: (topicId: string) => void): void {
   const allDecks = deckService.getAllDecks();
+  let selectedDeckId: string = allDecks.length > 0 ? allDecks[0].id : '__create_new__';
+  let chosenColor: string = '#a855f7';
 
   const modal = document.createElement('div');
   modal.className = 'apple-modal-overlay';
   modal.innerHTML = `
-    <div class="apple-modal-content apple-glass-panel" style="max-width:560px; width:92%; padding:24px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-        <h3 style="font-size:1.25rem; font-weight:800; color:#fff; margin:0;">Nuevo Tema de Estudio Activo</h3>
+    <div class="apple-modal-content apple-glass-panel" style="max-width:620px; width:94%; padding:24px; max-height:92vh; display:flex; flex-direction:column; overflow:hidden;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.3rem;">🧠</span>
+          <h3 style="font-size:1.25rem; font-weight:800; color:#fff; margin:0;">Nuevo Tema de Estudio Activo</h3>
+        </div>
         <button id="btn-close-create-modal" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
       </div>
 
-      <p style="color:var(--f-text-secondary); font-size:0.88rem; margin:0 0 16px 0; line-height:1.45;">
-        Pega tu material de estudio. Es <strong>obligatorio ligar el tema a una baraja de flashcards</strong> para consolidar las tarjetas creadas durante la lectura atómica.
-      </p>
+      <div style="overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:14px; flex:1;">
+        <!-- SELECTOR INTERACTIVO Y VISUAL DE BARAJA VINCULADA -->
+        <div class="deck-linking-interactive-container">
+          <div class="deck-linking-header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label class="deck-linking-label">
+                🎴 Baraja de Flashcards Vinculada (Obligatorio)
+              </label>
+              <span class="deck-linking-count">${allDecks.length} barajas</span>
+            </div>
+            <p class="deck-linking-subtext">
+              Toca para seleccionar la baraja donde se programarán tus tarjetas de este tema.
+            </p>
+          </div>
 
-      <div style="display:flex; flex-direction:column; gap:14px;">
-        <!-- LIGAR OBLIGATORIAMENTE A BARAJA -->
-        <div>
-          <label style="font-size:0.8rem; font-weight:700; color:#38bdf8; text-transform:uppercase;">
-            🎴 Baraja de Flashcards Vinculada (Obligatorio):
-          </label>
-          <select id="modal-topic-deck" style="width:100%; margin-top:6px; box-sizing:border-box; background:#14151c; border:1px solid rgba(56,189,248,0.4); border-radius:12px; padding:10px 14px; color:#fff; font-size:0.95rem;">
-            <option value="" disabled selected>-- Selecciona una baraja de flashcards --</option>
-            ${allDecks.map((d) => `<option value="${d.id}">${escapeHtml(d.name)} (${deckService.getCardsByDeck(d.id).length} tarjetas)</option>`).join('')}
-            <option value="__create_new__">✨ + Crear nueva baraja para este tema</option>
-          </select>
+          ${
+            allDecks.length > 3
+              ? `
+            <div class="deck-search-input-wrap">
+              <span class="deck-search-icon">🔍</span>
+              <input 
+                type="text" 
+                id="input-filter-decks" 
+                placeholder="Filtrar baraja por nombre..." 
+                class="deck-search-input"
+              />
+            </div>
+          `
+              : ''
+          }
 
-          <div id="modal-new-deck-wrap" style="display:none; margin-top:8px;">
+          <div class="deck-selection-grid" id="deck-selection-grid">
+            <!-- Tile "+ Crear Nueva Baraja" -->
+            <div class="deck-select-tile deck-select-tile-new ${selectedDeckId === '__create_new__' ? 'active' : ''}" id="tile-create-new-deck" data-deck-id="__create_new__">
+              <div class="deck-tile-icon-wrap" style="background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.4); color:#c084fc;">
+                ✨
+              </div>
+              <div class="deck-tile-info">
+                <span class="deck-tile-title">+ Crear Nueva Baraja</span>
+                <span class="deck-tile-meta">Exclusiva para este tema</span>
+              </div>
+              <div class="deck-tile-check">✓</div>
+            </div>
+
+            <!-- Lista de barajas existentes -->
+            ${allDecks
+              .map((d) => {
+                const isSelected = selectedDeckId === d.id;
+                const cardCount = deckService.getCardsByDeck(d.id, false).length;
+                return `
+                <div class="deck-select-tile ${isSelected ? 'active' : ''}" data-deck-id="${d.id}" data-deck-name="${escapeAttr(d.name)}">
+                  <div class="deck-tile-color-indicator" style="background: ${d.color || '#38bdf8'};"></div>
+                  <div class="deck-tile-icon-wrap" style="background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.3); color:#38bdf8;">
+                    🎴
+                  </div>
+                  <div class="deck-tile-info">
+                    <span class="deck-tile-title">${escapeHtml(d.name)}</span>
+                    <span class="deck-tile-meta">${cardCount} tarjetas</span>
+                  </div>
+                  <div class="deck-tile-check">✓</div>
+                </div>
+              `;
+              })
+              .join('')}
+          </div>
+
+          <!-- Formulario desplegable animado para nueva baraja -->
+          <div class="deck-new-inline-card" id="deck-new-inline-card" style="${selectedDeckId === '__create_new__' ? 'display:block;' : 'display:none;'}">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span style="font-size:1.1rem;">✨</span>
+              <strong style="color:#fff; font-size:0.9rem;">Configurar Nueva Baraja</strong>
+            </div>
             <input 
               type="text" 
-              id="modal-new-deck-name" 
-              placeholder="Nombre de la nueva baraja..." 
-              style="width:100%; box-sizing:border-box; background:#0e1018; border:1px solid rgba(168,85,247,0.4); border-radius:10px; padding:8px 12px; color:#fff; font-size:0.9rem;" 
+              id="input-inline-deck-name" 
+              placeholder="Nombre de la nueva baraja (ej. Neurociencia, Fisiología)..." 
+              class="deck-inline-input"
             />
+            <div class="deck-inline-color-row">
+              <span style="font-size:0.75rem; color:var(--f-text-secondary); font-weight:700;">Color temático:</span>
+              <div class="deck-color-pills" id="deck-inline-colors">
+                <button type="button" class="deck-color-pill active" data-color="#a855f7" style="background:#a855f7;"></button>
+                <button type="button" class="deck-color-pill" data-color="#38bdf8" style="background:#38bdf8;"></button>
+                <button type="button" class="deck-color-pill" data-color="#10b981" style="background:#10b981;"></button>
+                <button type="button" class="deck-color-pill" data-color="#f59e0b" style="background:#f59e0b;"></button>
+                <button type="button" class="deck-color-pill" data-color="#ec4899" style="background:#ec4899;"></button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1277,37 +1361,67 @@ function openCreateTopicModal(onCreated: (topicId: string) => void): void {
           <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase;">Texto de Estudio:</label>
           <textarea 
             id="modal-topic-content" 
-            rows="7" 
+            rows="6" 
             placeholder="Pega aquí el texto. Los párrafos separados se agruparán en bloques atómicos de estudio..." 
             style="width:100%; margin-top:6px; box-sizing:border-box; background:#14151c; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:0.95rem; font-family:inherit;"
           ></textarea>
         </div>
+      </div>
 
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
-          <button class="figma-btn-white-pill" id="modal-btn-cancel" style="background:rgba(255,255,255,0.06); color:#fff;">
-            Cancelar
-          </button>
-          <button class="figma-btn-study-large" id="modal-btn-save" style="width:auto; padding:10px 24px;">
-            Crear y Empezar Estudio ➔
-          </button>
-        </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
+        <button class="figma-btn-white-pill" id="modal-btn-cancel" style="background:rgba(255,255,255,0.06); color:#fff;">
+          Cancelar
+        </button>
+        <button class="figma-btn-study-large" id="modal-btn-save" style="width:auto; padding:10px 24px;">
+          🚀 Crear y Empezar Estudio ➔
+        </button>
       </div>
     </div>
   `;
 
   document.body.appendChild(modal);
 
-  const selectDeck = modal.querySelector('#modal-topic-deck') as HTMLSelectElement;
-  const newDeckWrap = modal.querySelector('#modal-new-deck-wrap') as HTMLElement;
-  const newDeckInput = modal.querySelector('#modal-new-deck-name') as HTMLInputElement;
+  const grid = modal.querySelector('#deck-selection-grid') as HTMLElement;
+  const newDeckCard = modal.querySelector('#deck-new-inline-card') as HTMLElement;
+  const newDeckInput = modal.querySelector('#input-inline-deck-name') as HTMLInputElement;
+  const filterInput = modal.querySelector('#input-filter-decks') as HTMLInputElement | null;
 
-  selectDeck.addEventListener('change', () => {
-    if (selectDeck.value === '__create_new__') {
-      newDeckWrap.style.display = 'block';
-      newDeckInput.focus();
-    } else {
-      newDeckWrap.style.display = 'none';
-    }
+  // Selección de tiles
+  grid.querySelectorAll<HTMLElement>('.deck-select-tile').forEach((tile) => {
+    tile.addEventListener('click', () => {
+      nativeService.triggerHaptics('light');
+      const did = tile.dataset.deckId;
+      if (!did) return;
+
+      grid.querySelectorAll('.deck-select-tile').forEach((t) => t.classList.remove('active'));
+      tile.classList.add('active');
+      selectedDeckId = did;
+
+      if (did === '__create_new__') {
+        newDeckCard.style.display = 'block';
+        newDeckInput.focus();
+      } else {
+        newDeckCard.style.display = 'none';
+      }
+    });
+  });
+
+  // Selector de color para nueva baraja
+  modal.querySelectorAll<HTMLButtonElement>('.deck-color-pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      modal.querySelectorAll('.deck-color-pill').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      chosenColor = btn.dataset.color || '#a855f7';
+    });
+  });
+
+  // Filtro en vivo
+  filterInput?.addEventListener('input', () => {
+    const q = filterInput.value.toLowerCase().trim();
+    grid.querySelectorAll<HTMLElement>('.deck-select-tile[data-deck-name]').forEach((tile) => {
+      const name = tile.dataset.deckName?.toLowerCase() || '';
+      tile.style.display = name.includes(q) ? 'flex' : 'none';
+    });
   });
 
   const closeModal = () => modal.remove();
@@ -1320,9 +1434,9 @@ function openCreateTopicModal(onCreated: (topicId: string) => void): void {
     const title = titleInput?.value.trim() || 'Nuevo Tema de Estudio';
     const rawContent = contentInput?.value.trim() || '';
 
-    let chosenDeckId = selectDeck.value;
+    let finalDeckId = selectedDeckId;
 
-    if (!chosenDeckId) {
+    if (!finalDeckId) {
       dialogService.showAlert({
         title: 'Baraja obligatoria',
         message: 'Es obligatorio vincular el tema de estudio a una baraja de flashcards.'
@@ -1330,7 +1444,7 @@ function openCreateTopicModal(onCreated: (topicId: string) => void): void {
       return;
     }
 
-    if (chosenDeckId === '__create_new__') {
+    if (finalDeckId === '__create_new__') {
       const customDeckName = newDeckInput.value.trim();
       if (!customDeckName) {
         dialogService.showAlert({
@@ -1342,9 +1456,9 @@ function openCreateTopicModal(onCreated: (topicId: string) => void): void {
       const newDeck = deckService.createDeck({
         name: customDeckName,
         icon: 'deck',
-        color: '#a855f7'
+        color: chosenColor
       });
-      chosenDeckId = newDeck.id;
+      finalDeckId = newDeck.id;
     }
 
     if (!rawContent) {
@@ -1370,10 +1484,154 @@ function openCreateTopicModal(onCreated: (topicId: string) => void): void {
             }
           ];
 
-    const newTopic = activeStudyService.createTopic(chosenDeckId, title, chunksData);
+    const newTopic = activeStudyService.createTopic(finalDeckId, title, chunksData);
     activeStudyingTopicId = newTopic.id;
     closeModal();
     onCreated(newTopic.id);
+  });
+}
+
+/**
+ * Modal interactivo para cambiar o re-vincular la baraja de un tema existente
+ */
+function openChangeTopicDeckModal(topic: ActiveStudyTopic, onSaved: () => void): void {
+  const allDecks = deckService.getAllDecks();
+  let selectedDeckId: string = topic.deckId || (allDecks.length > 0 ? allDecks[0].id : '__create_new__');
+  let chosenColor: string = '#38bdf8';
+
+  const modal = document.createElement('div');
+  modal.className = 'apple-modal-overlay';
+  modal.innerHTML = `
+    <div class="apple-modal-content apple-glass-panel" style="max-width:580px; width:94%; padding:24px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.3rem;">🎴</span>
+          <div>
+            <h3 style="font-size:1.2rem; font-weight:800; color:#fff; margin:0;">Cambiar Baraja Vinculada</h3>
+            <span style="font-size:0.78rem; color:var(--f-text-secondary);">${escapeHtml(topic.title)}</span>
+          </div>
+        </div>
+        <button id="btn-close-deck-change-modal" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+      </div>
+
+      <div style="overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:14px; flex:1;">
+        <div class="deck-linking-interactive-container">
+          <p class="deck-linking-subtext">
+            Selecciona la nueva baraja donde se asociarán las flashcards de este estudio:
+          </p>
+
+          <div class="deck-selection-grid" id="deck-change-selection-grid">
+            <div class="deck-select-tile deck-select-tile-new ${selectedDeckId === '__create_new__' ? 'active' : ''}" id="tile-change-create-new-deck" data-deck-id="__create_new__">
+              <div class="deck-tile-icon-wrap" style="background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.4); color:#c084fc;">
+                ✨
+              </div>
+              <div class="deck-tile-info">
+                <span class="deck-tile-title">+ Crear Nueva Baraja</span>
+                <span class="deck-tile-meta">Crear una nueva para vincular</span>
+              </div>
+              <div class="deck-tile-check">✓</div>
+            </div>
+
+            ${allDecks
+              .map((d) => {
+                const isSelected = selectedDeckId === d.id;
+                const cardCount = deckService.getCardsByDeck(d.id, false).length;
+                return `
+                <div class="deck-select-tile ${isSelected ? 'active' : ''}" data-deck-id="${d.id}">
+                  <div class="deck-tile-color-indicator" style="background: ${d.color || '#38bdf8'};"></div>
+                  <div class="deck-tile-icon-wrap" style="background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.3); color:#38bdf8;">
+                    🎴
+                  </div>
+                  <div class="deck-tile-info">
+                    <span class="deck-tile-title">${escapeHtml(d.name)}</span>
+                    <span class="deck-tile-meta">${cardCount} tarjetas</span>
+                  </div>
+                  <div class="deck-tile-check">✓</div>
+                </div>
+              `;
+              })
+              .join('')}
+          </div>
+
+          <div class="deck-new-inline-card" id="deck-change-new-inline-card" style="${selectedDeckId === '__create_new__' ? 'display:block;' : 'display:none;'}">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span style="font-size:1.1rem;">✨</span>
+              <strong style="color:#fff; font-size:0.9rem;">Configurar Nueva Baraja</strong>
+            </div>
+            <input 
+              type="text" 
+              id="input-change-inline-deck-name" 
+              placeholder="Nombre de la nueva baraja..." 
+              class="deck-inline-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
+        <button class="figma-btn-white-pill" id="modal-btn-cancel-deck-change" style="background:rgba(255,255,255,0.06); color:#fff;">
+          Cancelar
+        </button>
+        <button class="figma-btn-study-large" id="modal-btn-save-deck-change" style="width:auto; padding:10px 24px;">
+          💾 Guardar Vinculación
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const grid = modal.querySelector('#deck-change-selection-grid') as HTMLElement;
+  const newDeckCard = modal.querySelector('#deck-change-new-inline-card') as HTMLElement;
+  const newDeckInput = modal.querySelector('#input-change-inline-deck-name') as HTMLInputElement;
+
+  grid.querySelectorAll<HTMLElement>('.deck-select-tile').forEach((tile) => {
+    tile.addEventListener('click', () => {
+      nativeService.triggerHaptics('light');
+      const did = tile.dataset.deckId;
+      if (!did) return;
+
+      grid.querySelectorAll('.deck-select-tile').forEach((t) => t.classList.remove('active'));
+      tile.classList.add('active');
+      selectedDeckId = did;
+
+      if (did === '__create_new__') {
+        newDeckCard.style.display = 'block';
+        newDeckInput.focus();
+      } else {
+        newDeckCard.style.display = 'none';
+      }
+    });
+  });
+
+  const closeModal = () => modal.remove();
+  modal.querySelector('#btn-close-deck-change-modal')?.addEventListener('click', closeModal);
+  modal.querySelector('#modal-btn-cancel-deck-change')?.addEventListener('click', closeModal);
+
+  modal.querySelector('#modal-btn-save-deck-change')?.addEventListener('click', () => {
+    let finalDeckId = selectedDeckId;
+    if (finalDeckId === '__create_new__') {
+      const customName = newDeckInput.value.trim();
+      if (!customName) {
+        dialogService.showAlert({
+          title: 'Nombre requerido',
+          message: 'Por favor ingresa un nombre para la nueva baraja.'
+        });
+        return;
+      }
+      const newDeck = deckService.createDeck({
+        name: customName,
+        icon: 'deck',
+        color: chosenColor
+      });
+      finalDeckId = newDeck.id;
+    }
+
+    topic.deckId = finalDeckId;
+    activeStudyService.saveToStorage();
+    nativeService.triggerHaptics('medium');
+    closeModal();
+    onSaved();
   });
 }
 

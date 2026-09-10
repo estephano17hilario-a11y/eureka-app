@@ -453,44 +453,6 @@ class EurekaFigmaApp {
       this.render();
     });
 
-    // Pestaña ESTUDIO ACTIVO (Sección independiente completa)
-    if (this.currentTab === 'estudio') {
-      this.cleanupActiveStudyEvents = bindActiveStudyDashboardEvents(
-        layout,
-        () => this.render(),
-        (topicId) => {
-          this.selectedStudyTopicId = topicId;
-        },
-        (topicId) => {
-          this.openMindMap(topicId);
-        },
-        (deckId, chunkId) => {
-          this.returnToStudyOnCardEditorClose = true;
-          this.activeStudyChunkIdForNewCards = chunkId || null;
-          this.selectedSubdeckId = deckId;
-          const targetDeck = deckService.getDeckById(deckId);
-          if (targetDeck?.parentId) {
-            this.selectedRootDeckId = targetDeck.parentId;
-          } else {
-            this.selectedRootDeckId = deckId;
-          }
-          this.editingCardId = null;
-          this.currentView = 'editor';
-          this.render();
-        }
-      );
-      return;
-    }
-
-    // Floating actions
-    layout.querySelector('#btn-fab-gift')?.addEventListener('click', () => {
-      this.showToast('🎁 ¡Racha de hoy completada! +50 XP');
-    });
-
-    layout.querySelector('#btn-fab-help')?.addEventListener('click', () => {
-      this.showToast('Atajos: Espacio = Voltear | 1, 2, 3, 4 = Calificar');
-    });
-
     const rootDecks = deckService.getRootDecks();
     const rootDeck = deckService.getDeckById(this.selectedRootDeckId) || rootDecks[0] || deckService.getAllDecks()[0];
     const subdeck = deckService.getDeckById(this.selectedSubdeckId) || rootDeck;
@@ -642,6 +604,44 @@ class EurekaFigmaApp {
       });
       return;
     }
+
+    // Pestaña ESTUDIO ACTIVO (Sección independiente completa)
+    if (this.currentTab === 'estudio') {
+      this.cleanupActiveStudyEvents = bindActiveStudyDashboardEvents(
+        layout,
+        () => this.render(),
+        (topicId) => {
+          this.selectedStudyTopicId = topicId;
+        },
+        (topicId) => {
+          this.openMindMap(topicId);
+        },
+        (deckId, chunkId) => {
+          this.returnToStudyOnCardEditorClose = true;
+          this.activeStudyChunkIdForNewCards = chunkId || null;
+          this.selectedSubdeckId = deckId;
+          const targetDeck = deckService.getDeckById(deckId);
+          if (targetDeck?.parentId) {
+            this.selectedRootDeckId = targetDeck.parentId;
+          } else {
+            this.selectedRootDeckId = deckId;
+          }
+          this.editingCardId = null;
+          this.currentView = 'editor';
+          this.render();
+        }
+      );
+      return;
+    }
+
+    // Floating actions
+    layout.querySelector('#btn-fab-gift')?.addEventListener('click', () => {
+      this.showToast('🎁 ¡Racha de hoy completada! +50 XP');
+    });
+
+    layout.querySelector('#btn-fab-help')?.addEventListener('click', () => {
+      this.showToast('Atajos: Espacio = Voltear | 1, 2, 3, 4 = Calificar');
+    });
 
     const isFlashcards = this.currentTab === 'flashcards' || this.currentTab === 'inicio';
 
