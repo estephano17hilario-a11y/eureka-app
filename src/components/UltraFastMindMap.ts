@@ -298,30 +298,33 @@ export class UltraFastMindMap {
         <!-- Input Oculto para Cargar Fotos en los Recuadros -->
         <input type="file" id="mindmap-photo-file-input" accept="image/*" style="display:none;" />
 
-        <!-- Panel Desplegable: 'MAPA' -->
+        <!-- Panel Desplegable: 'MAPA' (Formato Horizontal Ribbon) -->
         <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-map" style="display:none;">
-          <div class="dropdown-header">
-            <span class="dropdown-title">🗺️ Configuración del Mapa</span>
-            <button type="button" class="btn-dropdown-close" id="btn-close-map-dropdown">✕</button>
+          <div class="dropdown-h-group">
+            <span class="dropdown-h-title">🗺️ Mapa</span>
           </div>
-          
-          <div class="dropdown-section">
-            <label class="dropdown-section-label">Tipo de Esquema:</label>
-            <select id="select-map-layout" class="mindmap-select-pill-full" title="Cambiar tipo de estructura">
-              <option value="logicalStructure" ${this.currentLayout === 'logicalStructure' ? 'selected' : ''}>🌲 Estructura Lógica (Izq ➔ Der)</option>
-              <option value="mindMap" ${this.currentLayout === 'mindMap' ? 'selected' : ''}>🧠 Mapa Mental Radial</option>
-              <option value="organizationStructure" ${this.currentLayout === 'organizationStructure' ? 'selected' : ''}>🏛️ Organigrama Vertical</option>
-              <option value="catalogOrganization" ${this.currentLayout === 'catalogOrganization' ? 'selected' : ''}>📑 Catálogo Organizativo</option>
-              <option value="timeline" ${this.currentLayout === 'timeline' ? 'selected' : ''}>⏳ Línea de Tiempo Horizontal</option>
-              <option value="timeline2" ${this.currentLayout === 'timeline2' ? 'selected' : ''}>⌛ Línea de Tiempo Vertical</option>
-              <option value="fishbone" ${this.currentLayout === 'fishbone' ? 'selected' : ''}>🐟 Espina de Pescado (Ishikawa)</option>
-              <option value="verticalMindMap" ${this.currentLayout === 'verticalMindMap' ? 'selected' : ''}>🏢 Esquema Jerárquico Vertical</option>
+
+          <div class="dropdown-h-divider"></div>
+
+          <div class="dropdown-h-group">
+            <label class="dropdown-h-label">Esquema:</label>
+            <select id="select-map-layout" class="dropdown-select-clean-sm" title="Cambiar tipo de estructura">
+              <option value="logicalStructure" ${this.currentLayout === 'logicalStructure' ? 'selected' : ''}>🌲 Lógica (Izq ➔ Der)</option>
+              <option value="mindMap" ${this.currentLayout === 'mindMap' ? 'selected' : ''}>🧠 Radial</option>
+              <option value="organizationStructure" ${this.currentLayout === 'organizationStructure' ? 'selected' : ''}>🏛️ Organigrama</option>
+              <option value="catalogOrganization" ${this.currentLayout === 'catalogOrganization' ? 'selected' : ''}>📑 Catálogo</option>
+              <option value="timeline" ${this.currentLayout === 'timeline' ? 'selected' : ''}>⏳ Línea Horizontal</option>
+              <option value="timeline2" ${this.currentLayout === 'timeline2' ? 'selected' : ''}>⌛ Línea Vertical</option>
+              <option value="fishbone" ${this.currentLayout === 'fishbone' ? 'selected' : ''}>🐟 Ishikawa</option>
+              <option value="verticalMindMap" ${this.currentLayout === 'verticalMindMap' ? 'selected' : ''}>🏢 Jerárquico</option>
             </select>
           </div>
 
-          <div class="dropdown-section">
-            <label class="dropdown-section-label">Color de Fondo del Mapa:</label>
-            <div class="theme-chips-row">
+          <div class="dropdown-h-divider"></div>
+
+          <div class="dropdown-h-group">
+            <label class="dropdown-h-label">Fondo:</label>
+            <div class="theme-chips-row-sm">
               <button class="theme-chip-btn ${this.currentTheme === 'cyberDark' ? 'active' : ''}" data-theme="cyberDark">🌌 Cyber</button>
               <button class="theme-chip-btn ${this.currentTheme === 'oceanBlue' ? 'active' : ''}" data-theme="oceanBlue">🌊 Ocean</button>
               <button class="theme-chip-btn ${this.currentTheme === 'bioEmerald' ? 'active' : ''}" data-theme="bioEmerald">🍃 Bio</button>
@@ -330,9 +333,11 @@ export class UltraFastMindMap {
             </div>
           </div>
 
-          <div class="dropdown-section">
-            <label class="dropdown-section-label">Color Global de Recuadros:</label>
-            <div class="color-dots-row" id="map-global-color-palette">
+          <div class="dropdown-h-divider"></div>
+
+          <div class="dropdown-h-group">
+            <label class="dropdown-h-label">Recuadros:</label>
+            <div class="color-dots-row-sm" id="map-global-color-palette">
               <button class="color-dot-btn" data-color="blue" style="background:#0ea5e9;" title="Azul Cyan"></button>
               <button class="color-dot-btn" data-color="purple" style="background:#a855f7;" title="Violeta Cyber"></button>
               <button class="color-dot-btn" data-color="emerald" style="background:#10b981;" title="Esmeralda Bio"></button>
@@ -342,37 +347,42 @@ export class UltraFastMindMap {
             </div>
           </div>
 
-          <div class="dropdown-actions-grid">
-            <button class="dropdown-tool-btn" id="btn-map-fit-menu">🎯 Centrar Límites</button>
-            <button class="dropdown-tool-btn" id="btn-map-expand-all">📂 Desplegar Todo</button>
-            <button class="dropdown-tool-btn" id="btn-map-collapse-all">📁 Plegar Todo</button>
-            <button class="dropdown-tool-btn" id="btn-map-search-toggle">🔍 Buscar Nodo</button>
-            <button class="dropdown-tool-btn" id="btn-map-view-flashcards">🎴 Flashcards (${flashcards.length})</button>
-            <button class="dropdown-tool-btn" id="btn-map-shortcuts">⌨️ Atajos de Teclado</button>
-            <button class="dropdown-tool-btn" id="btn-map-export-png">🖼️ Exportar PNG</button>
-            <button class="dropdown-tool-btn" id="btn-map-export-json">💾 Exportar JSON</button>
+          <div class="dropdown-h-divider"></div>
+
+          <div class="dropdown-h-group dropdown-h-actions">
+            <button class="dropdown-tool-btn-sm" id="btn-map-fit-menu">🎯 Centrar</button>
+            <button class="dropdown-tool-btn-sm" id="btn-map-expand-all">📂 Desplegar</button>
+            <button class="dropdown-tool-btn-sm" id="btn-map-collapse-all">📁 Plegar</button>
+            <button class="dropdown-tool-btn-sm" id="btn-map-search-toggle">🔍 Buscar</button>
+            <button class="dropdown-tool-btn-sm" id="btn-map-view-flashcards">🎴 Flashcards (${flashcards.length})</button>
+            <button class="dropdown-tool-btn-sm" id="btn-map-shortcuts">⌨️ Atajos</button>
+            <button class="dropdown-tool-btn-sm" id="btn-map-export-png">🖼️ PNG</button>
+            <button class="dropdown-tool-btn-sm" id="btn-map-export-json">💾 JSON</button>
           </div>
+
+          <button type="button" class="btn-dropdown-close-sm" id="btn-close-map-dropdown" title="Cerrar barra">✕</button>
         </div>
 
-        <!-- Panel Desplegable: 'RECUADRO' -->
+        <!-- Panel Desplegable: 'RECUADRO' (Formato Horizontal Ribbon) -->
         <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-node" style="display:none;">
-          <div class="dropdown-header">
-            <span class="dropdown-title">🔲 Configuración del Recuadro</span>
-            <button type="button" class="btn-dropdown-close" id="btn-close-node-dropdown">✕</button>
+          <div class="dropdown-h-group">
+            <span class="dropdown-h-title">🔲 Recuadro</span>
           </div>
 
-          <div id="node-dropdown-empty-notice" style="padding:14px; text-align:center; color:var(--f-text-secondary); font-size:0.86rem; display:none;">
-            <span>ℹ️ Toca un recuadro en el mapa para seleccionarlo y editarlo.</span>
-            <button class="figma-btn-white-pill" id="btn-select-root-node" style="margin-top:10px; width:100%; font-size:0.8rem; padding:6px 12px;">
-              Seleccionar Recuadro Raíz
+          <div class="dropdown-h-divider"></div>
+
+          <div id="node-dropdown-empty-notice" class="dropdown-h-group" style="display:none; align-items:center; gap:8px;">
+            <span style="font-size:0.8rem; color:var(--f-text-secondary);">Toca un recuadro o</span>
+            <button class="figma-btn-white-pill-sm" id="btn-select-root-node">
+              Seleccionar Raíz
             </button>
           </div>
 
-          <div id="node-dropdown-content" style="display:flex; flex-direction:column; gap:12px;">
-            <!-- Color de Fondo del Recuadro -->
-            <div class="dropdown-section">
-              <label class="dropdown-section-label">Color de Fondo del Recuadro:</label>
-              <div class="color-dots-row" id="node-color-palette">
+          <div id="node-dropdown-content" style="display:inline-flex; align-items:center; gap:12px;">
+            <!-- Color de Fondo -->
+            <div class="dropdown-h-group">
+              <label class="dropdown-h-label">Fondo:</label>
+              <div class="color-dots-row-sm" id="node-color-palette">
                 <button class="color-dot-btn" data-color="blue" style="background:#0ea5e9;" title="Azul Cyan"></button>
                 <button class="color-dot-btn" data-color="purple" style="background:#a855f7;" title="Violeta Cyber"></button>
                 <button class="color-dot-btn" data-color="emerald" style="background:#10b981;" title="Esmeralda Bio"></button>
@@ -382,10 +392,12 @@ export class UltraFastMindMap {
               </div>
             </div>
 
-            <!-- Color de Texto del Recuadro -->
-            <div class="dropdown-section">
-              <label class="dropdown-section-label">Color del Texto:</label>
-              <div class="color-dots-row" id="node-text-color-palette">
+            <div class="dropdown-h-divider"></div>
+
+            <!-- Color de Texto -->
+            <div class="dropdown-h-group">
+              <label class="dropdown-h-label">Texto:</label>
+              <div class="color-dots-row-sm" id="node-text-color-palette">
                 <button class="color-dot-btn" data-text-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
                 <button class="color-dot-btn" data-text-color="#38bdf8" style="background:#38bdf8;" title="Cyan"></button>
                 <button class="color-dot-btn" data-text-color="#34d399" style="background:#34d399;" title="Verde"></button>
@@ -395,56 +407,63 @@ export class UltraFastMindMap {
               </div>
             </div>
 
-            <!-- Tamaño y Estilo de Texto -->
-            <div class="dropdown-section">
-              <label class="dropdown-section-label">Tamaño / Estilo de Texto:</label>
-              <div class="text-size-chips-row">
-                <button class="text-size-btn" data-size="12">Pequeño</button>
-                <button class="text-size-btn active" data-size="14">Normal</button>
-                <button class="text-size-btn" data-size="18">Grande</button>
-                <button class="text-size-btn" data-size="22">Título</button>
-                <button class="text-size-btn" id="btn-toggle-bold"><strong>B</strong></button>
+            <div class="dropdown-h-divider"></div>
+
+            <!-- Tamaño / Estilo de Texto -->
+            <div class="dropdown-h-group">
+              <label class="dropdown-h-label">Tamaño:</label>
+              <div class="text-size-chips-row-sm">
+                <button class="text-size-btn text-size-btn-sm" data-size="12">12</button>
+                <button class="text-size-btn text-size-btn-sm active" data-size="14">14</button>
+                <button class="text-size-btn text-size-btn-sm" data-size="18">18</button>
+                <button class="text-size-btn text-size-btn-sm" data-size="22">22</button>
+                <button class="text-size-btn text-size-btn-sm" id="btn-toggle-bold"><strong>B</strong></button>
               </div>
             </div>
 
-            <!-- Efectos y Stickers Rápidos -->
-            <div class="dropdown-section">
-              <label class="dropdown-section-label">Efectos y Marcadores:</label>
-              <div class="sheet-stickers-row" id="node-menu-stickers-bar" style="margin-top:4px;">
-                <button type="button" class="sticker-chip" data-sticker="⭐">⭐</button>
-                <button type="button" class="sticker-chip" data-sticker="🔬">🔬</button>
-                <button type="button" class="sticker-chip" data-sticker="⚡">⚡</button>
-                <button type="button" class="sticker-chip" data-sticker="📌">📌</button>
-                <button type="button" class="sticker-chip" data-sticker="✅">✅</button>
-                <button type="button" class="sticker-chip" data-sticker="💡">💡</button>
-                <button type="button" class="sticker-chip" data-sticker="❓">❓</button>
-                <button type="button" class="sticker-chip" data-sticker="🎯">🎯</button>
+            <div class="dropdown-h-divider"></div>
+
+            <!-- Marcadores y Stickers -->
+            <div class="dropdown-h-group">
+              <label class="dropdown-h-label">Stickers:</label>
+              <div class="sheet-stickers-row-sm" id="node-menu-stickers-bar">
+                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="⭐">⭐</button>
+                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="🔬">🔬</button>
+                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="⚡">⚡</button>
+                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="📌">📌</button>
+                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="✅">✅</button>
+                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="💡">💡</button>
+                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="❓">❓</button>
+                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="🎯">🎯</button>
               </div>
             </div>
+
+            <div class="dropdown-h-divider"></div>
 
             <!-- Foto del Recuadro -->
-            <div class="dropdown-section">
-              <label class="dropdown-section-label">📷 Foto del Recuadro:</label>
-              <div style="display:flex; gap:8px;">
-                <button class="figma-btn-white-pill" id="btn-upload-node-photo" style="flex:1; padding:8px 12px; font-size:0.82rem; color:#38bdf8; border-color:rgba(56,189,248,0.4);">
-                  📷 Añadir Foto
-                </button>
-                <button class="figma-btn-white-pill" id="btn-remove-node-photo" style="padding:8px 12px; font-size:0.82rem; color:#ef4444; border-color:rgba(239,68,68,0.3); display:none;">
-                  🗑️ Quitar Foto
-                </button>
-              </div>
+            <div class="dropdown-h-group">
+              <button class="figma-btn-white-pill-sm" id="btn-upload-node-photo" title="Adjuntar foto al recuadro">
+                📷 Foto
+              </button>
+              <button class="figma-btn-white-pill-sm danger" id="btn-remove-node-photo" style="display:none;" title="Eliminar foto del recuadro">
+                🗑️
+              </button>
             </div>
 
-            <!-- Acciones de Edición de Texto y KaTeX -->
-            <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-              <button class="figma-btn-study-large" id="btn-open-direct-text-editor" style="width:100%; padding:10px 16px; font-size:0.88rem;">
-                ✏️ Escribir Texto Multilínea
+            <div class="dropdown-h-divider"></div>
+
+            <!-- Acciones de Edición -->
+            <div class="dropdown-h-group">
+              <button class="figma-btn-study-sm" id="btn-open-direct-text-editor">
+                ✏️ Texto
               </button>
-              <button class="figma-btn-white-pill" id="btn-open-katex-from-node-menu" style="width:100%; padding:8px 14px; font-size:0.82rem; color:#38bdf8; border-color:rgba(56,189,248,0.4);">
-                📐 + Asistente KaTeX
+              <button class="figma-btn-white-pill-sm" id="btn-open-katex-from-node-menu">
+                📐 KaTeX
               </button>
             </div>
           </div>
+
+          <button type="button" class="btn-dropdown-close-sm" id="btn-close-node-dropdown" title="Cerrar barra">✕</button>
         </div>
 
         <!-- Barra de Búsqueda Flotante -->
@@ -626,17 +645,43 @@ export class UltraFastMindMap {
         div.style.whiteSpace = 'pre-wrap';
         div.style.padding = '6px 10px';
 
-        // 📷 Renderizado de Foto en el Recuadro
+        // 📷 Renderizado de Foto en el Recuadro con Dimensiones Inmediatas
         if (image) {
+          const imgSize = node.getData ? node.getData('imageSize') : (node.nodeData?.data?.imageSize);
+          const imgW = (imgSize && imgSize.width) ? imgSize.width : 160;
+          const imgH = (imgSize && imgSize.height) ? imgSize.height : 110;
+
           const imgEl = document.createElement('img');
           imgEl.src = image;
           imgEl.className = 'eureka-node-img-rendered';
+          imgEl.width = imgW;
+          imgEl.height = imgH;
+          imgEl.style.width = `${imgW}px`;
+          imgEl.style.height = `${imgH}px`;
+          imgEl.style.minWidth = `${imgW}px`;
+          imgEl.style.minHeight = `${imgH}px`;
           imgEl.style.maxWidth = '180px';
           imgEl.style.maxHeight = '130px';
           imgEl.style.borderRadius = '8px';
           imgEl.style.objectFit = 'cover';
           imgEl.style.display = 'block';
           imgEl.style.marginBottom = '6px';
+
+          // Si el tamaño no estaba guardado y la imagen se decodifica en diferido, recalcular
+          imgEl.onload = () => {
+            if (!node.getData?.('imageSize') && imgEl.naturalWidth && imgEl.naturalHeight) {
+              const scale = Math.min(180 / imgEl.naturalWidth, 130 / imgEl.naturalHeight, 1);
+              const nw = Math.max(40, Math.round(imgEl.naturalWidth * scale));
+              const nh = Math.max(30, Math.round(imgEl.naturalHeight * scale));
+              if (nw !== imgW || nh !== imgH) {
+                if (typeof node.setData === 'function') {
+                  node.setData({ imageSize: { width: nw, height: nh, custom: true } });
+                }
+                this.mindMapInstance?.render();
+              }
+            }
+          };
+
           div.appendChild(imgEl);
         }
 
@@ -1848,8 +1893,10 @@ export class UltraFastMindMap {
     }
 
     sheet.style.display = 'flex';
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }, 20);
   }
 
   /**
@@ -1919,15 +1966,15 @@ export class UltraFastMindMap {
     if (!emptyNotice || !content) return;
 
     if (!this.activeNode) {
-      emptyNotice.style.display = 'block';
+      emptyNotice.style.display = 'inline-flex';
       content.style.display = 'none';
     } else {
       emptyNotice.style.display = 'none';
-      content.style.display = 'flex';
+      content.style.display = 'inline-flex';
 
       const hasPhoto = Boolean(this.activeNode.getData ? this.activeNode.getData('image') : (this.activeNode.nodeData?.data?.image || this.activeNode.getData?.('imageUrl')));
       if (btnRemovePhoto) {
-        btnRemovePhoto.style.display = hasPhoto ? 'block' : 'none';
+        btnRemovePhoto.style.display = hasPhoto ? 'inline-flex' : 'none';
       }
     }
   }
@@ -1947,32 +1994,119 @@ export class UltraFastMindMap {
   }
 
   /**
-   * Guarda o elimina una foto en el recuadro seleccionado
+   * Guarda o elimina una foto en el recuadro seleccionado adaptando el tamaño inmediatamente
    */
   private setNodePhoto(dataUrl: string | null): void {
     if (!this.activeNode || !this.mindMapInstance) return;
     this.triggerHaptic();
 
-    if (typeof this.activeNode.setData === 'function') {
-      this.activeNode.setData({ image: dataUrl });
-    } else if (this.activeNode.nodeData?.data) {
-      this.activeNode.nodeData.data.image = dataUrl;
+    const photoPreviewWrap = this.container.querySelector('#sheet-photo-preview-wrap') as HTMLElement | null;
+    const photoPreviewImg = this.container.querySelector('#sheet-photo-preview-img') as HTMLImageElement | null;
+
+    if (!dataUrl) {
+      if (typeof this.activeNode.setData === 'function') {
+        this.activeNode.setData({ image: null, imageSize: null });
+      } else if (this.activeNode.nodeData?.data) {
+        this.activeNode.nodeData.data.image = null;
+        delete this.activeNode.nodeData.data.imageSize;
+      }
+
+      try {
+        this.mindMapInstance.execCommand('SET_NODE_IMAGE', this.activeNode, {
+          url: '',
+          title: '',
+          width: 0,
+          height: 0,
+          custom: false
+        });
+      } catch {
+        try {
+          this.mindMapInstance.execCommand('SET_NODE_DATA', this.activeNode, {
+            image: null,
+            imageSize: null
+          });
+        } catch {}
+      }
+
+      if (photoPreviewWrap && photoPreviewImg) {
+        photoPreviewWrap.style.display = 'none';
+      }
+
+      if (typeof this.mindMapInstance.reRender === 'function') {
+        this.mindMapInstance.reRender();
+      } else if (typeof this.mindMapInstance.render === 'function') {
+        this.mindMapInstance.render();
+      }
+
+      this.updateNodeDropdownUI();
+      this.scheduleDebouncedSave();
+      setTimeout(() => this.fitToScreenBounds(), 80);
+      return;
     }
 
-    try {
-      this.mindMapInstance.execCommand('SET_NODE_IMAGE', this.activeNode, {
-        url: dataUrl || '',
-        width: 140,
-        height: 100
-      });
-    } catch {}
+    // Pre-cargar la imagen para calcular las proporciones exactas y acomodar el recuadro de inmediato
+    const tempImg = new Image();
+    tempImg.onload = () => {
+      const maxW = 180;
+      const maxH = 130;
+      const nw = tempImg.naturalWidth || 160;
+      const nh = tempImg.naturalHeight || 110;
+      const scale = Math.min(maxW / nw, maxH / nh, 1);
+      const width = Math.max(40, Math.round(nw * scale));
+      const height = Math.max(30, Math.round(nh * scale));
+      const imageSize = { width, height, custom: true };
 
-    if (typeof this.mindMapInstance.render === 'function') {
+      if (typeof this.activeNode.setData === 'function') {
+        this.activeNode.setData({ image: dataUrl, imageSize });
+      } else if (this.activeNode.nodeData?.data) {
+        this.activeNode.nodeData.data.image = dataUrl;
+        this.activeNode.nodeData.data.imageSize = imageSize;
+      }
+
+      try {
+        this.mindMapInstance.execCommand('SET_NODE_IMAGE', this.activeNode, {
+          url: dataUrl,
+          title: '',
+          width,
+          height,
+          custom: true
+        });
+      } catch {
+        try {
+          this.mindMapInstance.execCommand('SET_NODE_DATA', this.activeNode, {
+            image: dataUrl,
+            imageSize
+          });
+        } catch {}
+      }
+
+      if (photoPreviewWrap && photoPreviewImg) {
+        photoPreviewImg.src = dataUrl;
+        photoPreviewWrap.style.display = 'flex';
+      }
+
+      // Forzar reRender para que el recuadro SVG mida y ajuste su altura y ancho de inmediato
+      if (typeof this.mindMapInstance.reRender === 'function') {
+        this.mindMapInstance.reRender();
+      } else if (typeof this.mindMapInstance.render === 'function') {
+        this.mindMapInstance.render();
+      }
+
+      this.updateNodeDropdownUI();
+      this.scheduleDebouncedSave();
+      setTimeout(() => this.fitToScreenBounds(), 80);
+    };
+
+    tempImg.onerror = () => {
+      const imageSize = { width: 160, height: 110, custom: true };
+      if (typeof this.activeNode.setData === 'function') {
+        this.activeNode.setData({ image: dataUrl, imageSize });
+      }
       this.mindMapInstance.render();
-    }
-    this.updateNodeDropdownUI();
-    this.scheduleDebouncedSave();
-    setTimeout(() => this.fitToScreenBounds(), 80);
+      this.updateNodeDropdownUI();
+    };
+
+    tempImg.src = dataUrl;
   }
 
   /**
