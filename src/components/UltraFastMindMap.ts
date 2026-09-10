@@ -402,6 +402,36 @@ export class UltraFastMindMap {
     return merged.filter((c, idx, self) => self.findIndex((x) => x.id === c.id) === idx);
   }
 
+  private getLayoutEmoji(layout: string): string {
+    const map: Record<string, string> = {
+      logicalStructure: '🌲',
+      mindMap: '🧠',
+      organizationStructure: '🏛️',
+      catalogOrganization: '📑',
+      timeline: '⏳',
+      timeline2: '⌛',
+      fishbone: '🐟',
+      verticalMindMap: '🏢'
+    };
+    return map[layout] || '🌲';
+  }
+
+  private getThemeEmoji(theme: string): string {
+    const map: Record<string, string> = {
+      cyberDark: '🌌',
+      oceanBlue: '🌊',
+      bioEmerald: '🍃',
+      midnightPurple: '🔮',
+      obsidianGold: '⚡',
+      draculaNeon: '🧛',
+      nordArctic: '❄️',
+      sunsetCrimson: '🌅',
+      sakuraRose: '🌸',
+      cleanOled: '🖤'
+    };
+    return map[theme] || '🌌';
+  }
+
   /**
    * 1. ARQUITECTURA E INICIALIZACIÓN SÚPER LIGERA
    */
@@ -439,69 +469,76 @@ export class UltraFastMindMap {
             <button class="mindmap-touch-btn mindmap-touch-btn-compact" id="btn-map-redo" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
             </button>
-            <!-- BOTÓN PRINCIPAL DE CENTRADO PERFECTO A LÍMITES -->
-            <button class="mindmap-touch-btn mindmap-fit-main-btn" id="btn-map-fit" title="Centrar y Ajustar a Límites (Espacio / F)" aria-label="Ajustar límites">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
           </div>
         </header>
 
         <!-- Input Oculto para Cargar Fotos en los Recuadros -->
         <input type="file" id="mindmap-photo-file-input" accept="image/*" style="display:none;" />
 
-        <!-- Panel Desplegable: 'MAPA' (Ultra Compacto y Plegable para Móviles) -->
+        <!-- Panel Desplegable: 'MAPA' (Ultra Compacto: Solo Emojis y Círculos) -->
         <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-map" style="display:none;">
-          <div class="dropdown-h-group">
-            <label class="dropdown-h-label">Esquema:</label>
-            <select id="select-map-layout" class="dropdown-select-clean-sm dropdown-select-compact" title="Cambiar tipo de estructura">
-              <option value="logicalStructure" ${this.currentLayout === 'logicalStructure' ? 'selected' : ''}>🌲 Lógica</option>
-              <option value="mindMap" ${this.currentLayout === 'mindMap' ? 'selected' : ''}>🧠 Radial</option>
-              <option value="organizationStructure" ${this.currentLayout === 'organizationStructure' ? 'selected' : ''}>🏛️ Organigrama</option>
-              <option value="catalogOrganization" ${this.currentLayout === 'catalogOrganization' ? 'selected' : ''}>📑 Catálogo</option>
-              <option value="timeline" ${this.currentLayout === 'timeline' ? 'selected' : ''}>⏳ Línea H</option>
-              <option value="timeline2" ${this.currentLayout === 'timeline2' ? 'selected' : ''}>⌛ Línea V</option>
-              <option value="fishbone" ${this.currentLayout === 'fishbone' ? 'selected' : ''}>🐟 Ishikawa</option>
-              <option value="verticalMindMap" ${this.currentLayout === 'verticalMindMap' ? 'selected' : ''}>🏢 Jerárquico</option>
-            </select>
+          <!-- 1. Esquema: Solo Emoji -->
+          <div class="dropdown-h-group popover-anchor">
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-layout" title="Tipo de esquema">
+              <span class="trigger-val-emoji" id="preview-layout-emoji">${this.getLayoutEmoji(this.currentLayout)}</span>
+              <span class="mini-chevron">▾</span>
+            </button>
+            <div class="popover-bubble" id="popover-layout" style="display:none;">
+              <button type="button" class="popover-item-emoji ${this.currentLayout === 'logicalStructure' ? 'active' : ''}" data-layout="logicalStructure" title="Lógica">🌲</button>
+              <button type="button" class="popover-item-emoji ${this.currentLayout === 'mindMap' ? 'active' : ''}" data-layout="mindMap" title="Radial">🧠</button>
+              <button type="button" class="popover-item-emoji ${this.currentLayout === 'organizationStructure' ? 'active' : ''}" data-layout="organizationStructure" title="Organigrama">🏛️</button>
+              <button type="button" class="popover-item-emoji ${this.currentLayout === 'catalogOrganization' ? 'active' : ''}" data-layout="catalogOrganization" title="Catálogo">📑</button>
+              <button type="button" class="popover-item-emoji ${this.currentLayout === 'timeline' ? 'active' : ''}" data-layout="timeline" title="Línea Horizontal">⏳</button>
+              <button type="button" class="popover-item-emoji ${this.currentLayout === 'timeline2' ? 'active' : ''}" data-layout="timeline2" title="Línea Vertical">⌛</button>
+              <button type="button" class="popover-item-emoji ${this.currentLayout === 'fishbone' ? 'active' : ''}" data-layout="fishbone" title="Ishikawa">🐟</button>
+              <button type="button" class="popover-item-emoji ${this.currentLayout === 'verticalMindMap' ? 'active' : ''}" data-layout="verticalMindMap" title="Jerárquico">🏢</button>
+            </div>
           </div>
 
           <div class="dropdown-h-divider"></div>
 
-          <div class="dropdown-h-group">
-            <label class="dropdown-h-label">Fondo:</label>
-            <select id="select-map-theme" class="dropdown-select-clean-sm dropdown-select-compact" title="Cambiar tema de fondo">
-              <option value="cyberDark" ${this.currentTheme === 'cyberDark' ? 'selected' : ''}>🌌 Cyber</option>
-              <option value="oceanBlue" ${this.currentTheme === 'oceanBlue' ? 'selected' : ''}>🌊 Ocean</option>
-              <option value="bioEmerald" ${this.currentTheme === 'bioEmerald' ? 'selected' : ''}>🍃 Bio</option>
-              <option value="midnightPurple" ${this.currentTheme === 'midnightPurple' ? 'selected' : ''}>🔮 Purple</option>
-              <option value="obsidianGold" ${this.currentTheme === 'obsidianGold' ? 'selected' : ''}>⚡ Gold</option>
-              <option value="draculaNeon" ${this.currentTheme === 'draculaNeon' ? 'selected' : ''}>🧛 Dracula</option>
-              <option value="nordArctic" ${this.currentTheme === 'nordArctic' ? 'selected' : ''}>❄️ Nord</option>
-              <option value="sunsetCrimson" ${this.currentTheme === 'sunsetCrimson' ? 'selected' : ''}>🌅 Sunset</option>
-              <option value="sakuraRose" ${this.currentTheme === 'sakuraRose' ? 'selected' : ''}>🌸 Sakura</option>
-              <option value="cleanOled" ${this.currentTheme === 'cleanOled' ? 'selected' : ''}>🖤 OLED</option>
-            </select>
+          <!-- 2. Fondo: Solo Emoji -->
+          <div class="dropdown-h-group popover-anchor">
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-theme" title="Tema de fondo">
+              <span class="trigger-val-emoji" id="preview-theme-emoji">${this.getThemeEmoji(this.currentTheme)}</span>
+              <span class="mini-chevron">▾</span>
+            </button>
+            <div class="popover-bubble popover-grid-theme" id="popover-theme" style="display:none;">
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'cyberDark' ? 'active' : ''}" data-theme="cyberDark" title="Cyber">🌌</button>
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'oceanBlue' ? 'active' : ''}" data-theme="oceanBlue" title="Ocean">🌊</button>
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'bioEmerald' ? 'active' : ''}" data-theme="bioEmerald" title="Bio">🍃</button>
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'midnightPurple' ? 'active' : ''}" data-theme="midnightPurple" title="Purple">🔮</button>
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'obsidianGold' ? 'active' : ''}" data-theme="obsidianGold" title="Gold">⚡</button>
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'draculaNeon' ? 'active' : ''}" data-theme="draculaNeon" title="Dracula">🧛</button>
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'nordArctic' ? 'active' : ''}" data-theme="nordArctic" title="Nord">❄️</button>
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'sunsetCrimson' ? 'active' : ''}" data-theme="sunsetCrimson" title="Sunset">🌅</button>
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'sakuraRose' ? 'active' : ''}" data-theme="sakuraRose" title="Sakura">🌸</button>
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'cleanOled' ? 'active' : ''}" data-theme="cleanOled" title="OLED">🖤</button>
+            </div>
           </div>
 
           <div class="dropdown-h-divider"></div>
 
-          <div class="dropdown-h-group">
-            <label class="dropdown-h-label">Color:</label>
-            <select id="select-map-global-color" class="dropdown-select-clean-sm dropdown-select-compact" title="Cambiar color de los recuadros">
-              <option value="" disabled selected>🎨 Color...</option>
-              <option value="blue">🔵 Cyan</option>
-              <option value="purple">🟣 Violeta</option>
-              <option value="emerald">🟢 Esmeralda</option>
-              <option value="amber">🟡 Ámbar</option>
-              <option value="rose">🔴 Rosa</option>
-              <option value="dark">⚫ Pizarra</option>
-            </select>
+          <!-- 3. Color Recuadros: Solo Círculo de Color -->
+          <div class="dropdown-h-group popover-anchor">
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-global-color" title="Color de recuadros">
+              <span class="color-dot-circle" id="preview-global-color" style="background:#0ea5e9;"></span>
+              <span class="mini-chevron">▾</span>
+            </button>
+            <div class="popover-bubble" id="popover-global-color" style="display:none;">
+              <button type="button" class="color-dot-btn" data-color="blue" style="background:#0ea5e9;" title="Cyan"></button>
+              <button type="button" class="color-dot-btn" data-color="purple" style="background:#a855f7;" title="Violeta"></button>
+              <button type="button" class="color-dot-btn" data-color="emerald" style="background:#10b981;" title="Esmeralda"></button>
+              <button type="button" class="color-dot-btn" data-color="amber" style="background:#f59e0b;" title="Ámbar"></button>
+              <button type="button" class="color-dot-btn" data-color="rose" style="background:#ec4899;" title="Rosa"></button>
+              <button type="button" class="color-dot-btn" data-color="dark" style="background:#334155;" title="Pizarra"></button>
+            </div>
           </div>
 
           <button type="button" class="btn-dropdown-close-sm" id="btn-close-map-dropdown" title="Cerrar barra">✕</button>
         </div>
 
-        <!-- Panel Desplegable: 'RECUADRO' (Ultra Compacto y Plegable para Móviles) -->
+        <!-- Panel Desplegable: 'RECUADRO' (Ultra Compacto: Solo Emojis, Números y Círculos) -->
         <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-node" style="display:none;">
           <div id="node-dropdown-empty-notice" class="dropdown-h-group" style="display:none; align-items:center; gap:8px;">
             <span style="font-size:0.8rem; color:var(--f-text-secondary);">Toca un recuadro o</span>
@@ -510,72 +547,79 @@ export class UltraFastMindMap {
             </button>
           </div>
 
-          <div id="node-dropdown-content" style="display:inline-flex; align-items:center; gap:10px;">
-            <!-- Fondo del Recuadro (Desplegable) -->
-            <div class="dropdown-h-group">
-              <label class="dropdown-h-label">Fondo:</label>
-              <select id="select-node-bg-color" class="dropdown-select-clean-sm dropdown-select-compact" title="Color de fondo del recuadro">
-                <option value="" disabled selected>🎨 Fondo...</option>
-                <option value="blue">🔵 Cyan</option>
-                <option value="purple">🟣 Violeta</option>
-                <option value="emerald">🟢 Esmeralda</option>
-                <option value="amber">🟡 Ámbar</option>
-                <option value="rose">🔴 Rosa</option>
-                <option value="dark">⚫ Pizarra</option>
-              </select>
-            </div>
-
-            <div class="dropdown-h-divider"></div>
-
-            <!-- Color de Texto (Desplegable) -->
-            <div class="dropdown-h-group">
-              <label class="dropdown-h-label">Texto:</label>
-              <select id="select-node-text-color" class="dropdown-select-clean-sm dropdown-select-compact" title="Color del texto">
-                <option value="" disabled selected>✏️ Color...</option>
-                <option value="#ffffff">⚪ Blanco</option>
-                <option value="#38bdf8">🔵 Cyan</option>
-                <option value="#34d399">🟢 Verde</option>
-                <option value="#fbbf24">🟡 Dorado</option>
-                <option value="#f472b6">🔴 Rosa</option>
-                <option value="#94a3b8">⚪ Gris</option>
-              </select>
-            </div>
-
-            <div class="dropdown-h-divider"></div>
-
-            <!-- Tamaño y Estilo de Texto (Desplegable) -->
-            <div class="dropdown-h-group">
-              <label class="dropdown-h-label">Tamaño:</label>
-              <select id="select-node-font-size" class="dropdown-select-clean-sm dropdown-select-compact" style="max-width:88px;" title="Tamaño de texto">
-                <option value="12">12 px</option>
-                <option value="14" selected>14 px</option>
-                <option value="18">18 px</option>
-                <option value="22">22 px</option>
-              </select>
-              <button class="text-size-btn text-size-btn-sm" id="btn-toggle-bold" title="Alternar Negrita"><strong>B</strong></button>
-            </div>
-
-            <div class="dropdown-h-divider"></div>
-
-            <!-- Foto del Recuadro -->
-            <div class="dropdown-h-group">
-              <button class="figma-btn-white-pill-sm" id="btn-upload-node-photo" title="Adjuntar foto al recuadro">
-                📷 Foto
+          <div id="node-dropdown-content" style="display:inline-flex; align-items:center; gap:8px;">
+            <!-- 1. Color de Fondo del Recuadro (Solo Círculo de Color) -->
+            <div class="dropdown-h-group popover-anchor">
+              <button type="button" class="compact-trigger-pill" id="btn-trigger-node-bg" title="Color de fondo del recuadro">
+                <span class="color-dot-circle" id="preview-node-bg" style="background:#0ea5e9;"></span>
+                <span class="mini-chevron">▾</span>
               </button>
-              <button class="figma-btn-white-pill-sm danger" id="btn-remove-node-photo" style="display:none;" title="Eliminar foto del recuadro">
+              <div class="popover-bubble" id="popover-node-bg" style="display:none;">
+                <button type="button" class="color-dot-btn" data-node-bg="blue" style="background:#0ea5e9;" title="Cyan"></button>
+                <button type="button" class="color-dot-btn" data-node-bg="purple" style="background:#a855f7;" title="Violeta"></button>
+                <button type="button" class="color-dot-btn" data-node-bg="emerald" style="background:#10b981;" title="Esmeralda"></button>
+                <button type="button" class="color-dot-btn" data-node-bg="amber" style="background:#f59e0b;" title="Ámbar"></button>
+                <button type="button" class="color-dot-btn" data-node-bg="rose" style="background:#ec4899;" title="Rosa"></button>
+                <button type="button" class="color-dot-btn" data-node-bg="dark" style="background:#334155;" title="Pizarra"></button>
+              </div>
+            </div>
+
+            <div class="dropdown-h-divider"></div>
+
+            <!-- 2. Color del Texto (Solo Círculo de Color) -->
+            <div class="dropdown-h-group popover-anchor">
+              <button type="button" class="compact-trigger-pill" id="btn-trigger-node-text" title="Color del texto">
+                <span class="color-dot-circle" id="preview-node-text" style="background:#ffffff; border:1px solid rgba(255,255,255,0.4);"></span>
+                <span class="mini-chevron">▾</span>
+              </button>
+              <div class="popover-bubble" id="popover-node-text" style="display:none;">
+                <button type="button" class="color-dot-btn" data-text-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
+                <button type="button" class="color-dot-btn" data-text-color="#38bdf8" style="background:#38bdf8;" title="Cyan"></button>
+                <button type="button" class="color-dot-btn" data-text-color="#34d399" style="background:#34d399;" title="Verde"></button>
+                <button type="button" class="color-dot-btn" data-text-color="#fbbf24" style="background:#fbbf24;" title="Dorado"></button>
+                <button type="button" class="color-dot-btn" data-text-color="#f472b6" style="background:#f472b6;" title="Rosa"></button>
+                <button type="button" class="color-dot-btn" data-text-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
+              </div>
+            </div>
+
+            <div class="dropdown-h-divider"></div>
+
+            <!-- 3. Tamaño de Letra (Solo Número) + Negrita -->
+            <div class="dropdown-h-group popover-anchor">
+              <button type="button" class="compact-trigger-pill" id="btn-trigger-font-size" title="Tamaño de texto">
+                <span class="trigger-val-num" id="preview-node-font-size">14</span>
+                <span class="mini-chevron">▾</span>
+              </button>
+              <div class="popover-bubble" id="popover-node-font-size" style="display:none;">
+                <button type="button" class="popover-item-number" data-size="12">12</button>
+                <button type="button" class="popover-item-number active" data-size="14">14</button>
+                <button type="button" class="popover-item-number" data-size="18">18</button>
+                <button type="button" class="popover-item-number" data-size="22">22</button>
+              </div>
+            </div>
+            <button type="button" class="text-size-btn text-size-btn-sm" id="btn-toggle-bold" title="Negrita"><strong>B</strong></button>
+
+            <div class="dropdown-h-divider"></div>
+
+            <!-- 4. Foto del Recuadro -->
+            <div class="dropdown-h-group">
+              <button type="button" class="compact-trigger-pill" id="btn-upload-node-photo" title="Adjuntar foto al recuadro">
+                📷
+              </button>
+              <button type="button" class="compact-trigger-pill danger" id="btn-remove-node-photo" style="display:none;" title="Eliminar foto">
                 🗑️
               </button>
             </div>
 
             <div class="dropdown-h-divider"></div>
 
-            <!-- Acciones de Edición -->
+            <!-- 5. Acciones de Edición -->
             <div class="dropdown-h-group">
-              <button class="figma-btn-study-sm" id="btn-open-direct-text-editor" title="Editar texto">
-                ✏️ Texto
+              <button type="button" class="compact-trigger-pill" id="btn-open-direct-text-editor" title="Editar texto">
+                ✏️
               </button>
-              <button class="figma-btn-white-pill-sm" id="btn-open-katex-from-node-menu" title="Fórmulas KaTeX">
-                📐 KaTeX
+              <button type="button" class="compact-trigger-pill" id="btn-open-katex-from-node-menu" title="Fórmula KaTeX">
+                📐
               </button>
             </div>
           </div>
@@ -1190,57 +1234,112 @@ export class UltraFastMindMap {
       this.scheduleDebouncedSave();
     });
 
-    // Botones de Centrado de Límites
-    root.querySelector('#btn-map-fit')?.addEventListener('click', () => {
-      this.fitToScreenBounds();
-    });
-
+    // Botón Flotante de Centrado de Límites
     root.querySelector('#btn-floating-fit')?.addEventListener('click', () => {
       this.fitToScreenBounds();
     });
+
+    // Helper para cerrar todos los popovers flotantes
+    const closeAllPopovers = () => {
+      root.querySelectorAll<HTMLElement>('.popover-bubble').forEach((el) => {
+        el.style.display = 'none';
+      });
+      root.querySelectorAll<HTMLElement>('.compact-trigger-pill').forEach((btn) => {
+        btn.classList.remove('active');
+      });
+    };
+
+    // Helper para alternar un popover específico
+    const togglePopover = (popoverId: string, triggerId: string) => {
+      const popover = root.querySelector(`#${popoverId}`) as HTMLElement | null;
+      const trigger = root.querySelector(`#${triggerId}`) as HTMLElement | null;
+      if (!popover) return;
+      const isClosed = popover.style.display === 'none';
+      closeAllPopovers();
+      if (isClosed) {
+        popover.style.display = 'flex';
+        trigger?.classList.add('active');
+      }
+      this.triggerHaptic();
+    };
 
     // ============================================================
     // 🗺️ CONTROL DE MENÚ DESPLEGABLE: 'MAPA' (Ultra Compacto)
     // ============================================================
     root.querySelector('#btn-toggle-menu-map')?.addEventListener('click', (e) => {
       e.stopPropagation();
+      closeAllPopovers();
       this.toggleDropdown('map');
     });
 
     root.querySelector('#btn-close-map-dropdown')?.addEventListener('click', () => {
+      closeAllPopovers();
       this.closeAllDropdowns();
     });
 
-    // Selector de Estructura / Tipo de Esquema
-    const selectLayout = root.querySelector('#select-map-layout') as HTMLSelectElement | null;
-    selectLayout?.addEventListener('change', () => {
-      const layout = selectLayout.value;
-      if (layout && this.mindMapInstance) {
-        this.currentLayout = layout;
-        this.mindMapInstance.setLayout(layout);
-        this.triggerHaptic();
-        this.saveSync();
-        setTimeout(() => this.fitToScreenBounds(), 120);
-      }
+    // 1. Selector de Esquema (Solo Emoji)
+    root.querySelector('#btn-trigger-layout')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-layout', 'btn-trigger-layout');
     });
 
-    // Selector de Temas Visuales (Fondo del Mapa Desplegable)
-    const selectTheme = root.querySelector('#select-map-theme') as HTMLSelectElement | null;
-    selectTheme?.addEventListener('change', () => {
-      const themeKey = selectTheme.value;
-      if (themeKey && this.mindMapInstance) {
-        this.applyTheme(themeKey);
-      }
+    root.querySelectorAll<HTMLButtonElement>('#popover-layout [data-layout]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const layout = btn.dataset.layout;
+        if (layout && this.mindMapInstance) {
+          this.currentLayout = layout;
+          this.mindMapInstance.setLayout(layout);
+          const preview = root.querySelector('#preview-layout-emoji');
+          if (preview) preview.textContent = this.getLayoutEmoji(layout);
+          root.querySelectorAll('#popover-layout [data-layout]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.triggerHaptic();
+          this.saveSync();
+          closeAllPopovers();
+          setTimeout(() => this.fitToScreenBounds(), 120);
+        }
+      });
     });
 
-    // Selector de Color Global de Recuadros (Desplegable)
-    const selectGlobalColor = root.querySelector('#select-map-global-color') as HTMLSelectElement | null;
-    selectGlobalColor?.addEventListener('change', () => {
-      const colorKey = selectGlobalColor.value;
-      if (colorKey) {
-        this.applyGlobalNodesColor(colorKey);
-        selectGlobalColor.value = '';
-      }
+    // 2. Selector de Tema de Fondo (Solo Emoji)
+    root.querySelector('#btn-trigger-theme')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-theme', 'btn-trigger-theme');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-theme [data-theme]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const themeKey = btn.dataset.theme;
+        if (themeKey && this.mindMapInstance) {
+          this.applyTheme(themeKey);
+          const preview = root.querySelector('#preview-theme-emoji');
+          if (preview) preview.textContent = this.getThemeEmoji(themeKey);
+          root.querySelectorAll('#popover-theme [data-theme]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          closeAllPopovers();
+        }
+      });
+    });
+
+    // 3. Selector de Color Global de Recuadros (Solo Círculo de Color)
+    root.querySelector('#btn-trigger-global-color')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-global-color', 'btn-trigger-global-color');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-global-color [data-color]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const colorKey = btn.dataset.color;
+        if (colorKey) {
+          this.applyGlobalNodesColor(colorKey);
+          const preview = root.querySelector('#preview-global-color') as HTMLElement | null;
+          if (preview) preview.style.background = btn.style.background;
+          closeAllPopovers();
+        }
+      });
     });
 
     // ============================================================
@@ -1248,10 +1347,12 @@ export class UltraFastMindMap {
     // ============================================================
     root.querySelector('#btn-toggle-menu-node')?.addEventListener('click', (e) => {
       e.stopPropagation();
+      closeAllPopovers();
       this.toggleDropdown('node');
     });
 
     root.querySelector('#btn-close-node-dropdown')?.addEventListener('click', () => {
+      closeAllPopovers();
       this.closeAllDropdowns();
     });
 
@@ -1259,41 +1360,74 @@ export class UltraFastMindMap {
       this.selectRootNode();
     });
 
-    // Selector de Color de Fondo del Recuadro (Desplegable)
-    const selectNodeBgColor = root.querySelector('#select-node-bg-color') as HTMLSelectElement | null;
-    selectNodeBgColor?.addEventListener('change', () => {
-      const colorKey = selectNodeBgColor.value;
-      if (colorKey && this.activeNode && this.mindMapInstance) {
-        this.applyNodeColor(colorKey);
-        selectNodeBgColor.value = '';
-      }
+    // 1. Selector de Color de Fondo del Recuadro (Solo Círculo)
+    root.querySelector('#btn-trigger-node-bg')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-node-bg', 'btn-trigger-node-bg');
     });
 
-    // Selector de Color de Texto del Recuadro (Desplegable)
-    const selectNodeTextColor = root.querySelector('#select-node-text-color') as HTMLSelectElement | null;
-    selectNodeTextColor?.addEventListener('change', () => {
-      const textColor = selectNodeTextColor.value;
-      if (textColor && this.activeNode && this.mindMapInstance) {
-        this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
-          color: textColor
-        });
-        this.triggerHaptic();
-        this.scheduleDebouncedSave();
-        selectNodeTextColor.value = '';
-      }
+    root.querySelectorAll<HTMLButtonElement>('#popover-node-bg [data-node-bg]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const colorKey = btn.dataset.nodeBg;
+        if (colorKey && this.activeNode && this.mindMapInstance) {
+          this.applyNodeColor(colorKey);
+          const preview = root.querySelector('#preview-node-bg') as HTMLElement | null;
+          if (preview) preview.style.background = btn.style.background;
+          closeAllPopovers();
+        }
+      });
     });
 
-    // Selector de Tamaño de Texto del Recuadro (Desplegable)
-    const selectNodeFontSize = root.querySelector('#select-node-font-size') as HTMLSelectElement | null;
-    selectNodeFontSize?.addEventListener('change', () => {
-      const size = Number(selectNodeFontSize.value);
-      if (size && this.activeNode && this.mindMapInstance) {
-        this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
-          fontSize: size
-        });
-        this.triggerHaptic();
-        this.scheduleDebouncedSave();
-      }
+    // 2. Selector de Color del Texto del Recuadro (Solo Círculo)
+    root.querySelector('#btn-trigger-node-text')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-node-text', 'btn-trigger-node-text');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-node-text [data-text-color]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const textColor = btn.dataset.textColor;
+        if (textColor && this.activeNode && this.mindMapInstance) {
+          this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+            color: textColor
+          });
+          const preview = root.querySelector('#preview-node-text') as HTMLElement | null;
+          if (preview) {
+            preview.style.background = textColor;
+            preview.style.borderColor = textColor === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+          }
+          this.triggerHaptic();
+          this.scheduleDebouncedSave();
+          closeAllPopovers();
+        }
+      });
+    });
+
+    // 3. Selector de Tamaño de Texto del Recuadro (Solo Número)
+    root.querySelector('#btn-trigger-font-size')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-node-font-size', 'btn-trigger-font-size');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-node-font-size [data-size]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const size = Number(btn.dataset.size);
+        if (size && this.activeNode && this.mindMapInstance) {
+          this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+            fontSize: size
+          });
+          const preview = root.querySelector('#preview-node-font-size');
+          if (preview) preview.textContent = String(size);
+          root.querySelectorAll('#popover-node-font-size [data-size]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.triggerHaptic();
+          this.scheduleDebouncedSave();
+          closeAllPopovers();
+        }
+      });
     });
 
     // Alternar Negrita en Texto
@@ -1381,9 +1515,12 @@ export class UltraFastMindMap {
       });
     });
 
-    // Cerrar dropdowns al hacer clic fuera
+    // Cerrar dropdowns y popovers al hacer clic fuera
     root.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
+      if (!target.closest('.popover-anchor') && !target.closest('.popover-bubble')) {
+        closeAllPopovers();
+      }
       if (!target.closest('.mindmap-dropdown-menu-panel') && !target.closest('.mindmap-header-action-pill')) {
         this.closeAllDropdowns();
       }
@@ -1546,9 +1683,9 @@ export class UltraFastMindMap {
     this.currentTheme = themeKey;
     const themeObj = THEME_PRESETS[themeKey];
 
-    const selectTheme = this.container.querySelector('#select-map-theme') as HTMLSelectElement | null;
-    if (selectTheme && selectTheme.value !== themeKey) {
-      selectTheme.value = themeKey;
+    const preview = this.container.querySelector('#preview-theme-emoji');
+    if (preview) {
+      preview.textContent = this.getThemeEmoji(themeKey);
     }
 
     try {
@@ -2057,6 +2194,13 @@ export class UltraFastMindMap {
     btnMap?.classList.remove('active');
     btnNode?.classList.remove('active');
     this.activeDropdown = null;
+
+    this.container.querySelectorAll<HTMLElement>('.popover-bubble').forEach((el) => {
+      el.style.display = 'none';
+    });
+    this.container.querySelectorAll<HTMLElement>('.compact-trigger-pill').forEach((btn) => {
+      btn.classList.remove('active');
+    });
   }
 
   /**
@@ -2081,10 +2225,26 @@ export class UltraFastMindMap {
         btnRemovePhoto.style.display = hasPhoto ? 'inline-flex' : 'none';
       }
 
-      const selectFontSize = this.container.querySelector('#select-node-font-size') as HTMLSelectElement | null;
+      // Tamaño de fuente: solo número
       const curFontSize = typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('fontSize', false) : 14;
-      if (selectFontSize && curFontSize) {
-        selectFontSize.value = String(curFontSize);
+      const previewSize = this.container.querySelector('#preview-node-font-size');
+      if (previewSize && curFontSize) {
+        previewSize.textContent = String(curFontSize);
+      }
+
+      // Color de texto: círculo de color
+      const curTextColor = typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('color', false) : '#ffffff';
+      const previewText = this.container.querySelector('#preview-node-text') as HTMLElement | null;
+      if (previewText && curTextColor) {
+        previewText.style.background = curTextColor;
+        previewText.style.borderColor = curTextColor === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+      }
+
+      // Color de fondo: círculo de color
+      const curFillColor = typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('fillColor', false) : null;
+      const previewBg = this.container.querySelector('#preview-node-bg') as HTMLElement | null;
+      if (previewBg && curFillColor) {
+        previewBg.style.background = curFillColor;
       }
     }
   }
