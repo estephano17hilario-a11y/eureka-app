@@ -91,23 +91,31 @@ class ActiveStudyService {
         this.userCoins = parseInt(prefCoins.value, 10);
       }
 
-      // Migración / Mejora reactiva automática de textos nucleares existentes
+      const cleanNuclearChunk1 = `En física nuclear y química cuántica, cualquier nucleído se especifica de forma universal mediante la notación estándar $\\ce{^{A}_{Z}X}$, donde $A$ representa el número másico (suma de nucleones) y $Z$ el número atómico (protones). Por ejemplo, el Cesio-133 empleado internacionalmente en relojes atómicos para la calibración del segundo se expresa rigurosamente como $\\ce{^{133}_{55}Cs}$. 
+
+El defecto de masa nuclear $\\Delta m$ se calcula restando la masa del núcleo respecto a sus componentes libres:
+$$\\Delta m = Z m_p + (A - Z) m_n - M_{\\text{núcleo}}$$
+
+Aplicando la equivalencia relativista de masa-energía de Einstein:
+$$\\Delta E = \\Delta m \\cdot c^2$$
+se obtiene la energía de enlace nuclear total.`;
+
+      // Limpieza y reparación de temas guardados con placeholders o textos desactualizados
+      let needsSave = false;
       this.topics.forEach((t) => {
-        if (t.title.includes('Física Nuclear')) {
-          t.chunks.forEach((chunk) => {
-            if (chunk.sourceContent.includes('\\ce{^{A}_{Z}X}') && !chunk.sourceContent.includes('$\\ce{^{A}_{Z}X}$')) {
-              chunk.sourceContent = chunk.sourceContent
-                .replace(/\\ce\{/g, '$\\ce{')
-                .replace(/\}X\b/g, '}X$')
-                .replace(/\}Cs\b/g, '}Cs$')
-                .replace(/\\Delta m(?!\s*=)/g, '$\\Delta m$')
-                .replace(/\\Delta m = ([^.]+)\./g, '$$\\Delta m = $1$$')
-                .replace(/\\Delta E = ([^,]+),/g, '$$\\Delta E = $1$$,')
-                .replace(/M_\{núcleo\}/g, 'M_{\\text{núcleo}}');
-            }
-          });
+        if (
+          t.title.includes('Física Nuclear') ||
+          t.chunks.some((c) => c.sourceContent.includes('PLACEHOLDER') || c.sourceContent.includes('EUREKA'))
+        ) {
+          if (t.chunks && t.chunks[0]) {
+            t.chunks[0].sourceContent = cleanNuclearChunk1;
+            needsSave = true;
+          }
         }
       });
+      if (needsSave) {
+        this.saveToStorage();
+      }
     } catch (e) {
       console.error('[ActiveStudyService] Error loading storage:', e);
     }
@@ -211,7 +219,26 @@ class ActiveStudyService {
   }
 
   public getTopicById(topicId: string): ActiveStudyTopic | null {
-    return this.topics.get(topicId) || null;
+    const t = this.topics.get(topicId) || null;
+    if (t && t.chunks && t.chunks[0]) {
+      if (
+        t.title.includes('Física Nuclear') &&
+        (t.chunks[0].sourceContent.includes('PLACEHOLDER') ||
+          t.chunks[0].sourceContent.includes('EUREKA') ||
+          !t.chunks[0].sourceContent.includes('$\\ce{'))
+      ) {
+        t.chunks[0].sourceContent = `En física nuclear y química cuántica, cualquier nucleído se especifica de forma universal mediante la notación estándar $\\ce{^{A}_{Z}X}$, donde $A$ representa el número másico (suma de nucleones) y $Z$ el número atómico (protones). Por ejemplo, el Cesio-133 empleado internacionalmente en relojes atómicos para la calibración del segundo se expresa rigurosamente como $\\ce{^{133}_{55}Cs}$. 
+
+El defecto de masa nuclear $\\Delta m$ se calcula restando la masa del núcleo respecto a sus componentes libres:
+$$\\Delta m = Z m_p + (A - Z) m_n - M_{\\text{núcleo}}$$
+
+Aplicando la equivalencia relativista de masa-energía de Einstein:
+$$\\Delta E = \\Delta m \\cdot c^2$$
+se obtiene la energía de enlace nuclear total.`;
+        this.saveToStorage();
+      }
+    }
+    return t;
   }
 
   public deleteTopic(topicId: string): void {

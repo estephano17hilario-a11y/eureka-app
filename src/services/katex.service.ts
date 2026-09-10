@@ -106,7 +106,8 @@ export class KatexService {
     const placeholders: { id: string; html: string }[] = [];
     let pCount = 0;
     const addPlaceholder = (html: string): string => {
-      const id = `___EUREKA_PLACEHOLDER_${pCount++}___`;
+      // Usar identificador alfanumérico sin guiones bajos para que el markdown no lo modifique
+      const id = `EUREKAPH${pCount++}TOKEN`;
       placeholders.push({ id, html });
       return id;
     };
@@ -163,8 +164,8 @@ export class KatexService {
     text = text.replace(/\$\^([^\$\n]+?)\$/g, '<sup style="font-size:0.8em; vertical-align:super;">$1</sup>');
 
     // 7. Auto-detección de fórmulas LaTeX crudas que no tengan delimitadores $
-    // Detecta comandos como \Delta, \alpha, \frac, \sqrt, etc., con sus ecuaciones
-    const rawLatexRegex = /(?<![a-zA-Z0-9_\\])\\(?:Delta|alpha|beta|gamma|delta|epsilon|theta|lambda|pi|sigma|omega|mu|nu|tau|phi|psi|frac|sqrt|int|sum|prod|partial|nabla|infty|approx|pm|times|neq|leq|geq|cdot)(?:\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}|[a-zA-Z0-9_^{}\(\)\+\-\*\/\s=·~<>|])+/g;
+    // Reconoce comandos LaTeX y sus variables/operadores matemáticos inmediatos sin consumir palabras normales
+    const rawLatexRegex = /(?<![a-zA-Z0-9_\\])\\(?:Delta|alpha|beta|gamma|delta|epsilon|theta|lambda|pi|sigma|omega|mu|nu|tau|phi|psi|frac|sqrt|int|sum|prod|partial|nabla|infty|approx|pm|times|neq|leq|geq|cdot)(?:\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}|[a-zA-Z0-9_^{}\(\)\+\-\*\/=·~<>|]|\s*[\+\-\*=·]\s*|[a-zA-Z0-9_\^]{1,3})*?(?=[,.:;!?]|\s+[a-záéíóúñ]{2,}|\n|$)/g;
 
     text = text.replace(rawLatexRegex, (match) => {
       // Separar puntuación al final (ej: punto, coma, punto y coma)
@@ -274,7 +275,7 @@ export class KatexService {
 
     // 15. Restaurar placeholders en orden
     for (const p of placeholders) {
-      finalHtml = finalHtml.replace(p.id, p.html);
+      finalHtml = finalHtml.replaceAll(p.id, p.html);
     }
 
     return finalHtml;
