@@ -529,7 +529,7 @@ export class UltraFastMindMap {
     // Auto-ajuste de vista centrado inicial infalible al terminar el renderizado
     let initialRenderAttempts = 0;
     this.mindMapInstance.on('node_tree_render_end', () => {
-      if (initialRenderAttempts < 3) {
+      if (initialRenderAttempts < 4) {
         initialRenderAttempts++;
         requestAnimationFrame(() => {
           this.fitToScreenBounds();
@@ -541,44 +541,132 @@ export class UltraFastMindMap {
       if (this.mindMapInstance && !this.isDestroyed) {
         this.fitToScreenBounds();
       }
-    }, 60);
+    }, 80);
 
     setTimeout(() => {
       if (this.mindMapInstance && !this.isDestroyed) {
         this.fitToScreenBounds();
       }
-    }, 200);
+    }, 220);
+
+    setTimeout(() => {
+      if (this.mindMapInstance && !this.isDestroyed) {
+        this.fitToScreenBounds();
+      }
+    }, 450);
 
     this.initKeyboardAdaptiveHandler();
   }
 
   /**
+   * Calcula la caja envolvente exacta de todos los nodos del árbol en el espacio de coordenadas local
+   */
+  private getTreeBoundingBox(): { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number; cx: number; cy: number } | null {
+    if (!this.mindMapInstance || !this.mindMapInstance.renderer) return null;
+    const root = this.mindMapInstance.renderer.root;
+    if (!root) return null;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    const traverse = (node: any) => {
+      if (!node || node.isHide) return;
+
+      const l = typeof node.left === 'number' ? node.left : (node._left ?? 0);
+      const t = typeof node.top === 'number' ? node.top : (node._top ?? 0);
+      const w = typeof node.width === 'number' && node.width > 0 ? node.width : 100;
+      const h = typeof node.height === 'number' && node.height > 0 ? node.height : 40;
+
+      minX = Math.min(minX, l);
+      minY = Math.min(minY, t);
+      maxX = Math.max(maxX, l + w);
+      maxY = Math.max(maxY, t + h);
+
+      if (node.children && Array.isArray(node.children) && node.getData?.('expand') !== false) {
+        node.children.forEach(traverse);
+      }
+    };
+
+    traverse(root);
+
+    if (minX === Infinity || minY === Infinity || maxX === -Infinity || maxY === -Infinity) {
+      return null;
+    }
+
+    const width = Math.max(maxX - minX, 30);
+    const height = Math.max(maxY - minY, 30);
+
+    return {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      width,
+      height,
+      cx: minX + width / 2,
+      cy: minY + height / 2
+    };
+  }
+
+  /**
    * 🎯 FIT TO SCREEN BOUNDS (Centrado de Límites Perfecto y Milimétrico)
-   * Calza matemáticamente todo el contenido del mapa en el centro de la pantalla,
-   * garantizando que los nodos más lejanos rocen los límites del viewport sin desbordar
-   * y compensando los márgenes del header y bottom dock.
+   * Calza matemáticamente todo el contenido del mapa en el centro exacto de la pantalla,
+   * calculando el centro geométrico de todos los nodos y alineándolo con el área libre
+   * entre la barra superior y la barra inferior.
    */
   public fitToScreenBounds(): void {
     if (!this.mindMapInstance || this.isDestroyed) return;
 
     try {
-      // 1. Forzar recálculo exacto del tamaño del contenedor con el viewport real
+      // 1. Forzar recálculo del tamaño del canvas respecto al viewport
       if (typeof this.mindMapInstance.resize === 'function') {
         this.mindMapInstance.resize();
       }
 
-      // 2. Ejecutar fit con enlarge=true para que el contenido se escale y calce 
-      // de modo que los nodos más alejados rocen los bordes con un margen de 45px
-      if (this.mindMapInstance.view) {
+      const canvasEl = this.container.querySelector('#mindmap-render-canvas') as HTMLElement | null;
+      const topBar = this.container.querySelector('.mindmap-top-bar') as HTMLElement | null;
+      const bottomDock = this.container.querySelector('.mindmap-bottom-dock') as HTMLElement | null;
+
+      const screenW = canvasEl?.clientWidth || window.innerWidth;
+      const screenH = canvasEl?.clientHeight || window.innerHeight;
+
+      const topH = topBar?.offsetHeight || 56;
+      const bottomH = bottomDock?.offsetHeight || 76;
+
+      // Área libre real entre Header y Bottom Dock
+      const availW = Math.max(100, screenW - 80); // 40px margen a cada lado
+      const availH = Math.max(100, screenH - topH - bottomH - 50); // 25px margen vertical
+
+      // Centro visual geométrico EXACTO del área visible en la pantalla
+      const targetCenterX = screenW / 2;
+      const targetCenterY = topH + (screenH - topH - bottomH) / 2;
+
+      const bbox = this.getTreeBoundingBox();
+
+      if (bbox && bbox.width > 0 && bbox.height > 0 && this.mindMapInstance.view) {
+        // Escalar para que los nodos extremos rocen los límites del espacio disponible
+        const scaleX = availW / bbox.width;
+        const scaleY = availH / bbox.height;
+        let optimalScale = Math.min(scaleX, scaleY);
+
+        // Limitar escala a rango ergonómico
+        optimalScale = Math.min(Math.max(optimalScale, 0.3), 1.35);
+
+        // Traslación exacta requerida para situar el centro del árbol en el centro visual
+        const transX = targetCenterX - bbox.cx * optimalScale;
+        const transY = targetCenterY - bbox.cy * optimalScale;
+
+        this.mindMapInstance.view.scale = optimalScale;
+        this.mindMapInstance.view.x = transX;
+        this.mindMapInstance.view.y = transY;
+        this.mindMapInstance.view.transform();
+        this.mindMapInstance.emit('view_data_change', this.mindMapInstance.view.getTransformData());
+      } else if (this.mindMapInstance.view) {
+        // Fallback nativo
         this.mindMapInstance.view.fit(undefined, true, 45);
-
-        // 3. Compensación del centro visual entre el Header (~56px) y el Bottom Dock (~75px)
-        const topBar = this.container.querySelector('.mindmap-top-bar') as HTMLElement | null;
-        const bottomDock = this.container.querySelector('.mindmap-bottom-dock') as HTMLElement | null;
-        const topH = topBar ? topBar.offsetHeight : 56;
-        const bottomH = bottomDock ? bottomDock.offsetHeight : 75;
         const visualCenterOffsetY = (topH - bottomH) / 2;
-
         if (visualCenterOffsetY !== 0) {
           this.mindMapInstance.view.translateY(visualCenterOffsetY);
         }
@@ -587,16 +675,15 @@ export class UltraFastMindMap {
       }
 
       // 4. Efecto visual de flash/glow en el lienzo para retroalimentación instantánea
-      const canvasEl = this.container.querySelector('#mindmap-render-canvas');
       if (canvasEl) {
         canvasEl.classList.remove('mindmap-fit-highlight');
-        void (canvasEl as HTMLElement).offsetWidth; // Trigger reflow
+        void canvasEl.offsetWidth; // Trigger reflow
         canvasEl.classList.add('mindmap-fit-highlight');
       }
 
       this.triggerHaptic();
     } catch (e) {
-      console.warn('[UltraFastMindMap] Error al ajustar límites:', e);
+      console.warn('[UltraFastMindMap] Error al centrar límites:', e);
       try {
         this.mindMapInstance?.renderer?.setRootNodeCenter?.();
       } catch {}
