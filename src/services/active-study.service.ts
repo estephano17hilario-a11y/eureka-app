@@ -90,6 +90,24 @@ class ActiveStudyService {
       if (prefCoins.value) {
         this.userCoins = parseInt(prefCoins.value, 10);
       }
+
+      // Migración / Mejora reactiva automática de textos nucleares existentes
+      this.topics.forEach((t) => {
+        if (t.title.includes('Física Nuclear')) {
+          t.chunks.forEach((chunk) => {
+            if (chunk.sourceContent.includes('\\ce{^{A}_{Z}X}') && !chunk.sourceContent.includes('$\\ce{^{A}_{Z}X}$')) {
+              chunk.sourceContent = chunk.sourceContent
+                .replace(/\\ce\{/g, '$\\ce{')
+                .replace(/\}X\b/g, '}X$')
+                .replace(/\}Cs\b/g, '}Cs$')
+                .replace(/\\Delta m(?!\s*=)/g, '$\\Delta m$')
+                .replace(/\\Delta m = ([^.]+)\./g, '$$\\Delta m = $1$$')
+                .replace(/\\Delta E = ([^,]+),/g, '$$\\Delta E = $1$$,')
+                .replace(/M_\{núcleo\}/g, 'M_{\\text{núcleo}}');
+            }
+          });
+        }
+      });
     } catch (e) {
       console.error('[ActiveStudyService] Error loading storage:', e);
     }
@@ -586,19 +604,25 @@ Bloquear el acceso al texto fuente original durante 24 horas después de una ses
     const nuclearChunks = [
       {
         title: 'Bloque 1: Notación Nuclear, Isótopos y Fórmulas de Enlace',
-        content: `En física nuclear y química cuántica, cualquier nucleído se especifica de forma universal mediante la notación estándar \\ce{^{A}_{Z}X}, donde A representa el número másico (suma de nucleones) y Z el número atómico (protones). Por ejemplo, el Cesio-133 empleado internacionalmente en relojes atómicos para la calibración del segundo se expresa rigurosamente como \\ce{^{133}_{55}Cs}. 
+        content: `En física nuclear y química cuántica, cualquier nucleído se especifica de forma universal mediante la notación estándar $\\ce{^{A}_{Z}X}$, donde $A$ representa el número másico (suma de nucleones) y $Z$ el número atómico (protones). Por ejemplo, el Cesio-133 empleado internacionalmente en relojes atómicos para la calibración del segundo se expresa rigurosamente como $\\ce{^{133}_{55}Cs}$. 
 
-El defecto de masa nuclear \\Delta m se calcula restando la masa del núcleo respecto a sus componentes libres: \\Delta m = Z m_p + (A - Z) m_n - M_{núcleo}. Aplicando la equivalencia relativista de masa-energía de Einstein \\Delta E = \\Delta m c^2, se obtiene la energía de enlace nuclear total.`
+El defecto de masa nuclear $\\Delta m$ se calcula restando la masa del núcleo respecto a sus componentes libres:
+$$\\Delta m = Z m_p + (A - Z) m_n - M_{\\text{núcleo}}$$
+
+Aplicando la equivalencia relativista de masa-energía de Einstein:
+$$\\Delta E = \\Delta m \\cdot c^2$$
+se obtiene la energía de enlace nuclear total.`
       },
       {
         title: 'Bloque 2: Cinética de Decaimiento Radiactivo e Integrales',
         content: `La desintegración espontánea de núcleos inestables sigue una cinética diferencial de primer orden expresada matemáticamente como:
 $$\\frac{dN(t)}{dt} = -\\lambda N(t)$$
 
-Integrando esta ecuación diferencial separable entre el tiempo inicial t=0 con población $N_0$ y un tiempo arbitrario $t$, se deduce la ley fundamental de desintegración exponencial:
+Integrando esta ecuación diferencial separable entre el tiempo inicial $t=0$ con población $N_0$ y un tiempo arbitrario $t$, se deduce la ley fundamental de desintegración exponencial:
 $$N(t) = N_0 e^{-\\lambda t}$$
 
-El período de semidesintegración radiactiva $t_{1/2}$, que define el tiempo requerido para que la actividad se reduzca a la mitad, se deduce evaluando $\\frac{N_0}{2} = N_0 e^{-\\lambda t_{1/2}}$, lo que conduce analíticamente a $t_{1/2} = \\frac{\\ln(2)}{\\lambda} \\approx \\frac{0.69315}{\\lambda}$.`
+El período de semidesintegración radiactiva $t_{1/2}$, que define el tiempo requerido para que la actividad se reduzca a la mitad, se deduce evaluando $\\frac{N_0}{2} = N_0 e^{-\\lambda t_{1/2}}$, lo que conduce analíticamente a:
+$$t_{1/2} = \\frac{\\ln(2)}{\\lambda} \\approx \\frac{0.69315}{\\lambda}$$`
       }
     ];
 

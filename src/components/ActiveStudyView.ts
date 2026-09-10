@@ -337,12 +337,9 @@ function renderCenteredAtomicReadingScreen(
         <!-- Título del Átomo de Información -->
         <h2 class="atomic-chunk-headline">${escapeHtml(chunk.title)}</h2>
 
-        <!-- Contenido Fuente Central con KaTeX y Notación Científica -->
+        <!-- Contenido Fuente Central con KaTeX, Fórmulas Científicas y Markdown -->
         <div class="atomic-reading-content">
-          ${chunk.sourceContent
-            .split('\n\n')
-            .map((p) => `<p>${katexService.parseAndRender(p)}</p>`)
-            .join('')}
+          ${katexService.parseAndRender(chunk.sourceContent)}
         </div>
 
         <!-- Barra Inferior de Acciones Focalizadas -->
