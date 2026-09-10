@@ -5159,6 +5159,23 @@ math-field.cupertino-mathfield-input:focus-within {
   box-shadow: 0 10px 28px rgba(56, 189, 248, 0.5);
 }
 
+.btn-atomic-continue.locked {
+  background: rgba(255, 255, 255, 0.07);
+  color: #94a3b8;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+  cursor: pointer;
+  opacity: 0.88;
+}
+
+.btn-atomic-continue.locked:hover {
+  transform: none;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.35);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2);
+}
+
 /* ==========================================================================
    MAPA MENTAL ENTERPRISE $10M STUDIO
    ========================================================================== */
@@ -7177,42 +7194,100 @@ math-field::part(virtual-keyboard-toggle) {
 }
 
 .dropdown-select-clean-sm {
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  padding: 5px 8px;
-  color: #fff;
-  font-size: 0.8rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: rgba(30, 41, 59, 0.9);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 10px;
+  padding: 6px 30px 6px 12px;
+  color: #f8fafc;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
   outline: none;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(12px);
+}
+
+.dropdown-select-clean-sm:hover {
+  border-color: #38bdf8;
+  background-color: rgba(30, 41, 59, 1);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
+}
+
+.dropdown-select-clean-sm:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+}
+
+.dropdown-select-clean-sm option {
+  background-color: #0b0f19;
+  color: #f8fafc;
+  padding: 10px 14px;
+}
+
+.mindmap-touch-btn.mindmap-touch-btn-compact {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease;
+}
+
+.mindmap-touch-btn.mindmap-touch-btn-compact:hover {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+  transform: translateY(-1px);
+}
+
+.mindmap-touch-btn.mindmap-touch-btn-compact:active {
+  transform: scale(0.94);
 }
 
 .theme-chips-row-sm,
-.text-size-chips-row-sm,
-.sheet-stickers-row-sm {
+.text-size-chips-row-sm {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   flex-shrink: 0;
 }
 
 .theme-chip-btn {
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #cbd5e1;
   border-radius: 8px;
-  padding: 4px 8px;
+  padding: 5px 10px;
   font-size: 0.76rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.12s ease;
+  white-space: nowrap;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.theme-chip-btn:hover,
-.theme-chip-btn.active {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: #38bdf8;
+.theme-chip-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
   color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+.theme-chip-btn.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(14, 165, 233, 0.35));
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 0 1px #38bdf8, 0 4px 12px rgba(56, 189, 248, 0.3);
 }
 
 .color-dots-row-sm {
@@ -7256,41 +7331,33 @@ math-field::part(virtual-keyboard-toggle) {
   color: #38bdf8;
 }
 
-.sticker-chip-sm {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 3px 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: transform 0.12s ease;
-}
-
-.sticker-chip-sm:hover {
-  transform: scale(1.2);
-  background: rgba(56, 189, 248, 0.2);
-}
-
 .dropdown-tool-btn-sm {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #e2e8f0;
   border-radius: 8px;
-  padding: 5px 10px;
-  font-size: 0.76rem;
-  font-weight: 600;
+  padding: 5px 11px;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.12s ease;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .dropdown-tool-btn-sm:hover {
-  background: rgba(56, 189, 248, 0.18);
-  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.5);
   color: #38bdf8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+}
+
+.dropdown-tool-btn-sm:active {
+  transform: scale(0.96);
 }
 
 .figma-btn-white-pill-sm {

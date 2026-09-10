@@ -163,9 +163,9 @@ export class KatexService {
     text = text.replace(/\$_([^\$\n]+?)\$/g, '<sub style="font-size:0.8em; vertical-align:sub;">$1</sub>');
     text = text.replace(/\$\^([^\$\n]+?)\$/g, '<sup style="font-size:0.8em; vertical-align:super;">$1</sup>');
 
-    // 7. Auto-detección de fórmulas LaTeX crudas que no tengan delimitadores $
-    // Reconoce comandos LaTeX y sus variables/operadores matemáticos inmediatos sin consumir palabras normales
-    const rawLatexRegex = /(?<![a-zA-Z0-9_\\])\\(?:Delta|alpha|beta|gamma|delta|epsilon|theta|lambda|pi|sigma|omega|mu|nu|tau|phi|psi|frac|sqrt|int|sum|prod|partial|nabla|infty|approx|pm|times|neq|leq|geq|cdot)(?:\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}|[a-zA-Z0-9_^{}\(\)\+\-\*\/=·~<>|]|\s*[\+\-\*=·]\s*|[a-zA-Z0-9_\^]{1,3})*?(?=[,.:;!?]|\s+[a-záéíóúñ]{2,}|\n|$)/g;
+    // 7. Auto-detección universal de fórmulas y símbolos LaTeX crudos sin delimitadores $
+    // Paso 7a: Fórmulas que inician con comando LaTeX y encadenan operadores, argumentos y expresiones
+    const rawLatexRegex = /(?<![a-zA-Z0-9_\\])\\[a-zA-Z]+(?:\[[^\]]*\])?(?:\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})*(?:[_\^](?:\{[^{}]*\}|[a-zA-Z0-9]))*(?:[a-zA-Z0-9_^{}\(\)\+\-\*\/=·~<>|\\,]|\s*[\+\-\*=·<>~:]\s*|\.[0-9]+)*?(?=[,;:!?]|\s+[a-záéíóúñ]{2,}|\n|$)/g;
 
     text = text.replace(rawLatexRegex, (match) => {
       // Separar puntuación al final (ej: punto, coma, punto y coma)
@@ -176,7 +176,16 @@ export class KatexService {
       if (!formulaOnly) return match;
 
       const rendered = this.renderMath(formulaOnly, false);
+      if (!rendered || rendered.includes('katex-error')) return match;
       return addPlaceholder(`<span class="katex-inline-container">${rendered}</span>`) + trailingPunct;
+    });
+
+    // Paso 7b: Detección de comandos y símbolos individuales independientes (\equiv, \approx, \alpha, \le, etc.)
+    const singleCmdRegex = /(?<![a-zA-Z0-9_\\])\\[a-zA-Z]+(?:\[[^\]]*\])?(?:\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})*(?:[_\^](?:\{[^{}]*\}|[a-zA-Z0-9]))*/g;
+    text = text.replace(singleCmdRegex, (match) => {
+      const rendered = this.renderMath(match, false);
+      if (!rendered || rendered.includes('katex-error')) return match;
+      return addPlaceholder(`<span class="katex-inline-container">${rendered}</span>`);
     });
 
     // 8. Tablas Markdown (| Header 1 | Header 2 |)

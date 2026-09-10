@@ -350,9 +350,11 @@ function renderCenteredAtomicReadingScreen(
             <span style="font-size:0.82rem; opacity:0.85;">(${chunkCards.length} en este átomo)</span>
           </button>
 
-          <button class="btn-atomic-continue" id="btn-atomic-continue-mindmap" title="Continuar al mapa mental de este tema">
-            <span>Continuar al Mapa Mental</span>
-            <span style="font-size:1.1rem;">➔</span>
+          <button class="btn-atomic-continue ${chunkCards.length > 0 ? '' : 'locked'}" id="btn-atomic-continue-mindmap" title="${chunkCards.length > 0 ? 'Continuar al mapa mental de este tema' : 'Obligatorio: Crea al menos 1 flashcard para desbloquear el mapa mental'}">
+            ${chunkCards.length > 0
+              ? '<span>Continuar al Mapa Mental</span><span style="font-size:1.1rem;">➔</span>'
+              : '<span>🔒 Crear 1 Flashcard para Continuar</span>'
+            }
           </button>
         </div>
       </div>
@@ -876,6 +878,28 @@ export function bindActiveStudyDashboardEvents(
   });
 
   container.querySelector('#btn-atomic-continue-mindmap')?.addEventListener('click', () => {
+    const cardsTopic = deckService.getCardsByDeck(topic.id, true);
+    const cardsDeck = topic.deckId ? deckService.getCardsByDeck(topic.deckId, false) : [];
+    const mergedCards = [...cardsTopic, ...cardsDeck].filter((c, idx, self) => self.findIndex((x) => x.id === c.id) === idx);
+    const chunkCards = currentChunk ? mergedCards.filter((c) => c.chunkId === currentChunk.id) : [];
+    if (chunkCards.length === 0) {
+      nativeService.triggerHaptics('heavy');
+      dialogService.showAlert({
+        title: '⚠️ Flashcard Obligatoria',
+        message: 'Para garantizar la retención activa antes de pasar al mapa mental, es obligatorio crear al menos una flashcard basada en este átomo de información.'
+      });
+      // Abrir automáticamente el modal de creación de tarjeta para asistir al usuario
+      const targetDeckId = topic.deckId || (deckService.getAllDecks()[0]?.id || 'deck-default');
+      if (onOpenCardCreator) {
+        onOpenCardCreator(targetDeckId, currentChunk?.id);
+      } else if (currentChunk) {
+        openAddFlashcardModal(topic, currentChunk, () => {
+          onRefresh();
+        });
+      }
+      return;
+    }
+
     nativeService.triggerHaptics('medium');
     onOpenMindMap?.(topic.id);
   });

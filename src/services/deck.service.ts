@@ -55,10 +55,8 @@ export class DeckService {
       const storedDecks = localStorage.getItem(this.getDecksStorageKey());
       const storedCards = localStorage.getItem(this.getCardsStorageKey());
 
-      if (storedDecks && storedCards) {
+      if (storedDecks) {
         this.decks = JSON.parse(storedDecks);
-        this.cards = JSON.parse(storedCards);
-
         // Normalizar carpetas y mazos
         this.decks.forEach(d => {
           if (d.id === 'deck-mates-sub') {
@@ -71,15 +69,21 @@ export class DeckService {
             d.isFolder = (d.icon === 'folder' || d.icon === 'folder-sub' || d.icon === 'briefcase');
           }
         });
-      } else {
-        // Nueva cuenta de usuario: inicia 100% limpia sin carpetas creadas
-        this.decks = [];
-        this.cards = [];
-        this.saveToStorage();
       }
-    } catch {
-      this.decks = [];
-      this.cards = [];
+
+      if (storedCards) {
+        this.cards = JSON.parse(storedCards);
+      } else if (this.currentUserId && this.currentUserId !== 'default') {
+        const defaultCards = localStorage.getItem('eureka_cards_user_default');
+        if (defaultCards) {
+          try {
+            this.cards = JSON.parse(defaultCards);
+            this.saveToStorage();
+          } catch {}
+        }
+      }
+    } catch (err) {
+      console.warn('[DECK SERVICE] Error leyendo almacenamiento local:', err);
     }
   }
 
@@ -88,7 +92,7 @@ export class DeckService {
       localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
       localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
       
-      // Sincronización instantánea a la base de datos de Eureka para este usuario
+      // Sincronización a Supabase en segundo plano sin bloquear
       eurekaSupabase.syncDecks(this.decks);
       eurekaSupabase.syncCards(this.cards);
     } catch (err) {
@@ -103,18 +107,39 @@ export class DeckService {
         eurekaSupabase.fetchCards()
       ]);
 
+      let hasChanges = false;
+
       if (remoteDecks && remoteDecks.length > 0) {
-        this.decks = remoteDecks;
-        if (remoteCards && remoteCards.length > 0) {
-          this.cards = remoteCards;
-        } else {
-          this.cards = [];
-        }
+        const deckMap = new Map<string, Deck>();
+        remoteDecks.forEach(d => deckMap.set(d.id, d));
+        this.decks.forEach(d => {
+          if (!deckMap.has(d.id)) {
+            deckMap.set(d.id, d);
+          }
+        });
+        this.decks = Array.from(deckMap.values());
+        hasChanges = true;
+      }
+
+      if (remoteCards && remoteCards.length > 0) {
+        // NUNCA sobreescribir con array vacío si el usuario ya tiene tarjetas creadas localmente
+        const cardMap = new Map<string, Flashcard>();
+        remoteCards.forEach(c => cardMap.set(c.id, c));
+        this.cards.forEach(c => {
+          if (!cardMap.has(c.id)) {
+            cardMap.set(c.id, c);
+          }
+        });
+        this.cards = Array.from(cardMap.values());
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
         localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
         localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
         this.listeners.forEach(fn => fn());
-      } else if (this.decks.length > 0) {
-        // Subida inicial a la base de datos de Eureka para este usuario
+      } else if (this.decks.length > 0 || this.cards.length > 0) {
+        // Subida inicial a la base de datos de Eureka para este usuario si la nube no tiene datos
         await Promise.all([
           eurekaSupabase.syncDecks(this.decks),
           eurekaSupabase.syncCards(this.cards)

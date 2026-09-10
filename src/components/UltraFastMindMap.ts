@@ -197,6 +197,161 @@ const THEME_PRESETS: Record<string, any> = {
     },
     lineColor: '#f59e0b',
     lineWidth: 2
+  },
+  draculaNeon: {
+    name: 'Dracula Neon',
+    backgroundColor: '#181a24',
+    root: {
+      fillColor: '#282a36',
+      color: '#ff79c6',
+      borderColor: '#ff79c6',
+      borderWidth: 2,
+      fontSize: 16,
+      fontWeight: 'bold',
+      active: { borderColor: '#50fa7b', borderWidth: 3 }
+    },
+    second: {
+      fillColor: '#44475a',
+      color: '#f8f8f2',
+      borderColor: '#bd93f9',
+      borderWidth: 1.5,
+      fontSize: 14,
+      active: { borderColor: '#ff79c6', borderWidth: 2 }
+    },
+    node: {
+      fillColor: '#21222c',
+      color: '#8be9fd',
+      borderColor: '#6272a4',
+      borderWidth: 1,
+      fontSize: 13,
+      active: { borderColor: '#50fa7b', borderWidth: 2 }
+    },
+    lineColor: '#ff79c6',
+    lineWidth: 2
+  },
+  nordArctic: {
+    name: 'Nord Arctic',
+    backgroundColor: '#242933',
+    root: {
+      fillColor: '#3b4252',
+      color: '#88c0d0',
+      borderColor: '#88c0d0',
+      borderWidth: 2,
+      fontSize: 16,
+      fontWeight: 'bold',
+      active: { borderColor: '#81a1c1', borderWidth: 3 }
+    },
+    second: {
+      fillColor: '#434c5e',
+      color: '#eceff4',
+      borderColor: '#81a1c1',
+      borderWidth: 1.5,
+      fontSize: 14,
+      active: { borderColor: '#88c0d0', borderWidth: 2 }
+    },
+    node: {
+      fillColor: '#2e3440',
+      color: '#d8dee9',
+      borderColor: '#4c566a',
+      borderWidth: 1,
+      fontSize: 13,
+      active: { borderColor: '#88c0d0', borderWidth: 2 }
+    },
+    lineColor: '#88c0d0',
+    lineWidth: 2
+  },
+  sunsetCrimson: {
+    name: 'Sunset Crimson',
+    backgroundColor: '#18070d',
+    root: {
+      fillColor: '#881337',
+      color: '#ffe4e6',
+      borderColor: '#f43f5e',
+      borderWidth: 2,
+      fontSize: 16,
+      fontWeight: 'bold',
+      active: { borderColor: '#fb7185', borderWidth: 3 }
+    },
+    second: {
+      fillColor: '#9f1239',
+      color: '#ffffff',
+      borderColor: '#fb7185',
+      borderWidth: 1.5,
+      fontSize: 14,
+      active: { borderColor: '#f43f5e', borderWidth: 2 }
+    },
+    node: {
+      fillColor: '#4c0519',
+      color: '#fecdd3',
+      borderColor: '#e11d48',
+      borderWidth: 1,
+      fontSize: 13,
+      active: { borderColor: '#fb7185', borderWidth: 2 }
+    },
+    lineColor: '#f43f5e',
+    lineWidth: 2
+  },
+  sakuraRose: {
+    name: 'Sakura Rose',
+    backgroundColor: '#150a14',
+    root: {
+      fillColor: '#701a75',
+      color: '#fdf4ff',
+      borderColor: '#f472b6',
+      borderWidth: 2,
+      fontSize: 16,
+      fontWeight: 'bold',
+      active: { borderColor: '#fbcfe8', borderWidth: 3 }
+    },
+    second: {
+      fillColor: '#86198f',
+      color: '#ffffff',
+      borderColor: '#f472b6',
+      borderWidth: 1.5,
+      fontSize: 14,
+      active: { borderColor: '#fbcfe8', borderWidth: 2 }
+    },
+    node: {
+      fillColor: '#4a044e',
+      color: '#f5d0fe',
+      borderColor: '#a21caf',
+      borderWidth: 1,
+      fontSize: 13,
+      active: { borderColor: '#f472b6', borderWidth: 2 }
+    },
+    lineColor: '#f472b6',
+    lineWidth: 2
+  },
+  cleanOled: {
+    name: 'Clean OLED',
+    backgroundColor: '#000000',
+    root: {
+      fillColor: '#0a0a0c',
+      color: '#ffffff',
+      borderColor: '#e2e8f0',
+      borderWidth: 2,
+      fontSize: 16,
+      fontWeight: 'bold',
+      active: { borderColor: '#38bdf8', borderWidth: 3 }
+    },
+    second: {
+      fillColor: '#121217',
+      color: '#f8fafc',
+      borderColor: '#94a3b8',
+      borderWidth: 1.5,
+      fontSize: 14,
+      active: { borderColor: '#ffffff', borderWidth: 2 }
+    },
+    node: {
+      fillColor: '#050507',
+      color: '#cbd5e1',
+      borderColor: '#334155',
+      borderWidth: 1,
+      fontSize: 13,
+      active: { borderColor: '#38bdf8', borderWidth: 2 }
+    },
+    lineColor: '#38bdf8',
+    lineWidth: 2
   }
 };
 
@@ -282,10 +437,10 @@ export class UltraFastMindMap {
           </div>
 
           <div class="top-bar-right">
-            <button class="mindmap-touch-btn" id="btn-map-undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">
+            <button class="mindmap-touch-btn mindmap-touch-btn-compact" id="btn-map-undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
             </button>
-            <button class="mindmap-touch-btn" id="btn-map-redo" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">
+            <button class="mindmap-touch-btn mindmap-touch-btn-compact" id="btn-map-redo" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
             </button>
             <!-- BOTÓN PRINCIPAL DE CENTRADO PERFECTO A LÍMITES -->
@@ -302,6 +457,14 @@ export class UltraFastMindMap {
         <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-map" style="display:none;">
           <div class="dropdown-h-group">
             <span class="dropdown-h-title">🗺️ Mapa</span>
+          </div>
+
+          <div class="dropdown-h-divider"></div>
+
+          <!-- Botones pequeños de Deshacer y Rehacer solicitados -->
+          <div class="dropdown-h-group">
+            <button class="dropdown-tool-btn-sm" id="btn-ribbon-undo" title="Deshacer último cambio (Ctrl+Z)">↶ Deshacer</button>
+            <button class="dropdown-tool-btn-sm" id="btn-ribbon-redo" title="Rehacer cambio (Ctrl+Y)">↷ Rehacer</button>
           </div>
 
           <div class="dropdown-h-divider"></div>
@@ -330,6 +493,11 @@ export class UltraFastMindMap {
               <button class="theme-chip-btn ${this.currentTheme === 'bioEmerald' ? 'active' : ''}" data-theme="bioEmerald">🍃 Bio</button>
               <button class="theme-chip-btn ${this.currentTheme === 'midnightPurple' ? 'active' : ''}" data-theme="midnightPurple">🔮 Purple</button>
               <button class="theme-chip-btn ${this.currentTheme === 'obsidianGold' ? 'active' : ''}" data-theme="obsidianGold">⚡ Gold</button>
+              <button class="theme-chip-btn ${this.currentTheme === 'draculaNeon' ? 'active' : ''}" data-theme="draculaNeon">🧛 Dracula</button>
+              <button class="theme-chip-btn ${this.currentTheme === 'nordArctic' ? 'active' : ''}" data-theme="nordArctic">❄️ Nord</button>
+              <button class="theme-chip-btn ${this.currentTheme === 'sunsetCrimson' ? 'active' : ''}" data-theme="sunsetCrimson">🌅 Sunset</button>
+              <button class="theme-chip-btn ${this.currentTheme === 'sakuraRose' ? 'active' : ''}" data-theme="sakuraRose">🌸 Sakura</button>
+              <button class="theme-chip-btn ${this.currentTheme === 'cleanOled' ? 'active' : ''}" data-theme="cleanOled">🖤 OLED</button>
             </div>
           </div>
 
@@ -423,23 +591,6 @@ export class UltraFastMindMap {
 
             <div class="dropdown-h-divider"></div>
 
-            <!-- Marcadores y Stickers -->
-            <div class="dropdown-h-group">
-              <label class="dropdown-h-label">Stickers:</label>
-              <div class="sheet-stickers-row-sm" id="node-menu-stickers-bar">
-                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="⭐">⭐</button>
-                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="🔬">🔬</button>
-                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="⚡">⚡</button>
-                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="📌">📌</button>
-                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="✅">✅</button>
-                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="💡">💡</button>
-                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="❓">❓</button>
-                <button type="button" class="sticker-chip sticker-chip-sm" data-sticker="🎯">🎯</button>
-              </div>
-            </div>
-
-            <div class="dropdown-h-divider"></div>
-
             <!-- Foto del Recuadro -->
             <div class="dropdown-h-group">
               <button class="figma-btn-white-pill-sm" id="btn-upload-node-photo" title="Adjuntar foto al recuadro">
@@ -517,6 +668,12 @@ export class UltraFastMindMap {
                 <span style="font-size:0.75rem; color:#38bdf8; background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:999px;">↵ Enter para nuevo reglón</span>
               </div>
               <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" class="figma-btn-white-pill-sm" id="btn-sheet-undo" title="Deshacer (Ctrl+Z)">
+                  ↶
+                </button>
+                <button type="button" class="figma-btn-white-pill-sm" id="btn-sheet-redo" title="Rehacer (Ctrl+Y)">
+                  ↷
+                </button>
                 <button type="button" class="figma-btn-white-pill" id="btn-node-sheet-photo" style="padding:4px 10px; font-size:0.75rem; color:#38bdf8; border-color:rgba(56,189,248,0.3);">
                   📷 Foto
                 </button>
@@ -525,20 +682,6 @@ export class UltraFastMindMap {
                 </button>
                 <button id="btn-sheet-close" class="btn-sheet-close" aria-label="Cerrar">✕</button>
               </div>
-            </div>
-
-            <!-- Fila de Marcadores / Stickers Rápidos -->
-            <div class="sheet-stickers-row" id="sheet-stickers-bar">
-              <span style="font-size:0.75rem; color:var(--f-text-muted); font-weight:600;">Stickers:</span>
-              <button type="button" class="sticker-chip" data-sticker="⭐">⭐</button>
-              <button type="button" class="sticker-chip" data-sticker="🔬">🔬</button>
-              <button type="button" class="sticker-chip" data-sticker="⚡">⚡</button>
-              <button type="button" class="sticker-chip" data-sticker="📌">📌</button>
-              <button type="button" class="sticker-chip" data-sticker="✅">✅</button>
-              <button type="button" class="sticker-chip" data-sticker="💡">💡</button>
-              <button type="button" class="sticker-chip" data-sticker="❓">❓</button>
-              <button type="button" class="sticker-chip" data-sticker="🎯">🎯</button>
-              <button type="button" class="sticker-chip" data-sticker="🧪">🧪</button>
             </div>
 
             <!-- Miniatura de foto del recuadro si existe -->
@@ -586,12 +729,41 @@ export class UltraFastMindMap {
 
     let mapData = this.config.initialData;
     try {
-      const saved = await Preferences.get({ key: this.config.storageKey! });
-      if (saved.value) {
-        mapData = JSON.parse(saved.value);
+      // 1. Cargar instantáneamente de localStorage para nunca perder datos
+      if (this.config.storageKey) {
+        const localStr = localStorage.getItem(this.config.storageKey);
+        if (localStr) {
+          const parsed = JSON.parse(localStr);
+          if (parsed && (parsed.root || parsed.data)) {
+            mapData = parsed;
+          }
+        }
+
+        // Cargar metadatos de estructura y tema
+        const metaStr = localStorage.getItem(`${this.config.storageKey}_meta`);
+        if (metaStr) {
+          try {
+            const meta = JSON.parse(metaStr);
+            if (meta.layout) this.currentLayout = meta.layout;
+            if (meta.theme && THEME_PRESETS[meta.theme]) this.currentTheme = meta.theme;
+          } catch {}
+        }
       }
-    } catch {
-      // Fallback a datos iniciales
+    } catch {}
+
+    // 2. Fallback a Preferences de Capacitor si localStorage no tenía datos
+    if (!mapData || mapData === this.config.initialData) {
+      try {
+        const saved = await Preferences.get({ key: this.config.storageKey! });
+        if (saved.value) {
+          const parsed = JSON.parse(saved.value);
+          if (parsed && (parsed.root || parsed.data)) {
+            mapData = parsed;
+          }
+        }
+      } catch {
+        // Fallback a datos iniciales
+      }
     }
 
     const canvasEl = this.container.querySelector('#mindmap-render-canvas') as HTMLElement;
@@ -1021,20 +1193,35 @@ export class UltraFastMindMap {
     const root = this.container;
 
     // Acciones de Header
-    root.querySelector('#btn-map-back')?.addEventListener('click', () => {
+    root.querySelector('#btn-map-back')?.addEventListener('click', async () => {
       this.triggerHaptic();
-      this.saveInstantly();
+      this.saveSync();
+      await this.saveInstantly();
       this.config.onBack?.();
     });
 
     root.querySelector('#btn-map-undo')?.addEventListener('click', () => {
       this.triggerHaptic();
       this.mindMapInstance?.execCommand('BACK');
+      this.scheduleDebouncedSave();
     });
 
     root.querySelector('#btn-map-redo')?.addEventListener('click', () => {
       this.triggerHaptic();
       this.mindMapInstance?.execCommand('FORWARD');
+      this.scheduleDebouncedSave();
+    });
+
+    root.querySelector('#btn-ribbon-undo')?.addEventListener('click', () => {
+      this.triggerHaptic();
+      this.mindMapInstance?.execCommand('BACK');
+      this.scheduleDebouncedSave();
+    });
+
+    root.querySelector('#btn-ribbon-redo')?.addEventListener('click', () => {
+      this.triggerHaptic();
+      this.mindMapInstance?.execCommand('FORWARD');
+      this.scheduleDebouncedSave();
     });
 
     // Botones de Centrado de Límites
@@ -1071,6 +1258,7 @@ export class UltraFastMindMap {
         this.currentLayout = layout;
         this.mindMapInstance.setLayout(layout);
         this.triggerHaptic();
+        this.saveSync();
         setTimeout(() => this.fitToScreenBounds(), 120);
       }
     });
@@ -1385,22 +1573,27 @@ export class UltraFastMindMap {
       }
     });
 
-    // Stickers en el Sheet
-    root.querySelectorAll<HTMLButtonElement>('#sheet-stickers-bar .sticker-chip').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const sticker = btn.dataset.sticker;
-        if (!sticker) return;
-        const cur = input.value;
-        const pos = input.selectionStart ?? cur.length;
-        input.value = `${cur.slice(0, pos)}${sticker} ${cur.slice(pos)}`;
-        input.focus();
-        updateLivePreviewAndNode();
-        this.triggerHaptic();
-      });
+    // Botones de Deshacer y Rehacer dentro del panel de edición de texto
+    root.querySelector('#btn-sheet-undo')?.addEventListener('click', () => {
+      this.triggerHaptic();
+      this.mindMapInstance?.execCommand('BACK');
+      const cur = (this.activeNode?.getData ? this.activeNode.getData('rawText') : this.activeNode?.nodeData?.data?.rawText) || (this.activeNode?.getData ? this.activeNode.getData('text') : this.activeNode?.nodeData?.data?.text) || '';
+      input.value = cur;
+      updateLivePreviewAndNode();
+    });
+
+    root.querySelector('#btn-sheet-redo')?.addEventListener('click', () => {
+      this.triggerHaptic();
+      this.mindMapInstance?.execCommand('FORWARD');
+      const cur = (this.activeNode?.getData ? this.activeNode.getData('rawText') : this.activeNode?.nodeData?.data?.rawText) || (this.activeNode?.getData ? this.activeNode.getData('text') : this.activeNode?.nodeData?.data?.text) || '';
+      input.value = cur;
+      updateLivePreviewAndNode();
     });
 
     const closeSheet = () => {
       sheet.style.display = 'none';
+      const fitFloatingBtn = root.querySelector('#btn-floating-fit') as HTMLElement | null;
+      if (fitFloatingBtn) fitFloatingBtn.style.display = 'flex';
       Keyboard.hide().catch(() => {});
     };
 
@@ -1462,6 +1655,7 @@ export class UltraFastMindMap {
         lineWidth: themeObj.lineWidth
       });
       this.triggerHaptic();
+      this.saveSync();
       setTimeout(() => this.fitToScreenBounds(), 100);
     } catch (e) {
       console.warn('[UltraFastMindMap] Error aplicando tema:', e);
@@ -1482,6 +1676,7 @@ export class UltraFastMindMap {
         borderWidth: 2
       });
       this.triggerHaptic();
+      this.saveSync();
     }
   }
 
@@ -1893,6 +2088,9 @@ export class UltraFastMindMap {
     }
 
     sheet.style.display = 'flex';
+    const fitFloatingBtn = this.container.querySelector('#btn-floating-fit') as HTMLElement | null;
+    if (fitFloatingBtn) fitFloatingBtn.style.display = 'none';
+
     setTimeout(() => {
       input.focus();
       input.setSelectionRange(input.value.length, input.value.length);
@@ -2161,11 +2359,36 @@ export class UltraFastMindMap {
   }
 
   /**
-   * 5. PERSISTENCIA Y GUARDADO RÁPIDO
+   * 5. PERSISTENCIA Y GUARDADO SÍNCRONO ULTRA-RÁPIDO
    */
+  public saveSync(): void {
+    if (!this.mindMapInstance || this.isDestroyed) return;
+    try {
+      const data = this.mindMapInstance.getData(false);
+      const json = JSON.stringify(data);
+      if (this.config.storageKey) {
+        localStorage.setItem(this.config.storageKey, json);
+        localStorage.setItem(`${this.config.storageKey}_meta`, JSON.stringify({
+          layout: this.currentLayout,
+          theme: this.currentTheme,
+          updatedAt: Date.now()
+        }));
+      }
+      Preferences.set({ key: this.config.storageKey!, value: json }).catch(() => {});
+      const statusLabel = this.container.querySelector('#map-save-status');
+      if (statusLabel) statusLabel.textContent = 'Guardado ✓';
+      this.config.onSave?.(data);
+    } catch (e) {
+      console.warn('[UltraFastMindMap] Error en saveSync:', e);
+    }
+  }
+
   private scheduleDebouncedSave(): void {
     const statusLabel = this.container.querySelector('#map-save-status');
     if (statusLabel) statusLabel.textContent = 'Guardando...';
+
+    // Guardado síncrono instantáneo a localStorage
+    this.saveSync();
 
     if (this.saveDebounceTimer) {
       window.clearTimeout(this.saveDebounceTimer);
@@ -2173,12 +2396,13 @@ export class UltraFastMindMap {
 
     this.saveDebounceTimer = window.setTimeout(() => {
       this.saveInstantly();
-    }, 3000);
+    }, 400);
   }
 
   public async saveInstantly(): Promise<void> {
     if (!this.mindMapInstance || this.isDestroyed) return;
     try {
+      this.saveSync();
       const data = this.mindMapInstance.getData(false);
       const json = JSON.stringify(data);
       await Preferences.set({ key: this.config.storageKey!, value: json });
@@ -2200,6 +2424,11 @@ export class UltraFastMindMap {
    * Desmontaje absoluto para evitar fugas de memoria en WebViews
    */
   public destroy(): void {
+    // 1. Guardar síncronamente antes de destruir la instancia para nunca perder cambios
+    try {
+      this.saveSync();
+    } catch {}
+
     this.isDestroyed = true;
     window.removeEventListener('keydown', this.handleKeyDown);
 
