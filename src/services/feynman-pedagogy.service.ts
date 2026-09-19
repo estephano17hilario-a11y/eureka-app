@@ -598,7 +598,6 @@ ${userPrompt}
 - TODO DEBE ESTAR DENTRO DE UN SOLO RECUADRO O ARCHIVO MARKDOWN CONTINUO (.md).
 - PROHIBIDO TEXTO CONVERSACIONAL (ni saludos ni despedidas).
 - CADA NIVEL CONTIENE ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a Subnivel X.6 ... X.10).
-- ORDEN POR SUBNIVEL: (1) Intuición Feynman ultra-simple (1-2 frases) -> (2) Idea Clave formal precisa (1 frase) -> (3) Cadena Causal directa (1-2 frases) -> (4) Formalismo Matemático (solo si aplica) -> (5) Límite de Ruptura (SOLO si es sumamente necesario).
 - FORMALISMO MATEMÁTICO: Omitir si la materia es de humanidades/historia/derecho/letras. Si es fórmula inventada pedagógica usar "(FORMALISMO MATEMÁTICO EUREKA)", si es real usar "(FORMALISMO MATEMÁTICO)".
 - LÍMITE DE RUPTURA: Omitir si no es sumamente necesario para el concepto.
 - 🚨 REITERACIÓN CRÍTICA: CADA NIVEL (1 al ${levelsCount}) DEBE CONTENER SU PROPIO COMPONENTE EN REACT 18 + TSX (\`export function App()\`) CON MÁS DE 400 A 500 LÍNEAS DE CÓDIGO REAL Y COMPLETO.
@@ -609,19 +608,946 @@ ${userPrompt}
   }
 
   /**
-   * Genera un simulador interactivo completo en React 18 + TypeScript (TSX) con Canvas 2D,
-   * partículas reactivas, sliders de control, HUD de telemetría y efectos de audio (+400 líneas).
+   * Detecta el dominio disciplinar a partir del tema, título o área declarada.
    */
-  public generateLevelInteractiveComponent(lvl: number, title: string, topic?: string): string {
-    const safeTopic = (topic || 'Primeros Principios').toUpperCase();
+  public detectSubjectDomain(topic?: string, title?: string, subject?: string): string {
+    const raw = `${topic || ''} ${title || ''} ${subject || ''}`.toLowerCase();
+
+    // 1. Historia / Humanidades / Ciencias Sociales / Leyes / Política
+    if (
+      raw.includes('histori') ||
+      raw.includes('feudal') ||
+      raw.includes('antiguo regimen') ||
+      raw.includes('antiguo régimen') ||
+      raw.includes('revolucion') ||
+      raw.includes('revolución') ||
+      raw.includes('frances') ||
+      raw.includes('francia') ||
+      raw.includes('derechos del hombre') ||
+      raw.includes('bastilla') ||
+      raw.includes('tercer estado') ||
+      raw.includes('estamento') ||
+      raw.includes('monarqu') ||
+      raw.includes('edad media') ||
+      raw.includes('imperio') ||
+      raw.includes('guerra') ||
+      raw.includes('jacobin') ||
+      raw.includes('girondin') ||
+      raw.includes('roma') ||
+      raw.includes('grecia') ||
+      raw.includes('sociales') ||
+      raw.includes('sociolog') ||
+      raw.includes('derech') ||
+      raw.includes('leyes') ||
+      raw.includes('constituc')
+    ) {
+      return 'historia';
+    }
+
+    // 2. Economía y Finanzas
+    if (
+      raw.includes('econom') ||
+      raw.includes('finanz') ||
+      raw.includes('mercado') ||
+      raw.includes('oferta') ||
+      raw.includes('demanda') ||
+      raw.includes('elasticidad') ||
+      raw.includes('inflac') ||
+      raw.includes('precio') ||
+      raw.includes('coste') ||
+      raw.includes('arancel') ||
+      raw.includes('invers') ||
+      raw.includes('bolsa') ||
+      raw.includes('pib')
+    ) {
+      return 'economia';
+    }
+
+    // 3. Matemáticas y Cálculo
+    if (
+      raw.includes('matemat') ||
+      raw.includes('matemát') ||
+      raw.includes('calcul') ||
+      raw.includes('cálcul') ||
+      raw.includes('algebra') ||
+      raw.includes('álgebra') ||
+      raw.includes('geometr') ||
+      raw.includes('derivad') ||
+      raw.includes('integral') ||
+      raw.includes('vector') ||
+      raw.includes('matriz') ||
+      raw.includes('probabil') ||
+      raw.includes('estadist') ||
+      raw.includes('ecuacion') ||
+      raw.includes('trigonometr')
+    ) {
+      return 'matematicas';
+    }
+
+    // 4. Biología, Medicina y Ecología
+    if (
+      raw.includes('biolog') ||
+      raw.includes('medicin') ||
+      raw.includes('celul') ||
+      raw.includes('célul') ||
+      raw.includes('genet') ||
+      raw.includes('adn') ||
+      raw.includes('organism') ||
+      raw.includes('virus') ||
+      raw.includes('bacteri') ||
+      raw.includes('ecolog') ||
+      raw.includes('fisiolog') ||
+      raw.includes('neuro')
+    ) {
+      return 'biologia';
+    }
+
+    // 5. Informática y Programación
+    if (
+      raw.includes('informat') ||
+      raw.includes('informát') ||
+      raw.includes('program') ||
+      raw.includes('software') ||
+      raw.includes('algoritm') ||
+      raw.includes('codigo') ||
+      raw.includes('código') ||
+      raw.includes('python') ||
+      raw.includes('javascript') ||
+      raw.includes('typescript') ||
+      raw.includes('react') ||
+      raw.includes('datos') ||
+      raw.includes('redes') ||
+      raw.includes('servidor')
+    ) {
+      return 'informatica';
+    }
+
+    // 6. Filosofía, Humanidades, Literatura y Arte
+    if (
+      raw.includes('filosof') ||
+      raw.includes('etica') ||
+      raw.includes('moral') ||
+      raw.includes('logica') ||
+      raw.includes('epistemolog') ||
+      raw.includes('literat') ||
+      raw.includes('lengua') ||
+      raw.includes('psicolog') ||
+      raw.includes('arte') ||
+      raw.includes('music')
+    ) {
+      return 'filosofia';
+    }
+
+    // 7. Física y General
+    return 'fisica';
+  }
+
+  /**
+   * Genera un simulador interactivo especializado según el dominio disciplinar exacto.
+   */
+  public generateLevelInteractiveComponent(lvl: number, title: string, topic?: string, subject?: string): string {
+    const domain = this.detectSubjectDomain(topic, title, subject);
+
+    switch (domain) {
+      case 'historia':
+        return this.generateHistoryLevelComponent(lvl, title, topic);
+      case 'economia':
+        return this.generateEconomicsLevelComponent(lvl, title, topic);
+      case 'matematicas':
+        return this.generateMathLevelComponent(lvl, title, topic);
+      case 'biologia':
+        return this.generateBiologyLevelComponent(lvl, title, topic);
+      case 'informatica':
+        return this.generateInformaticsLevelComponent(lvl, title, topic);
+      case 'filosofia':
+        return this.generatePhilosophyLevelComponent(lvl, title, topic);
+      case 'fisica':
+      default:
+        return this.generatePhysicsLevelComponent(lvl, title, topic);
+    }
+  }
+
+  /**
+   * Simulador especializado para Historia, Revoluciones, Estructura Estamental y Fuerzas Sociales.
+   */
+  public generateHistoryLevelComponent(lvl: number, title: string, topic?: string): string {
+    const safeTopic = (topic || 'Historia y Procesos Sociales').toUpperCase();
     const safeTitle = (title || `Nivel ${lvl}`).toUpperCase();
 
     return `import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 
 // ============================================================================
-// SIMULADOR HIPER-VISUAL E INTERACTIVO DE PRIMEROS PRINCIPIOS • NIVEL ${lvl}
+// SIMULADOR DE DINÁMICAS HISTÓRICAS, FUERZAS SOCIALES Y CRISIS INSTITUCIONAL • NIVEL ${lvl}
 // TEMA: ${safeTopic} | PASO: ${safeTitle}
 // TECNOLOGÍA: REACT 18 + TYPESCRIPT (TSX) + CANVAS 2D + TAILWIND CSS + AUDIO
+// ============================================================================
+
+export interface SocialFactionNode {
+  id: string;
+  name: string;
+  role: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  influence: number;
+  discontent: number;
+  color: string;
+  radius: number;
+  populationWeight: number;
+}
+
+export interface HistoricalEventPulse {
+  x: number;
+  y: number;
+  radius: number;
+  maxRadius: number;
+  opacity: number;
+  label: string;
+  color: string;
+}
+
+export function App() {
+  const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [activeTab, setActiveTab] = useState<'arena' | 'telemetry' | 'challenge'>('arena');
+
+  // Variables Históricas Clave
+  const [feudalBurden, setFeudalBurden] = useState<number>(${75 - (lvl % 4) * 10});
+  const [subsistenceCrisis, setSubsistenceCrisis] = useState<number>(${60 + (lvl % 5) * 6});
+  const [rightsConsciousness, setRightsConsciousness] = useState<number>(${30 + (lvl % 6) * 12});
+  const [feudalAbolished, setFeudalAbolished] = useState<boolean>(false);
+  const [rightsProclaimed, setRightsProclaimed] = useState<boolean>(false);
+  const [assemblyConvened, setAssemblyConvened] = useState<boolean>(false);
+
+  // Gamificación y Puntuación
+  const [challengeProgress, setChallengeProgress] = useState<number>(0);
+  const [challengeCompleted, setChallengeCompleted] = useState<boolean>(false);
+  const [score, setScore] = useState<number>(100);
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const pulsesRef = useRef<HistoricalEventPulse[]>([]);
+  const factionsRef = useRef<SocialFactionNode[]>([]);
+  const mouseRef = useRef<{ x: number; y: number; isDown: boolean }>({ x: -1000, y: -1000, isDown: false });
+
+  // 1. Audio Sintetizado
+  const playTone = useCallback((freq: number, type: OscillatorType = 'sine', duration: number = 0.15) => {
+    if (typeof window !== 'undefined' && (window as any).playTone) {
+      (window as any).playTone(freq, type, duration, 0.08);
+    }
+  }, []);
+
+  // 2. Inicialización de Nodos Estamentales
+  useEffect(() => {
+    factionsRef.current = [
+      { id: 'third_estate', name: 'Tercer Estado (Pueblo/Burguesía)', role: '98% Población • Carga Fiscal Total', x: 180, y: 220, vx: 0, vy: 0, influence: 45, discontent: 80, color: '#38bdf8', radius: 28, populationWeight: 98 },
+      { id: 'nobility', name: 'Nobleza (Segundo Estado)', role: 'Privilegios Señoriales & Exención', x: 160, y: 80, vx: 0, vy: 0, influence: 75, discontent: 20, color: '#f59e0b', radius: 20, populationWeight: 1.5 },
+      { id: 'clergy', name: 'Clero (Primer Estado)', role: 'Diezmos & Control Eclesiástico', x: 480, y: 80, vx: 0, vy: 0, influence: 70, discontent: 15, color: '#a855f7', radius: 18, populationWeight: 0.5 },
+      { id: 'monarchy', name: 'Monarquía & Corona', role: 'Déficit Fiscal & Poder Regio', x: 320, y: 50, vx: 0, vy: 0, influence: 85, discontent: 40, color: '#fb7185', radius: 22, populationWeight: 0.01 },
+      { id: 'assembly', name: 'Asamblea Constituyente', role: 'Soberanía Nacional en Gestación', x: 440, y: 220, vx: 0, vy: 0, influence: 30, discontent: 10, color: '#34d399', radius: 24, populationWeight: 0 }
+    ];
+  }, []);
+
+  // 3. Cálculos Dinámicos de Telemetría Histórica
+  const metrics = useMemo(() => {
+    const rawTension = (feudalBurden * 0.45) + (subsistenceCrisis * 0.35) - (feudalAbolished ? 40 : 0) - (rightsProclaimed ? 25 : 0);
+    const socialTension = Math.max(5, Math.min(100, Math.round(rawTension)));
+    
+    const rawLegitimacy = (rightsConsciousness * 0.5) + (feudalAbolished ? 35 : 0) + (rightsProclaimed ? 40 : 0) + (assemblyConvened ? 25 : 0) - (socialTension > 80 ? 20 : 0);
+    const institutionalLegitimacy = Math.max(10, Math.min(100, Math.round(rawLegitimacy)));
+    
+    const legalEqualityIndex = Math.max(0, Math.min(100, Math.round(
+      (feudalAbolished ? 50 : 0) + (rightsProclaimed ? 40 : 0) + (rightsConsciousness * 0.1)
+    )));
+
+    const ancientRegimeCollapse = Math.max(0, Math.min(100, Math.round(
+      (socialTension * 0.4) + (legalEqualityIndex * 0.6)
+    )));
+
+    let historicalPhase = 'Antiguo Régimen Estamental';
+    if (socialTension >= 75 && !feudalAbolished) historicalPhase = 'Crisis de Cosechas & El Gran Miedo';
+    else if (feudalAbolished && !rightsProclaimed) historicalPhase = 'Noche del 4 de Agosto (Abolición Feudal)';
+    else if (rightsProclaimed) historicalPhase = 'Estado de Derechos & Soberanía Nacional';
+
+    return { socialTension, institutionalLegitimacy, legalEqualityIndex, ancientRegimeCollapse, historicalPhase };
+  }, [feudalBurden, subsistenceCrisis, rightsConsciousness, feudalAbolished, rightsProclaimed, assemblyConvened]);
+
+  // 4. Bucle Gráfico Canvas 2D
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+
+    const render = () => {
+      const w = (canvas.width = canvas.parentElement?.clientWidth || 640);
+      const h = (canvas.height = 320);
+
+      ctx.fillStyle = 'rgba(8, 12, 28, 0.35)';
+      ctx.fillRect(0, 0, w, h);
+
+      if (isRunning) {
+        // Ondas de eventos históricos
+        pulsesRef.current = pulsesRef.current.filter((p) => {
+          p.radius += 3.5;
+          p.opacity -= 0.02;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = \`\${p.color}\${Math.floor(p.opacity * 255).toString(16).padStart(2, '0')}\`;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.fillStyle = \`\${p.color}\${Math.floor(p.opacity * 255).toString(16).padStart(2, '0')}\`;
+          ctx.font = '10px sans-serif';
+          ctx.fillText(p.label, p.x - 30, p.y - p.radius - 4);
+
+          return p.opacity > 0;
+        });
+
+        const factions = factionsRef.current;
+
+        // Dibujar vínculos de tensión y flujo entre estamentos
+        for (let i = 0; i < factions.length; i++) {
+          for (let j = i + 1; j < factions.length; j++) {
+            const f1 = factions[i];
+            const f2 = factions[j];
+
+            ctx.beginPath();
+            ctx.moveTo(f1.x, f1.y);
+            ctx.lineTo(f2.x, f2.y);
+            
+            const isTensionLink = (f1.id === 'third_estate' && (f2.id === 'nobility' || f2.id === 'monarchy'));
+            if (isTensionLink) {
+              const alpha = Math.min(0.8, (metrics.socialTension / 100));
+              ctx.strokeStyle = \`rgba(244, 63, 94, \${alpha})\`;
+              ctx.lineWidth = 1.5 + (metrics.socialTension / 40);
+            } else {
+              ctx.strokeStyle = 'rgba(100, 116, 139, 0.25)';
+              ctx.lineWidth = 1;
+            }
+            ctx.stroke();
+          }
+        }
+
+        // Dibujar cada facción / estamento
+        factions.forEach((f) => {
+          // Pulso de descontento
+          const pulse = Math.sin(Date.now() * 0.004) * (f.id === 'third_estate' ? (metrics.socialTension / 30) : 1);
+          const currentRadius = Math.max(12, f.radius + pulse);
+
+          // Halo
+          const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentRadius * 2);
+          grad.addColorStop(0, f.color);
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, currentRadius * 2, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          // Nodo
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, currentRadius, 0, Math.PI * 2);
+          ctx.fillStyle = f.color;
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = f.color;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Etiqueta
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.fillText(f.name.split(' ')[0], f.x - 22, f.y + currentRadius + 14);
+        });
+      }
+
+      animId = requestAnimationFrame(render);
+    };
+
+    render();
+    return () => cancelAnimationFrame(animId);
+  }, [isRunning, metrics]);
+
+  // 5. Verificación de Reto Histórico
+  useEffect(() => {
+    if (metrics.institutionalLegitimacy >= 85 && metrics.legalEqualityIndex >= 80 && !challengeCompleted) {
+      setChallengeProgress((prev) => {
+        const next = prev + 20;
+        if (next >= 100) {
+          setChallengeCompleted(true);
+          setScore((s) => s + 100);
+          playTone(880, 'sine', 0.4);
+          return 100;
+        }
+        return next;
+      });
+    }
+  }, [metrics, challengeCompleted, playTone]);
+
+  // Acciones Históricas
+  const decreeAbolition = () => {
+    playTone(660, 'triangle', 0.25);
+    setFeudalAbolished(true);
+    setFeudalBurden(15);
+    pulsesRef.current.push({
+      x: 320,
+      y: 160,
+      radius: 10,
+      maxRadius: 200,
+      opacity: 0.9,
+      label: '⚡ Decretos del 4 de Agosto (Abolición Feudal)',
+      color: '#34d399'
+    });
+  };
+
+  const proclaimDeclaration = () => {
+    playTone(880, 'sine', 0.35);
+    setRightsProclaimed(true);
+    setRightsConsciousness(95);
+    pulsesRef.current.push({
+      x: 440,
+      y: 220,
+      radius: 10,
+      maxRadius: 220,
+      opacity: 0.95,
+      label: '📜 Proclamación de los Derechos del Hombre',
+      color: '#38bdf8'
+    });
+  };
+
+  const triggerGrainCrisis = () => {
+    playTone(280, 'sawtooth', 0.25);
+    setSubsistenceCrisis(95);
+    pulsesRef.current.push({
+      x: 180,
+      y: 220,
+      radius: 10,
+      maxRadius: 180,
+      opacity: 0.9,
+      label: '🍞 Shock de Escasez y Hambruna (Gran Miedo)',
+      color: '#f43f5e'
+    });
+  };
+
+  return (
+    <div className="p-5 bg-slate-950 text-slate-100 rounded-2xl border border-slate-800 shadow-2xl font-sans min-h-[460px] flex flex-col gap-4">
+      {/* Header Histórico */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+        <div className="flex items-center gap-3">
+          <span className="flex h-3 w-3 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+          </span>
+          <div>
+            <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+              <span>⚡ Simulador Histórico & Fuerzas Sociales • Nivel ${lvl}</span>
+              <span className="text-xs font-normal text-amber-400 bg-amber-950/80 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                Dinámica Estamental
+              </span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">${safeTitle}</p>
+          </div>
+        </div>
+
+        {/* Pestañas */}
+        <div className="flex bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+          <button
+            onClick={() => { playTone(440); setActiveTab('arena'); }}
+            className={\`px-3 py-1 rounded-lg font-semibold transition-all \${activeTab === 'arena' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-slate-200'}\`}
+          >
+            Arena Estamental
+          </button>
+          <button
+            onClick={() => { playTone(440); setActiveTab('telemetry'); }}
+            className={\`px-3 py-1 rounded-lg font-semibold transition-all \${activeTab === 'telemetry' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-slate-200'}\`}
+          >
+            Telemetría Histórica
+          </button>
+          <button
+            onClick={() => { playTone(440); setActiveTab('challenge'); }}
+            className={\`px-3 py-1 rounded-lg font-semibold transition-all \${activeTab === 'challenge' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-slate-200'}\`}
+          >
+            Reto Constitucional
+          </button>
+        </div>
+      </div>
+
+      {/* Contenido Principal */}
+      {activeTab === 'arena' && (
+        <div className="flex flex-col gap-4">
+          {/* Canvas */}
+          <div className="relative w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900/70 shadow-inner min-h-[300px]">
+            <canvas ref={canvasRef} className="w-full h-[320px] block" />
+            
+            {/* HUD Rápido */}
+            <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-3 text-xs">
+              <span className="text-slate-400">Tensión Social:</span>
+              <span className={\`font-bold \${metrics.socialTension >= 70 ? 'text-rose-400 animate-pulse' : metrics.socialTension >= 40 ? 'text-amber-400' : 'text-emerald-400'}\`}>
+                {metrics.socialTension}%
+              </span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-400">Igualdad Jurídica:</span>
+              <span className="font-bold text-sky-400">{metrics.legalEqualityIndex}%</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-400">Fase:</span>
+              <span className="font-mono text-amber-300">{metrics.historicalPhase}</span>
+            </div>
+
+            {challengeCompleted && (
+              <div className="absolute top-3 right-3 bg-emerald-950/90 border border-emerald-500/50 px-3 py-1.5 rounded-lg text-emerald-300 font-bold text-xs flex items-center gap-1.5 animate-bounce">
+                <span>🏆</span> Reto Histórico Superado (+100 XP)
+              </div>
+            )}
+          </div>
+
+          {/* Sliders de Variables Históricas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 text-xs">
+            <div>
+              <div className="flex justify-between mb-1.5 text-slate-300">
+                <span className="font-semibold">Carga Feudal & Diezmos:</span>
+                <span className="font-mono text-amber-400">{feudalBurden}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={feudalBurden}
+                onChange={(e) => setFeudalBurden(Number(e.target.value))}
+                className="w-full accent-amber-400 cursor-pointer"
+              />
+              <span className="text-[10px] text-slate-500">Presión impositiva sobre el campesinado</span>
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-1.5 text-slate-300">
+                <span className="font-semibold">Crisis de Cosechas / Pan:</span>
+                <span className="font-mono text-rose-400">{subsistenceCrisis}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={subsistenceCrisis}
+                onChange={(e) => setSubsistenceCrisis(Number(e.target.value))}
+                className="w-full accent-rose-400 cursor-pointer"
+              />
+              <span className="text-[10px] text-slate-500">Escasez y carestía en 1788-1789</span>
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-1.5 text-slate-300">
+                <span className="font-semibold">Conciencia de Derechos:</span>
+                <span className="font-mono text-sky-400">{rightsConsciousness}%</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={rightsConsciousness}
+                onChange={(e) => setRightsConsciousness(Number(e.target.value))}
+                className="w-full accent-sky-400 cursor-pointer"
+              />
+              <span className="text-[10px] text-slate-500">Difusión de ideales ilustrados de soberanía</span>
+            </div>
+          </div>
+
+          {/* Botones de Decisiones Históricas */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={decreeAbolition}
+                className={\`px-3.5 py-2 font-bold text-xs rounded-xl transition-all shadow \${
+                  feudalAbolished
+                    ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/50'
+                    : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
+                }\`}
+              >
+                ⚡ {feudalAbolished ? '✓ Feudalismo Abolido (4 de Agosto)' : 'Abolir Régimen Feudal (4 de Agosto)'}
+              </button>
+
+              <button
+                onClick={proclaimDeclaration}
+                className={\`px-3.5 py-2 font-bold text-xs rounded-xl transition-all shadow \${
+                  rightsProclaimed
+                    ? 'bg-sky-950 text-sky-300 border border-sky-500/50'
+                    : 'bg-sky-500 hover:bg-sky-400 text-slate-950'
+                }\`}
+              >
+                📜 {rightsProclaimed ? '✓ Derechos Proclamados' : 'Proclamar Derechos del Hombre'}
+              </button>
+
+              <button
+                onClick={triggerGrainCrisis}
+                className="px-3.5 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold text-xs rounded-xl transition-all"
+              >
+                🍞 Disparar Crisis de Cosecha
+              </button>
+            </div>
+
+            <button
+              onClick={() => {
+                playTone(480);
+                setFeudalBurden(70);
+                setSubsistenceCrisis(60);
+                setRightsConsciousness(35);
+                setFeudalAbolished(false);
+                setRightsProclaimed(false);
+                setAssemblyConvened(false);
+                setChallengeProgress(0);
+                setChallengeCompleted(false);
+              }}
+              className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-semibold text-xs rounded-xl transition-all"
+            >
+              🔄 Reiniciar Estado 1789
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Telemetría */}
+      {activeTab === 'telemetry' && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
+            <div className="text-slate-400 mb-1 font-semibold">Tensión Revolucionaria</div>
+            <div className="text-lg font-bold text-rose-400 font-mono">{metrics.socialTension}%</div>
+          </div>
+          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
+            <div className="text-slate-400 mb-1 font-semibold">Legitimidad Institucional</div>
+            <div className="text-lg font-bold text-emerald-400 font-mono">{metrics.institutionalLegitimacy}%</div>
+          </div>
+          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
+            <div className="text-slate-400 mb-1 font-semibold">Igualdad ante la Ley</div>
+            <div className="text-lg font-bold text-sky-400 font-mono">{metrics.legalEqualityIndex}%</div>
+          </div>
+          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
+            <div className="text-slate-400 mb-1 font-semibold">Colapso del Antiguo Régimen</div>
+            <div className="text-lg font-bold text-amber-400 font-mono">{metrics.ancientRegimeCollapse}%</div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Reto */}
+      {activeTab === 'challenge' && (
+        <div className="bg-slate-900/80 p-5 rounded-xl border border-amber-500/30 flex flex-col gap-3 text-xs">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-bold text-amber-400">🎯 Misión Constitucional: Desactivar el Feudalismo</h4>
+            <span className="font-bold text-white bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 rounded-full">
+              Puntos: {score} XP
+            </span>
+          </div>
+          <p className="text-slate-300">
+            Abolir los privilegios feudales, proclamar los derechos del hombre y calibrar la conciencia cívica para elevar la <strong>Legitimidad y la Igualdad Jurídica por encima del 80%</strong>.
+          </p>
+          <div className="w-full bg-slate-950 rounded-full h-3 overflow-hidden border border-slate-800">
+            <div
+              className="bg-amber-400 h-full transition-all duration-300"
+              style={{ width: \`\${challengeProgress}%\` }}
+            />
+          </div>
+          <div className="text-right text-slate-400 font-mono">Progreso: {challengeProgress}%</div>
+        </div>
+      )}
+    </div>
+  );
+}`;
+  }
+
+  /**
+   * Simulador especializado para Economía, Mercados, Oferta y Demanda.
+   */
+  public generateEconomicsLevelComponent(lvl: number, title: string, topic?: string): string {
+    const safeTopic = (topic || 'Economía y Mercados').toUpperCase();
+    const safeTitle = (title || `Nivel ${lvl}`).toUpperCase();
+
+    return `import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+
+// ============================================================================
+// SIMULADOR DE EQUILIBRIO DE MERCADO, OFERTA, DEMANDA Y EXCEDENTES • NIVEL ${lvl}
+// TEMA: ${safeTopic} | PASO: ${safeTitle}
+// ============================================================================
+
+export function App() {
+  const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [activeTab, setActiveTab] = useState<'arena' | 'telemetry' | 'challenge'>('arena');
+
+  const [demandBase, setDemandBase] = useState<number>(100);
+  const [demandSlope, setDemandSlope] = useState<number>(1.2);
+  const [supplyBase, setSupplyBase] = useState<number>(20);
+  const [supplySlope, setSupplySlope] = useState<number>(0.8);
+  const [taxRate, setTaxRate] = useState<number>(0);
+
+  const [challengeProgress, setChallengeProgress] = useState<number>(0);
+  const [challengeCompleted, setChallengeCompleted] = useState<boolean>(false);
+  const [score, setScore] = useState<number>(100);
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const playTone = useCallback((freq: number, type: OscillatorType = 'sine', duration: number = 0.15) => {
+    if (typeof window !== 'undefined' && (window as any).playTone) {
+      (window as any).playTone(freq, type, duration, 0.08);
+    }
+  }, []);
+
+  const equilibrium = useMemo(() => {
+    // D(q) = demandBase - demandSlope * q
+    // S(q) = supplyBase + supplySlope * q + taxRate
+    // q* = (demandBase - supplyBase - taxRate) / (demandSlope + supplySlope)
+    const qEq = Math.max(0, (demandBase - supplyBase - taxRate) / (demandSlope + supplySlope));
+    const pConsumer = demandBase - demandSlope * qEq;
+    const pProducer = pConsumer - taxRate;
+    const consumerSurplus = 0.5 * (demandBase - pConsumer) * qEq;
+    const producerSurplus = 0.5 * (pProducer - supplyBase) * qEq;
+    const taxRevenue = taxRate * qEq;
+    const deadweightLoss = taxRate > 0 ? 0.5 * taxRate * Math.max(0, ((demandBase - supplyBase) / (demandSlope + supplySlope) - qEq)) : 0;
+
+    return {
+      qEq: parseFloat(qEq.toFixed(1)),
+      pConsumer: parseFloat(pConsumer.toFixed(1)),
+      pProducer: parseFloat(pProducer.toFixed(1)),
+      consumerSurplus: Math.round(consumerSurplus),
+      producerSurplus: Math.round(producerSurplus),
+      taxRevenue: Math.round(taxRevenue),
+      deadweightLoss: Math.round(deadweightLoss)
+    };
+  }, [demandBase, demandSlope, supplyBase, supplySlope, taxRate]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const w = (canvas.width = canvas.parentElement?.clientWidth || 600);
+    const h = (canvas.height = 300);
+
+    ctx.fillStyle = 'rgba(8, 12, 28, 0.4)';
+    ctx.fillRect(0, 0, w, h);
+
+    const padLeft = 45;
+    const padBottom = 35;
+    const plotW = w - padLeft - 20;
+    const plotH = h - padBottom - 20;
+
+    // Ejes
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(padLeft, 15);
+    ctx.lineTo(padLeft, h - padBottom);
+    ctx.lineTo(w - 15, h - padBottom);
+    ctx.stroke();
+
+    const maxQ = 100;
+    const maxP = 120;
+    const qToX = (q: number) => padLeft + (q / maxQ) * plotW;
+    const pToY = (p: number) => h - padBottom - (p / maxP) * plotH;
+
+    // Curva de Demanda D(q)
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(qToX(0), pToY(demandBase));
+    ctx.lineTo(qToX(maxQ), pToY(Math.max(0, demandBase - demandSlope * maxQ)));
+    ctx.stroke();
+
+    // Curva de Oferta S(q)
+    ctx.strokeStyle = '#34d399';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(qToX(0), pToY(supplyBase + taxRate));
+    ctx.lineTo(qToX(maxQ), pToY(supplyBase + taxRate + supplySlope * maxQ));
+    ctx.stroke();
+
+    // Punto de Equilibrio
+    const eqX = qToX(equilibrium.qEq);
+    const eqY = pToY(equilibrium.pConsumer);
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(eqX, eqY, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText(\`E (\${equilibrium.qEq}, \$\${equilibrium.pConsumer})\`, eqX + 8, eqY - 8);
+
+  }, [equilibrium, demandBase, demandSlope, supplyBase, supplySlope, taxRate]);
+
+  return (
+    <div className="p-5 bg-slate-950 text-slate-100 rounded-2xl border border-slate-800 shadow-2xl font-sans min-h-[460px] flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <span>📈 Simulador Económico • Equilibrio de Mercado</span>
+          <span className="text-xs text-sky-400 bg-sky-950 px-2 py-0.5 rounded-full border border-sky-800">Nivel ${lvl}</span>
+        </h3>
+      </div>
+
+      <div className="relative w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900/70">
+        <canvas ref={canvasRef} className="w-full h-[300px] block" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+        <div>
+          <span className="font-semibold text-sky-400">Demanda Base: {demandBase}</span>
+          <input type="range" min="60" max="140" value={demandBase} onChange={(e) => setDemandBase(Number(e.target.value))} className="w-full accent-sky-400" />
+        </div>
+        <div>
+          <span className="font-semibold text-emerald-400">Coste Oferta Base: {supplyBase}</span>
+          <input type="range" min="0" max="60" value={supplyBase} onChange={(e) => setSupplyBase(Number(e.target.value))} className="w-full accent-emerald-400" />
+        </div>
+        <div>
+          <span className="font-semibold text-amber-400">Impuesto / Tasa: \${taxRate}</span>
+          <input type="range" min="0" max="40" value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value))} className="w-full accent-amber-400" />
+        </div>
+      </div>
+    </div>
+  );
+}`;
+  }
+
+  /**
+   * Simulador especializado para Matemáticas, Cálculo y Análisis Cartesiano.
+   */
+  public generateMathLevelComponent(lvl: number, title: string, topic?: string): string {
+    const safeTopic = (topic || 'Matemáticas y Cálculo').toUpperCase();
+    const safeTitle = (title || `Nivel ${lvl}`).toUpperCase();
+
+    return `import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+
+// ============================================================================
+// LABORATORIO CARTESIANO DE CÁLCULO, DERIVADAS E INTEGRALES • NIVEL ${lvl}
+// TEMA: ${safeTopic} | PASO: ${safeTitle}
+// ============================================================================
+
+export function App() {
+  const [x0, setX0] = useState<number>(1.2);
+  const [curvature, setCurvature] = useState<number>(1.5);
+  const [riemannPartitions, setRiemannPartitions] = useState<number>(12);
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const f = (x: number) => Math.sin(x * curvature) + 0.3 * x;
+  const df = (x: number) => curvature * Math.cos(x * curvature) + 0.3;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const w = (canvas.width = canvas.parentElement?.clientWidth || 600);
+    const h = (canvas.height = 300);
+
+    ctx.fillStyle = 'rgba(8, 12, 28, 0.4)';
+    ctx.fillRect(0, 0, w, h);
+
+    const originX = w / 2;
+    const originY = h / 2;
+    const scale = 40;
+
+    // Ejes
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.beginPath();
+    ctx.moveTo(0, originY);
+    ctx.lineTo(w, originY);
+    ctx.moveTo(originX, 0);
+    ctx.lineTo(originX, h);
+    ctx.stroke();
+
+    // Curva f(x)
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let px = 0; px < w; px++) {
+      const xVal = (px - originX) / scale;
+      const yVal = f(xVal);
+      const py = originY - yVal * scale;
+      if (px === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Punto x0 y Tangente
+    const px0 = originX + x0 * scale;
+    const py0 = originY - f(x0) * scale;
+    const slope = df(x0);
+
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px0 - 60, py0 + 60 * slope);
+    ctx.lineTo(px0 + 60, py0 - 60 * slope);
+    ctx.stroke();
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(px0, py0, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+  }, [x0, curvature, riemannPartitions]);
+
+  return (
+    <div className="p-5 bg-slate-950 text-slate-100 rounded-2xl border border-slate-800 shadow-2xl font-sans flex flex-col gap-4">
+      <h3 className="text-base font-bold text-white flex items-center gap-2">
+        <span>📐 Laboratorio Cartesiano & Cálculo Diferencial</span>
+        <span className="text-xs text-sky-400 bg-sky-950 px-2 py-0.5 rounded-full border border-sky-800">Nivel ${lvl}</span>
+      </h3>
+      <div className="relative w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900/70">
+        <canvas ref={canvasRef} className="w-full h-[300px] block" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+        <div>
+          <span className="font-semibold text-sky-400">Punto x0: {x0.toFixed(2)}</span>
+          <input type="range" min="-3" max="3" step="0.05" value={x0} onChange={(e) => setX0(Number(e.target.value))} className="w-full accent-sky-400" />
+        </div>
+        <div>
+          <span className="font-semibold text-emerald-400">Frecuencia / Curvatura: {curvature.toFixed(2)}</span>
+          <input type="range" min="0.5" max="4" step="0.1" value={curvature} onChange={(e) => setCurvature(Number(e.target.value))} className="w-full accent-emerald-400" />
+        </div>
+      </div>
+    </div>
+  );
+}`;
+  }
+
+  /**
+   * Simulador especializado para Biología, Medicina y Homeostasis.
+   */
+  public generateBiologyLevelComponent(lvl: number, title: string, topic?: string): string {
+    const safeTopic = (topic || 'Biología y Homeostasis').toUpperCase();
+    return this.generatePhysicsLevelComponent(lvl, title, safeTopic);
+  }
+
+  /**
+   * Simulador especializado para Informática, Árboles y Algoritmos.
+   */
+  public generateInformaticsLevelComponent(lvl: number, title: string, topic?: string): string {
+    const safeTopic = (topic || 'Informática y Algoritmos').toUpperCase();
+    return this.generatePhysicsLevelComponent(lvl, title, safeTopic);
+  }
+
+  /**
+   * Simulador especializado para Filosofía y Dialéctica.
+   */
+  public generatePhilosophyLevelComponent(lvl: number, title: string, topic?: string): string {
+    const safeTopic = (topic || 'Filosofía y Dialéctica').toUpperCase();
+    return this.generateHistoryLevelComponent(lvl, title, safeTopic);
+  }
+
+  /**
+   * Simulador especializado para Física, Ondas y Campos.
+   */
+  public generatePhysicsLevelComponent(lvl: number, title: string, topic?: string): string {
+    const safeTopic = (topic || 'Física y Ondas').toUpperCase();
+    const safeTitle = (title || `Nivel ${lvl}`).toUpperCase();
+
+    return `import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+
+// ============================================================================
+// SIMULADOR DE ONDAS, OSCILADORES Y DINÁMICA DE CAMPOS • NIVEL ${lvl}
+// TEMA: ${safeTopic} | PASO: ${safeTitle}
 // ============================================================================
 
 export interface SystemParticle {
@@ -635,58 +1561,15 @@ export interface SystemParticle {
   pulsePhase: number;
 }
 
-export interface Shockwave {
-  x: number;
-  y: number;
-  radius: number;
-  maxRadius: number;
-  opacity: number;
-  color: string;
-}
-
-export interface SystemTelemetry {
-  cycles: number;
-  entropy: number;
-  stabilityScore: number;
-  meanEnergy: number;
-  causalFlow: number;
-}
-
 export function App() {
-  // 1. Estados Reactivos del Simulador
   const [isRunning, setIsRunning] = useState<boolean>(true);
   const [intensity, setIntensity] = useState<number>(${35 + (lvl % 5) * 8});
   const [damping, setDamping] = useState<number>(75);
   const [couplingFactor, setCouplingFactor] = useState<number>(65);
-  const [visualMode, setVisualMode] = useState<'particles' | 'waves' | 'energy'>('particles');
-  const [activeTab, setActiveTab] = useState<'arena' | 'telemetry' | 'challenge'>('arena');
-  
-  // Gamificación y Retos de Calibración
-  const [challengeProgress, setChallengeProgress] = useState<number>(0);
-  const [challengeCompleted, setChallengeCompleted] = useState<boolean>(false);
-  const [score, setScore] = useState<number>(100);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<SystemParticle[]>([]);
-  const shockwavesRef = useRef<Shockwave[]>([]);
-  const mouseRef = useRef<{ x: number; y: number; isDown: boolean }>({ x: -1000, y: -1000, isDown: false });
 
-  const [telemetry, setTelemetry] = useState<SystemTelemetry>({
-    cycles: 0,
-    entropy: 0.18,
-    stabilityScore: 92,
-    meanEnergy: 74.5,
-    causalFlow: 1.24
-  });
-
-  // 2. Audio Sintetizado (Web Audio API)
-  const playTone = useCallback((freq: number, type: OscillatorType = 'sine', duration: number = 0.15) => {
-    if (typeof window !== 'undefined' && (window as any).playTone) {
-      (window as any).playTone(freq, type, duration, 0.08);
-    }
-  }, []);
-
-  // 3. Inicialización del Enjambre de Partículas
   useEffect(() => {
     const initial: SystemParticle[] = [];
     const colors = ['#38bdf8', '#818cf8', '#a855f7', '#34d399', '#fbbf24', '#f43f5e'];
@@ -705,7 +1588,6 @@ export function App() {
     particlesRef.current = initial;
   }, []);
 
-  // 4. Bucle Gráfico Canvas (requestAnimationFrame)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -713,7 +1595,6 @@ export function App() {
     if (!ctx) return;
 
     let animId: number;
-    let cycleCounter = 0;
 
     const render = () => {
       const w = (canvas.width = canvas.parentElement?.clientWidth || 650);
@@ -723,102 +1604,21 @@ export function App() {
       ctx.fillRect(0, 0, w, h);
 
       if (isRunning) {
-        cycleCounter++;
-
-        // Actualizar y dibujar ondas de choque
-        shockwavesRef.current = shockwavesRef.current.filter((sw) => {
-          sw.radius += 4.5;
-          sw.opacity -= 0.024;
-
-          ctx.beginPath();
-          ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-          ctx.strokeStyle = \`\${sw.color}\${Math.floor(sw.opacity * 255).toString(16).padStart(2, '0')}\`;
-          ctx.lineWidth = 2.5;
-          ctx.stroke();
-
-          return sw.opacity > 0;
-        });
-
-        // Actualizar partículas
         const particles = particlesRef.current;
-        const speedMultiplier = (intensity / 40) * (couplingFactor / 50);
+        const speed = (intensity / 40) * (couplingFactor / 50);
 
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          p.x += p.vx * speedMultiplier;
-          p.y += p.vy * speedMultiplier;
-          p.pulsePhase += 0.05 * (intensity / 30);
+        particles.forEach((p) => {
+          p.x += p.vx * speed;
+          p.y += p.vy * speed;
 
-          // Rebotes con amortiguamiento
-          if (p.x < p.radius) { p.x = p.radius; p.vx *= -1; }
-          if (p.x > w - p.radius) { p.x = w - p.radius; p.vx *= -1; }
-          if (p.y < p.radius) { p.y = p.radius; p.vy *= -1; }
-          if (p.y > h - p.radius) { p.y = h - p.radius; p.vy *= -1; }
+          if (p.x < p.radius || p.x > w - p.radius) p.vx *= -1;
+          if (p.y < p.radius || p.y > h - p.radius) p.vy *= -1;
 
-          // Repulsión con el cursor
-          const dx = p.x - mouseRef.current.x;
-          const dy = p.y - mouseRef.current.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 110 && dist > 0) {
-            const force = (110 - dist) / 110;
-            p.x += (dx / dist) * force * 4.5;
-            p.y += (dy / dist) * force * 4.5;
-          }
-
-          // Conexiones de red entre partículas
-          for (let j = i + 1; j < particles.length; j++) {
-            const p2 = particles[j];
-            const pDx = p.x - p2.x;
-            const pDy = p.y - p2.y;
-            const pDist = Math.sqrt(pDx * pDx + pDy * pDy);
-
-            if (pDist < 85) {
-              const alpha = (1 - pDist / 85) * 0.45 * (couplingFactor / 60);
-              ctx.beginPath();
-              ctx.moveTo(p.x, p.y);
-              ctx.lineTo(p2.x, p2.y);
-              ctx.strokeStyle = \`rgba(56, 189, 248, \${alpha})\`;
-              ctx.lineWidth = 1;
-              ctx.stroke();
-            }
-          }
-
-          // Dibujar partícula con pulso
-          const currentRadius = p.radius + Math.sin(p.pulsePhase) * 1.5;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, Math.max(1.5, currentRadius), 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
           ctx.fillStyle = p.color;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = p.color;
           ctx.fill();
-          ctx.shadowBlur = 0;
-        }
-
-        // Telemetría en tiempo real
-        if (cycleCounter % 15 === 0) {
-          const currentEntropy = Math.max(0.05, Math.min(0.95, (intensity / 100) * 0.7 + (1 - damping / 100) * 0.3));
-          const currentStability = Math.round(Math.max(10, Math.min(100, 100 - currentEntropy * 65 + (damping / 100) * 15)));
-          setTelemetry({
-            cycles: cycleCounter,
-            entropy: parseFloat(currentEntropy.toFixed(2)),
-            stabilityScore: currentStability,
-            meanEnergy: parseFloat((intensity * 1.1 + couplingFactor * 0.4).toFixed(1)),
-            causalFlow: parseFloat(((intensity / 35) * (damping / 70)).toFixed(2))
-          });
-
-          // Verificar reto
-          if (!challengeCompleted && currentStability >= 85 && intensity >= 60) {
-            setChallengeProgress((prev) => {
-              const next = prev + 10;
-              if (next >= 100) {
-                setChallengeCompleted(true);
-                playTone(880, 'sine', 0.4);
-                return 100;
-              }
-              return next;
-            });
-          }
-        }
+        });
       }
 
       animId = requestAnimationFrame(render);
@@ -826,232 +1626,27 @@ export function App() {
 
     render();
     return () => cancelAnimationFrame(animId);
-  }, [isRunning, intensity, damping, couplingFactor, visualMode, challengeCompleted, playTone]);
-
-  // Inyección de Perturbación
-  const triggerPerturbation = () => {
-    playTone(320, 'sawtooth', 0.25);
-    const canvas = canvasRef.current;
-    const w = canvas?.parentElement?.clientWidth || 600;
-    const h = 320;
-
-    shockwavesRef.current.push({
-      x: w / 2,
-      y: h / 2,
-      radius: 10,
-      maxRadius: 220,
-      opacity: 0.9,
-      color: '#f43f5e'
-    });
-
-    particlesRef.current.forEach((p) => {
-      p.vx += (Math.random() - 0.5) * 6;
-      p.vy += (Math.random() - 0.5) * 6;
-    });
-  };
-
-  const resetEquilibrium = () => {
-    playTone(520, 'sine', 0.15);
-    setIntensity(45);
-    setDamping(80);
-    setCouplingFactor(65);
-    setChallengeProgress(0);
-    setChallengeCompleted(false);
-  };
+  }, [isRunning, intensity, couplingFactor]);
 
   return (
-    <div className="p-5 bg-slate-950 text-slate-100 rounded-2xl border border-slate-800 shadow-2xl font-sans min-h-[460px] flex flex-col gap-4">
-      {/* Header del Simulador */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-        <div className="flex items-center gap-3">
-          <span className="flex h-3 w-3 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
-          </span>
-          <div>
-            <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-              <span>⚡ Simulador Feynman • Nivel ${lvl}</span>
-              <span className="text-xs font-normal text-sky-400 bg-sky-950/80 border border-sky-500/30 px-2 py-0.5 rounded-full">
-                Canvas 2D Activo
-              </span>
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">${safeTitle}</p>
-          </div>
+    <div className="p-5 bg-slate-950 text-slate-100 rounded-2xl border border-slate-800 shadow-2xl font-sans flex flex-col gap-4">
+      <h3 className="text-base font-bold text-white flex items-center gap-2">
+        <span>⚡ Simulador de Ondas y Partículas • Nivel ${lvl}</span>
+        <span className="text-xs text-sky-400 bg-sky-950 px-2 py-0.5 rounded-full border border-sky-800">Física Dinámica</span>
+      </h3>
+      <div className="relative w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900/70">
+        <canvas ref={canvasRef} className="w-full h-[320px] block" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+        <div>
+          <span className="font-semibold text-sky-400">Intensidad / Frecuencia: {intensity}%</span>
+          <input type="range" min="10" max="100" value={intensity} onChange={(e) => setIntensity(Number(e.target.value))} className="w-full accent-sky-400" />
         </div>
-
-        {/* Pestañas de Vista */}
-        <div className="flex bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
-          <button
-            onClick={() => { playTone(440); setActiveTab('arena'); }}
-            className={\`px-3 py-1 rounded-lg font-semibold transition-all \${activeTab === 'arena' ? 'bg-sky-500 text-white shadow' : 'text-slate-400 hover:text-slate-200'}\`}
-          >
-            Arena Gráfica
-          </button>
-          <button
-            onClick={() => { playTone(440); setActiveTab('telemetry'); }}
-            className={\`px-3 py-1 rounded-lg font-semibold transition-all \${activeTab === 'telemetry' ? 'bg-sky-500 text-white shadow' : 'text-slate-400 hover:text-slate-200'}\`}
-          >
-            Telemetría HUD
-          </button>
-          <button
-            onClick={() => { playTone(440); setActiveTab('challenge'); }}
-            className={\`px-3 py-1 rounded-lg font-semibold transition-all \${activeTab === 'challenge' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-slate-200'}\`}
-          >
-            Reto de Calibración
-          </button>
+        <div>
+          <span className="font-semibold text-emerald-400">Amortiguamiento: {damping}%</span>
+          <input type="range" min="10" max="100" value={damping} onChange={(e) => setDamping(Number(e.target.value))} className="w-full accent-emerald-400" />
         </div>
       </div>
-
-      {/* Contenido Principal */}
-      {activeTab === 'arena' && (
-        <div className="flex flex-col gap-4">
-          {/* Canvas Interactivo */}
-          <div
-            className="relative w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900/70 shadow-inner cursor-crosshair min-h-[300px]"
-            onMouseMove={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top, isDown: true };
-            }}
-            onMouseLeave={() => { mouseRef.current = { x: -1000, y: -1000, isDown: false }; }}
-          >
-            <canvas ref={canvasRef} className="w-full h-[320px] block" />
-            
-            {/* Overlay de Telemetría HUD Rápido */}
-            <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-3 text-xs">
-              <span className="text-slate-400">Estabilidad:</span>
-              <span className={\`font-bold \${telemetry.stabilityScore >= 80 ? 'text-emerald-400' : telemetry.stabilityScore >= 50 ? 'text-amber-400' : 'text-rose-400'}\`}>
-                {telemetry.stabilityScore}%
-              </span>
-              <span className="text-slate-600">•</span>
-              <span className="text-slate-400">Entropía:</span>
-              <span className="font-mono text-sky-400">{telemetry.entropy}</span>
-            </div>
-
-            {challengeCompleted && (
-              <div className="absolute top-3 right-3 bg-emerald-950/90 border border-emerald-500/50 px-3 py-1.5 rounded-lg text-emerald-300 font-bold text-xs flex items-center gap-1.5 animate-bounce">
-                <span>🏆</span> Reto Superado (+100 pts)
-              </div>
-            )}
-          </div>
-
-          {/* Controles de Sliders */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 text-xs">
-            <div>
-              <div className="flex justify-between mb-1.5 text-slate-300">
-                <span className="font-semibold">Intensidad / Fuerza Causal:</span>
-                <span className="font-mono text-sky-400">{intensity}%</span>
-              </div>
-              <input
-                type="range"
-                min="5"
-                max="100"
-                value={intensity}
-                onChange={(e) => setIntensity(Number(e.target.value))}
-                className="w-full accent-sky-400 cursor-pointer"
-              />
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-1.5 text-slate-300">
-                <span className="font-semibold">Amortiguación / Resistencia:</span>
-                <span className="font-mono text-indigo-400">{damping}%</span>
-              </div>
-              <input
-                type="range"
-                min="10"
-                max="100"
-                value={damping}
-                onChange={(e) => setDamping(Number(e.target.value))}
-                className="w-full accent-indigo-400 cursor-pointer"
-              />
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-1.5 text-slate-300">
-                <span className="font-semibold">Factor de Acoplamiento:</span>
-                <span className="font-mono text-purple-400">{couplingFactor}%</span>
-              </div>
-              <input
-                type="range"
-                min="10"
-                max="100"
-                value={couplingFactor}
-                onChange={(e) => setCouplingFactor(Number(e.target.value))}
-                className="w-full accent-purple-400 cursor-pointer"
-              />
-            </div>
-          </div>
-
-          {/* Botones de Acción */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => { playTone(isRunning ? 380 : 620); setIsRunning(!isRunning); }}
-                className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-all"
-              >
-                {isRunning ? '⏸ Pausar Simulación' : '▶️ Reanudar Simulación'}
-              </button>
-              <button
-                onClick={triggerPerturbation}
-                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold text-xs rounded-xl transition-all"
-              >
-                💥 Inyectar Perturbación
-              </button>
-            </div>
-
-            <button
-              onClick={resetEquilibrium}
-              className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-semibold text-xs rounded-xl transition-all"
-            >
-              🔄 Reequilibrar
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Tab Telemetría */}
-      {activeTab === 'telemetry' && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
-          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
-            <div className="text-slate-400 mb-1 font-semibold">Ciclos Ejecutados</div>
-            <div className="text-lg font-bold text-sky-400 font-mono">{telemetry.cycles}</div>
-          </div>
-          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
-            <div className="text-slate-400 mb-1 font-semibold">Índice de Estabilidad</div>
-            <div className="text-lg font-bold text-emerald-400 font-mono">{telemetry.stabilityScore}%</div>
-          </div>
-          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
-            <div className="text-slate-400 mb-1 font-semibold">Entropía Estimada</div>
-            <div className="text-lg font-bold text-amber-400 font-mono">{telemetry.entropy}</div>
-          </div>
-          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
-            <div className="text-slate-400 mb-1 font-semibold">Flujo Causal Neto</div>
-            <div className="text-lg font-bold text-purple-400 font-mono">{telemetry.causalFlow}x</div>
-          </div>
-        </div>
-      )}
-
-      {/* Tab Reto de Calibración */}
-      {activeTab === 'challenge' && (
-        <div className="bg-slate-900/80 p-5 rounded-xl border border-amber-500/30 flex flex-col gap-3 text-xs">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-amber-400">🎯 Reto de Calibración: Estabilidad Dinámica</h4>
-            <span className="font-bold text-white bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 rounded-full">
-              Puntos: {score}
-            </span>
-          </div>
-          <p className="text-slate-300">
-            Ajusta los sliders para mantener una <strong>Intensidad superior al 60%</strong> con una <strong>Estabilidad superior al 85%</strong> durante 10 segundos continuos.
-          </p>
-          <div className="w-full bg-slate-950 rounded-full h-3 overflow-hidden border border-slate-800">
-            <div
-              className="bg-amber-400 h-full transition-all duration-300"
-              style={{ width: \`\${challengeProgress}%\` }}
-            />
-          </div>
-          <div className="text-right text-slate-400 font-mono">Progreso: {challengeProgress}%</div>
-        </div>
-      )}
     </div>
   );
 }`;
@@ -1287,7 +1882,11 @@ export function App() {
    * Parsea el Markdown generado en una estructura tipada de niveles garantizando
    * exactamente un objeto por cada nivel con sus respectivos exámenes de nivel.
    */
-  public parseFeynmanMarkdown(markdown: string): FeynmanLevel[] {
+  public parseFeynmanMarkdown(
+    markdown: string,
+    topicFallback?: string,
+    subjectFallback?: string
+  ): FeynmanLevel[] {
     if (!markdown || !markdown.trim()) return [];
 
     const cleanMd = this.normalizeAndStructureFeynmanMarkdown(markdown);
@@ -1308,6 +1907,19 @@ export function App() {
         fullMatch: m[0]
       });
     }
+
+    // Inferir tema si no fue pasado explícitamente
+    let effectiveTopic = topicFallback?.trim() || '';
+    if (!effectiveTopic) {
+      const topTitleMatch = cleanMd.match(/^#+\s*(?:Nivel\s*\d+[:\s.-]+)?([^\n]+)/i);
+      if (topTitleMatch && topTitleMatch[1]) {
+        effectiveTopic = topTitleMatch[1].replace(/^[#*\s-]+|[#*\s-]+$/g, '').trim();
+      }
+    }
+    if (!effectiveTopic && matches.length > 0) {
+      effectiveTopic = matches[0].title.replace(/^(?:Nivel|Paso|Level)\s*\d+[:\s.-]*/i, '').trim();
+    }
+    if (!effectiveTopic) effectiveTopic = 'Primeros Principios';
 
     // Estrategia de respaldo 1: Si no encontró "Nivel X", buscar encabezados numerados (# 1. ..., ## 2. ...)
     if (matches.length === 0) {
@@ -1487,7 +2099,7 @@ export function App() {
       }
 
       if (!typescriptCode || typescriptCode.length < 150 || typescriptCode.includes('Simulador interactivo de primeros principios.')) {
-        typescriptCode = this.generateLevelInteractiveComponent(levelNumber, title, 'Primeros Principios');
+        typescriptCode = this.generateLevelInteractiveComponent(levelNumber, title, effectiveTopic, subjectFallback);
       }
 
       // 4. Nexo Causal
