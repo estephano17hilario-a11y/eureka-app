@@ -177,7 +177,9 @@ export class FeynmanLlmService {
     let detectedTopic = formFallback?.topic?.trim() || '';
     if (!detectedTopic) {
       const firstLevel = levels[0];
-      detectedTopic = firstLevel.title || 'Tema de Estudio Feynman';
+      detectedTopic = (firstLevel.title || 'Tema de Estudio Feynman')
+        .replace(/^(?:Nivel|Paso|Level|Fase|Etapa|M[oó]dulo|Unidad|Tema|Cap[ií]tulo)\s*\d+[:\s.-]*/i, '')
+        .trim() || 'Tema de Estudio Feynman';
     }
 
     const count: 10 | 15 | 20 = levels.length >= 18 ? 20 : levels.length >= 13 ? 15 : 10;
@@ -456,7 +458,7 @@ export class FeynmanLlmService {
         ? `Imagina ${topic} no como un dogma abstracto de definiciones aisladas, sino como un tablero físico de partículas en equilibrio dinámico. Todo en este dominio se reduce a un axioma primario irreducible: una entidad indivisible cuyo estado interno cambia única y exclusivamente cuando recibe un cuanto de energía o impulso exterior medible. Al igual que una molécula de agua permanece en reposo hasta que un fotón excita su enlace térmico, cualquier fenómeno en ${topic} se rige por esta conservación fundamental.`
         : `Para comprender "${title}", visualiza un sistema de engranajes acoplados con retroalimentación continua: cada transición de estado en el nivel anterior altera la tensión de la red circundante. En este nivel axiomático no introducimos conjeturas: formalizamos la ley matemática exacta que describe cómo los subsistemas interactúan para producir una respuesta global emergente y verificable.`;
 
-      const sublevelCount = 5 + (i % 2);
+      const sublevelCount = 6 + (i % 5); // 6 a 10 subniveles por nivel
       const sublevels: Array<{
         title: string;
         idea: string;
@@ -469,52 +471,71 @@ export class FeynmanLlmService {
 
       const atomicConcepts = [
         {
-          title: `Cuantización y Espacio de Estados Fundamentales`,
-          idea: `El estado del sistema no varía de forma continua e infinita, sino a lo largo de un espectro discreto de configuraciones estables.`,
-          mechanism: `1. El sistema recibe una excitación externa. 2. La configuración se preserva en su atractor base mientras no supere el umbral crítico. 3. Al cruzar el umbral, ocurre un salto discreto instantáneo hacia el siguiente estado sin fases intermedias.`,
-          equation: `\\Delta E = \\hbar \\omega \\left(n + \\frac{1}{2}\\right), \\quad n \\in \\mathbb{N}_0`,
-          boundaryCondition: `Falla en regímenes macroscópicos continuos donde los estados cuánticos se vuelven indistinguibles.`,
-          intuition: `Como los peldaños de una escalera mecánica: no puedes pisar entre dos escalones en el vacío.`
+          title: `Estado Discreto y Cuantización Fundamental`,
+          idea: `El sistema solo habita configuraciones estables bien definidas, sin estados intermedios.`,
+          mechanism: `Un estímulo cruza el umbral crítico y el estado salta instantáneamente al siguiente nivel estable.`,
+          equation: `E_n = n \\hbar \\omega_0`,
+          intuition: `Como los peldaños de una escalera: solo puedes pararte firme en un escalón a la vez.`
         },
         {
-          title: `Invarianza de Flujo y Conservación Local`,
-          idea: `La divergencia neta en cualquier nodo cerrado es exactamente nula en régimen estacionario: lo que entra es igual a lo que sale más la acumulación interna.`,
-          mechanism: `1. Se inyecta un flujo en el nodo. 2. La presión interna se incrementa. 3. Los canales adyacentes reequilibran el gradiente disipando el exceso hacia la periferia en tiempo finito.`,
-          equation: `\\nabla \\cdot \\vec{J} + \\frac{\\partial \\rho}{\\partial t} = 0 \\implies \\sum_{j \\in \\mathcal{N}(i)} I_{ij} = \\frac{dQ_i}{dt}`,
-          boundaryCondition: `Se rompe ante singularidades topológicas o pozos infinitos donde el medio colapsa.`,
-          intuition: `Una tubería de agua ramificada: si no hay fugas ni compresión, el caudal total de salida es idéntico al de entrada.`
+          title: `Conservación Local e Invarianza de Flujo`,
+          idea: `En cualquier nodo cerrado, todo lo que entra es idéntico a lo que sale más la acumulación.`,
+          mechanism: `El flujo entrante aumenta la presión local y los canales adyacentes evacúan el exceso.`,
+          equation: `\\sum I_{in} = \\sum I_{out}`,
+          intuition: `Una manguera de agua: si no tiene fugas, sale exactamente la misma cantidad que entra.`
         },
         {
-          title: `Acoplamiento No Lineal y Función de Saturación Sigmoidal`,
-          idea: `La respuesta ante un estímulo moderado es proporcional, pero satura asintóticamente hacia un techo físico infranqueable.`,
-          mechanism: `1. El estímulo incrementa la tasa de reacción linealmente. 2. Los recursos de transporte se agotan progresivamente. 3. La derivada decae a cero, forzando la meseta de saturación.`,
-          equation: `f(x) = \\frac{\\mathcal{C}_{max}}{1 + e^{-\\beta(x - \\mu)}}, \\quad \\lim_{x \\to \\infty} f'(x) = 0`,
-          boundaryCondition: `No modela rupturas catastróficas donde el medio se destruye por sobrecarga.`,
-          intuition: `Una autopista en hora punta: agregar más autos no aumenta el flujo de tráfico cuando los carriles están saturados.`
+          title: `Acoplamiento y Saturación Sigmoidal`,
+          idea: `La respuesta crece con el estímulo pero se frena suavemente al alcanzar la capacidad máxima.`,
+          mechanism: `Al inicio la respuesta es rápida; al agotarse los recursos libres, la tasa de cambio decae a cero.`,
+          equation: `S(x) = \\frac{1}{1 + e^{-x}}`,
+          intuition: `Una esponja absorbiendo agua: al principio absorbe rápido, pero llena ya no admite más.`
         },
         {
-          title: `Gradiente de Potencial y Principio de Mínima Acción`,
-          idea: `Toda evolución dinámica sigue la trayectoria geodésica que estaciona la integral de acción en el espacio de Hilbert o de fases.`,
-          mechanism: `1. El sistema evalúa continuamente la derivada espacial del potencial. 2. Se generan aceleraciones opuestas al gradiente. 3. La trayectoria resultante minimiza la disipación total del Lagrangiano.`,
-          equation: `\\delta \\mathcal{S} = 0 \\implies \\frac{d}{dt}\\left(\\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{\\dot{q}}}\\right) = \\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{q}}`,
-          boundaryCondition: `Válido solo para sistemas holónomos sin fricción estocástica no derivable.`,
-          intuition: `Una canica rodando por una colina: siempre toma el camino de menor resistencia geométrica.`
+          title: `Gradiente Causal y Mínima Acción`,
+          idea: `El cambio siempre ocurre en la dirección que reduce más rápido la tensión acumulada.`,
+          mechanism: `La diferencia de potencial genera una fuerza que empuja al sistema hacia el equilibrio más cercano.`,
+          equation: `\\vec{F} = -\\nabla V`,
+          intuition: `Una pelota rodando en un tazón: rueda directamente hacia el fondo sin dar rodeos.`
         },
         {
-          title: `Filtro de Ruido y Amortiguamiento por Resonancia`,
-          idea: `Las fluctuaciones térmicas o estocásticas de alta frecuencia son suprimidas por la inercia intrínseca y los polos dominantes del filtro.`,
-          mechanism: `1. Entra una señal compuesta con armónicos espurios. 2. La inercia frena las derivadas altas. 3. Solo las frecuencias coherentes dentro del ancho de banda modulan el núcleo.`,
-          equation: `H(s) = \\frac{\\omega_n^2}{s^2 + 2\\zeta \\omega_n s + \\omega_n^2}`,
-          boundaryCondition: `Falla ante excitación resonante en frecuencia propia con amortiguamiento nulo.`,
-          intuition: `Los amortiguadores de un vehículo: absorben los baches diminutos del camino sin alterar la dirección del auto.`
+          title: `Amortiguamiento y Resonancia Natural`,
+          idea: `La fricción natural disipa oscilaciones caóticas y preserva solo el ritmo fundamental.`,
+          mechanism: `La resistencia interna frena los movimientos bruscos y estabiliza la trayectoria en reposo.`,
+          equation: `\\ddot{x} + 2\\zeta \\omega_0 \\dot{x} + \\omega_0^2 x = 0`,
+          intuition: `El freno de una puerta: evita que azote dejándola cerrar suavemente en su marco.`
         },
         {
-          title: `Estabilidad Asintótica y Teorema de Lyapunov`,
-          idea: `Cualquier perturbación finita decae exponencialmente hacia el atractor de equilibrio si la función de Lyapunov tiene derivada definida negativa.`,
-          mechanism: `1. Una perturbación desplaza el vector de estado. 2. Las fuerzas restauradoras internas se activan en proporción a la distancia. 3. La energía libre decae monotónicamente.`,
-          equation: `V(\\mathbf{x}) > 0 \\quad \\forall \\mathbf{x} \\neq 0, \\quad \\dot{V}(\\mathbf{x}) \\le -\\alpha \\|\\mathbf{x}\\|^2`,
-          boundaryCondition: `Inoperante en sistemas caóticos de atractores extraños o bifurcaciones supercríticas.`,
-          intuition: `Un péndulo con fricción en el aire: no importa dónde lo sueltes, siempre regresará al reposo en el centro.`
+          title: `Estabilidad de Retorno y Atractor Central`,
+          idea: `Toda perturbación temporal desaparece y el sistema regresa a su estado base de equilibrio.`,
+          mechanism: `Al ser desplazado, surgen fuerzas restauradoras proporcionales a la distancia del centro.`,
+          equation: `\\dot{V}(x) < 0`,
+          intuition: `Un tentetieso o muñeco porfiado: lo empujas hacia cualquier lado y siempre vuelve a quedar de pie.`
+        },
+        {
+          title: `Propagación en Red y Efecto Dominó`,
+          idea: `El cambio de un elemento individual se transmite en cadena a sus vecinos conectados.`,
+          mechanism: `El nodo perturbado altera su frontera, activando a los nodos adyacentes en secuencia causal.`,
+          intuition: `Fichas de dominó alineadas: empujas la primera y la energía cae en cascada sobre las demás.`
+        },
+        {
+          title: `Umbral de Bifurcación y Cambio de Régimen`,
+          idea: `Al superar un valor crítico, el sistema reorganiza su estructura en un nuevo patrón ordenado.`,
+          mechanism: `La acumulación de energía desestabiliza el patrón previo y fuerza una nueva simetría.`,
+          boundaryCondition: `Aplica únicamente cuando el gradiente térmico o de carga sobrepasa el umbral de ruptura.`,
+          intuition: `El agua al hervir: pasa de líquido calmo a burbujas dinámicas al cruzar 100°C.`
+        },
+        {
+          title: `Realimentación Negativa y Auto-Regulación`,
+          idea: `El resultado final frena a su propia causa para mantener el sistema dentro de límites seguros.`,
+          mechanism: `Un exceso de salida envía una señal inhibidora a la entrada reduciendo la producción.`,
+          intuition: `El termostato de un refrigerador: se apaga solo en cuanto alcanza la temperatura ideal.`
+        },
+        {
+          title: `Sincronización Coherente de Fase`,
+          idea: `Múltiples subsistemas independientes ajustan sus ritmos hasta operar en perfecta armonía.`,
+          mechanism: `Poco a poco, las pequeñas influencias mutuas cancelan los desfases y unifican el ciclo.`,
+          intuition: `Un grupo de aplausos en un teatro: tras unos segundos de desorden, todos aplauden al unísono.`
         }
       ];
 

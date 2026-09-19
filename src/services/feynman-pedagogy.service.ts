@@ -366,14 +366,14 @@ Eres un maestro pedagogo y experto mundial en el Método de Richard Feynman y el
 2. FIDELIDAD EXACTA DEL NÚMERO DE NIVELES:
    - Debes generar EXACTAMENTE ${levelsCount} NIVELES PRINCIPALES (desde '# Nivel 1:' hasta '# Nivel ${levelsCount}:') seguidos del '# Examen Final del Cuaderno'.
 
-3. ESTRUCTURA Y ORDEN ESTRICTO DE CADA SUBNIVEL HIPER-ATÓMICO (5 A 7 POR NIVEL):
-   - Cada Nivel Principal debe dividirse obligatoriamente en ENTRE 5 Y 7 SUBNIVELES (Subnivel X.1 a Subnivel X.5, X.6 o X.7).
+3. ESTRUCTURA Y ORDEN ESTRICTO DE CADA SUBNIVEL HIPER-ATÓMICO (6 A 10 POR NIVEL):
+   - Cada Nivel Principal debe dividirse obligatoriamente en ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a Subnivel X.6, X.7, X.8, X.9 o X.10). La IA decide la cantidad exacta dentro del intervalo [6 - 10] según la complejidad del concepto para lograr la máxima granularidad axiomática sin perder información.
    - ⚠️ **ORDEN EXACTO E INVARIABLE PARA CADA SUBNIVEL**:
-     1. **Intuición Feynman:** Micro-analogía cotidiana resumida, simple, intuitiva y sumamente fácil de entender (estilo Feynman puro, sin jerga pesada).
-     2. **Idea Clave:** Esa misma intuición explicada ahora en términos formales, rigurosos y precisos de "${topic}".
-     3. **Cadena Causal:** Secuencia paso a paso de causa-efecto específica del mecanismo.
+     1. **Intuición Feynman:** Micro-analogía cotidiana ultra-simple, amigable y brillante (estilo Richard Feynman puro: como explicárselo a un niño o persona común sin jerga técnica pesada, directa y en 1-2 frases).
+     2. **Idea Clave:** Definición formal hiper-atómica, rigurosa y precisa en 1 sola frase contundente sin rodeos.
+     3. **Cadena Causal:** Secuencia causal paso a paso directa (Causa -> Efecto -> Estado resultante en 1-2 frases precisas).
      4. **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** Fórmula en KaTeX ($...$). 🚨 SOLO SI EL TEMA O CONCEPTO REALMENTE LO REQUIERE. SI ES DE HUMANIDADES/CUALITATIVO, OMITE ESTA LÍNEA POR COMPLETO.
-     5. **Límite de Ruptura / Condición de Frontera:** El caso extremo o contexto donde este principio falla o genera un conflicto.
+     5. **Límite de Ruptura / Condición de Frontera:** 🚨 ESTRICTAMENTE OPCIONAL. Incluir ÚNICA Y EXCLUSIVAMENTE si es SUMAMENTE NECESARIO y existe un límite de frontera o ruptura crítico e indispensable. Si no es estrictamente necesario, OMITE ESTA LÍNEA POR COMPLETO.
 
 4. 🚨 REGLA INVIOLABLE DE CÓDIGO REACT + TYPESCRIPT (+400 A +500 LÍNEAS REALES EN CADA NIVEL) 🚨:
    - ⚠️ **REGLA ESTRICTA**: CADA UNO DE LOS ${levelsCount} NIVELES (DESDE EL NIVEL 1 HASTA EL NIVEL ${levelsCount}) DEBE CONTENER OBLIGATORIAMAMENTE SU PROPIO BLOQUE REACT + TYPESCRIPT (\`\`\`tsx o \`\`\`typescript) CON UN MÍNIMO ESTRICTO DE +400 A +500 LÍNEAS DE CÓDIGO REAL Y ESPECÍFICO DE "${topic}".
@@ -391,7 +391,7 @@ Eres un maestro pedagogo y experto mundial en el Método de Richard Feynman y el
 
 5. 📝 EXAMEN POR NIVEL (EVALUACIÓN FORMATIVA DE CADA NIVEL):
    - Al final de cada nivel, incluye una sección \`## 5. Examen de Nivel\` con:
-     - Entre 3 y 5 preguntas de selección múltiple con 4 opciones (A, B, C, D) que pongan a prueba la comprensión causal, las condiciones de frontera y los límites de ruptura explicados en ese nivel.
+     - Entre 3 y 5 preguntas de selección múltiple con 4 opciones (A, B, C, D) que pongan a prueba la comprensión causal y los conceptos explicados en ese nivel.
      - Indicación explícita de la **Respuesta Correcta** y la **Justificación Causal**.
 
 6. 🎓 EXAMEN FINAL DEL CUADERNO: GRAN RETO DE MAESTRÍA (AL FINAL DE LA GUÍA):
@@ -408,22 +408,21 @@ ESTRUCTURA MARKDOWN OBLIGATORIA
 # Nivel 1: [Título del Concepto Axiomático de ${topic}]
 
 ## 1. Axioma Central (Intuición Feynman)
-[Explicación en 1 o 2 párrafos descomponiendo el fundamento de ${topic} mediante una analogía visual cotidiana, clara y fácil de entender].
+[Explicación concisa y nítida en 1 párrafo corto descomponiendo el fundamento de ${topic} mediante una analogía visual cotidiana, clara y directa].
 
 ## 2. Desglose Atómico
 ### Subnivel 1.1: [Concepto Atómico Específico de ${topic}]
-- **Intuición Feynman:** [Micro-analogía cotidiana resumida y muy fácil de entender, estilo Feynman, sin jerga técnica].
-- **Idea Clave:** [Definición formal y precisa en términos rigurosos del concepto].
-- **Cadena Causal:** [Mecanismo causal paso a paso: causa -> efecto -> estado resultante].
-- **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** $[Fórmula KaTeX solo si aplica al tema. Si es historia/humanidades, omite esta línea]$
-- **Límite de Ruptura / Condición de Frontera:** [Caso extremo donde falla este modelo o principio].
+- **Intuición Feynman:** [Micro-analogía cotidiana ultra-simple, directa y sin jerga, estilo Richard Feynman puro en 1-2 frases].
+- **Idea Clave:** [Definición formal precisa y concisa en 1 sola frase contundente].
+- **Cadena Causal:** [Mecanismo causal: causa -> efecto -> estado en 1-2 frases].
+- **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** $[Fórmula KaTeX solo si aplica; si es cualitativo, omitir esta línea]$
+- **Límite de Ruptura / Condición de Frontera:** [SOLO SI ES SUMAMENTE NECESARIO; si no, omitir]
 
 ### Subnivel 1.2: [Concepto Atómico Específico de ${topic}]
-- **Intuición Feynman:** [Micro-analogía cotidiana resumida y fácil de entender].
-- **Idea Clave:** [Definición formal y precisa].
-- **Cadena Causal:** [Mecanismo causal paso a paso].
-- **Límite de Ruptura / Condición de Frontera:** [Caso extremo donde falla este modelo].
-... (5 a 7 subniveles: de 1.1 hasta 1.5, 1.6 o 1.7)
+- **Intuición Feynman:** [Micro-analogía cotidiana ultra-simple].
+- **Idea Clave:** [Definición formal precisa en 1 frase].
+- **Cadena Causal:** [Mecanismo causal directo].
+... (Entre 6 y 10 subniveles: de 1.1 hasta 1.6 ... 1.10 según decida la IA)
 
 ## 3. Panel Interactivo (React + TypeScript)
 \`\`\`tsx
@@ -455,9 +454,9 @@ export function App() {
 - C) [Opción C]
 - D) [Opción D]
 - **Respuesta Correcta:** B
-- **Justificación Causal:** [Explicación detallada de por qué es la correcta según los primeros principios de este nivel].
+- **Justificación Causal:** [Explicación de por qué es la correcta según los primeros principios de este nivel].
 
-### Pregunta 1.2: [Segunda pregunta sobre límites de ruptura o variables del nivel]
+### Pregunta 1.2: [Segunda pregunta sobre dinámicas del nivel]
 - A) [Opción A]
 - B) [Opción B]
 - C) [Opción C]
@@ -475,7 +474,7 @@ export function App() {
 
 ---
 
-(REPETIR ESTA ESTRUCTURA EXACTA PARA TODOS LOS ${levelsCount} NIVELES, CON CÓDIGO REACT HIPER-VISUAL DE +400 A +500 LÍNEAS EN CADA UNO DE ELLOS)
+(REPETIR ESTA ESTRUCTURA EXACTA PARA TODOS LOS ${levelsCount} NIVELES, CON ENTRE 6 Y 10 SUBNIVELES ATÓMICOS Y CÓDIGO REACT HIPER-VISUAL DE +400 A +500 LÍNEAS EN CADA UNO DE ELLOS)
 
 ---
 
@@ -551,12 +550,14 @@ export function App() {
 1. FIDELIDAD TOTAL AL DOMINIO "${subjectProfile.name}":
    - ${subjectProfile.terminologyRule}
    - ${subjectProfile.mathRule}
-2. ORDEN ESTRICTO EN CADA SUBNIVEL:
-   1º) Intuición Feynman (metáfora clara, cotidiana y fácil de entender).
-   2º) Idea Clave (en términos formales y precisos).
-   3º) Cadena Causal (mecanismo causal de causa-efecto).
+2. GRANULARIDAD AXIOMÁTICA Y ORDEN ESTRICTO EN CADA SUBNIVEL (ENTRE 6 Y 10 SUBNIVELES POR NIVEL):
+   - Cada nivel debe contener ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a Subnivel X.6 ... X.10). La IA decide la cantidad exacta en ese intervalo.
+   - Todo debe ser sumamente atómico, conciso y directo al grano, sin perder información.
+   1º) Intuición Feynman (micro-analogía cotidiana ultra-simple y amigable, estilo Richard Feynman puro, fácil de entender en 1-2 frases).
+   2º) Idea Clave (definición formal, precisa y atómica en 1 sola frase sin relleno).
+   3º) Cadena Causal (mecanismo causal directo Causa -> Efecto en 1-2 frases).
    4º) (FORMALISMO MATEMÁTICO) o (FORMALISMO MATEMÁTICO EUREKA) (SOLO SI APLICA; si no aplica, omitir).
-   5º) Límite de Ruptura / Condición de Frontera.
+   5º) Límite de Ruptura / Condición de Frontera (🚨 ESTRICTAMENTE OPCIONAL: solo si es SUMAMENTE NECESARIO; si no, omitir).
 3. 🚨 CÓDIGO EN REACT Y TYPESCRIPT: MÍNIMO +400 A +500 LÍNEAS REALES EN CADA UNO DE LOS ${levelsCount} NIVELES:
    - Prohibido resumir o truncar el código en los niveles posteriores al Nivel 1.
    - CADA NIVEL DEBE TENER SU PROPIO BLOQUE REACT+TS (\`export function App()\`) DE MÁS DE 400-500 LÍNEAS COMPLETAS.
@@ -596,13 +597,464 @@ ${userPrompt}
 - TEMA EXCLUSIVO: "${form.topic.trim()}" (Materia: ${subjectProfile.name} • Nivel actual: ${form.currentLevel}/5).
 - TODO DEBE ESTAR DENTRO DE UN SOLO RECUADRO O ARCHIVO MARKDOWN CONTINUO (.md).
 - PROHIBIDO TEXTO CONVERSACIONAL (ni saludos ni despedidas).
-- ORDEN POR SUBNIVEL: (1) Intuición Feynman -> (2) Idea Clave formal -> (3) Cadena Causal -> (4) Formalismo Matemático (si aplica) -> (5) Límite de Ruptura.
+- CADA NIVEL CONTIENE ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a Subnivel X.6 ... X.10).
+- ORDEN POR SUBNIVEL: (1) Intuición Feynman ultra-simple (1-2 frases) -> (2) Idea Clave formal precisa (1 frase) -> (3) Cadena Causal directa (1-2 frases) -> (4) Formalismo Matemático (solo si aplica) -> (5) Límite de Ruptura (SOLO si es sumamente necesario).
 - FORMALISMO MATEMÁTICO: Omitir si la materia es de humanidades/historia/derecho/letras. Si es fórmula inventada pedagógica usar "(FORMALISMO MATEMÁTICO EUREKA)", si es real usar "(FORMALISMO MATEMÁTICO)".
+- LÍMITE DE RUPTURA: Omitir si no es sumamente necesario para el concepto.
 - 🚨 REITERACIÓN CRÍTICA: CADA NIVEL (1 al ${levelsCount}) DEBE CONTENER SU PROPIO COMPONENTE EN REACT 18 + TSX (\`export function App()\`) CON MÁS DE 400 A 500 LÍNEAS DE CÓDIGO REAL Y COMPLETO.
 - 🎨 DISEÑO VISUAL Y LÚDICO: Cero botones aburridos. Canvas 2D/SVG animados, partículas dinámicas, osciloscopios, barra de estabilidad reactiva, inyección de perturbaciones y efectos sonoros con Web Audio API.
 - 📝 CADA NIVEL DEBE INCLUIR SU EXAMEN FORMATIVO (## 5. Examen de Nivel con 3 a 5 preguntas de selección múltiple explicadas).
 - 🎓 AL FINAL, INCLUYE EL EXAMEN FINAL DEL CUADERNO CON 10 PREGUNTAS Y EL MEGA-SIMULADOR EN REACT+TS DE MÁS DE 1000 LÍNEAS REALES (Suite gamificada con arena gráfica interactiva, retos de estrés y certificado).
 - COMIENZA DIRECTAMENTE CON: "# Nivel 1:"`;
+  }
+
+  /**
+   * Genera un simulador interactivo completo en React 18 + TypeScript (TSX) con Canvas 2D,
+   * partículas reactivas, sliders de control, HUD de telemetría y efectos de audio (+400 líneas).
+   */
+  public generateLevelInteractiveComponent(lvl: number, title: string, topic?: string): string {
+    const safeTopic = (topic || 'Primeros Principios').toUpperCase();
+    const safeTitle = (title || `Nivel ${lvl}`).toUpperCase();
+
+    return `import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+
+// ============================================================================
+// SIMULADOR HIPER-VISUAL E INTERACTIVO DE PRIMEROS PRINCIPIOS • NIVEL ${lvl}
+// TEMA: ${safeTopic} | PASO: ${safeTitle}
+// TECNOLOGÍA: REACT 18 + TYPESCRIPT (TSX) + CANVAS 2D + TAILWIND CSS + AUDIO
+// ============================================================================
+
+export interface SystemParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  color: string;
+  energy: number;
+  pulsePhase: number;
+}
+
+export interface Shockwave {
+  x: number;
+  y: number;
+  radius: number;
+  maxRadius: number;
+  opacity: number;
+  color: string;
+}
+
+export interface SystemTelemetry {
+  cycles: number;
+  entropy: number;
+  stabilityScore: number;
+  meanEnergy: number;
+  causalFlow: number;
+}
+
+export function App() {
+  // 1. Estados Reactivos del Simulador
+  const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [intensity, setIntensity] = useState<number>(${35 + (lvl % 5) * 8});
+  const [damping, setDamping] = useState<number>(75);
+  const [couplingFactor, setCouplingFactor] = useState<number>(65);
+  const [visualMode, setVisualMode] = useState<'particles' | 'waves' | 'energy'>('particles');
+  const [activeTab, setActiveTab] = useState<'arena' | 'telemetry' | 'challenge'>('arena');
+  
+  // Gamificación y Retos de Calibración
+  const [challengeProgress, setChallengeProgress] = useState<number>(0);
+  const [challengeCompleted, setChallengeCompleted] = useState<boolean>(false);
+  const [score, setScore] = useState<number>(100);
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const particlesRef = useRef<SystemParticle[]>([]);
+  const shockwavesRef = useRef<Shockwave[]>([]);
+  const mouseRef = useRef<{ x: number; y: number; isDown: boolean }>({ x: -1000, y: -1000, isDown: false });
+
+  const [telemetry, setTelemetry] = useState<SystemTelemetry>({
+    cycles: 0,
+    entropy: 0.18,
+    stabilityScore: 92,
+    meanEnergy: 74.5,
+    causalFlow: 1.24
+  });
+
+  // 2. Audio Sintetizado (Web Audio API)
+  const playTone = useCallback((freq: number, type: OscillatorType = 'sine', duration: number = 0.15) => {
+    if (typeof window !== 'undefined' && (window as any).playTone) {
+      (window as any).playTone(freq, type, duration, 0.08);
+    }
+  }, []);
+
+  // 3. Inicialización del Enjambre de Partículas
+  useEffect(() => {
+    const initial: SystemParticle[] = [];
+    const colors = ['#38bdf8', '#818cf8', '#a855f7', '#34d399', '#fbbf24', '#f43f5e'];
+    for (let i = 0; i < 40; i++) {
+      initial.push({
+        x: Math.random() * 500 + 50,
+        y: Math.random() * 260 + 30,
+        vx: (Math.random() - 0.5) * 2.4,
+        vy: (Math.random() - 0.5) * 2.4,
+        radius: Math.random() * 4 + 3,
+        color: colors[i % colors.length],
+        energy: Math.random() * 40 + 60,
+        pulsePhase: Math.random() * Math.PI * 2
+      });
+    }
+    particlesRef.current = initial;
+  }, []);
+
+  // 4. Bucle Gráfico Canvas (requestAnimationFrame)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let cycleCounter = 0;
+
+    const render = () => {
+      const w = (canvas.width = canvas.parentElement?.clientWidth || 650);
+      const h = (canvas.height = 320);
+
+      ctx.fillStyle = 'rgba(8, 12, 28, 0.32)';
+      ctx.fillRect(0, 0, w, h);
+
+      if (isRunning) {
+        cycleCounter++;
+
+        // Actualizar y dibujar ondas de choque
+        shockwavesRef.current = shockwavesRef.current.filter((sw) => {
+          sw.radius += 4.5;
+          sw.opacity -= 0.024;
+
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = \`\${sw.color}\${Math.floor(sw.opacity * 255).toString(16).padStart(2, '0')}\`;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          return sw.opacity > 0;
+        });
+
+        // Actualizar partículas
+        const particles = particlesRef.current;
+        const speedMultiplier = (intensity / 40) * (couplingFactor / 50);
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx * speedMultiplier;
+          p.y += p.vy * speedMultiplier;
+          p.pulsePhase += 0.05 * (intensity / 30);
+
+          // Rebotes con amortiguamiento
+          if (p.x < p.radius) { p.x = p.radius; p.vx *= -1; }
+          if (p.x > w - p.radius) { p.x = w - p.radius; p.vx *= -1; }
+          if (p.y < p.radius) { p.y = p.radius; p.vy *= -1; }
+          if (p.y > h - p.radius) { p.y = h - p.radius; p.vy *= -1; }
+
+          // Repulsión con el cursor
+          const dx = p.x - mouseRef.current.x;
+          const dy = p.y - mouseRef.current.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 110 && dist > 0) {
+            const force = (110 - dist) / 110;
+            p.x += (dx / dist) * force * 4.5;
+            p.y += (dy / dist) * force * 4.5;
+          }
+
+          // Conexiones de red entre partículas
+          for (let j = i + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const pDx = p.x - p2.x;
+            const pDy = p.y - p2.y;
+            const pDist = Math.sqrt(pDx * pDx + pDy * pDy);
+
+            if (pDist < 85) {
+              const alpha = (1 - pDist / 85) * 0.45 * (couplingFactor / 60);
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.strokeStyle = \`rgba(56, 189, 248, \${alpha})\`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+
+          // Dibujar partícula con pulso
+          const currentRadius = p.radius + Math.sin(p.pulsePhase) * 1.5;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, Math.max(1.5, currentRadius), 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = p.color;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        // Telemetría en tiempo real
+        if (cycleCounter % 15 === 0) {
+          const currentEntropy = Math.max(0.05, Math.min(0.95, (intensity / 100) * 0.7 + (1 - damping / 100) * 0.3));
+          const currentStability = Math.round(Math.max(10, Math.min(100, 100 - currentEntropy * 65 + (damping / 100) * 15)));
+          setTelemetry({
+            cycles: cycleCounter,
+            entropy: parseFloat(currentEntropy.toFixed(2)),
+            stabilityScore: currentStability,
+            meanEnergy: parseFloat((intensity * 1.1 + couplingFactor * 0.4).toFixed(1)),
+            causalFlow: parseFloat(((intensity / 35) * (damping / 70)).toFixed(2))
+          });
+
+          // Verificar reto
+          if (!challengeCompleted && currentStability >= 85 && intensity >= 60) {
+            setChallengeProgress((prev) => {
+              const next = prev + 10;
+              if (next >= 100) {
+                setChallengeCompleted(true);
+                playTone(880, 'sine', 0.4);
+                return 100;
+              }
+              return next;
+            });
+          }
+        }
+      }
+
+      animId = requestAnimationFrame(render);
+    };
+
+    render();
+    return () => cancelAnimationFrame(animId);
+  }, [isRunning, intensity, damping, couplingFactor, visualMode, challengeCompleted, playTone]);
+
+  // Inyección de Perturbación
+  const triggerPerturbation = () => {
+    playTone(320, 'sawtooth', 0.25);
+    const canvas = canvasRef.current;
+    const w = canvas?.parentElement?.clientWidth || 600;
+    const h = 320;
+
+    shockwavesRef.current.push({
+      x: w / 2,
+      y: h / 2,
+      radius: 10,
+      maxRadius: 220,
+      opacity: 0.9,
+      color: '#f43f5e'
+    });
+
+    particlesRef.current.forEach((p) => {
+      p.vx += (Math.random() - 0.5) * 6;
+      p.vy += (Math.random() - 0.5) * 6;
+    });
+  };
+
+  const resetEquilibrium = () => {
+    playTone(520, 'sine', 0.15);
+    setIntensity(45);
+    setDamping(80);
+    setCouplingFactor(65);
+    setChallengeProgress(0);
+    setChallengeCompleted(false);
+  };
+
+  return (
+    <div className="p-5 bg-slate-950 text-slate-100 rounded-2xl border border-slate-800 shadow-2xl font-sans min-h-[460px] flex flex-col gap-4">
+      {/* Header del Simulador */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+        <div className="flex items-center gap-3">
+          <span className="flex h-3 w-3 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
+          </span>
+          <div>
+            <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+              <span>⚡ Simulador Feynman • Nivel ${lvl}</span>
+              <span className="text-xs font-normal text-sky-400 bg-sky-950/80 border border-sky-500/30 px-2 py-0.5 rounded-full">
+                Canvas 2D Activo
+              </span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">${safeTitle}</p>
+          </div>
+        </div>
+
+        {/* Pestañas de Vista */}
+        <div className="flex bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+          <button
+            onClick={() => { playTone(440); setActiveTab('arena'); }}
+            className={\`px-3 py-1 rounded-lg font-semibold transition-all \${activeTab === 'arena' ? 'bg-sky-500 text-white shadow' : 'text-slate-400 hover:text-slate-200'}\`}
+          >
+            Arena Gráfica
+          </button>
+          <button
+            onClick={() => { playTone(440); setActiveTab('telemetry'); }}
+            className={\`px-3 py-1 rounded-lg font-semibold transition-all \${activeTab === 'telemetry' ? 'bg-sky-500 text-white shadow' : 'text-slate-400 hover:text-slate-200'}\`}
+          >
+            Telemetría HUD
+          </button>
+          <button
+            onClick={() => { playTone(440); setActiveTab('challenge'); }}
+            className={\`px-3 py-1 rounded-lg font-semibold transition-all \${activeTab === 'challenge' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-slate-200'}\`}
+          >
+            Reto de Calibración
+          </button>
+        </div>
+      </div>
+
+      {/* Contenido Principal */}
+      {activeTab === 'arena' && (
+        <div className="flex flex-col gap-4">
+          {/* Canvas Interactivo */}
+          <div
+            className="relative w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900/70 shadow-inner cursor-crosshair min-h-[300px]"
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top, isDown: true };
+            }}
+            onMouseLeave={() => { mouseRef.current = { x: -1000, y: -1000, isDown: false }; }}
+          >
+            <canvas ref={canvasRef} className="w-full h-[320px] block" />
+            
+            {/* Overlay de Telemetría HUD Rápido */}
+            <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-3 text-xs">
+              <span className="text-slate-400">Estabilidad:</span>
+              <span className={\`font-bold \${telemetry.stabilityScore >= 80 ? 'text-emerald-400' : telemetry.stabilityScore >= 50 ? 'text-amber-400' : 'text-rose-400'}\`}>
+                {telemetry.stabilityScore}%
+              </span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-400">Entropía:</span>
+              <span className="font-mono text-sky-400">{telemetry.entropy}</span>
+            </div>
+
+            {challengeCompleted && (
+              <div className="absolute top-3 right-3 bg-emerald-950/90 border border-emerald-500/50 px-3 py-1.5 rounded-lg text-emerald-300 font-bold text-xs flex items-center gap-1.5 animate-bounce">
+                <span>🏆</span> Reto Superado (+100 pts)
+              </div>
+            )}
+          </div>
+
+          {/* Controles de Sliders */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 text-xs">
+            <div>
+              <div className="flex justify-between mb-1.5 text-slate-300">
+                <span className="font-semibold">Intensidad / Fuerza Causal:</span>
+                <span className="font-mono text-sky-400">{intensity}%</span>
+              </div>
+              <input
+                type="range"
+                min="5"
+                max="100"
+                value={intensity}
+                onChange={(e) => setIntensity(Number(e.target.value))}
+                className="w-full accent-sky-400 cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-1.5 text-slate-300">
+                <span className="font-semibold">Amortiguación / Resistencia:</span>
+                <span className="font-mono text-indigo-400">{damping}%</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={damping}
+                onChange={(e) => setDamping(Number(e.target.value))}
+                className="w-full accent-indigo-400 cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-1.5 text-slate-300">
+                <span className="font-semibold">Factor de Acoplamiento:</span>
+                <span className="font-mono text-purple-400">{couplingFactor}%</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={couplingFactor}
+                onChange={(e) => setCouplingFactor(Number(e.target.value))}
+                className="w-full accent-purple-400 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Botones de Acción */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { playTone(isRunning ? 380 : 620); setIsRunning(!isRunning); }}
+                className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-all"
+              >
+                {isRunning ? '⏸ Pausar Simulación' : '▶️ Reanudar Simulación'}
+              </button>
+              <button
+                onClick={triggerPerturbation}
+                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold text-xs rounded-xl transition-all"
+              >
+                💥 Inyectar Perturbación
+              </button>
+            </div>
+
+            <button
+              onClick={resetEquilibrium}
+              className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-semibold text-xs rounded-xl transition-all"
+            >
+              🔄 Reequilibrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Telemetría */}
+      {activeTab === 'telemetry' && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
+            <div className="text-slate-400 mb-1 font-semibold">Ciclos Ejecutados</div>
+            <div className="text-lg font-bold text-sky-400 font-mono">{telemetry.cycles}</div>
+          </div>
+          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
+            <div className="text-slate-400 mb-1 font-semibold">Índice de Estabilidad</div>
+            <div className="text-lg font-bold text-emerald-400 font-mono">{telemetry.stabilityScore}%</div>
+          </div>
+          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
+            <div className="text-slate-400 mb-1 font-semibold">Entropía Estimada</div>
+            <div className="text-lg font-bold text-amber-400 font-mono">{telemetry.entropy}</div>
+          </div>
+          <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80">
+            <div className="text-slate-400 mb-1 font-semibold">Flujo Causal Neto</div>
+            <div className="text-lg font-bold text-purple-400 font-mono">{telemetry.causalFlow}x</div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Reto de Calibración */}
+      {activeTab === 'challenge' && (
+        <div className="bg-slate-900/80 p-5 rounded-xl border border-amber-500/30 flex flex-col gap-3 text-xs">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-bold text-amber-400">🎯 Reto de Calibración: Estabilidad Dinámica</h4>
+            <span className="font-bold text-white bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 rounded-full">
+              Puntos: {score}
+            </span>
+          </div>
+          <p className="text-slate-300">
+            Ajusta los sliders para mantener una <strong>Intensidad superior al 60%</strong> con una <strong>Estabilidad superior al 85%</strong> durante 10 segundos continuos.
+          </p>
+          <div className="w-full bg-slate-950 rounded-full h-3 overflow-hidden border border-slate-800">
+            <div
+              className="bg-amber-400 h-full transition-all duration-300"
+              style={{ width: \`\${challengeProgress}%\` }}
+            />
+          </div>
+          <div className="text-right text-slate-400 font-mono">Progreso: {challengeProgress}%</div>
+        </div>
+      )}
+    </div>
+  );
+}`;
   }
 
   /**
@@ -631,7 +1083,7 @@ ${userPrompt}
 
     // 3. Normalizar Encabezados de Nivel (solo al principio de línea)
     text = text.replace(
-      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:Nivel|Paso|Level|Fase|Etapa)\\s*\\[?(\\d+)\\]?[:\\s.-]*([^\n*]+)?(?:\n|\\*{2}|__|$)`, 'gim'),
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:Nivel|Paso|Level|Fase|Etapa|M[oó]dulo|Unidad|Tema|Cap[ií]tulo)\\s*\\[?(\\d+)\\]?[:\\s.-]*([^\\n*]+)?(?:\\n|\\*{2}|__|$)`, 'gim'),
       (_match, num, rawTitle) => {
         const titleClean = (rawTitle || '').replace(/^[*_#:\s-]+|[*_#:\s-]+$/g, '').trim();
         return `\n\n# Nivel ${num}: ${titleClean || `Paso ${num}`}\n\n`;
@@ -640,39 +1092,39 @@ ${userPrompt}
 
     // Normalizar Encabezado del Examen Final del Cuaderno
     text = text.replace(
-      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:Examen\\s*Final(?:\\s*del\\s*Cuaderno)?|Gran\\s*Reto(?:\\s*de\\s*Maestr[ií]a)?|Evaluaci[oó]n\\s*Final)[^\n*]*[:*_\s]*`, 'gim'),
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:Examen\\s*Final(?:\\s*del\\s*Cuaderno)?|Gran\\s*Reto(?:\\s*de\\s*Maestr[ií]a)?|Evaluaci[oó]n\\s*Final)[^\\n*]*[:*_\\s]*`, 'gim'),
       '\n\n# Examen Final del Cuaderno: Gran Reto de Maestría Holística\n\n'
     );
 
     // 4. Normalizar Secciones Principales
     text = text.replace(
-      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:1\\.\\s*)?(?:Axioma\\s*Central|Intuici[oó]n\\s*Feynman|Fundamento\\s*Axiom[aá]tico)[^\n*]*[:*_\s]*`, 'gim'),
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:1\\.\\s*)?(?:Axioma\\s*Central|Intuici[oó]n\\s*Feynman|Fundamento\\s*Axiom[aá]tico)[^\\n*]*[:*_\\s]*`, 'gim'),
       '\n\n## 1. Axioma Central (Intuición Feynman)\n\n'
     );
 
     text = text.replace(
-      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:2\\.\\s*)?(?:Desglose\\s*At[oó]mico|Desglose)[^\n*]*[:*_\s]*`, 'gim'),
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:2\\.\\s*)?(?:Desglose\\s*At[oó]mico|Desglose)[^\\n*]*[:*_\\s]*`, 'gim'),
       '\n\n## 2. Desglose Atómico\n\n'
     );
 
     text = text.replace(
-      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:3\\.\\s*)?(?:Panel\\s*Interactivo|Simulador(?:\\s*Gr[aá]fico)?|Videojuego|C[oó]digo(?:\\s*(?:TypeScript|React|TSX))?)[^\n*]*[:*_\s]*`, 'gim'),
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:3\\.\\s*)?(?:Panel\\s*Interactivo|Simulador(?:\\s*Gr[aá]fico)?|Videojuego|C[oó]digo(?:\\s*(?:TypeScript|React|TSX))?)[^\\n*]*[:*_\\s]*`, 'gim'),
       '\n\n## 3. Panel Interactivo (React + TypeScript)\n\n'
     );
 
     text = text.replace(
-      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:4\\.\\s*)?(?:Nexo\\s*Causal|Nexo)[^\n*]*[:*_\s]*`, 'gim'),
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:4\\.\\s*)?(?:Nexo\\s*Causal|Nexo)[^\\n*]*[:*_\\s]*`, 'gim'),
       '\n\n## 4. Nexo Causal\n\n'
     );
 
     text = text.replace(
-      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:5\\.\\s*)?(?:Examen\\s*de\\s*Nivel|Evaluaci[oó]n\\s*(?:de\\s*Nivel|Formativa)|Autoevaluaci[oó]n|Quiz\\s*de\\s*Nivel)[^\n*]*[:*_\s]*`, 'gim'),
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:5\\.\\s*)?(?:Examen\\s*de\\s*Nivel|Evaluaci[oó]n\\s*(?:de\\s*Nivel|Formativa)|Autoevaluaci[oó]n|Quiz\\s*de\\s*Nivel)[^\\n*]*[:*_\\s]*`, 'gim'),
       '\n\n## 5. Examen de Nivel (Evaluación Formativa)\n\n'
     );
 
     // 5. Normalizar Subniveles (### Subnivel X.Y: ...)
     text = text.replace(
-      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?Subnivel\\s*\\[?(\\d+)(?:[.\\s_-]+(\\d+))?\\]?[:\\s.-]*([^\n*]+)?`, 'gim'),
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:Subnivel|Paso|Concepto|Subtema|Secci[oó]n)\\s*\\[?(\\d+)(?:[.\\s_-]+(\\d+))?\\]?[:\\s.-]*([^\\n*]+)?`, 'gim'),
       (_match, p1, p2, rawConcept) => {
         const subId = p2 !== undefined ? `${p1}.${p2}` : p1;
         const concept = (rawConcept || '').replace(/^[*_#:\s-]+|[*_#:\s-]+$/g, '').trim();
@@ -681,15 +1133,15 @@ ${userPrompt}
     );
 
     // 6. Normalizar etiquetas de campos atómicos dentro de subniveles
-    text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Intuici[oó]n(?:\\s*Feynman)?|Analog[ií]a)[:\\s*_\\s]+`, 'gim'), '\n- **Intuición Feynman:** ');
-    text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?Idea\\s*Clave(?:\\s*Formal)?[:\\s*_\\s]+`, 'gim'), '\n- **Idea Clave:** ');
-    text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Cadena\\s*Causal|Mecanismo(?:\\s*Causal)?|Causalidad)[:\\s*_\\s]+`, 'gim'), '\n- **Cadena Causal:** ');
+    text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Intuici[oó]n(?:\\s*Feynman)?|Analog[ií]a|Met[aá]fora)[:\\s*_\\s]+`, 'gim'), '\n- **Intuición Feynman:** ');
+    text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Idea\\s*Clave(?:\\s*Formal)?|Concepto\\s*Clave|Principio\\s*Formal|Definici[oó]n)[:\\s*_\\s]+`, 'gim'), '\n- **Idea Clave:** ');
+    text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Cadena\\s*Causal|Mecanismo(?:\\s*Causal)?|Causalidad|Explicaci[oó]n\\s*Causal)[:\\s*_\\s]+`, 'gim'), '\n- **Cadena Causal:** ');
     
     // Formalismos matemáticos (Eureka vs Estándar)
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:\\(?FORMALISMO\\s*MATEM[AÁ]TICO\\s*EUREKA\\)?|Formalismo\\s*Eureka|Ecuaci[oó]n\\s*Eureka)[:\\s*_\\s]+`, 'gim'), '\n- **(FORMALISMO MATEMÁTICO EUREKA):** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:\\(?FORMALISMO\\s*MATEM[AÁ]TICO\\)?|Ecuaci[oó]n(?:\\s*[\\/\\-]\\s*Formalismo)?|Formalismo|F[oó]rmula)(?:\\s*[\\/\\-]\\s*Formalismo)?[:\\s*_\\s]+`, 'gim'), '\n- **(FORMALISMO MATEMÁTICO):** ');
     
-    text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Condici[oó]n\\s*de\\s*Frontera(?:\\s*[\\/\\-]\\s*L[ií]mite(?:\\s*de\\s*Ruptura)?)?|L[ií]mite(?:\\s*de\\s*Ruptura)?|Caso\\s*L[ií]mite)[:\\s*_\\s]+`, 'gim'), '\n- **Límite de Ruptura:** ');
+    text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Condici[oó]n\\s*de\\s*Frontera(?:\\s*[\\/\\-]\\s*L[ií]mite(?:\\s*de\\s*Ruptura)?)?|L[ií]mite(?:\\s*de\\s*Ruptura)?|Caso\\s*L[ií]mite|Frontera)[:\\s*_\\s]+`, 'gim'), '\n- **Límite de Ruptura:** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?Recurso\\s*Visual[:\\s*_\\s]+`, 'gim'), '\n- **Recurso Visual:** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?Problema\\s*resuelto[:\\s*_\\s]+`, 'gim'), '\n- **Problema resuelto:** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?Siguiente\\s*obst[aá]culo[:\\s*_\\s]+`, 'gim'), '\n- **Siguiente obstáculo:** ');
@@ -842,7 +1294,7 @@ ${userPrompt}
     if (!cleanMd) return [];
 
     // Encontrar todas las cabeceras principales de nivel (# Nivel 1: ...)
-    const levelHeaderRegex = /(?:^|\n)#+\s*(?:Nivel|Paso|Level|Fase|Etapa)\s*\[?(\\d+)\]?[:\\s.-]+([^\\n]+)/gi;
+    const levelHeaderRegex = /(?:^|\n)#+\s*(?:Nivel|Paso|Level|Fase|Etapa|M[oó]dulo|Unidad|Tema|Cap[ií]tulo)\s*\[?(\d+)\]?[:\s.-]*([^\n]*)/gi;
     const matches: Array<{ index: number; levelNumber: number; title: string; fullMatch: string }> = [];
     let m: RegExpExecArray | null;
 
@@ -852,13 +1304,60 @@ ${userPrompt}
       matches.push({
         index: m.index,
         levelNumber: num,
-        title,
+        title: title || `Nivel ${num}`,
         fullMatch: m[0]
       });
     }
 
+    // Estrategia de respaldo 1: Si no encontró "Nivel X", buscar encabezados numerados (# 1. ..., ## 2. ...)
     if (matches.length === 0) {
-      return [];
+      const numberedHeaderRegex = /(?:^|\n)#+\s*(\d+)[:.\s-]+([^\n]+)/gi;
+      let nm: RegExpExecArray | null;
+      while ((nm = numberedHeaderRegex.exec(cleanMd)) !== null) {
+        const num = parseInt(nm[1], 10);
+        const title = (nm[2] || `Nivel ${num}`).replace(/^[[\]*_#:\s-]+|[[\]*_#:\s-]+$/g, '').trim();
+        if (title && !title.toLowerCase().includes('examen final')) {
+          matches.push({
+            index: nm.index,
+            levelNumber: num,
+            title,
+            fullMatch: nm[0]
+          });
+        }
+      }
+    }
+
+    // Estrategia de respaldo 2: Buscar cualquier encabezado principal (# ... o ## ...)
+    if (matches.length === 0) {
+      const genericHeaderRegex = /(?:^|\n)(#{1,2})\s+([^#\n]+)/g;
+      let gm: RegExpExecArray | null;
+      let counter = 1;
+      while ((gm = genericHeaderRegex.exec(cleanMd)) !== null) {
+        const rawTitle = (gm[2] || '').trim().replace(/^[[\]*_#:\s-]+|[[\]*_#:\s-]+$/g, '');
+        if (
+          rawTitle &&
+          !rawTitle.toLowerCase().includes('examen final') &&
+          !rawTitle.toLowerCase().includes('diagnóstico') &&
+          !rawTitle.toLowerCase().includes('datos del cuestionario')
+        ) {
+          matches.push({
+            index: gm.index,
+            levelNumber: counter++,
+            title: rawTitle,
+            fullMatch: gm[0]
+          });
+        }
+      }
+    }
+
+    // Estrategia de respaldo 3: Documento plano sin encabezados, crear Nivel 1 contenedor
+    if (matches.length === 0) {
+      matches.push({
+        index: 0,
+        levelNumber: 1,
+        title: 'Nivel 1: Fundamentos y Primeros Principios',
+        fullMatch: ''
+      });
     }
 
     // Extraer exactamente cada bloque delimitado entre match[i] y match[i+1] o el Examen Final
@@ -895,7 +1394,7 @@ ${userPrompt}
 
       // 2. Subniveles
       const sublevels: FeynmanAtomicSublevel[] = [];
-      const subHeaderRegex = /(?:^|\n)###+\s*Subnivel\s*\[?(\d+(?:\.\d+)?)\]?[:\s.-]+([^\n]+)\n([\s\S]*?)(?=(?:^|\n)###+|(?:^|\n)##+|$)/gi;
+      const subHeaderRegex = /(?:^|\n)###+\s*(?:Subnivel|Paso|Concepto|Subtema|Secci[oó]n)?\s*\[?(\d+(?:\.\d+)?)\]?[:\s.-]*([^\n]*)\n([\s\S]*?)(?=(?:^|\n)###+|(?:^|\n)##+|$)/gi;
       let sMatch: RegExpExecArray | null;
 
       while ((sMatch = subHeaderRegex.exec(blockText)) !== null) {
@@ -905,17 +1404,17 @@ ${userPrompt}
 
         // 1. Intuición Feynman
         let intuition: string | undefined;
-        const intM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Intuici[oó]n(?:\\s*Feynman)?|Analog[ií]a)[:\s*_\s]+([^\n]+)/i);
+        const intM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Intuici[oó]n(?:\s*Feynman)?|Analog[ií]a|Met[aá]fora)[:\s*_\s]+([^\n]+)/i);
         if (intM) intuition = intM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
 
         // 2. Idea Clave
         let keyIdea = '';
-        const ideaM = subContent.match(/(?:-\s*)?(?:\*\*|__)?Idea\s*Clave(?:\\s*Formal)?[:\s*_\s]+([^\n]+)/i);
+        const ideaM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Idea\s*Clave(?:\s*Formal)?|Concepto\s*Clave|Principio\s*Formal|Definici[oó]n)[:\s*_\s]+([^\n]+)/i);
         if (ideaM) keyIdea = ideaM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
 
         // 3. Cadena Causal
         let mechanism = '';
-        const mechM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Cadena\s*Causal|Mecanismo(?:\s*Causal)?|Causalidad)[:\s*_\s]+([^\n]+(?:\n(?!-\s*(?:\*\*|__)?(?:Idea|Ecuaci|Condici|L[ií]mite|Intuici|Recurso|FORMALISMO))[^\n]+)*)/i);
+        const mechM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Cadena\s*Causal|Mecanismo(?:\s*Causal)?|Causalidad|Explicaci[oó]n\s*Causal)[:\s*_\s]+([^\n]+(?:\n(?!-\s*(?:\*\*|__)?(?:Idea|Ecuaci|Condici|L[ií]mite|Intuici|Recurso|FORMALISMO))[^\n]+)*)/i);
         if (mechM) mechanism = mechM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
 
         // 4. Formalismo Matemático (Eureka vs Estándar)
@@ -942,7 +1441,7 @@ ${userPrompt}
 
         // 5. Límite de Ruptura / Condición de Frontera
         let boundaryCondition: string | undefined;
-        const boundM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Condici[oó]n\s*de\s*Frontera(?:\\s*[\\/\\-]\\s*L[ií]mite(?:\\s*de\\s*Ruptura)?)?|L[ií]mite(?:\\s*de\\s*Ruptura)?|Caso\\s*L[ií]mite)[:\s*_\s]+([^\n]+)/i);
+        const boundM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Condici[oó]n\s*de\s*Frontera(?:\s*[\/\-]\s*L[ií]mite(?:\s*de\s*Ruptura)?)?|L[ií]mite(?:\s*de\s*Ruptura)?|Caso\s*L[ií]mite|Frontera)[:\s*_\s]+([^\n]+)/i);
         if (boundM) boundaryCondition = boundM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
 
         let visualResourceUrl: string | undefined;
@@ -962,6 +1461,16 @@ ${userPrompt}
         });
       }
 
+      if (sublevels.length === 0) {
+        sublevels.push({
+          sublevelNumber: `${levelNumber}.1`,
+          concept: title,
+          intuition: axiomIntuition,
+          keyIdea: `Dominio de los fundamentos y principios esenciales de ${title}.`,
+          mechanism: `Dinámica y descomposición causal de primeros principios en ${title}.`
+        });
+      }
+
       // 3. Panel Interactivo (React + TypeScript Code)
       let typescriptCode = '';
       const codeRegex = /```(?:[a-zA-Z0-9_-]+)?(?:\s*\n|\s+)([\s\S]*?)```/g;
@@ -977,24 +1486,8 @@ ${userPrompt}
         typescriptCode = foundCodes[0];
       }
 
-      if (!typescriptCode) {
-        typescriptCode = `import React, { useState } from 'react';
-
-export function App() {
-  const [active, setActive] = useState(false);
-  return (
-    <div className="p-6 bg-slate-900 text-white rounded-2xl min-h-screen">
-      <h2 className="text-xl font-bold text-sky-400">Nivel ${levelNumber}: ${title}</h2>
-      <p className="text-slate-300 mt-2">Simulador interactivo de primeros principios.</p>
-      <button 
-        onClick={() => setActive(!active)}
-        className="mt-4 px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-xl font-semibold transition-all shadow-lg"
-      >
-        {active ? '⚡ Simulación Activa' : '▶️ Iniciar Simulación'}
-      </button>
-    </div>
-  );
-}`;
+      if (!typescriptCode || typescriptCode.length < 150 || typescriptCode.includes('Simulador interactivo de primeros principios.')) {
+        typescriptCode = this.generateLevelInteractiveComponent(levelNumber, title, 'Primeros Principios');
       }
 
       // 4. Nexo Causal
