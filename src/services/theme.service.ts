@@ -1,3 +1,5 @@
+import { eurekaSupabase } from './supabase.service';
+
 export type BgThemeType = 'modern_black' | 'holo_cyber' | 'emerald_vision' | 'digital_blue' | 'sunset_magenta';
 
 export interface AppCustomizationTheme {
@@ -36,6 +38,7 @@ export class ThemeService {
       this.currentTheme = { ...DEFAULT_THEME };
     }
     this.applyTheme();
+    this.syncWithCloud();
   }
 
   public static getInstance(): ThemeService {
@@ -53,6 +56,22 @@ export class ThemeService {
     this.currentTheme = { ...this.currentTheme, ...partial };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.currentTheme));
     this.applyTheme();
+
+    eurekaSupabase.saveUserSettings({
+      theme: this.currentTheme.bgTheme,
+      settingsJson: { customizationTheme: this.currentTheme }
+    }).catch(() => {});
+  }
+
+  public async syncWithCloud(): Promise<void> {
+    try {
+      const userSettings = await eurekaSupabase.fetchUserSettings();
+      if (userSettings?.settingsJson?.customizationTheme) {
+        this.currentTheme = { ...DEFAULT_THEME, ...userSettings.settingsJson.customizationTheme };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.currentTheme));
+        this.applyTheme();
+      }
+    } catch {}
   }
 
   public applyTheme(): void {

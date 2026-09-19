@@ -36,6 +36,7 @@ export class KatexService {
    * Renderiza una expresión matemática en bloque o inline de forma segura.
    */
   public renderMath(expression: string, displayMode: boolean = false): string {
+    if (!expression || !expression.trim()) return '';
     const cleanExpr = this.sanitizeMath(expression.trim());
     try {
       return katex.renderToString(cleanExpr, {
@@ -46,7 +47,7 @@ export class KatexService {
         output: 'htmlAndMathml'
       });
     } catch {
-      return `<span class="katex-error">${expression}</span>`;
+      return `<span class="katex-error">${this.escapeHtml(expression)}</span>`;
     }
   }
 
@@ -94,41 +95,76 @@ export class KatexService {
 
   /**
    * Parsea un texto completo soportando:
-   * - Bloques matemáticos $$ ... $$ y \[ ... \]
+   * - Bloques matemáticos $$ ... $$, \[ ... \], ```math, ```latex, ```katex
+   * - Notación //math ... //, [math]...[/math], <math>...</math>
    * - Matemáticas inline $ ... $ y \( ... \)
    * - Notación química/nuclear \ce{...} con llaves anidadas
-   * - Auto-detección de fórmulas LaTeX crudas sin delimitadores
+   * - Auto-detección universal de fórmulas y símbolos LaTeX crudos sin delimitadores (\mathbb{N}, \mathbb{R}, \frac, etc.)
    * - Markdown completo: encabezados, listas, tablas, citas, código, negrita, cursiva, etc.
+   * - Cero colisiones con el formateador de Markdown (usa tokens Unicode puros sin guiones bajos ni asteriscos).
    */
   public parseAndRender(content: string): string {
     if (!content) return '';
 
     const placeholders: { id: string; html: string }[] = [];
     let pCount = 0;
+
+    // IMPORTANTE: NO usar guiones bajos (_) ni asteriscos (*) en el ID del placeholder
+    // para evitar que los regexes de Markdown bold/italic (__texto__ o **texto**) lo corrompan.
     const addPlaceholder = (html: string): string => {
-      // Usar identificador alfanumérico sin guiones bajos para que el markdown no lo modifique
-      const id = `EUREKAPH${pCount++}TOKEN`;
+      const id = `\uE000P${pCount++}K\uE001`;
       placeholders.push({ id, html });
       return id;
     };
 
     let text = content;
 
-    // 1. Bloques de código ```lang ... ```
+    // 0. Pre-sanitización: Limpieza de tokens residuales antiguos y formato de comentarios
+    text = text
+      .replace(/EUREKAPH_\d+/gi, '')
+      .replace(/EUREKAPH\d+TOKEN/gi, '')
+      .replace(/EUREKAMATH\d+/gi, '')
+      .replace(/^\/\/\s*([A-Za-zÁÉÍÓÚáéíóúñÑ0-9\s]+):?\s*\*{0,2}\s*$/gm, '**$1:**');
+
+    // 1. Bloques de código especiales: ```math, ```latex, ```katex, ```tex, ```formula
+    text = text.replace(/```(?:math|latex|katex|tex|formula)\n?([\s\S]*?)```/gi, (_, mathCode) => {
+      return addPlaceholder(
+        `<div class="katex-block-container">${this.renderMath(mathCode, true)}</div>`
+      );
+    });
+
+    // 2. Bloques de código estándar ```lang ... ```
     text = text.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-      const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const escaped = this.escapeHtml(code);
       return addPlaceholder(
         `<pre class="apple-code-block" data-lang="${lang || 'text'}"><code>${escaped}</code></pre>`
       );
     });
 
-    // 2. Código inline ` ... `
+    // 3. Código inline ` ... `
     text = text.replace(/`([^`\n]+)`/g, (_, code) => {
-      const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const escaped = this.escapeHtml(code);
       return addPlaceholder(`<code class="apple-code-inline">${escaped}</code>`);
     });
 
-    // 3. Bloques matemáticos KaTeX $$ ... $$ y \[ ... \]
+    // 4. Notaciones explícitas especiales: //math ... //, [math]...[/math], <math>...</math>
+    text = text.replace(/\/\/\s*math\s*\n?([\s\S]+?)\n?\/\//gi, (_, math) => {
+      return addPlaceholder(
+        `<div class="katex-block-container">${this.renderMath(math, true)}</div>`
+      );
+    });
+    text = text.replace(/\[math\]([\s\S]+?)\[\/math\]/gi, (_, math) => {
+      return addPlaceholder(
+        `<div class="katex-block-container">${this.renderMath(math, true)}</div>`
+      );
+    });
+    text = text.replace(/<math>([\s\S]+?)<\/math>/gi, (_, math) => {
+      return addPlaceholder(
+        `<div class="katex-block-container">${this.renderMath(math, true)}</div>`
+      );
+    });
+
+    // 5. Bloques matemáticos KaTeX estándar $$ ... $$ y \[ ... \]
     text = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) => {
       return addPlaceholder(
         `<div class="katex-block-container">${this.renderMath(math, true)}</div>`
@@ -140,14 +176,14 @@ export class KatexService {
       );
     });
 
-    // 4. Notación química / nuclear \ce{...} (soporta llaves anidadas como \ce{^{133}_{55}Cs})
+    // 6. Notación química / nuclear \ce{...} (soporta llaves anidadas como \ce{^{133}_{55}Cs})
     text = this.replaceBalancedCommands(text, '\\ce', (chem) => {
       return addPlaceholder(
         `<span class="katex-inline-container">${this.renderMath(`\\ce{${chem}}`, false)}</span>`
       );
     });
 
-    // 5. Matemáticas inline KaTeX $ ... $ y \( ... \)
+    // 7. Matemáticas inline KaTeX $ ... $ y \( ... \)
     text = text.replace(/\$([^\$\n]+?)\$/g, (_, math) => {
       return addPlaceholder(
         `<span class="katex-inline-container">${this.renderMath(math, false)}</span>`
@@ -159,36 +195,39 @@ export class KatexService {
       );
     });
 
-    // 6. Subíndices y Superíndices simplificados $_sub$ y $^sup$
+    // 8. Subíndices y Superíndices simplificados $_sub$ y $^sup$
     text = text.replace(/\$_([^\$\n]+?)\$/g, '<sub style="font-size:0.8em; vertical-align:sub;">$1</sub>');
     text = text.replace(/\$\^([^\$\n]+?)\$/g, '<sup style="font-size:0.8em; vertical-align:super;">$1</sup>');
 
-    // 7. Auto-detección universal de fórmulas y símbolos LaTeX crudos sin delimitadores $
-    // Paso 7a: Fórmulas que inician con comando LaTeX y encadenan operadores, argumentos y expresiones
-    const rawLatexRegex = /(?<![a-zA-Z0-9_\\])\\[a-zA-Z]+(?:\[[^\]]*\])?(?:\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})*(?:[_\^](?:\{[^{}]*\}|[a-zA-Z0-9]))*(?:[a-zA-Z0-9_^{}\(\)\+\-\*\/=·~<>|\\,]|\s*[\+\-\*=·<>~:]\s*|\.[0-9]+)*?(?=[,;:!?]|\s+[a-záéíóúñ]{2,}|\n|$)/g;
+    // 9. Auto-detección universal de fórmulas y símbolos LaTeX crudos sin delimitadores $
+    // Paso 9a: Fórmulas que inician con comando LaTeX (\mathbb{N} = \{...\} vs. \mathbb{R} = \{...\})
+    const rawLatexRegex = /(?<![a-zA-Z0-9_\\<\uE000\uE001])\\[a-zA-Z]+(?:\[[^\]]*\])?(?:\{[^{}\uE000\uE001]*(?:\{[^{}\uE000\uE001]*\}[^{}\uE000\uE001]*)*\})*(?:[_\^](?:\{[^{}\uE000\uE001]*\}|[a-zA-Z0-9]))*(?:[a-zA-Z0-9_^{}\(\)\+\-\*\/=·~<>|\\,:]|\s*[\+\-\*=·<>~:]\s*|\.[0-9]+|\s*\\quad\s*|\s*\\text\{[^{}\uE000\uE001]*\}\s*)*?(?=[,;:!?]|\s+[a-záéíóúñ]{3,}|\n|<|\uE000|$)/g;
 
     text = text.replace(rawLatexRegex, (match) => {
+      if (match.includes('\uE000') || match.includes('\uE001')) return match;
+
       // Separar puntuación al final (ej: punto, coma, punto y coma)
-      const trailingPunctuationMatch = match.match(/([.,;:!?]+)$/);
-      const trailingPunct = trailingPunctuationMatch ? trailingPunctuationMatch[1] : '';
+      const trailingPunctMatch = match.match(/([.,;:!?]+)$/);
+      const trailingPunct = trailingPunctMatch ? trailingPunctMatch[1] : '';
       const formulaOnly = match.slice(0, match.length - trailingPunct.length).trim();
 
-      if (!formulaOnly) return match;
+      if (!formulaOnly || formulaOnly.length < 2) return match;
 
       const rendered = this.renderMath(formulaOnly, false);
       if (!rendered || rendered.includes('katex-error')) return match;
       return addPlaceholder(`<span class="katex-inline-container">${rendered}</span>`) + trailingPunct;
     });
 
-    // Paso 7b: Detección de comandos y símbolos individuales independientes (\equiv, \approx, \alpha, \le, etc.)
-    const singleCmdRegex = /(?<![a-zA-Z0-9_\\])\\[a-zA-Z]+(?:\[[^\]]*\])?(?:\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})*(?:[_\^](?:\{[^{}]*\}|[a-zA-Z0-9]))*/g;
+    // Paso 9b: Comandos individuales aislados (\equiv, \approx, \alpha, \le, \in, etc.)
+    const singleCmdRegex = /(?<![a-zA-Z0-9_\\<\uE000\uE001])\\[a-zA-Z]+(?:\[[^\]]*\])?(?:\{[^{}\uE000\uE001]*(?:\{[^{}\uE000\uE001]*\}[^{}\uE000\uE001]*)*\})*(?:[_\^](?:\{[^{}\uE000\uE001]*\}|[a-zA-Z0-9]))*/g;
     text = text.replace(singleCmdRegex, (match) => {
+      if (match.includes('\uE000') || match.includes('\uE001')) return match;
       const rendered = this.renderMath(match, false);
       if (!rendered || rendered.includes('katex-error')) return match;
       return addPlaceholder(`<span class="katex-inline-container">${rendered}</span>`);
     });
 
-    // 8. Tablas Markdown (| Header 1 | Header 2 |)
+    // 10. Tablas Markdown (| Header 1 | Header 2 |)
     text = text.replace(
       /(^\|[^\n]+\|\r?\n\|[-:\s|]+\|\r?\n(?:\|[^\n]+\|\r?\n?)+)/gm,
       (tableBlock) => {
@@ -225,19 +264,19 @@ export class KatexService {
       }
     );
 
-    // 9. Citas tipo Blockquote (> Texto)
+    // 11. Citas tipo Blockquote (> Texto)
     text = text.replace(/^>\s+(.+)$/gm, '<blockquote class="apple-markdown-quote">$1</blockquote>');
 
-    // 10. Encabezados Markdown
+    // 12. Encabezados Markdown
     text = text.replace(/^####\s+(.+)$/gm, '<h4 class="apple-markdown-h4">$1</h4>');
     text = text.replace(/^###\s+(.+)$/gm, '<h3 class="apple-markdown-h3">$1</h3>');
     text = text.replace(/^##\s+(.+)$/gm, '<h2 class="apple-markdown-h2">$1</h2>');
     text = text.replace(/^#\s+(.+)$/gm, '<h1 class="apple-markdown-h1">$1</h1>');
 
-    // 11. Separadores horizontales
+    // 13. Separadores horizontales
     text = text.replace(/^(?:---|\*\*\*|___)\s*$/gm, '<hr class="apple-markdown-hr" />');
 
-    // 12. Listas no ordenadas y ordenadas
+    // 14. Listas no ordenadas y ordenadas
     text = text.replace(
       /^-\s+(.+)$/gm,
       '<div class="apple-markdown-list-item"><span class="list-bullet">•</span><span>$1</span></div>'
@@ -247,7 +286,7 @@ export class KatexService {
       '<div class="apple-markdown-list-item"><span class="list-number">$1.</span><span>$2</span></div>'
     );
 
-    // 13. Formato de texto en línea (negrita, cursiva, subrayado, tachado, enlaces)
+    // 15. Formato de texto en línea (negrita, cursiva, subrayado, tachado, enlaces)
     text = text.replace(/\*\*([\s\S]+?)\*\*/g, '<strong style="font-weight:800; color:#fff;">$1</strong>');
     text = text.replace(/__([\s\S]+?)__/g, '<strong style="font-weight:800; color:#fff;">$1</strong>');
     text = text.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em style="font-style:italic; color:#e2e8f0;">$1</em>');
@@ -255,7 +294,7 @@ export class KatexService {
     text = text.replace(/<u>([\s\S]+?)<\/u>/g, '<u style="text-decoration:underline; text-underline-offset:3px;">$1</u>');
     text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#38bdf8; font-weight:700; text-decoration:underline;">$1</a>');
 
-    // 14. Párrafos (separa por bloques de doble salto de línea)
+    // 16. Párrafos (separa por bloques de doble salto de línea)
     const blocks = text.split(/\n\s*\n/);
     const renderedBlocks = blocks.map((block) => {
       const trimmed = block.trim();
@@ -282,13 +321,31 @@ export class KatexService {
 
     let finalHtml = renderedBlocks.filter(Boolean).join('\n');
 
-    // 15. Restaurar placeholders en orden
-    for (const p of placeholders) {
+    // 17. Restauración exacta de placeholders (orden inverso para evitar colisiones de prefijo)
+    for (let i = placeholders.length - 1; i >= 0; i--) {
+      const p = placeholders[i];
       finalHtml = finalHtml.replaceAll(p.id, p.html);
     }
 
+    // Safety cleanup final: Asegura que ningún token interno llegue jamás a la vista del usuario
+    finalHtml = finalHtml
+      .replace(/[\uE000\uE001]/g, '')
+      .replace(/EUREKAPH_\d+/gi, '')
+      .replace(/EUREKAPH\d+TOKEN/gi, '')
+      .replace(/EUREKAMATH\d+/gi, '');
+
     return finalHtml;
+  }
+
+  private escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }
 
 export const katexService = KatexService.getInstance();
+

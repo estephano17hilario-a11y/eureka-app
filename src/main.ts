@@ -30,6 +30,9 @@ import { openFigmaAiBuilderModal } from './components/FigmaAiBuilderModal';
 import { renderActiveStudyDashboard, bindActiveStudyDashboardEvents } from './components/ActiveStudyView';
 import { UltraFastMindMap } from './components/UltraFastMindMap';
 import { activeStudyService } from './services/active-study.service';
+import { feynmanLlmService } from './services/feynman-llm.service';
+import { openFeynmanDiagnosticModal } from './components/FeynmanDiagnosticModal';
+import { openFeynmanGuideViewerModal } from './components/FeynmanGuideViewerModal';
 
 type AppView =
   | 'root'
@@ -78,8 +81,14 @@ class EurekaFigmaApp {
 
     // Suscribirse a cambios de autenticación
     eurekaSupabase.onAuthChange(async (user) => {
-      const activeId = user?.id || 'guest';
-      await deckService.setUser(activeId);
+      const activeId = user?.id || eurekaSupabase.getUserId();
+      await Promise.all([
+        deckService.setUser(activeId),
+        activeStudyService.setUser(activeId),
+        feynmanLlmService.setUser(activeId),
+        themeService.syncWithCloud()
+      ]);
+
       const rootDecks = deckService.getRootDecks();
       if (rootDecks.length > 0) {
         this.selectedRootDeckId = rootDecks[0].id;
@@ -89,14 +98,23 @@ class EurekaFigmaApp {
       this.render();
     });
 
-    // Comprobar si hay usuario conectado al inicio
+    // Comprobar usuario conectado o continuar sesión persistente local al inicio
     const currentUser = eurekaSupabase.getCurrentUser();
-    if (!currentUser) {
-      this.promptAuth(false);
-    } else {
-      await deckService.setUser(currentUser.id);
-      this.render();
+    const activeId = currentUser?.id || eurekaSupabase.getUserId();
+    await Promise.all([
+      deckService.setUser(activeId),
+      activeStudyService.setUser(activeId),
+      feynmanLlmService.setUser(activeId),
+      themeService.syncWithCloud()
+    ]);
+
+    const rootDecks = deckService.getRootDecks();
+    if (rootDecks.length > 0) {
+      this.selectedRootDeckId = rootDecks[0].id;
+      const sub = deckService.getSubdecks(rootDecks[0].id);
+      this.selectedSubdeckId = sub.length > 0 ? sub[0].id : rootDecks[0].id;
     }
+    this.render();
   }
 
   public promptAuth(allowDismiss: boolean = true): void {
@@ -104,7 +122,12 @@ class EurekaFigmaApp {
       allowDismiss,
       onSuccess: async (user: AuthUser) => {
         this.showToast(`👋 ¡Bienvenido de nuevo, ${user.username}!`);
-        await deckService.setUser(user.id);
+        await Promise.all([
+          deckService.setUser(user.id),
+          activeStudyService.setUser(user.id),
+          feynmanLlmService.setUser(user.id),
+          themeService.syncWithCloud()
+        ]);
         this.render();
       },
       onClose: () => {
@@ -451,6 +474,32 @@ class EurekaFigmaApp {
     layout.querySelector('#btn-header-theme-mobile')?.addEventListener('click', () => {
       this.currentTab = 'ajustes';
       this.render();
+    });
+
+    // Botón Feynman IA en Header
+    layout.querySelector('#btn-header-feynman')?.addEventListener('click', () => {
+      nativeService.triggerHaptics('medium');
+      openFeynmanDiagnosticModal({
+        onGenerated: (guide) => {
+          this.showToast(`✨ ¡Ruta Feynman creada: ${guide.topic}!`);
+          openFeynmanGuideViewerModal({
+            guide,
+            onOpenTopic: (topicId) => {
+              this.selectedStudyTopicId = topicId;
+              this.currentTab = 'estudio';
+              this.currentView = 'root';
+              this.render();
+            },
+            onOpenDeck: (deckId) => {
+              this.selectedSubdeckId = deckId;
+              this.currentTab = 'flashcards';
+              this.currentView = 'dashboard';
+              this.render();
+            }
+          });
+          this.render();
+        }
+      });
     });
 
     const rootDecks = deckService.getRootDecks();

@@ -24,8 +24,30 @@ export class DeckService {
   }
 
   public async setUser(userId: string): Promise<void> {
-    this.currentUserId = userId;
+    const previousUserId = this.currentUserId;
+    const resolvedId = (!userId || userId === 'guest' || userId === 'default')
+      ? eurekaSupabase.getUserId()
+      : userId;
+
+    if (this.currentUserId === resolvedId && this.decks.length > 0) {
+      return;
+    }
+
+    // Si el usuario previo era un invitado y tenía datos creados, migrarlos si el nuevo usuario no tiene datos
+    const hadGuestData = (previousUserId.startsWith('guest_') || previousUserId === 'default' || previousUserId === 'guest') && this.decks.length > 0;
+    const guestDecks = hadGuestData ? [...this.decks] : [];
+    const guestCards = hadGuestData ? [...this.cards] : [];
+
+    this.currentUserId = resolvedId;
     this.loadFromStorage();
+
+    // Si el usuario no tiene mazos locales pero venía de crear datos como invitado, migrar
+    if (this.decks.length === 0 && hadGuestData && guestDecks.length > 0) {
+      this.decks = guestDecks;
+      this.cards = guestCards;
+      this.saveToStorage();
+    }
+
     await this.syncWithCloud();
     this.notify();
   }
@@ -43,17 +65,64 @@ export class DeckService {
   }
 
   private getDecksStorageKey(): string {
-    return `eureka_decks_user_${this.currentUserId || 'default'}`;
+    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    return `eureka_decks_user_${uid}`;
   }
 
   private getCardsStorageKey(): string {
-    return `eureka_cards_user_${this.currentUserId || 'default'}`;
+    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    return `eureka_cards_user_${uid}`;
   }
 
   private loadFromStorage(): void {
     try {
-      const storedDecks = localStorage.getItem(this.getDecksStorageKey());
-      const storedCards = localStorage.getItem(this.getCardsStorageKey());
+      let storedDecks = localStorage.getItem(this.getDecksStorageKey());
+      let storedCards = localStorage.getItem(this.getCardsStorageKey());
+
+      // Búsqueda y migración automática en claves de respaldo para garantizar cero pérdidas tras recarga
+      if (!storedDecks || storedDecks === '[]') {
+        const fallbackKeys = [
+          'eureka_decks_user_default',
+          'eureka_decks_user_guest',
+          'eureka_user_decks_v1'
+        ];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('eureka_decks_user_') && k !== this.getDecksStorageKey()) {
+            fallbackKeys.push(k);
+          }
+        }
+        for (const key of fallbackKeys) {
+          const fallbackData = localStorage.getItem(key);
+          if (fallbackData && fallbackData !== '[]') {
+            storedDecks = fallbackData;
+            localStorage.setItem(this.getDecksStorageKey(), fallbackData);
+            break;
+          }
+        }
+      }
+
+      if (!storedCards || storedCards === '[]') {
+        const fallbackCardKeys = [
+          'eureka_cards_user_default',
+          'eureka_cards_user_guest',
+          'eureka_user_cards_v1'
+        ];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('eureka_cards_user_') && k !== this.getCardsStorageKey()) {
+            fallbackCardKeys.push(k);
+          }
+        }
+        for (const key of fallbackCardKeys) {
+          const fallbackData = localStorage.getItem(key);
+          if (fallbackData && fallbackData !== '[]') {
+            storedCards = fallbackData;
+            localStorage.setItem(this.getCardsStorageKey(), fallbackData);
+            break;
+          }
+        }
+      }
 
       if (storedDecks) {
         this.decks = JSON.parse(storedDecks);
@@ -73,14 +142,14 @@ export class DeckService {
 
       if (storedCards) {
         this.cards = JSON.parse(storedCards);
-      } else if (this.currentUserId && this.currentUserId !== 'default') {
-        const defaultCards = localStorage.getItem('eureka_cards_user_default');
-        if (defaultCards) {
-          try {
-            this.cards = JSON.parse(defaultCards);
-            this.saveToStorage();
-          } catch {}
-        }
+      }
+
+      // Si tras la búsqueda sigue vacío, cargar los mazos iniciales por defecto
+      if (this.decks.length === 0) {
+        const initial = getInitialDemoDecks();
+        this.decks = initial.decks;
+        this.cards = initial.cards;
+        this.saveToStorage();
       }
     } catch (err) {
       console.warn('[DECK SERVICE] Error leyendo almacenamiento local:', err);
@@ -109,29 +178,42 @@ export class DeckService {
 
       let hasChanges = false;
 
+      // Fusión inteligente LWW (Last-Write-Wins) para mazos
       if (remoteDecks && remoteDecks.length > 0) {
-        const deckMap = new Map<string, Deck>();
-        remoteDecks.forEach(d => deckMap.set(d.id, d));
-        this.decks.forEach(d => {
-          if (!deckMap.has(d.id)) {
-            deckMap.set(d.id, d);
+        const mergedDecks = new Map<string, Deck>();
+        this.decks.forEach(d => mergedDecks.set(d.id, d));
+
+        remoteDecks.forEach(remote => {
+          const local = mergedDecks.get(remote.id);
+          if (!local) {
+            mergedDecks.set(remote.id, remote);
+            hasChanges = true;
+          } else if ((remote.updatedAt || 0) > (local.updatedAt || 0)) {
+            mergedDecks.set(remote.id, { ...local, ...remote });
+            hasChanges = true;
           }
         });
-        this.decks = Array.from(deckMap.values());
-        hasChanges = true;
+
+        this.decks = Array.from(mergedDecks.values());
       }
 
+      // Fusión inteligente LWW (Last-Write-Wins) para tarjetas
       if (remoteCards && remoteCards.length > 0) {
-        // NUNCA sobreescribir con array vacío si el usuario ya tiene tarjetas creadas localmente
-        const cardMap = new Map<string, Flashcard>();
-        remoteCards.forEach(c => cardMap.set(c.id, c));
-        this.cards.forEach(c => {
-          if (!cardMap.has(c.id)) {
-            cardMap.set(c.id, c);
+        const mergedCards = new Map<string, Flashcard>();
+        this.cards.forEach(c => mergedCards.set(c.id, c));
+
+        remoteCards.forEach(remote => {
+          const local = mergedCards.get(remote.id);
+          if (!local) {
+            mergedCards.set(remote.id, remote);
+            hasChanges = true;
+          } else if ((remote.updatedAt || 0) > (local.updatedAt || 0)) {
+            mergedCards.set(remote.id, { ...local, ...remote });
+            hasChanges = true;
           }
         });
-        this.cards = Array.from(cardMap.values());
-        hasChanges = true;
+
+        this.cards = Array.from(mergedCards.values());
       }
 
       if (hasChanges) {
@@ -323,9 +405,14 @@ export class DeckService {
 
   public deleteDeck(deckId: string): void {
     const allIdsToDelete = this.getDeckHierarchyIds(deckId);
+    const cardsToDelete = this.cards.filter(c => allIdsToDelete.includes(c.deckId)).map(c => c.id);
     this.decks = this.decks.filter(d => !allIdsToDelete.includes(d.id));
     this.cards = this.cards.filter(c => !allIdsToDelete.includes(c.deckId));
     this.notify();
+    eurekaSupabase.deleteDecksFromCloud(allIdsToDelete);
+    if (cardsToDelete.length > 0) {
+      eurekaSupabase.deleteCardsFromCloud(cardsToDelete);
+    }
   }
 
   // --- GESTIÓN DE TARJETAS (ORDENADAS DE MÁS RECIENTE A MÁS VIEJA) ---
@@ -547,6 +634,7 @@ export class DeckService {
       const cardsToDelete = groupCards.slice(masks.length).map(c => c.id);
       const deleteSet = new Set(cardsToDelete);
       this.cards = this.cards.filter(c => !deleteSet.has(c.id));
+      eurekaSupabase.deleteCardsFromCloud(cardsToDelete);
     }
 
     this.notify();
@@ -598,11 +686,16 @@ export class DeckService {
   public deleteCard(cardId: string): void {
     this.cards = this.cards.filter(c => c.id !== cardId);
     this.notify();
+    eurekaSupabase.deleteCardFromCloud(cardId);
   }
 
   public deleteCardGroup(groupId: string): void {
+    const cardsToDelete = this.cards.filter(c => c.groupId === groupId).map(c => c.id);
     this.cards = this.cards.filter(c => c.groupId !== groupId);
     this.notify();
+    if (cardsToDelete.length > 0) {
+      eurekaSupabase.deleteCardsFromCloud(cardsToDelete);
+    }
   }
 
   /**
@@ -647,6 +740,7 @@ export class DeckService {
     const idSet = new Set(cardIds);
     this.cards = this.cards.filter(c => !idSet.has(c.id));
     this.notify();
+    eurekaSupabase.deleteCardsFromCloud(cardIds);
   }
 
   public resetCardsProgress(cardIds: string[]): void {

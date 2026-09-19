@@ -46,6 +46,12 @@ export function renderFigmaHeader(activeTab: FigmaMainTab = 'flashcards'): strin
           <span>12:00:00</span>
         </button>
 
+        <!-- Botón Feynman IA Directo -->
+        <button class="figma-btn-ghost" id="btn-header-feynman" title="Diagnóstico y Rutas Feynman con IA" style="border:1px solid rgba(56,189,248,0.3); background:rgba(56,189,248,0.1); color:#38bdf8; font-size:0.8rem; font-weight:800; border-radius:999px; padding:5px 12px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <span>🔬</span>
+          <span class="desktop-only" style="display:inline !important;">Feynman IA</span>
+        </button>
+
         <!-- Streak Badge -->
         <div class="figma-streak-badge" title="Racha activa">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>

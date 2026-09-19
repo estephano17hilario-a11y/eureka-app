@@ -3,24 +3,30 @@ import { deckService } from './deck.service';
 import { eurekaSupabase } from './supabase.service';
 import { Preferences } from '@capacitor/preferences';
 
-const TOPICS_STORAGE_KEY = 'eureka_active_study_topics_v1';
-const OUTLINES_STORAGE_KEY = 'eureka_active_study_outlines_v1';
-const LOCKS_STORAGE_KEY = 'eureka_active_study_locks_v1';
-const USER_COINS_KEY = 'eureka_user_coins_v1';
+const BASE_TOPICS_STORAGE_KEY = 'eureka_active_study_topics_v1';
+const BASE_OUTLINES_STORAGE_KEY = 'eureka_active_study_outlines_v1';
+const BASE_LOCKS_STORAGE_KEY = 'eureka_active_study_locks_v1';
+const BASE_USER_COINS_KEY = 'eureka_user_coins_v1';
+const BASE_MINDMAPS_STORAGE_KEY = 'eureka_active_study_mindmaps_v1';
 
 export const UNLOCK_COST = 50;
 
 class ActiveStudyService {
   private static instance: ActiveStudyService;
+  private currentUserId: string = '';
   private topics: Map<string, ActiveStudyTopic> = new Map();
   private outlineNodes: Map<string, OutlineNode[]> = new Map(); // topicId -> nodes
   private locks: Map<string, TopicAccessLock> = new Map(); // topicId -> lock
+  private mindMaps: Map<string, any> = new Map(); // topicId -> mind map JSON
   private userCoins: number = 150;
   private serverTimeOffset: number = 0; // offset between local clock and verified server time
+  private cloudSyncTimer: any = null;
 
   private constructor() {
+    this.currentUserId = eurekaSupabase.getUserId();
     this.loadFromStorage();
     this.initAntiCheatTime();
+    this.syncWithCloud();
 
     // Directiva 5: Forzar persistencia ante suspensión o cierre de la app en segundo plano
     if (typeof window !== 'undefined') {
@@ -40,19 +46,72 @@ class ActiveStudyService {
     return ActiveStudyService.instance;
   }
 
+  public async setUser(userId: string): Promise<void> {
+    const prevId = this.currentUserId;
+    const resolvedId = (!userId || userId === 'guest' || userId === 'default')
+      ? eurekaSupabase.getUserId()
+      : userId;
+
+    if (this.currentUserId === resolvedId && this.topics.size > 0) {
+      return;
+    }
+
+    const hadGuestData = (prevId.startsWith('guest_') || prevId === 'default' || prevId === 'guest') && this.topics.size > 0;
+    const guestTopics = hadGuestData ? Array.from(this.topics.values()) : [];
+    const guestOutlines = hadGuestData ? new Map(this.outlineNodes) : new Map();
+    const guestMindMaps = hadGuestData ? new Map(this.mindMaps) : new Map();
+
+    this.currentUserId = resolvedId;
+    this.loadFromStorage();
+
+    if (this.topics.size === 0 && hadGuestData && guestTopics.length > 0) {
+      guestTopics.forEach(t => this.topics.set(t.id, t));
+      guestOutlines.forEach((nodes, tid) => this.outlineNodes.set(tid, nodes));
+      guestMindMaps.forEach((mm, tid) => this.mindMaps.set(tid, mm));
+      this.saveToStorage();
+    }
+
+    await this.syncWithCloud();
+  }
+
+  private getTopicsKey(): string {
+    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    return `${BASE_TOPICS_STORAGE_KEY}_${uid}`;
+  }
+
+  private getOutlinesKey(): string {
+    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    return `${BASE_OUTLINES_STORAGE_KEY}_${uid}`;
+  }
+
+  private getLocksKey(): string {
+    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    return `${BASE_LOCKS_STORAGE_KEY}_${uid}`;
+  }
+
+  private getCoinsKey(): string {
+    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    return `${BASE_USER_COINS_KEY}_${uid}`;
+  }
+
+  private getMindMapsKey(): string {
+    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    return `${BASE_MINDMAPS_STORAGE_KEY}_${uid}`;
+  }
+
   private async loadFromStorage(): Promise<void> {
     try {
       // 1. Carga síncrona inicial de caché rápida
-      const savedCoins = localStorage.getItem(USER_COINS_KEY);
+      let savedCoins = localStorage.getItem(this.getCoinsKey()) || localStorage.getItem(BASE_USER_COINS_KEY);
       this.userCoins = savedCoins !== null ? parseInt(savedCoins, 10) : 150;
 
-      const rawTopics = localStorage.getItem(TOPICS_STORAGE_KEY);
+      let rawTopics = localStorage.getItem(this.getTopicsKey()) || localStorage.getItem(BASE_TOPICS_STORAGE_KEY);
       if (rawTopics) {
         const parsed: ActiveStudyTopic[] = JSON.parse(rawTopics);
         parsed.forEach((t) => this.topics.set(t.id, t));
       }
 
-      const rawOutlines = localStorage.getItem(OUTLINES_STORAGE_KEY);
+      let rawOutlines = localStorage.getItem(this.getOutlinesKey()) || localStorage.getItem(BASE_OUTLINES_STORAGE_KEY);
       if (rawOutlines) {
         const parsed: Record<string, OutlineNode[]> = JSON.parse(rawOutlines);
         Object.entries(parsed).forEach(([topicId, nodes]) => {
@@ -60,7 +119,7 @@ class ActiveStudyService {
         });
       }
 
-      const rawLocks = localStorage.getItem(LOCKS_STORAGE_KEY);
+      let rawLocks = localStorage.getItem(this.getLocksKey()) || localStorage.getItem(BASE_LOCKS_STORAGE_KEY);
       if (rawLocks) {
         const parsed: Record<string, TopicAccessLock> = JSON.parse(rawLocks);
         Object.entries(parsed).forEach(([topicId, lock]) => {
@@ -68,51 +127,64 @@ class ActiveStudyService {
         });
       }
 
+      let rawMindMaps = localStorage.getItem(this.getMindMapsKey()) || localStorage.getItem(BASE_MINDMAPS_STORAGE_KEY);
+      if (rawMindMaps) {
+        const parsed: Record<string, any> = JSON.parse(rawMindMaps);
+        Object.entries(parsed).forEach(([topicId, data]) => {
+          this.mindMaps.set(topicId, data);
+        });
+      }
+
       // 2. Hidratación nativa reactiva desde @capacitor/preferences
-      const [prefOutlines, prefTopics, prefCoins] = await Promise.all([
-        Preferences.get({ key: OUTLINES_STORAGE_KEY }),
-        Preferences.get({ key: TOPICS_STORAGE_KEY }),
-        Preferences.get({ key: USER_COINS_KEY })
+      const [prefOutlines, prefTopics, prefCoins, prefMindMaps] = await Promise.all([
+        Preferences.get({ key: this.getOutlinesKey() }).catch(() => ({ value: null })),
+        Preferences.get({ key: this.getTopicsKey() }).catch(() => ({ value: null })),
+        Preferences.get({ key: this.getCoinsKey() }).catch(() => ({ value: null })),
+        Preferences.get({ key: this.getMindMapsKey() }).catch(() => ({ value: null }))
       ]);
 
-      if (prefOutlines.value) {
+      if (prefOutlines?.value) {
         const parsed: Record<string, OutlineNode[]> = JSON.parse(prefOutlines.value);
         Object.entries(parsed).forEach(([topicId, nodes]) => {
           this.outlineNodes.set(topicId, nodes);
         });
       }
 
-      if (prefTopics.value) {
+      if (prefTopics?.value) {
         const parsed: ActiveStudyTopic[] = JSON.parse(prefTopics.value);
         parsed.forEach((t) => this.topics.set(t.id, t));
       }
 
-      if (prefCoins.value) {
+      if (prefCoins?.value) {
         this.userCoins = parseInt(prefCoins.value, 10);
       }
 
-      const cleanNuclearChunk1 = `En física nuclear y química cuántica, cualquier nucleído se especifica de forma universal mediante la notación estándar $\\ce{^{A}_{Z}X}$, donde $A$ representa el número másico (suma de nucleones) y $Z$ el número atómico (protones). Por ejemplo, el Cesio-133 empleado internacionalmente en relojes atómicos para la calibración del segundo se expresa rigurosamente como $\\ce{^{133}_{55}Cs}$. 
+      if (prefMindMaps?.value) {
+        const parsed: Record<string, any> = JSON.parse(prefMindMaps.value);
+        Object.entries(parsed).forEach(([topicId, data]) => {
+          this.mindMaps.set(topicId, data);
+        });
+      }
 
-El defecto de masa nuclear $\\Delta m$ se calcula restando la masa del núcleo respecto a sus componentes libres:
-$$\\Delta m = Z m_p + (A - Z) m_n - M_{\\text{núcleo}}$$
-
-Aplicando la equivalencia relativista de masa-energía de Einstein:
-$$\\Delta E = \\Delta m \\cdot c^2$$
-se obtiene la energía de enlace nuclear total.`;
-
-      // Limpieza y reparación de temas guardados con placeholders o textos desactualizados
+      // Limpieza automática de cuestionarios en texto plano filtrados en chunks de estudio antiguos
       let needsSave = false;
       this.topics.forEach((t) => {
-        if (
-          t.title.includes('Física Nuclear') ||
-          t.chunks.some((c) => c.sourceContent.includes('PLACEHOLDER') || c.sourceContent.includes('EUREKA'))
-        ) {
-          if (t.chunks && t.chunks[0]) {
-            t.chunks[0].sourceContent = cleanNuclearChunk1;
+        t.chunks.forEach((c) => {
+          if (
+            c.sourceContent.includes('**Examen de Nivel (Evaluación Formativa):**') ||
+            c.sourceContent.includes('**Quizz de Maestría:**') ||
+            c.sourceContent.includes('*Respuesta:* Opción')
+          ) {
+            c.sourceContent = c.sourceContent
+              .replace(/\*\*Examen de Nivel \(Evaluación Formativa\):\*\*[\s\S]*?(?=(?:```|###|$))/g, '')
+              .replace(/\*\*Quizz de Maestría:\*\*[\s\S]*?(?=(?:```|###|$))/g, '')
+              .replace(/\*Pregunta \d+.*?\*[\s\S]*?(?=(?:\*Pregunta|```|###|$))/g, '')
+              .trim();
             needsSave = true;
           }
-        }
+        });
       });
+
       if (needsSave) {
         this.saveToStorage();
       }
@@ -123,35 +195,159 @@ se obtiene la energía de enlace nuclear total.`;
 
   public saveToStorage(): void {
     try {
+      const coinsKey = this.getCoinsKey();
+      const topicsKey = this.getTopicsKey();
+      const outlinesKey = this.getOutlinesKey();
+      const locksKey = this.getLocksKey();
+      const mindMapsKey = this.getMindMapsKey();
+
       // Escritura síncrona en caché de memoria/localStorage
-      localStorage.setItem(USER_COINS_KEY, this.userCoins.toString());
+      localStorage.setItem(coinsKey, this.userCoins.toString());
+      localStorage.setItem(BASE_USER_COINS_KEY, this.userCoins.toString());
 
       const topicsArray = Array.from(this.topics.values());
       const topicsJson = JSON.stringify(topicsArray);
-      localStorage.setItem(TOPICS_STORAGE_KEY, topicsJson);
+      localStorage.setItem(topicsKey, topicsJson);
+      localStorage.setItem(BASE_TOPICS_STORAGE_KEY, topicsJson);
 
       const outlinesObj: Record<string, OutlineNode[]> = {};
       this.outlineNodes.forEach((nodes, topicId) => {
         outlinesObj[topicId] = nodes;
       });
       const outlinesJson = JSON.stringify(outlinesObj);
-      localStorage.setItem(OUTLINES_STORAGE_KEY, outlinesJson);
+      localStorage.setItem(outlinesKey, outlinesJson);
+      localStorage.setItem(BASE_OUTLINES_STORAGE_KEY, outlinesJson);
 
       const locksObj: Record<string, TopicAccessLock> = {};
       this.locks.forEach((lock, topicId) => {
         locksObj[topicId] = lock;
       });
       const locksJson = JSON.stringify(locksObj);
-      localStorage.setItem(LOCKS_STORAGE_KEY, locksJson);
+      localStorage.setItem(locksKey, locksJson);
+      localStorage.setItem(BASE_LOCKS_STORAGE_KEY, locksJson);
 
-      // Directiva 5: Persistencia inmediata reactiva en almacenamiento local de Capacitor
-      Preferences.set({ key: USER_COINS_KEY, value: this.userCoins.toString() }).catch(() => {});
-      Preferences.set({ key: TOPICS_STORAGE_KEY, value: topicsJson }).catch(() => {});
-      Preferences.set({ key: OUTLINES_STORAGE_KEY, value: outlinesJson }).catch(() => {});
-      Preferences.set({ key: LOCKS_STORAGE_KEY, value: locksJson }).catch(() => {});
+      const mindMapsObj: Record<string, any> = {};
+      this.mindMaps.forEach((data, topicId) => {
+        mindMapsObj[topicId] = data;
+      });
+      const mindMapsJson = JSON.stringify(mindMapsObj);
+      localStorage.setItem(mindMapsKey, mindMapsJson);
+      localStorage.setItem(BASE_MINDMAPS_STORAGE_KEY, mindMapsJson);
+
+      // Directiva 5: Persistencia reactiva en almacenamiento local de Capacitor
+      Preferences.set({ key: coinsKey, value: this.userCoins.toString() }).catch(() => {});
+      Preferences.set({ key: topicsKey, value: topicsJson }).catch(() => {});
+      Preferences.set({ key: outlinesKey, value: outlinesJson }).catch(() => {});
+      Preferences.set({ key: locksKey, value: locksJson }).catch(() => {});
+      Preferences.set({ key: mindMapsKey, value: mindMapsJson }).catch(() => {});
+
+      // Sincronización a Supabase debounced en segundo plano
+      this.scheduleCloudSync();
     } catch (e) {
       console.error('[ActiveStudyService] Error saving storage:', e);
     }
+  }
+
+  private scheduleCloudSync(): void {
+    if (this.cloudSyncTimer) {
+      clearTimeout(this.cloudSyncTimer);
+    }
+    this.cloudSyncTimer = setTimeout(() => {
+      this.syncCloudState();
+    }, 1200);
+  }
+
+  private async syncCloudState(): Promise<void> {
+    try {
+      const outlinesObj: Record<string, OutlineNode[]> = {};
+      this.outlineNodes.forEach((nodes, topicId) => {
+        outlinesObj[topicId] = nodes;
+      });
+
+      const locksObj: Record<string, TopicAccessLock> = {};
+      this.locks.forEach((lock, topicId) => {
+        locksObj[topicId] = lock;
+      });
+
+      const mindMapsObj: Record<string, any> = {};
+      this.mindMaps.forEach((data, topicId) => {
+        mindMapsObj[topicId] = data;
+      });
+
+      await eurekaSupabase.saveUserSettings({
+        settingsJson: {
+          activeTopics: Array.from(this.topics.values()),
+          activeOutlines: outlinesObj,
+          activeLocks: locksObj,
+          activeMindMaps: mindMapsObj,
+          userCoins: this.userCoins,
+          updatedAt: Date.now()
+        }
+      });
+    } catch (err) {
+      console.warn('[ActiveStudyService] Cloud sync notice:', err);
+    }
+  }
+
+  public async syncWithCloud(): Promise<void> {
+    try {
+      const remote = await eurekaSupabase.fetchUserSettings();
+      if (remote && remote.settingsJson) {
+        const json = remote.settingsJson;
+        let hasChanges = false;
+
+        if (Array.isArray(json.activeTopics) && json.activeTopics.length > 0) {
+          json.activeTopics.forEach((t: ActiveStudyTopic) => {
+            const local = this.topics.get(t.id);
+            if (!local || (t.updatedAt || 0) > (local.updatedAt || 0)) {
+              this.topics.set(t.id, t);
+              hasChanges = true;
+            }
+          });
+        }
+
+        if (json.activeOutlines && typeof json.activeOutlines === 'object') {
+          Object.entries(json.activeOutlines).forEach(([tid, nodes]) => {
+            if (Array.isArray(nodes) && (!this.outlineNodes.has(tid) || (this.outlineNodes.get(tid)?.length || 0) === 0)) {
+              this.outlineNodes.set(tid, nodes as OutlineNode[]);
+              hasChanges = true;
+            }
+          });
+        }
+
+        if (json.activeMindMaps && typeof json.activeMindMaps === 'object') {
+          Object.entries(json.activeMindMaps).forEach(([tid, data]) => {
+            if (!this.mindMaps.has(tid)) {
+              this.mindMaps.set(tid, data);
+              hasChanges = true;
+            }
+          });
+        }
+
+        if (typeof json.userCoins === 'number' && json.userCoins > this.userCoins) {
+          this.userCoins = json.userCoins;
+          hasChanges = true;
+        }
+
+        if (hasChanges) {
+          this.saveToStorage();
+        }
+      } else if (this.topics.size > 0) {
+        this.syncCloudState();
+      }
+    } catch (err) {
+      console.warn('[ActiveStudyService] Error in syncWithCloud:', err);
+    }
+  }
+
+  public saveMindMapState(topicId: string, mapData: any): void {
+    if (!topicId || !mapData) return;
+    this.mindMaps.set(topicId, mapData);
+    this.saveToStorage();
+  }
+
+  public getMindMapState(topicId: string): any {
+    return this.mindMaps.get(topicId) || null;
   }
 
   /**

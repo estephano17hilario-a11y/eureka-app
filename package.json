@@ -34,7 +34,8 @@
     "lucide": "^0.475.0",
     "mathlive": "^0.110.0",
     "simple-mind-map": "^0.14.0-fix.3",
-    "sortablejs": "^1.15.7"
+    "sortablejs": "^1.15.7",
+    "sucrase": "^3.35.1"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.2.0",

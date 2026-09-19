@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import type { Deck, Flashcard, StudyRating } from '../types/flashcard';
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || 'https://api.89.117.73.97.sslip.io').trim();
-const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc4Nzg0OTc2MCwiZXhwIjo0OTQzNTIzMzYwLCJyb2xlIjoiYW5vbiJ9._DvifLx6sViDd5UePak7xswzmT6dQp9FoQZqPnyxeRU').trim();
+const SUPABASE_URL = ((import.meta as any)?.env?.VITE_SUPABASE_URL || 'https://api.89.117.73.97.sslip.io').trim();
+const SUPABASE_ANON_KEY = ((import.meta as any)?.env?.VITE_SUPABASE_ANON_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc4Nzg0OTc2MCwiZXhwIjo0OTQzNTIzMzYwLCJyb2xlIjoiYW5vbiJ9._DvifLx6sViDd5UePak7xswzmT6dQp9FoQZqPnyxeRU').trim();
 
 const AUTH_STORAGE_KEY = 'eureka_auth_session_v1';
 const LOCAL_USERS_KEY = 'eureka_local_registered_users_v1';
@@ -333,8 +333,8 @@ class EurekaSupabaseService {
         color: d.color || '#10b981',
         settings: d.settings || {},
         is_archived: Boolean(d.isArchived),
-        created_at: d.createdAt,
-        updated_at: d.updatedAt || Date.now()
+        created_at: Number(d.createdAt) || Date.now(),
+        updated_at: Number(d.updatedAt) || Date.now()
       }));
 
       const { error } = await this.client
@@ -344,6 +344,25 @@ class EurekaSupabaseService {
       if (error) console.warn('[EUREKA CLOUD] Error syncDecks:', error);
     } catch (err) {
       console.warn('[EUREKA CLOUD] Network error syncDecks:', err);
+    }
+  }
+
+  public async deleteDeckFromCloud(deckId: string): Promise<void> {
+    try {
+      await this.client.from('eureka_decks').delete().eq('id', deckId);
+      await this.client.from('eureka_flashcards').delete().eq('deck_id', deckId);
+    } catch (err) {
+      console.warn('[EUREKA CLOUD] Error deleteDeckFromCloud:', err);
+    }
+  }
+
+  public async deleteDecksFromCloud(deckIds: string[]): Promise<void> {
+    try {
+      if (!deckIds.length) return;
+      await this.client.from('eureka_decks').delete().in('id', deckIds);
+      await this.client.from('eureka_flashcards').delete().in('deck_id', deckIds);
+    } catch (err) {
+      console.warn('[EUREKA CLOUD] Error deleteDecksFromCloud:', err);
     }
   }
 
@@ -367,8 +386,8 @@ class EurekaSupabaseService {
         color: d.color,
         settings: d.settings,
         isArchived: d.is_archived,
-        createdAt: Number(d.created_at),
-        updatedAt: Number(d.updated_at)
+        createdAt: Number(d.created_at) || Date.now(),
+        updatedAt: Number(d.updated_at) || Date.now()
       }));
     } catch {
       return null;
@@ -380,36 +399,40 @@ class EurekaSupabaseService {
     const activeUserId = this.getUserId();
     try {
       if (!cards.length) return;
-      const payload = cards.map(c => ({
-        id: c.id,
-        deck_id: c.deckId,
-        user_id: activeUserId,
-        type: c.type || 'standard',
-        front: c.front,
-        back: c.back,
-        front_image: c.frontImage || null,
-        back_image: c.backImage || null,
-        occlusion_image: c.occlusionImage || null,
-        occlusion_masks: c.occlusionMasks || null,
-        active_mask_id: c.activeMaskId || null,
-        occlusion_mode: c.occlusionMode || null,
-        audio_lang: c.audioLang || null,
-        audio_text: c.audioText || null,
-        is_inverted: Boolean(c.isInverted),
-        group_id: c.groupId || null,
-        group_title: c.groupTitle || null,
-        group_role: c.groupRole || null,
-        state: c.state || 'new',
-        step_index: c.stepIndex || 0,
-        interval_minutes: c.intervalMinutes || 0,
-        ease_factor: c.easeFactor || 2.5,
-        lapses: c.lapses || 0,
-        reps: c.reps || 0,
-        due_date: c.dueDate || Date.now(),
-        last_review_date: c.lastReviewDate || null,
-        created_at: c.createdAt || Date.now(),
-        updated_at: c.updatedAt || Date.now()
-      }));
+      const payload = cards.map(c => {
+        // Preservar chunkId en group_role si existe
+        const role = c.chunkId ? `chunk:${c.chunkId}` : (c.groupRole || null);
+        return {
+          id: c.id,
+          deck_id: c.deckId,
+          user_id: activeUserId,
+          type: c.type || 'standard',
+          front: c.front,
+          back: c.back,
+          front_image: c.frontImage || null,
+          back_image: c.backImage || null,
+          occlusion_image: c.occlusionImage || null,
+          occlusion_masks: c.occlusionMasks || null,
+          active_mask_id: c.activeMaskId || null,
+          occlusion_mode: c.occlusionMode || null,
+          audio_lang: c.audioLang || null,
+          audio_text: c.audioText || null,
+          is_inverted: Boolean(c.isInverted),
+          group_id: c.groupId || null,
+          group_title: c.groupTitle || null,
+          group_role: role,
+          state: c.state || 'new',
+          step_index: c.stepIndex || 0,
+          interval_minutes: c.intervalMinutes || 0,
+          ease_factor: c.easeFactor || 2.5,
+          lapses: c.lapses || 0,
+          reps: c.reps || 0,
+          due_date: Number(c.dueDate) || Date.now(),
+          last_review_date: c.lastReviewDate ? Number(c.lastReviewDate) : null,
+          created_at: Number(c.createdAt) || Date.now(),
+          updated_at: Number(c.updatedAt) || Date.now()
+        };
+      });
 
       const { error } = await this.client
         .from('eureka_flashcards')
@@ -418,6 +441,23 @@ class EurekaSupabaseService {
       if (error) console.warn('[EUREKA CLOUD] Error syncCards:', error);
     } catch (err) {
       console.warn('[EUREKA CLOUD] Network error syncCards:', err);
+    }
+  }
+
+  public async deleteCardFromCloud(cardId: string): Promise<void> {
+    try {
+      await this.client.from('eureka_flashcards').delete().eq('id', cardId);
+    } catch (err) {
+      console.warn('[EUREKA CLOUD] Error deleteCardFromCloud:', err);
+    }
+  }
+
+  public async deleteCardsFromCloud(cardIds: string[]): Promise<void> {
+    try {
+      if (!cardIds.length) return;
+      await this.client.from('eureka_flashcards').delete().in('id', cardIds);
+    } catch (err) {
+      console.warn('[EUREKA CLOUD] Error deleteCardsFromCloud:', err);
     }
   }
 
@@ -431,35 +471,48 @@ class EurekaSupabaseService {
 
       if (error || !data) return null;
 
-      return data.map((c: any) => ({
-        id: c.id,
-        deckId: c.deck_id,
-        type: c.type,
-        front: c.front,
-        back: c.back,
-        frontImage: c.front_image,
-        backImage: c.back_image,
-        occlusionImage: c.occlusion_image,
-        occlusionMasks: c.occlusion_masks,
-        activeMaskId: c.active_mask_id,
-        occlusionMode: c.occlusion_mode,
-        audioLang: c.audio_lang,
-        audioText: c.audio_text,
-        isInverted: c.is_inverted,
-        groupId: c.group_id,
-        groupTitle: c.group_title,
-        groupRole: c.group_role,
-        state: c.state,
-        stepIndex: c.step_index,
-        intervalMinutes: c.interval_minutes,
-        easeFactor: Number(c.ease_factor),
-        lapses: c.lapses,
-        reps: c.reps,
-        dueDate: Number(c.due_date),
-        lastReviewDate: c.last_review_date ? Number(c.last_review_date) : undefined,
-        createdAt: Number(c.created_at),
-        updatedAt: Number(c.updated_at)
-      }));
+      return data.map((c: any) => {
+        let chunkId: string | undefined = undefined;
+        let groupRole: ('parent' | 'child') | undefined = undefined;
+        if (c.group_role) {
+          if (c.group_role.startsWith('chunk:')) {
+            chunkId = c.group_role.replace('chunk:', '');
+          } else if (c.group_role === 'parent' || c.group_role === 'child') {
+            groupRole = c.group_role;
+          }
+        }
+
+        return {
+          id: c.id,
+          deckId: c.deck_id,
+          type: c.type,
+          front: c.front,
+          back: c.back,
+          frontImage: c.front_image,
+          backImage: c.back_image,
+          occlusionImage: c.occlusion_image,
+          occlusionMasks: c.occlusion_masks,
+          activeMaskId: c.active_mask_id,
+          occlusionMode: c.occlusion_mode,
+          audioLang: c.audio_lang,
+          audioText: c.audio_text,
+          isInverted: c.is_inverted,
+          groupId: c.group_id,
+          groupTitle: c.group_title,
+          groupRole,
+          chunkId,
+          state: c.state,
+          stepIndex: c.step_index,
+          intervalMinutes: c.interval_minutes,
+          easeFactor: Number(c.ease_factor),
+          lapses: c.lapses,
+          reps: c.reps,
+          dueDate: Number(c.due_date),
+          lastReviewDate: c.last_review_date ? Number(c.last_review_date) : undefined,
+          createdAt: Number(c.created_at),
+          updatedAt: Number(c.updated_at)
+        };
+      });
     } catch {
       return null;
     }
@@ -507,6 +560,90 @@ class EurekaSupabaseService {
       }, { onConflict: 'id' });
     } catch (err) {
       console.warn('[EUREKA CLOUD] Error saving profile:', err);
+    }
+  }
+
+  public async fetchUserProfile(userId?: string): Promise<UserProfile | null> {
+    const activeUserId = userId || this.getUserId();
+    try {
+      const { data, error } = await this.client
+        .from('eureka_users')
+        .select('*')
+        .eq('id', activeUserId)
+        .limit(1);
+
+      if (error || !data || data.length === 0) return null;
+      const u = data[0];
+      return {
+        id: u.id,
+        username: u.username || 'Estudiante',
+        avatarUrl: u.avatar_url,
+        xp: u.xp || 0,
+        level: u.level || 1,
+        streakDays: u.streak_days || 0,
+        lastStudyDate: u.last_study_date
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  // --- AJUSTES Y ESTADO EN LA NUBE (ESTUDIO ACTIVO, GUÍAS FEYNMAN, MAPAS MENTALES) ---
+  public async saveUserSettings(settings: {
+    theme?: string;
+    soundEnabled?: boolean;
+    hapticsEnabled?: boolean;
+    dailyReviewGoal?: number;
+    settingsJson?: any;
+  }): Promise<void> {
+    const activeUserId = this.getUserId();
+    try {
+      const payload: any = {
+        user_id: activeUserId,
+        updated_at: new Date().toISOString()
+      };
+      if (settings.theme !== undefined) payload.theme = settings.theme;
+      if (settings.soundEnabled !== undefined) payload.sound_enabled = settings.soundEnabled;
+      if (settings.hapticsEnabled !== undefined) payload.haptics_enabled = settings.hapticsEnabled;
+      if (settings.dailyReviewGoal !== undefined) payload.daily_review_goal = settings.dailyReviewGoal;
+      if (settings.settingsJson !== undefined) payload.settings_json = settings.settingsJson;
+
+      const { error } = await this.client
+        .from('eureka_user_settings')
+        .upsert(payload, { onConflict: 'user_id' });
+
+      if (error) console.warn('[EUREKA CLOUD] Error saveUserSettings:', error);
+    } catch (err) {
+      console.warn('[EUREKA CLOUD] Error saveUserSettings:', err);
+    }
+  }
+
+  public async fetchUserSettings(): Promise<{
+    theme?: string;
+    soundEnabled?: boolean;
+    hapticsEnabled?: boolean;
+    dailyReviewGoal?: number;
+    settingsJson?: any;
+  } | null> {
+    const activeUserId = this.getUserId();
+    try {
+      const { data, error } = await this.client
+        .from('eureka_user_settings')
+        .select('*')
+        .eq('user_id', activeUserId)
+        .limit(1);
+
+      if (error || !data || data.length === 0) return null;
+      const row = data[0];
+      return {
+        theme: row.theme,
+        soundEnabled: row.sound_enabled,
+        hapticsEnabled: row.haptics_enabled,
+        dailyReviewGoal: row.daily_review_goal,
+        settingsJson: row.settings_json
+      };
+    } catch {
+      return null;
     }
   }
 }

@@ -761,18 +761,27 @@ export class UltraFastMindMap {
       }
     } catch {}
 
-    // 2. Fallback a Preferences de Capacitor si localStorage no tenía datos
+    // 2. Fallback a Preferences de Capacitor o activeStudyService si localStorage no tenía datos
     if (!mapData || mapData === this.config.initialData) {
-      try {
-        const saved = await Preferences.get({ key: this.config.storageKey! });
-        if (saved.value) {
-          const parsed = JSON.parse(saved.value);
-          if (parsed && (parsed.root || parsed.data)) {
-            mapData = parsed;
-          }
+      if (this.config.topicId) {
+        const serviceData = activeStudyService.getMindMapState(this.config.topicId);
+        if (serviceData && (serviceData.root || serviceData.data)) {
+          mapData = serviceData;
         }
-      } catch {
-        // Fallback a datos iniciales
+      }
+
+      if (!mapData || mapData === this.config.initialData) {
+        try {
+          const saved = await Preferences.get({ key: this.config.storageKey! });
+          if (saved.value) {
+            const parsed = JSON.parse(saved.value);
+            if (parsed && (parsed.root || parsed.data)) {
+              mapData = parsed;
+            }
+          }
+        } catch {
+          // Fallback a datos iniciales
+        }
       }
     }
 
@@ -2447,6 +2456,9 @@ export class UltraFastMindMap {
         }));
       }
       Preferences.set({ key: this.config.storageKey!, value: json }).catch(() => {});
+      if (this.config.topicId) {
+        activeStudyService.saveMindMapState(this.config.topicId, data);
+      }
       const statusLabel = this.container.querySelector('#map-save-status');
       if (statusLabel) statusLabel.textContent = 'Guardado ✓';
       this.config.onSave?.(data);
@@ -2478,6 +2490,9 @@ export class UltraFastMindMap {
       const data = this.mindMapInstance.getData(false);
       const json = JSON.stringify(data);
       await Preferences.set({ key: this.config.storageKey!, value: json });
+      if (this.config.topicId) {
+        activeStudyService.saveMindMapState(this.config.topicId, data);
+      }
 
       const statusLabel = this.container.querySelector('#map-save-status');
       if (statusLabel) statusLabel.textContent = 'Guardado ✓';

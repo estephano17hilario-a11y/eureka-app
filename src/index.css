@@ -4880,24 +4880,26 @@ math-field.cupertino-mathfield-input:focus-within {
    MODO LECTURA ATÓMICA CENTRADA (EN EL MEDIO DE LA PANTALLA)
    ========================================================================== */
 .atomic-study-immersive-container {
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 80px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 24px 16px 48px 16px;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .atomic-reading-card {
-  max-width: 760px;
+  max-width: 980px;
   width: 100%;
-  background: rgba(14, 16, 26, 0.88);
+  min-height: 82vh;
+  background: rgba(14, 16, 26, 0.92);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.85), 0 0 45px rgba(56, 189, 248, 0.12);
-  border-radius: 24px;
-  padding: 36px 32px;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(56, 189, 248, 0.14);
+  border-radius: 26px;
+  padding: 36px 36px 40px 36px;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -4955,7 +4957,7 @@ math-field.cupertino-mathfield-input:focus-within {
 }
 
 .atomic-chunk-headline {
-  font-size: 1.7rem;
+  font-size: 1.75rem;
   font-weight: 900;
   color: #ffffff;
   line-height: 1.3;
@@ -4967,13 +4969,14 @@ math-field.cupertino-mathfield-input:focus-within {
   color: #f1f5f9;
   font-size: 1.08rem;
   line-height: 1.85;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 20px;
-  padding: 26px 28px;
-  max-height: 52vh;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  padding: 32px 34px;
+  min-height: 580px;
+  max-height: 80vh;
   overflow-y: auto;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.45);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -7952,5 +7955,225 @@ math-field::part(virtual-keyboard-toggle) {
   background: rgba(15, 23, 42, 0.4);
 }
 
+/* ==========================================================================
+   REACT & TYPESCRIPT LIVE SANDBOX & CODE VIEWER (EUREKA NOTEBOOKS & FEYNMAN)
+   ========================================================================== */
+.feynman-interactive-sandbox-widget {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
+.reading-sandbox-header {
+  user-select: none;
+}
 
+.btn-toggle-reading-sandbox {
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-toggle-reading-sandbox:hover {
+  color: #fff !important;
+  background: rgba(56, 189, 248, 0.15) !important;
+}
+
+.btn-toggle-reading-sandbox.active {
+  color: #fff !important;
+  background: rgba(56, 189, 248, 0.25) !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+.code-viewer-scrollable {
+  padding: 12px 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.code-line {
+  display: flex;
+  padding: 1px 16px;
+  min-height: 22px;
+  transition: background 0.12s ease;
+}
+
+.code-line:hover {
+  background: rgba(56, 189, 248, 0.06);
+}
+
+.code-gutter {
+  width: 42px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 18px;
+  color: #475569;
+  user-select: none;
+  font-size: 0.76rem;
+}
+
+.code-content {
+  flex: 1;
+  white-space: pre;
+  overflow-x: visible;
+  color: #cbd5e1;
+}
+
+/* Syntax Highlighting Tokens */
+.tok-keyword {
+  color: #f472b6;
+  font-weight: 600;
+}
+
+.tok-hook {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.tok-builtin {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.tok-tag {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.tok-string {
+  color: #4ade80;
+}
+
+.tok-comment {
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Modo Pantalla Completa Inmersivo */
+.feynman-interactive-sandbox-widget.reading-sandbox-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: none !important;
+}
+
+.feynman-interactive-sandbox-widget.reading-sandbox-fullscreen .reading-sandbox-main-layout {
+  flex: 1 !important;
+  height: calc(100vh - 54px) !important;
+}
+
+.feynman-interactive-sandbox-widget.reading-sandbox-fullscreen .reading-sandbox-live-box,
+.feynman-interactive-sandbox-widget.reading-sandbox-fullscreen .reading-sandbox-code-box {
+  height: 100% !important;
+}
+
+/* ==========================================================================
+   FEYNMAN LEVEL & FINAL EXAMS INTERACTIVE QUIZZES
+   ========================================================================== */
+
+.feynman-quiz-card {
+  background: var(--f-input-bg);
+  border: 1px solid var(--f-border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.feynman-quiz-card:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.feynman-quiz-q-num {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 2px 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.feynman-quiz-option {
+  width: 100%;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--f-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #e2e8f0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.feynman-quiz-option:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.feynman-quiz-option.correct {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: #10b981 !important;
+  color: #a7f3d0 !important;
+  font-weight: 700;
+}
+
+.feynman-quiz-option.incorrect {
+  background: rgba(244, 63, 94, 0.15) !important;
+  border-color: #f43f5e !important;
+  color: #fecdd3 !important;
+}
+
+.feynman-quiz-option:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.feynman-quiz-explanation {
+  margin-top: 6px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.feynman-quiz-explanation.correct-exp {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #d1fae5;
+}
+
+.feynman-quiz-explanation.incorrect-exp {
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  color: #ffe4e6;
+}
+
+.feynman-exam-score-pill {
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

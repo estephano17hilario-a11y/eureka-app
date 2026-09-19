@@ -7,6 +7,10 @@ import { dialogService } from '../services/dialog.service';
 import { openScientificFormulaAssistant } from './ScientificFormulaAssistant';
 import { nativeService } from '../services/native.service';
 import Sortable from 'sortablejs';
+import { openFeynmanDiagnosticModal } from './FeynmanDiagnosticModal';
+import { openFeynmanGuideViewerModal } from './FeynmanGuideViewerModal';
+import { feynmanLlmService } from '../services/feynman-llm.service';
+import { feynmanSandboxService } from '../services/feynman-sandbox.service';
 
 let activeStudyingTopicId: string | null = null;
 
@@ -50,6 +54,7 @@ export function getSubjectInfo(subjectName?: string) {
 export function renderActiveStudyDashboard(_selectedTopicId?: string): string {
   const allTopics = activeStudyService.getAllTopics();
   const userCoins = activeStudyService.getUserCoins();
+  const savedFeynmanGuides = feynmanLlmService.getSavedGuides();
 
   // Si el usuario está activamente en modo estudio de un cuaderno:
   if (activeStudyingTopicId) {
@@ -76,13 +81,54 @@ export function renderActiveStudyDashboard(_selectedTopicId?: string): string {
             Crea cuadernos para tus materias, organízalos con mapas mentales interactivos y aprende con lectura atómica y repaso espaciado.
           </p>
         </div>
-        <div class="notebooks-header-actions">
+        <div class="notebooks-header-actions" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <button class="figma-btn-study-large" id="btn-open-feynman-diagnostic" style="background:linear-gradient(135deg, #0284c7, #8b5cf6); border:none; padding:12px 20px; font-size:0.92rem; display:inline-flex; align-items:center; gap:8px; width:auto; box-shadow:0 4px 15px rgba(56,189,248,0.25); color:#fff; cursor:pointer;">
+            <span>🔬</span>
+            <span>Ruta Feynman IA</span>
+          </button>
           <button class="figma-btn-study-large" id="btn-create-study-topic" style="padding:12px 24px; font-size:0.92rem; display:inline-flex; align-items:center; gap:8px; width:auto;">
             <span>✨</span>
             <span>+ Nuevo Cuaderno</span>
           </button>
         </div>
       </div>
+
+      ${
+        savedFeynmanGuides.length > 0
+          ? `
+        <!-- SECCIÓN DE RUTAS FEYNMAN GUARDADAS -->
+        <div class="apple-glass-panel" style="padding: 14px 20px; margin-bottom: 16px; border-radius: 16px; border: 1px solid rgba(56,189,248,0.2); background: linear-gradient(135deg, rgba(56,189,248,0.06), rgba(168,85,247,0.06));">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.1rem;">🔬</span>
+              <h3 style="font-size: 0.92rem; font-weight: 800; color: #fff; margin: 0;">Rutas Feynman Personalizadas</h3>
+              <span style="font-size: 0.7rem; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 1px 8px; border-radius: 999px; font-weight: 700;">${savedFeynmanGuides.length}</span>
+            </div>
+            <button class="figma-btn-ghost" id="btn-new-feynman-banner" style="font-size: 0.78rem; padding: 4px 10px; color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); border-radius: 8px;">
+              + Nueva Ruta
+            </button>
+          </div>
+          <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin;">
+            ${savedFeynmanGuides
+              .map(
+                (g) => `
+              <div class="apple-glass-panel btn-open-saved-feynman" data-guide-id="${g.id}" style="min-width: 220px; max-width: 280px; padding: 10px 14px; border-radius: 12px; cursor: pointer; border: 1px solid var(--f-border); background: var(--f-input-bg); display: flex; flex-direction: column; justify-content: space-between; gap: 6px; transition: all 0.2s ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 0.85rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(g.topic)}</span>
+                  <span style="font-size: 0.68rem; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 1px 6px; border-radius: 999px;">${g.levelsCount}L</span>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--f-text-secondary);">
+                  ${new Date(g.createdAt).toLocaleDateString()} • Nivel actual ${g.formData.currentLevel}/5
+                </div>
+              </div>
+            `
+              )
+              .join('')}
+          </div>
+        </div>
+      `
+          : ''
+      }
 
       <!-- BARRA DE BÚSQUEDA Y FILTRO RÁPIDO DE CUADERNOS -->
       <div class="notebooks-search-bar-wrap apple-glass-panel">
@@ -337,9 +383,9 @@ function renderCenteredAtomicReadingScreen(
         <!-- Título del Átomo de Información -->
         <h2 class="atomic-chunk-headline">${escapeHtml(chunk.title)}</h2>
 
-        <!-- Contenido Fuente Central con KaTeX, Fórmulas Científicas y Markdown -->
+        <!-- Contenido Fuente Central con KaTeX, Fórmulas Científicas, Markdown y Simulador Interactivo en Vivo -->
         <div class="atomic-reading-content">
-          ${katexService.parseAndRender(chunk.sourceContent)}
+          ${feynmanSandboxService.renderContentWithSandboxes(chunk.sourceContent, chunk.title)}
         </div>
 
         <!-- Barra Inferior de Acciones Focalizadas -->
@@ -559,7 +605,7 @@ function renderConsolidatedScreen(
                   (c) => `
                 <div class="unlocked-chunk-item">
                   <h5 style="color:#fff; font-size:1rem; margin:0 0 6px 0;">${c.title}</h5>
-                  <div style="color:var(--f-text-secondary); font-size:0.9rem; line-height:1.5;">${katexService.parseAndRender(c.sourceContent)}</div>
+                  <div style="color:var(--f-text-secondary); font-size:0.9rem; line-height:1.5;">${feynmanSandboxService.renderContentWithSandboxes(c.sourceContent, c.title)}</div>
                 </div>
               `
                 )
@@ -704,6 +750,45 @@ export function bindActiveStudyDashboardEvents(
 
   container.querySelector('#btn-create-study-topic')?.addEventListener('click', handleOpenCreateModal);
   container.querySelector('#btn-empty-create-notebook')?.addEventListener('click', handleOpenCreateModal);
+
+  // 1.5 Lanzar Diagnóstico y Rutas Feynman
+  const handleOpenFeynmanDiagnostic = () => {
+    nativeService.triggerHaptics('medium');
+    openFeynmanDiagnosticModal({
+      onGenerated: (guide) => {
+        openFeynmanGuideViewerModal({
+          guide,
+          onOpenTopic: (topicId) => {
+            onSelectTopic(topicId);
+            onRefresh();
+          }
+        });
+        onRefresh();
+      }
+    });
+  };
+
+  container.querySelector('#btn-open-feynman-diagnostic')?.addEventListener('click', handleOpenFeynmanDiagnostic);
+  container.querySelector('#btn-new-feynman-banner')?.addEventListener('click', handleOpenFeynmanDiagnostic);
+
+  container.querySelectorAll<HTMLElement>('.btn-open-saved-feynman').forEach((card) => {
+    card.addEventListener('click', () => {
+      const gid = card.dataset.guideId;
+      if (gid) {
+        const guide = feynmanLlmService.getGuideById(gid);
+        if (guide) {
+          nativeService.triggerHaptics('light');
+          openFeynmanGuideViewerModal({
+            guide,
+            onOpenTopic: (topicId) => {
+              onSelectTopic(topicId);
+              onRefresh();
+            }
+          });
+        }
+      }
+    });
+  });
 
   // 2.1 Búsqueda y Filtro de Cuadernos en vivo
   const searchInput = container.querySelector('#input-search-notebooks') as HTMLInputElement | null;
