@@ -47,7 +47,6 @@ class ActiveStudyService {
   }
 
   public async setUser(userId: string): Promise<void> {
-    const prevId = this.currentUserId;
     const resolvedId = (!userId || userId === 'guest' || userId === 'default')
       ? eurekaSupabase.getUserId()
       : userId;
@@ -56,21 +55,14 @@ class ActiveStudyService {
       return;
     }
 
-    const hadGuestData = (prevId.startsWith('guest_') || prevId === 'default' || prevId === 'guest') && this.topics.size > 0;
-    const guestTopics = hadGuestData ? Array.from(this.topics.values()) : [];
-    const guestOutlines = hadGuestData ? new Map(this.outlineNodes) : new Map();
-    const guestMindMaps = hadGuestData ? new Map(this.mindMaps) : new Map();
-
     this.currentUserId = resolvedId;
-    this.loadFromStorage();
+    this.topics.clear();
+    this.outlineNodes.clear();
+    this.locks.clear();
+    this.mindMaps.clear();
+    this.userCoins = 150;
 
-    if (this.topics.size === 0 && hadGuestData && guestTopics.length > 0) {
-      guestTopics.forEach(t => this.topics.set(t.id, t));
-      guestOutlines.forEach((nodes, tid) => this.outlineNodes.set(tid, nodes));
-      guestMindMaps.forEach((mm, tid) => this.mindMaps.set(tid, mm));
-      this.saveToStorage();
-    }
-
+    await this.loadFromStorage();
     await this.syncWithCloud();
   }
 
@@ -101,17 +93,22 @@ class ActiveStudyService {
 
   private async loadFromStorage(): Promise<void> {
     try {
-      // 1. Carga síncrona inicial de caché rápida
-      let savedCoins = localStorage.getItem(this.getCoinsKey()) || localStorage.getItem(BASE_USER_COINS_KEY);
+      this.topics.clear();
+      this.outlineNodes.clear();
+      this.locks.clear();
+      this.mindMaps.clear();
+
+      // 1. Carga síncrona inicial de caché rápida scoped por usuario
+      const savedCoins = localStorage.getItem(this.getCoinsKey());
       this.userCoins = savedCoins !== null ? parseInt(savedCoins, 10) : 150;
 
-      let rawTopics = localStorage.getItem(this.getTopicsKey()) || localStorage.getItem(BASE_TOPICS_STORAGE_KEY);
+      const rawTopics = localStorage.getItem(this.getTopicsKey());
       if (rawTopics) {
         const parsed: ActiveStudyTopic[] = JSON.parse(rawTopics);
         parsed.forEach((t) => this.topics.set(t.id, t));
       }
 
-      let rawOutlines = localStorage.getItem(this.getOutlinesKey()) || localStorage.getItem(BASE_OUTLINES_STORAGE_KEY);
+      const rawOutlines = localStorage.getItem(this.getOutlinesKey());
       if (rawOutlines) {
         const parsed: Record<string, OutlineNode[]> = JSON.parse(rawOutlines);
         Object.entries(parsed).forEach(([topicId, nodes]) => {
@@ -119,7 +116,7 @@ class ActiveStudyService {
         });
       }
 
-      let rawLocks = localStorage.getItem(this.getLocksKey()) || localStorage.getItem(BASE_LOCKS_STORAGE_KEY);
+      const rawLocks = localStorage.getItem(this.getLocksKey());
       if (rawLocks) {
         const parsed: Record<string, TopicAccessLock> = JSON.parse(rawLocks);
         Object.entries(parsed).forEach(([topicId, lock]) => {
@@ -127,7 +124,7 @@ class ActiveStudyService {
         });
       }
 
-      let rawMindMaps = localStorage.getItem(this.getMindMapsKey()) || localStorage.getItem(BASE_MINDMAPS_STORAGE_KEY);
+      const rawMindMaps = localStorage.getItem(this.getMindMapsKey());
       if (rawMindMaps) {
         const parsed: Record<string, any> = JSON.parse(rawMindMaps);
         Object.entries(parsed).forEach(([topicId, data]) => {
@@ -143,16 +140,16 @@ class ActiveStudyService {
         Preferences.get({ key: this.getMindMapsKey() }).catch(() => ({ value: null }))
       ]);
 
+      if (prefTopics?.value) {
+        const parsed: ActiveStudyTopic[] = JSON.parse(prefTopics.value);
+        parsed.forEach((t) => this.topics.set(t.id, t));
+      }
+
       if (prefOutlines?.value) {
         const parsed: Record<string, OutlineNode[]> = JSON.parse(prefOutlines.value);
         Object.entries(parsed).forEach(([topicId, nodes]) => {
           this.outlineNodes.set(topicId, nodes);
         });
-      }
-
-      if (prefTopics?.value) {
-        const parsed: ActiveStudyTopic[] = JSON.parse(prefTopics.value);
-        parsed.forEach((t) => this.topics.set(t.id, t));
       }
 
       if (prefCoins?.value) {
@@ -178,7 +175,7 @@ class ActiveStudyService {
             c.sourceContent = c.sourceContent
               .replace(/\*\*Examen de Nivel \(Evaluación Formativa\):\*\*[\s\S]*?(?=(?:```|###|$))/g, '')
               .replace(/\*\*Quizz de Maestría:\*\*[\s\S]*?(?=(?:```|###|$))/g, '')
-              .replace(/\*Pregunta \d+.*?\*[\s\S]*?(?=(?:\*Pregunta|```|###|$))/g, '')
+              .replace(/\*Respuesta:\*[\s\S]*?(?=(?:```|###|$))/g, '')
               .trim();
             needsSave = true;
           }
@@ -201,14 +198,12 @@ class ActiveStudyService {
       const locksKey = this.getLocksKey();
       const mindMapsKey = this.getMindMapsKey();
 
-      // Escritura síncrona en caché de memoria/localStorage
+      // Escritura síncrona exclusiva en almacenamiento scoped del usuario
       localStorage.setItem(coinsKey, this.userCoins.toString());
-      localStorage.setItem(BASE_USER_COINS_KEY, this.userCoins.toString());
 
       const topicsArray = Array.from(this.topics.values());
       const topicsJson = JSON.stringify(topicsArray);
       localStorage.setItem(topicsKey, topicsJson);
-      localStorage.setItem(BASE_TOPICS_STORAGE_KEY, topicsJson);
 
       const outlinesObj: Record<string, OutlineNode[]> = {};
       this.outlineNodes.forEach((nodes, topicId) => {
@@ -216,7 +211,6 @@ class ActiveStudyService {
       });
       const outlinesJson = JSON.stringify(outlinesObj);
       localStorage.setItem(outlinesKey, outlinesJson);
-      localStorage.setItem(BASE_OUTLINES_STORAGE_KEY, outlinesJson);
 
       const locksObj: Record<string, TopicAccessLock> = {};
       this.locks.forEach((lock, topicId) => {
@@ -224,7 +218,6 @@ class ActiveStudyService {
       });
       const locksJson = JSON.stringify(locksObj);
       localStorage.setItem(locksKey, locksJson);
-      localStorage.setItem(BASE_LOCKS_STORAGE_KEY, locksJson);
 
       const mindMapsObj: Record<string, any> = {};
       this.mindMaps.forEach((data, topicId) => {
@@ -232,9 +225,8 @@ class ActiveStudyService {
       });
       const mindMapsJson = JSON.stringify(mindMapsObj);
       localStorage.setItem(mindMapsKey, mindMapsJson);
-      localStorage.setItem(BASE_MINDMAPS_STORAGE_KEY, mindMapsJson);
 
-      // Directiva 5: Persistencia reactiva en almacenamiento local de Capacitor
+      // Persistencia reactiva en Capacitor Preferences
       Preferences.set({ key: coinsKey, value: this.userCoins.toString() }).catch(() => {});
       Preferences.set({ key: topicsKey, value: topicsJson }).catch(() => {});
       Preferences.set({ key: outlinesKey, value: outlinesJson }).catch(() => {});

@@ -26,8 +26,20 @@ export class ThemeService {
   private static instance: ThemeService;
   private currentTheme: AppCustomizationTheme;
 
+  private getThemeStorageKey(): string {
+    const uid = eurekaSupabase.getUserId();
+    return `${STORAGE_KEY}_${uid}`;
+  }
+
   private constructor() {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    this.currentTheme = { ...DEFAULT_THEME };
+    this.loadFromStorage();
+    this.applyTheme();
+    this.syncWithCloud();
+  }
+
+  private loadFromStorage(): void {
+    const saved = localStorage.getItem(this.getThemeStorageKey()) || localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         this.currentTheme = { ...DEFAULT_THEME, ...JSON.parse(saved) };
@@ -37,8 +49,6 @@ export class ThemeService {
     } else {
       this.currentTheme = { ...DEFAULT_THEME };
     }
-    this.applyTheme();
-    this.syncWithCloud();
   }
 
   public static getInstance(): ThemeService {
@@ -54,7 +64,7 @@ export class ThemeService {
 
   public setTheme(partial: Partial<AppCustomizationTheme>): void {
     this.currentTheme = { ...this.currentTheme, ...partial };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.currentTheme));
+    localStorage.setItem(this.getThemeStorageKey(), JSON.stringify(this.currentTheme));
     this.applyTheme();
 
     eurekaSupabase.saveUserSettings({
@@ -65,10 +75,11 @@ export class ThemeService {
 
   public async syncWithCloud(): Promise<void> {
     try {
+      this.loadFromStorage();
       const userSettings = await eurekaSupabase.fetchUserSettings();
       if (userSettings?.settingsJson?.customizationTheme) {
         this.currentTheme = { ...DEFAULT_THEME, ...userSettings.settingsJson.customizationTheme };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.currentTheme));
+        localStorage.setItem(this.getThemeStorageKey(), JSON.stringify(this.currentTheme));
         this.applyTheme();
       }
     } catch {}

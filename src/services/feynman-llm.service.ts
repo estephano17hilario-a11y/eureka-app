@@ -30,6 +30,8 @@ export class FeynmanLlmService {
     return FeynmanLlmService.instance;
   }
 
+  private cloudSyncTimer: any = null;
+
   public async setUser(userId: string): Promise<void> {
     const resolvedId = (!userId || userId === 'guest' || userId === 'default')
       ? eurekaSupabase.getUserId()
@@ -40,7 +42,8 @@ export class FeynmanLlmService {
     }
 
     this.currentUserId = resolvedId;
-    this.loadFromStorage();
+    this.savedGuides.clear();
+    await this.loadFromStorage();
     await this.syncWithCloud();
   }
 
@@ -51,7 +54,8 @@ export class FeynmanLlmService {
 
   private async loadFromStorage(): Promise<void> {
     try {
-      const local = localStorage.getItem(this.getGuidesKey()) || localStorage.getItem(BASE_FEYNMAN_STORAGE_KEY);
+      this.savedGuides.clear();
+      const local = localStorage.getItem(this.getGuidesKey());
       if (local) {
         const parsed: FeynmanStudyGuide[] = JSON.parse(local);
         parsed.forEach((g) => this.savedGuides.set(g.id, g));
@@ -72,11 +76,13 @@ export class FeynmanLlmService {
       const arr = Array.from(this.savedGuides.values());
       const str = JSON.stringify(arr);
       localStorage.setItem(this.getGuidesKey(), str);
-      localStorage.setItem(BASE_FEYNMAN_STORAGE_KEY, str);
       await Preferences.set({ key: this.getGuidesKey(), value: str }).catch(() => {});
 
-      // Sincronizar en la nube
-      this.syncCloudState();
+      // Sincronizar en la nube con debounce de 1000ms
+      if (this.cloudSyncTimer) clearTimeout(this.cloudSyncTimer);
+      this.cloudSyncTimer = setTimeout(() => {
+        this.syncCloudState();
+      }, 1000);
     } catch (err) {
       console.warn('[FeynmanLlmService] Error saving guides:', err);
     }
@@ -85,11 +91,8 @@ export class FeynmanLlmService {
   private async syncCloudState(): Promise<void> {
     try {
       const arr = Array.from(this.savedGuides.values());
-      const userSettings = await eurekaSupabase.fetchUserSettings();
-      const currentJson = userSettings?.settingsJson || {};
       await eurekaSupabase.saveUserSettings({
         settingsJson: {
-          ...currentJson,
           feynmanGuides: arr,
           updatedAt: Date.now()
         }

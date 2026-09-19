@@ -348,19 +348,21 @@ class EurekaSupabaseService {
   }
 
   public async deleteDeckFromCloud(deckId: string): Promise<void> {
+    const activeUserId = this.getUserId();
     try {
-      await this.client.from('eureka_decks').delete().eq('id', deckId);
-      await this.client.from('eureka_flashcards').delete().eq('deck_id', deckId);
+      await this.client.from('eureka_decks').delete().eq('id', deckId).eq('user_id', activeUserId);
+      await this.client.from('eureka_flashcards').delete().eq('deck_id', deckId).eq('user_id', activeUserId);
     } catch (err) {
       console.warn('[EUREKA CLOUD] Error deleteDeckFromCloud:', err);
     }
   }
 
   public async deleteDecksFromCloud(deckIds: string[]): Promise<void> {
+    const activeUserId = this.getUserId();
     try {
       if (!deckIds.length) return;
-      await this.client.from('eureka_decks').delete().in('id', deckIds);
-      await this.client.from('eureka_flashcards').delete().in('deck_id', deckIds);
+      await this.client.from('eureka_decks').delete().in('id', deckIds).eq('user_id', activeUserId);
+      await this.client.from('eureka_flashcards').delete().in('deck_id', deckIds).eq('user_id', activeUserId);
     } catch (err) {
       console.warn('[EUREKA CLOUD] Error deleteDecksFromCloud:', err);
     }
@@ -445,17 +447,19 @@ class EurekaSupabaseService {
   }
 
   public async deleteCardFromCloud(cardId: string): Promise<void> {
+    const activeUserId = this.getUserId();
     try {
-      await this.client.from('eureka_flashcards').delete().eq('id', cardId);
+      await this.client.from('eureka_flashcards').delete().eq('id', cardId).eq('user_id', activeUserId);
     } catch (err) {
       console.warn('[EUREKA CLOUD] Error deleteCardFromCloud:', err);
     }
   }
 
   public async deleteCardsFromCloud(cardIds: string[]): Promise<void> {
+    const activeUserId = this.getUserId();
     try {
       if (!cardIds.length) return;
-      await this.client.from('eureka_flashcards').delete().in('id', cardIds);
+      await this.client.from('eureka_flashcards').delete().in('id', cardIds).eq('user_id', activeUserId);
     } catch (err) {
       console.warn('[EUREKA CLOUD] Error deleteCardsFromCloud:', err);
     }
@@ -598,6 +602,14 @@ class EurekaSupabaseService {
   }): Promise<void> {
     const activeUserId = this.getUserId();
     try {
+      let mergedSettingsJson = settings.settingsJson;
+      if (settings.settingsJson) {
+        const existing = await this.fetchUserSettings();
+        if (existing?.settingsJson && typeof existing.settingsJson === 'object') {
+          mergedSettingsJson = { ...existing.settingsJson, ...settings.settingsJson };
+        }
+      }
+
       const payload: any = {
         user_id: activeUserId,
         updated_at: new Date().toISOString()
@@ -606,7 +618,7 @@ class EurekaSupabaseService {
       if (settings.soundEnabled !== undefined) payload.sound_enabled = settings.soundEnabled;
       if (settings.hapticsEnabled !== undefined) payload.haptics_enabled = settings.hapticsEnabled;
       if (settings.dailyReviewGoal !== undefined) payload.daily_review_goal = settings.dailyReviewGoal;
-      if (settings.settingsJson !== undefined) payload.settings_json = settings.settingsJson;
+      if (mergedSettingsJson !== undefined) payload.settings_json = mergedSettingsJson;
 
       const { error } = await this.client
         .from('eureka_user_settings')

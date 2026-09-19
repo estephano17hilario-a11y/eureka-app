@@ -160,21 +160,35 @@ class EurekaFigmaApp {
 
   private openUserAccountMenu(): void {
     const user = eurekaSupabase.getCurrentUser();
+    const isGuest = !user || user.email === 'guest@eureka.local';
     const displayName = user?.username || 'Invitado (Local)';
-    const email = user?.email || 'Modo sin cuenta';
+    const email = isGuest ? 'Modo Invitado (Datos aislados en este dispositivo)' : user.email;
 
-    dialogService.showConfirm({
-      title: `👤 ${displayName}`,
-      message: `Correo: ${email}\nBase de datos: Aislada y sincronizada en la nube.\n\n¿Qué acción deseas realizar?`,
-      confirmText: '🚪 Cerrar Sesión',
-      cancelText: 'Cerrar',
-      isDanger: true,
-      onConfirm: async () => {
-        await eurekaSupabase.signOut();
-        this.showToast('Sesión cerrada correctamente');
-        this.promptAuth(false);
-      }
-    });
+    if (isGuest) {
+      dialogService.showConfirm({
+        title: `👤 ${displayName}`,
+        message: `Actualmente estás en Modo Invitado.\n\nTus mazos y datos están guardados en tu espacio local privado. Si deseas sincronizar entre dispositivos y respaldar en la nube, inicia sesión o crea una cuenta.`,
+        confirmText: '🔑 Iniciar Sesión / Registrarse',
+        cancelText: 'Continuar como Invitado',
+        isDanger: false,
+        onConfirm: () => {
+          this.promptAuth(true);
+        }
+      });
+    } else {
+      dialogService.showConfirm({
+        title: `👤 ${displayName}`,
+        message: `Cuenta: ${email}\nBase de datos: Aislada y sincronizada en Supabase Cloud.\n\n¿Deseas cerrar tu sesión actual?`,
+        confirmText: '🚪 Cerrar Sesión',
+        cancelText: 'Cancelar',
+        isDanger: true,
+        onConfirm: async () => {
+          await eurekaSupabase.signOut();
+          this.showToast('Sesión cerrada. Espacio de datos reiniciado a invitado.');
+          this.promptAuth(true);
+        }
+      });
+    }
   }
 
   private startStudy(deckId: string, specificCardId?: string): void {

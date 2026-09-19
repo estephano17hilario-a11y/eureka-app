@@ -23,8 +23,9 @@ export class DeckService {
     return DeckService.instance;
   }
 
+  private cloudSyncTimer: any = null;
+
   public async setUser(userId: string): Promise<void> {
-    const previousUserId = this.currentUserId;
     const resolvedId = (!userId || userId === 'guest' || userId === 'default')
       ? eurekaSupabase.getUserId()
       : userId;
@@ -33,21 +34,10 @@ export class DeckService {
       return;
     }
 
-    // Si el usuario previo era un invitado y tenía datos creados, migrarlos si el nuevo usuario no tiene datos
-    const hadGuestData = (previousUserId.startsWith('guest_') || previousUserId === 'default' || previousUserId === 'guest') && this.decks.length > 0;
-    const guestDecks = hadGuestData ? [...this.decks] : [];
-    const guestCards = hadGuestData ? [...this.cards] : [];
-
     this.currentUserId = resolvedId;
+    this.decks = [];
+    this.cards = [];
     this.loadFromStorage();
-
-    // Si el usuario no tiene mazos locales pero venía de crear datos como invitado, migrar
-    if (this.decks.length === 0 && hadGuestData && guestDecks.length > 0) {
-      this.decks = guestDecks;
-      this.cards = guestCards;
-      this.saveToStorage();
-    }
-
     await this.syncWithCloud();
     this.notify();
   }
@@ -76,53 +66,11 @@ export class DeckService {
 
   private loadFromStorage(): void {
     try {
-      let storedDecks = localStorage.getItem(this.getDecksStorageKey());
-      let storedCards = localStorage.getItem(this.getCardsStorageKey());
+      this.decks = [];
+      this.cards = [];
 
-      // Búsqueda y migración automática en claves de respaldo para garantizar cero pérdidas tras recarga
-      if (!storedDecks || storedDecks === '[]') {
-        const fallbackKeys = [
-          'eureka_decks_user_default',
-          'eureka_decks_user_guest',
-          'eureka_user_decks_v1'
-        ];
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (k && k.startsWith('eureka_decks_user_') && k !== this.getDecksStorageKey()) {
-            fallbackKeys.push(k);
-          }
-        }
-        for (const key of fallbackKeys) {
-          const fallbackData = localStorage.getItem(key);
-          if (fallbackData && fallbackData !== '[]') {
-            storedDecks = fallbackData;
-            localStorage.setItem(this.getDecksStorageKey(), fallbackData);
-            break;
-          }
-        }
-      }
-
-      if (!storedCards || storedCards === '[]') {
-        const fallbackCardKeys = [
-          'eureka_cards_user_default',
-          'eureka_cards_user_guest',
-          'eureka_user_cards_v1'
-        ];
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (k && k.startsWith('eureka_cards_user_') && k !== this.getCardsStorageKey()) {
-            fallbackCardKeys.push(k);
-          }
-        }
-        for (const key of fallbackCardKeys) {
-          const fallbackData = localStorage.getItem(key);
-          if (fallbackData && fallbackData !== '[]') {
-            storedCards = fallbackData;
-            localStorage.setItem(this.getCardsStorageKey(), fallbackData);
-            break;
-          }
-        }
-      }
+      const storedDecks = localStorage.getItem(this.getDecksStorageKey());
+      const storedCards = localStorage.getItem(this.getCardsStorageKey());
 
       if (storedDecks) {
         this.decks = JSON.parse(storedDecks);
@@ -144,8 +92,9 @@ export class DeckService {
         this.cards = JSON.parse(storedCards);
       }
 
-      // Si tras la búsqueda sigue vacío, cargar los mazos iniciales por defecto
-      if (this.decks.length === 0) {
+      // Si es un usuario invitado nuevo sin datos, inicializar con mazos demo
+      const isGuest = !this.currentUserId || this.currentUserId.startsWith('guest_') || this.currentUserId === 'default';
+      if (this.decks.length === 0 && isGuest) {
         const initial = getInitialDemoDecks();
         this.decks = initial.decks;
         this.cards = initial.cards;
@@ -161,9 +110,12 @@ export class DeckService {
       localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
       localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
       
-      // Sincronización a Supabase en segundo plano sin bloquear
-      eurekaSupabase.syncDecks(this.decks);
-      eurekaSupabase.syncCards(this.cards);
+      // Sincronización a Supabase con debounce de 600ms (coste mínimo de peticiones y latencia 0 local)
+      if (this.cloudSyncTimer) clearTimeout(this.cloudSyncTimer);
+      this.cloudSyncTimer = setTimeout(() => {
+        eurekaSupabase.syncDecks(this.decks);
+        eurekaSupabase.syncCards(this.cards);
+      }, 600);
     } catch (err) {
       console.warn('Error guardando en almacenamiento:', err);
     }
