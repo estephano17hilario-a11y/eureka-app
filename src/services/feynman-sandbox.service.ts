@@ -671,6 +671,8 @@ export class FeynmanSandboxService {
           <div class="reading-sandbox-live-box reading-sandbox-output-box" style="width: 100%; height: 580px; overflow: hidden; background: #030712; display: block;">
             <iframe 
               src="${dataUrl}" 
+              sandbox="allow-scripts allow-modals allow-forms allow-popups"
+              loading="lazy"
               tabindex="0"
               style="width: 100%; height: 100%; border: none; background: transparent; display: block;"
             ></iframe>

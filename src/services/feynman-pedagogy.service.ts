@@ -369,6 +369,27 @@ Toda la ruta pedagógica debe seguir una cadena constructiva acumulativa y orgá
 - CADA NIVEL PRINCIPAL DEBE CONTENER OBLIGATORIAMAMENTE ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a Subnivel X.6, X.7, X.8, X.9 o X.10). La IA decide la cantidad exacta dentro del intervalo [6 - 10] según la complejidad del tema para garantizar que ningún concepto quede saturado o acoplado de información.
 
 ================================================================================
+🎯 CALIBRACIÓN ESTRICTA DEL ALCANCE Y PROFUNDIDAD COGNITIVA SEGÚN EL OBJETIVO 🎯
+================================================================================
+${
+  form.targetGoal === 'general'
+    ? `🚨 OBJETIVO SELECCIONADO: CONOCEDOR GENERAL (EXACTAMENTE 10 NIVELES DE 0 A 100) 🚨
+- PROPÓSITO: Comprensión global, lúcida, intuitiva y funcional de "${topic}" desde sus primeros principios más puros.
+- ⛔ PROHIBICIÓN ESTRICTA DE TEMAS AVANZADOS O HIPER-ESPECIALIZADOS:
+  * Si el estudiante pidió ser CONOCEDOR GENERAL, ESTÁ TERMINANTEMENTE PROHIBIDO TOCAR TEMAS AVANZADOS, DE POSTGRADO O DE FRONTERA HIPER-ESPECIALIZADA.
+  * PROHIBIDO incluir formalismos matemáticos inalcanzables, jerga doctoral de nicho, optimizaciones marginales rebuscadas o complejidades teóricas que abrumen al estudiante general.
+  * La ruta debe arrancar en el Nivel 1 con analogías cotidianas y culminar en el Nivel 10 en la visión global completa y comprensible del tema.
+  * El Nivel 10 es el TECHO DE LA MAESTRÍA GENERAL: una persona plenamente culta, lúcida y funcional que domina los principios rectores y la arquitectura total sin ahogarse en detalles de nicho de postgrado.`
+    : form.targetGoal === 'adentrado'
+    ? `⚡ OBJETIVO SELECCIONADO: CONOCEDOR ADENTRADO (EXACTAMENTE 15 NIVELES) ⚡
+- PROPÓSITO: Dominio fundacional e intermedio-avanzado con aplicación práctica y resolución de problemas.
+- ALCANCE: Comienza en los axiomas básicos (Niveles 1 al 5), consolida el marco conceptual (Niveles 6 al 10) y profundiza en los Niveles 11 al 15 en implementación aplicada, trade-offs técnicos y casos reales del mundo profesional.`
+    : `💎 OBJETIVO SELECCIONADO: CONOCEDOR EXIGENTE ESPECIALIZADO (EXACTAMENTE 20 NIVELES) 💎
+- PROPÓSITO: Rigor absoluto, análisis de frontera y dominio total del estado del arte de "${topic}".
+- ALCANCE: Construye desde primeros principios (Niveles 1 al 7), consolida la aplicación avanzada (Niveles 8 al 14) y llega en los Niveles 15 al 20 hasta la frontera de la disciplina, casos límite extremos, arquitectura avanzada y controversias del estado del arte.`
+}
+
+================================================================================
 🚨 DIRECTRICES ESPECÍFICAS PARA EL DOMINIO "${subjectProfile.name.toUpperCase()}" 🚨
 ================================================================================
 1. MARCO CONCEPTUAL Y VOCABULARIO:
@@ -571,6 +592,15 @@ export function App() {
 ================================================================================
 🚨 DIRECTRICES INVIOLABLES DE APRENDIZAJE STEP-BY-STEP Y CALIDAD PARA "${form.topic.trim()}" 🚨
 ================================================================================
+0. 🎯 CALIBRACIÓN ESTRICTA DEL ALCANCE SEGÚN EL OBJETIVO:
+${
+  form.targetGoal === 'general'
+    ? '   - 🚨 META "CONOCEDOR GENERAL" (10 NIVELES): PROHIBICIÓN ESTRICTA DE TEMAS AVANZADOS O DE POSTGRADO. El estudiante busca entender de 0 a 100 de forma intuitiva, completa y sinérgica. NO incluyas temas de frontera, casos teóricos marginales de nicho ni formalismos matemáticos inaccesibles. El Nivel 10 es el TECHO DE LA MAESTRÍA GENERAL: comprensión lúcida y global de los principios rectores sin sobrecarga conceptual.'
+    : form.targetGoal === 'adentrado'
+    ? '   - ⚡ META "CONOCEDOR ADENTRADO" (15 NIVELES): Progresa desde las bases hasta nivel intermedio-avanzado y aplicaciones prácticas en proyectos y resolución de problemas reales.'
+    : '   - 💎 META "CONOCEDOR ESPECIALIZADO" (20 NIVELES): Rigor máximo, llegando hasta la frontera del estado del arte, arquitectura profunda y casos límite extremos.'
+}
+
 1. VERACIDAD, MÁXIMO RESPALDO Y ESTADO DEL ARTE:
    - Todo concepto, axioma y explicación debe contar con el más riguroso respaldo científico/doctrinal y reflejar la actualidad del estado del arte. Cero datos desactualizados o conjeturas no fundamentadas.
 
@@ -627,6 +657,13 @@ ${userPrompt}
 🚨 RECORDATORIO FINAL: VERACIDAD, STEP-BY-STEP, CERO ACOPLAMIENTO, CÓDIGO LÚDICO Y ORDEN FEYNMAN 🚨
 ================================================================================
 - TEMA EXCLUSIVO: "${form.topic.trim()}" (Materia: ${subjectProfile.name} • Nivel actual: ${form.currentLevel}/5).
+- CALIBRACIÓN DEL ALCANCE: ${
+  form.targetGoal === 'general'
+    ? 'Conocedor General (10 Niveles): ESTRICTAMENTE PROHIBIDO TOCAR TEMAS AVANZADOS O DE POSTGRADO. De 0 a 100 en maestría general y visión global sin sobrecarga conceptual.'
+    : form.targetGoal === 'adentrado'
+    ? 'Conocedor Adentrado (15 Niveles): Desde los fundamentos hasta aplicaciones prácticas intermedias-avanzadas.'
+    : 'Conocedor Especializado (20 Niveles): Máximo rigor hasta la frontera y casos límite del estado del arte.'
+}
 - VERACIDAD Y ESTADO DEL ARTE: Máximo respaldo factual, precisión conceptual y conocimiento actualizado.
 - FILOSOFÍA STEP-BY-STEP: Cada subnivel se apoya y construye directamente sobre el anterior (1.1 base -> 1.2 -> 1.3 sin saltos).
 - PRESENTACIÓN DEL NIVEL: Define el título del nivel e incluye "- **Propósito del Nivel:** [Qué se busca entender de ahí]".
@@ -639,6 +676,42 @@ ${userPrompt}
 - 📝 CADA NIVEL DEBE INCLUIR SU EXAMEN FORMATIVO (## 5. Examen de Nivel con 3 a 5 preguntas de selección múltiple explicadas).
 - 🎓 EXAMEN FINAL DEL CUADERNO: Quizz de 10 preguntas y Mega-Simulador Evaluador de +1000 líneas.
 - COMIENZA DIRECTAMENTE CON: "# Nivel 1:"`;
+  }
+
+  /**
+   * Valida la correspondencia entre los niveles de la guía y el objetivo pedagógico del estudiante.
+   */
+  public validateGuideScope(
+    levels: FeynmanLevel[],
+    targetGoal?: FeynmanTargetGoal
+  ): { isValid: boolean; expectedCount: number; actualCount: number; message: string } {
+    const expectedCount = this.getTargetLevelsCount(targetGoal || 'general');
+    const actualCount = levels.length;
+
+    if (targetGoal === 'general' && actualCount > 10) {
+      return {
+        isValid: false,
+        expectedCount,
+        actualCount,
+        message: `El objetivo solicitado era "Conocedor General" (10 niveles), pero se detectaron ${actualCount} niveles. Se verificará que no se aborden temas de postgrado innecesarios.`
+      };
+    }
+
+    if (actualCount < expectedCount) {
+      return {
+        isValid: false,
+        expectedCount,
+        actualCount,
+        message: `Se esperaban ${expectedCount} niveles para el objetivo seleccionado, pero el Markdown entregó ${actualCount} niveles.`
+      };
+    }
+
+    return {
+      isValid: true,
+      expectedCount,
+      actualCount,
+      message: `Ruta pedagógica calibrada perfectamente con ${actualCount} niveles según el objetivo.`
+    };
   }
 
   /**

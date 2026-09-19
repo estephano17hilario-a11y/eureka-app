@@ -75,7 +75,25 @@ export class FeynmanLlmService {
     try {
       const arr = Array.from(this.savedGuides.values());
       const str = JSON.stringify(arr);
-      localStorage.setItem(this.getGuidesKey(), str);
+      try {
+        localStorage.setItem(this.getGuidesKey(), str);
+      } catch (storageErr: any) {
+        if (storageErr?.name === 'QuotaExceededError' || storageErr?.code === 22) {
+          console.warn('[FeynmanLlmService] LocalStorage quota exceeded, preserving recent guides and pruning older raw payloads...');
+          // Guardar las 10 guías más recientes y aligerar el payload de las antiguas
+          const pruned = arr.slice(-10).map((g, idx) => {
+            if (idx < 5) {
+              return { ...g, markdown: '' };
+            }
+            return g;
+          });
+          try {
+            localStorage.setItem(this.getGuidesKey(), JSON.stringify(pruned));
+          } catch (secondaryErr) {
+            console.error('[FeynmanLlmService] Fallback localStorage storage failed:', secondaryErr);
+          }
+        }
+      }
       await Preferences.set({ key: this.getGuidesKey(), value: str }).catch(() => {});
 
       // Sincronizar en la nube con debounce de 1000ms
@@ -179,6 +197,11 @@ export class FeynmanLlmService {
     const levels = feynmanPedagogyService.parseFeynmanMarkdown(rawMarkdown, detectedTopic, formFallback?.subject);
     if (levels.length === 0) {
       throw new Error('No se detectaron niveles válidos con formato "# Nivel X:" en el texto Markdown.');
+    }
+
+    const scopeCheck = feynmanPedagogyService.validateGuideScope(levels, formFallback?.targetGoal);
+    if (!scopeCheck.isValid) {
+      console.warn('[FeynmanLlmService] Validación de alcance de niveles:', scopeCheck.message);
     }
 
     const finalExam = feynmanPedagogyService.parseFinalExam(rawMarkdown);

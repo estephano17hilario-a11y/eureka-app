@@ -8177,3 +8177,135 @@ math-field::part(virtual-keyboard-toggle) {
   align-items: center;
   gap: 6px;
 }
+
+/* ==========================================================================
+   EUREKA 60 FPS ULTRA-RESPONSIVE & ACCESSIBILITY SUITE
+   Full Mobile (320px-480px), Tablet, Foldable & Desktop Adaptive System
+   ========================================================================== */
+
+/* 1. Global Performance & Smooth Hardware Acceleration */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body, #app {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Hardware accelerated panels for buttery 60 FPS */
+.apple-glass-panel,
+.figma-modal-backdrop,
+.modal-container,
+.feynman-glass-card,
+.feynman-level-box,
+.feynman-goal-box,
+.reading-sandbox-main-layout {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* 2. Safe Area Insets for Modern Mobile Notches & Gesture Bars */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* 3. Mobile Adaptive Rules (Phone Screens <= 640px) */
+@media (max-width: 640px) {
+  /* Touch target sizes >= 40px for ergonomics */
+  button,
+  .figma-btn-ghost,
+  .figma-btn-blue-pill,
+  .btn-preset-chip,
+  .feynman-chip-btn,
+  .feynman-stepper-tab {
+    min-height: 40px;
+  }
+
+  /* Modals full-bleed on mobile with safe area padding */
+  .figma-modal-backdrop {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .modal-container.feynman-glass-card,
+  .modal-container.apple-glass-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    padding-top: max(var(--sat), 8px) !important;
+    padding-bottom: max(var(--sab), 12px) !important;
+  }
+
+  /* Compact padding in containers */
+  #feynman-stage-questionnaire,
+  #feynman-stage-prompt-import {
+    padding: 14px !important;
+    gap: 16px !important;
+  }
+
+  /* Wrap flex elements nicely */
+  .figma-modal-header {
+    padding: 12px 14px !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+
+  /* Prevent grid overflows on small 320px screens */
+  #feynman-subject-grid-picker {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 110px), 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  #feynman-current-level-selector {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 68px), 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  #feynman-target-goal-selector {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Sandbox widget mobile height */
+  .reading-sandbox-live-box,
+  .reading-sandbox-code-box {
+    height: 420px !important;
+  }
+
+  .reading-sandbox-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  /* Toasts on mobile */
+  .toast-notice {
+    width: 90% !important;
+    max-width: 360px !important;
+    text-align: center !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* 4. Tablet Landscape & Desktop Optimizations (>= 1024px) */
+@media (min-width: 1024px) {
+  .modal-container {
+    max-height: 90vh;
+  }
+}

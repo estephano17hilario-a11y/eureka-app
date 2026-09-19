@@ -24,6 +24,36 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
 
   const modalHtml = `
     <div class="modal-backdrop figma-modal-backdrop" id="modal-feynman-viewer-root" style="z-index: 11000; animation: fadeIn 0.2s ease-out; padding: 12px;">
+      <style>
+        @media (max-width: 640px) {
+          #modal-feynman-viewer-root {
+            padding: 0 !important;
+          }
+          #modal-feynman-viewer-root .modal-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 100% !important;
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            padding-top: max(var(--sat), 4px) !important;
+            padding-bottom: max(var(--sab), 4px) !important;
+          }
+          #modal-feynman-viewer-root .figma-modal-header {
+            padding: 12px 14px !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+          }
+          #modal-feynman-viewer-root #feynman-viewer-body {
+            padding: 14px !important;
+            gap: 14px !important;
+          }
+          #modal-feynman-viewer-root .reading-sandbox-live-box,
+          #modal-feynman-viewer-root .reading-sandbox-code-box {
+            height: 420px !important;
+          }
+        }
+      </style>
       <div class="modal-container apple-glass-panel" style="max-width: 1080px; width: 98%; height: 94vh; max-height: 94vh; display: flex; flex-direction: column; background: var(--f-surface); border: 1px solid var(--f-border); border-radius: var(--f-radius-lg); box-shadow: 0 30px 80px rgba(0,0,0,0.7); overflow: hidden; padding: 0;">
         
         <!-- CABECERA PRINCIPAL FIGMA -->
@@ -436,7 +466,7 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
           <span style="font-size: 0.75rem; color: var(--f-text-muted);">Microlearning atómico (2-4 oraciones)</span>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px;">
           ${lvl.sublevels.map((sub) => `
             <div style="background: var(--f-input-bg); border: 1px solid var(--f-border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 9px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -521,7 +551,7 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
           <h3 style="font-size: 1.05rem; font-weight: 800; color: #fff; margin: 0;">4. Nexo Causal</h3>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px;">
           <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; padding: 14px;">
             <div style="font-size: 0.78rem; font-weight: 800; color: #34d399; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
               <span>✅ Problema resuelto:</span>
