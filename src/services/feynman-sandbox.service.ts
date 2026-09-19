@@ -32,7 +32,10 @@ export class FeynmanSandboxService {
       .replace(/\n?```\s*$/i, '')
       .trim();
 
-    // 2. Transpilación primaria con Sucrase (TypeScript + JSX + ESM Imports/Exports)
+    // 2. Si el código no tiene export default / exports.default, detectar componente principal y auto-exportarlo
+    cleanTs = this.ensureComponentExport(cleanTs);
+
+    // 3. Transpilación primaria con Sucrase (TypeScript + JSX + ESM Imports/Exports)
     try {
       const result = transform(cleanTs, {
         transforms: ['typescript', 'jsx', 'imports'],
@@ -44,7 +47,7 @@ export class FeynmanSandboxService {
       console.warn('[FeynmanSandbox] Sucrase standard transpilation error, trying tolerant mode:', err?.message);
     }
 
-    // 3. Transpilación tolerante de rescate
+    // 4. Transpilación tolerante de rescate
     try {
       // Limpiar declaraciones problemáticas antes de segundo intento
       let sanitized = cleanTs
@@ -75,6 +78,31 @@ export class FeynmanSandboxService {
         return `console.error("Error de transpilación: " + ${JSON.stringify(finalErr?.message || 'Error desconocido')});`;
       }
     }
+  }
+
+  /**
+   * Garantiza que el código tenga un export default para que el harness lo monte automáticamente.
+   */
+  private ensureComponentExport(code: string): string {
+    if (
+      code.includes('export default') ||
+      code.includes('export {') ||
+      code.includes('exports.default') ||
+      code.includes('module.exports') ||
+      code.includes('ReactDOM.render') ||
+      code.includes('createRoot(')
+    ) {
+      return code;
+    }
+
+    // Buscar nombres de componentes candidatos (PascalCase: App, Simulator, etc.)
+    const funcMatch = code.match(/(?:function|const|let|var|class)\s+([A-Z][A-Za-z0-9_]*)/);
+    if (funcMatch && funcMatch[1]) {
+      const compName = funcMatch[1];
+      return `${code}\n\nexport default ${compName};`;
+    }
+
+    return code;
   }
 
   /**
@@ -282,6 +310,19 @@ export class FeynmanSandboxService {
       window.useRef = window.React.useRef;
       window.useReducer = window.React.useReducer;
       window.useContext = window.React.useContext;
+      window.createContext = window.React.createContext;
+      window.Fragment = window.React.Fragment;
+    }
+
+    // Auto-revelar canvas si el código obtiene su contexto 2D
+    if (typeof HTMLCanvasElement !== 'undefined') {
+      var _origGetContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function(type) {
+        if (this.id === 'canvas' || this.tagName.toLowerCase() === 'canvas') {
+          this.style.display = 'block';
+        }
+        return _origGetContext.apply(this, arguments);
+      };
     }
 
     // Lucide Icons Mock/Shim para React
@@ -299,12 +340,22 @@ export class FeynmanSandboxService {
       }
     });
 
+    // Fallback Proxy para imports externos no empaquetados
+    var safeFallbackObj = new Proxy(function() { return null; }, {
+      get: function(target, prop) {
+        if (prop === '__esModule') return true;
+        if (prop === 'default') return function(props) { return (props && props.children) ? props.children : null; };
+        return function(props) { return (props && props.children) ? props.children : null; };
+      }
+    });
+
     // Módulo require shim
     window.require = function(mod) {
       if (mod === 'react') return window.React;
       if (mod === 'react-dom' || mod === 'react-dom/client') return window.ReactDOM;
       if (mod === 'lucide-react' || (typeof mod === 'string' && mod.indexOf('lucide') !== -1)) return window.LucideIcons;
-      return window[mod] || {};
+      if (window[mod]) return window[mod];
+      return safeFallbackObj;
     };
     window.exports = {};
     window.module = { exports: window.exports };
@@ -463,7 +514,12 @@ export class FeynmanSandboxService {
         // 1. Identificar el componente React a montar desde exports o globals
         var targetComponent = 
           (window.exports && (window.exports.default || window.exports.App || window.exports.Simulator || window.exports.InteractiveGuide || window.exports.Main)) ||
-          (window.module && window.module.exports && (window.module.exports.default || window.module.exports.App || window.module.exports.Simulator)) ||
+          (window.module && window.module.exports && (
+            (typeof window.module.exports === 'function' ? window.module.exports : null) ||
+            window.module.exports.default || 
+            window.module.exports.App || 
+            window.module.exports.Simulator
+          )) ||
           window.App || 
           window.Simulator || 
           window.InteractiveGuide || 

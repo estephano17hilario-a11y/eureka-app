@@ -1653,30 +1653,106 @@ export function App() {
   }
 
   /**
+   * Extrae y blinda de manera 100% segura todos los bloques de código (```...``` o ~~~...~~~)
+   * reemplazándolos con tokens temporales invariantes (<<<FEYNMAN_CODE_SLOT_X>>>) para que ninguna
+   * expresión regular o división de niveles mutile o interprete comentarios dentro del código.
+   */
+  public extractShieldedCodeBlocks(raw: string): {
+    shieldedText: string;
+    codeBlocks: Array<{
+      id: number;
+      language: string;
+      code: string;
+      rawBlock: string;
+      placeholder: string;
+    }>;
+  } {
+    if (!raw || !raw.trim()) {
+      return { shieldedText: '', codeBlocks: [] };
+    }
+
+    let text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // Desencapsular posible bloque envolvente exterior ```markdown ... ```
+    const outerWrapperMatch = text.match(/^```(?:markdown|md|text|txt)?\s*\n([\s\S]*)\n```\s*$/i);
+    if (outerWrapperMatch) {
+      text = outerWrapperMatch[1];
+    }
+
+    const codeBlocks: Array<{
+      id: number;
+      language: string;
+      code: string;
+      rawBlock: string;
+      placeholder: string;
+    }> = [];
+
+    // Expresión regular para cercas de código (fenced code blocks) de 3 o más backticks o tildes
+    const fenceRegex = /(?:^|\n)(`{3,}|~{3,})([^\n]*)\n([\s\S]*?)\n\1(?:\n|$)/g;
+
+    let lastIndex = 0;
+    let shieldedText = '';
+    let match: RegExpExecArray | null;
+
+    while ((match = fenceRegex.exec(text)) !== null) {
+      const fullMatch = match[0];
+      const matchIndex = match.index;
+      const fenceChars = match[1];
+      const lang = (match[2] || '').trim().toLowerCase();
+      const code = match[3];
+
+      const textBefore = text.slice(lastIndex, matchIndex);
+      shieldedText += textBefore;
+
+      const startsWithNewline = fullMatch.startsWith('\n');
+      const placeholder = `<<<FEYNMAN_CODE_SLOT_${codeBlocks.length}>>>`;
+
+      codeBlocks.push({
+        id: codeBlocks.length,
+        language: lang,
+        code: code,
+        rawBlock: (startsWithNewline ? '\n' : '') + fenceChars + (lang ? lang : '') + '\n' + code + '\n' + fenceChars + '\n',
+        placeholder
+      });
+
+      shieldedText += (startsWithNewline ? '\n' : '') + placeholder + '\n';
+      lastIndex = matchIndex + fullMatch.length;
+    }
+
+    shieldedText += text.slice(lastIndex);
+
+    return { shieldedText, codeBlocks };
+  }
+
+  /**
+   * Restaura los bloques de código previamente blindados en el texto.
+   */
+  public restoreShieldedCodeBlocks(
+    text: string,
+    codeBlocks: Array<{ placeholder: string; rawBlock: string }>
+  ): string {
+    if (!text) return '';
+    let result = text;
+    codeBlocks.forEach((cb) => {
+      result = result.replace(cb.placeholder, cb.rawBlock);
+    });
+    return result;
+  }
+
+  /**
    * Normaliza y desfragmenta cualquier texto Markdown o texto plano pegado por el usuario,
    * protegiendo rigurosamente los bloques de código (```...```) para que nunca sean modificados.
    */
-  public normalizeAndStructureFeynmanMarkdown(raw: string): string {
+  public normalizeAndStructureFeynmanMarkdown(raw: string, preserveSlots = false): string {
     if (!raw || !raw.trim()) return '';
-    let text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
 
-    // 1. Eliminar posibles bloques contenedores exteriores ```markdown ... ``` o ```md ... ```
-    text = text.replace(/^```(?:markdown|md|text|txt)?\s*\n([\s\S]*?)\n```$/i, '$1').trim();
-    if (text.startsWith('```') && text.endsWith('```')) {
-      text = text.replace(/^```[a-zA-Z0-9_-]*\s*\n?/, '').replace(/\n?```\s*$/, '').trim();
-    }
-
-    // 2. Proteger bloques de código para que NUNCA sean modificados por las expresiones regulares
-    const codeBlocks: string[] = [];
-    text = text.replace(/```[\s\S]*?```/g, (match) => {
-      const placeholder = `__FEYNMAN_CODE_BLOCK_${codeBlocks.length}__`;
-      codeBlocks.push(match);
-      return placeholder;
-    });
+    // 1. Extraer y blindar bloques de código
+    const { shieldedText, codeBlocks } = this.extractShieldedCodeBlocks(raw);
+    let text = shieldedText.trim();
 
     const ANCHOR = '(?:^|\\n)\\s*';
 
-    // 3. Normalizar Encabezados de Nivel (solo al principio de línea)
+    // 2. Normalizar Encabezados de Nivel (solo al principio de línea)
     text = text.replace(
       new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:Nivel|Paso|Level|Fase|Etapa|M[oó]dulo|Unidad|Tema|Cap[ií]tulo)\\s*\\[?(\\d+)\\]?[:\\s.-]*([^\\n*]+)?(?:\\n|\\*{2}|__|$)`, 'gim'),
       (_match, num, rawTitle) => {
@@ -1691,7 +1767,7 @@ export function App() {
       '\n\n# Examen Final del Cuaderno: Gran Reto de Maestría Holística\n\n'
     );
 
-    // 4. Normalizar Secciones Principales
+    // 3. Normalizar Secciones Principales
     text = text.replace(
       new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:1\\.\\s*)?(?:Axioma\\s*Central|Intuici[oó]n\\s*Feynman|Fundamento\\s*Axiom[aá]tico)[^\\n*]*[:*_\\s]*`, 'gim'),
       '\n\n## 1. Axioma Central (Intuición Feynman)\n\n'
@@ -1717,7 +1793,7 @@ export function App() {
       '\n\n## 5. Examen de Nivel (Evaluación Formativa)\n\n'
     );
 
-    // 5. Normalizar Subniveles (### Subnivel X.Y: ...)
+    // 4. Normalizar Subniveles (### Subnivel X.Y: ...)
     text = text.replace(
       new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:Subnivel|Paso|Concepto|Subtema|Secci[oó]n)\\s*\\[?(\\d+)(?:[.\\s_-]+(\\d+))?\\]?[:\\s.-]*([^\\n*]+)?`, 'gim'),
       (_match, p1, p2, rawConcept) => {
@@ -1727,7 +1803,7 @@ export function App() {
       }
     );
 
-    // 6. Normalizar etiquetas de campos atómicos dentro de subniveles
+    // 5. Normalizar etiquetas de campos atómicos dentro de subniveles
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Intuici[oó]n(?:\\s*Feynman)?|Analog[ií]a|Met[aá]fora)[:\\s*_\\s]+`, 'gim'), '\n- **Intuición Feynman:** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Idea\\s*Clave(?:\\s*Formal)?|Concepto\\s*Clave|Principio\\s*Formal|Definici[oó]n)[:\\s*_\\s]+`, 'gim'), '\n- **Idea Clave:** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Cadena\\s*Causal|Mecanismo(?:\\s*Causal)?|Causalidad|Explicaci[oó]n\\s*Causal)[:\\s*_\\s]+`, 'gim'), '\n- **Cadena Causal:** ');
@@ -1745,13 +1821,12 @@ export function App() {
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Respuesta\\s*Correcta|Opci[oó]n\\s*Correcta|Correcta)[:\\s*_\\s]+`, 'gim'), '\n- **Respuesta Correcta:** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Justificaci[oó]n(?:\\s*Causal)?|Explicaci[oó]n|Por\\s*qu[eé])[:\\s*_\\s]+`, 'gim'), '\n- **Justificación Causal:** ');
 
-    // 7. Restaurar los bloques de código intactos
-    text = text.replace(/__FEYNMAN_CODE_BLOCK_(\d+)__/g, (_, idx) => {
-      const code = codeBlocks[parseInt(idx, 10)];
-      return code !== undefined ? code : '';
-    });
+    if (preserveSlots) {
+      return text.trim();
+    }
 
-    return text.trim();
+    // 6. Restaurar los bloques de código intactos
+    return this.restoreShieldedCodeBlocks(text.trim(), codeBlocks);
   }
 
   /**
@@ -1847,7 +1922,10 @@ export function App() {
   public parseFinalExam(markdown: string): FeynmanFinalExam | undefined {
     if (!markdown) return undefined;
 
-    const finalSectionMatch = markdown.match(/(?:^|\n)#+\s*Examen\s*Final(?:[^\n]*)\n([\s\S]*)$/i);
+    const { shieldedText, codeBlocks } = this.extractShieldedCodeBlocks(markdown);
+    const cleanShielded = this.normalizeAndStructureFeynmanMarkdown(shieldedText, true);
+
+    const finalSectionMatch = cleanShielded.match(/(?:^|\n)#+\s*Examen\s*Final(?:[^\n]*)\n([\s\S]*)$/i);
     if (!finalSectionMatch) return undefined;
 
     const sectionContent = finalSectionMatch[1].trim();
@@ -1855,19 +1933,22 @@ export function App() {
     // Extraer preguntas del Quizz
     const questions = this.parseQuizQuestions(sectionContent);
 
-    // Extraer código React del Mega-Simulador (+1000 líneas)
+    // Extraer código React del Mega-Simulador desde los slots con 100% de fidelidad
     let masterReactCode = '';
-    const codeRegex = /```(?:typescript|ts|tsx|jsx|javascript|js|react)?(?:\s*\n|\s+)([\s\S]*?)```/g;
-    const foundCodes: string[] = [];
-    let cm: RegExpExecArray | null;
-    while ((cm = codeRegex.exec(sectionContent)) !== null) {
-      const c = cm[1].trim();
-      if (c) foundCodes.push(c);
-    }
-
-    if (foundCodes.length > 0) {
-      foundCodes.sort((a, b) => b.length - a.length);
-      masterReactCode = foundCodes[0];
+    const slotMatches = Array.from(sectionContent.matchAll(/<<<FEYNMAN_CODE_SLOT_(\d+)>>>/g));
+    if (slotMatches.length > 0) {
+      const examBlocks = slotMatches.map((sm) => codeBlocks[parseInt(sm[1], 10)]).filter(Boolean);
+      if (examBlocks.length > 0) {
+        const tsxBlock = examBlocks.find((cb) =>
+          ['tsx', 'ts', 'typescript', 'jsx', 'javascript', 'js', 'react'].includes(cb.language)
+        );
+        if (tsxBlock) {
+          masterReactCode = tsxBlock.code.trim();
+        } else {
+          examBlocks.sort((a, b) => b.code.length - a.code.length);
+          masterReactCode = examBlocks[0].code.trim();
+        }
+      }
     }
 
     return {
@@ -1880,7 +1961,7 @@ export function App() {
 
   /**
    * Parsea el Markdown generado en una estructura tipada de niveles garantizando
-   * exactamente un objeto por cada nivel con sus respectivos exámenes de nivel.
+   * exactamente un objeto por cada nivel con el código original intacto.
    */
   public parseFeynmanMarkdown(
     markdown: string,
@@ -1889,7 +1970,8 @@ export function App() {
   ): FeynmanLevel[] {
     if (!markdown || !markdown.trim()) return [];
 
-    const cleanMd = this.normalizeAndStructureFeynmanMarkdown(markdown);
+    const { shieldedText, codeBlocks } = this.extractShieldedCodeBlocks(markdown);
+    const cleanMd = this.normalizeAndStructureFeynmanMarkdown(shieldedText, true);
     if (!cleanMd) return [];
 
     // Encontrar todas las cabeceras principales de nivel (# Nivel 1: ...)
@@ -1994,7 +2076,7 @@ export function App() {
       if (axiomSectionMatch && axiomSectionMatch[1].trim()) {
         axiomIntuition = axiomSectionMatch[1].trim();
       } else {
-        const preSubMatch = blockText.match(/(?:^|\n)#+[^\n]+\n+([\s\S]*?)(?=(?:^|\n)##+|###|```|$)/i);
+        const preSubMatch = blockText.match(/(?:^|\n)#+[^\n]+\n+([\s\S]*?)(?=(?:^|\n)##+|###|<<<FEYNMAN_CODE_SLOT_|$)/i);
         if (preSubMatch && preSubMatch[1].trim().length > 10) {
           axiomIntuition = preSubMatch[1].trim();
         }
@@ -2083,22 +2165,48 @@ export function App() {
         });
       }
 
-      // 3. Panel Interactivo (React + TypeScript Code)
+      // 3. Panel Interactivo (React + TypeScript Code) - Extracción fiel de código oficial del usuario
       let typescriptCode = '';
-      const codeRegex = /```(?:[a-zA-Z0-9_-]+)?(?:\s*\n|\s+)([\s\S]*?)```/g;
-      const foundCodes: string[] = [];
-      let cm: RegExpExecArray | null;
-      while ((cm = codeRegex.exec(blockText)) !== null) {
-        const c = cm[1].trim();
-        if (c) foundCodes.push(c);
+      const slotMatches = Array.from(blockText.matchAll(/<<<FEYNMAN_CODE_SLOT_(\d+)>>>/g));
+
+      if (slotMatches.length > 0) {
+        const levelCodeBlocks = slotMatches
+          .map((sm) => codeBlocks[parseInt(sm[1], 10)])
+          .filter(Boolean);
+
+        if (levelCodeBlocks.length > 0) {
+          // Si hay un bloque ubicado específicamente en la Sección 3 (Panel Interactivo)
+          const section3Match = blockText.match(/(?:^|\n)##+\s*(?:3\.\s*)?(?:Panel\s*Interactivo|Simulador|Videojuego|C[oó]digo)[^\n]*\n([\s\S]*?)(?=(?:^|\n)##+|$)/i);
+          let preferredBlock: (typeof levelCodeBlocks)[0] | undefined;
+
+          if (section3Match) {
+            const s3Slots = Array.from(section3Match[1].matchAll(/<<<FEYNMAN_CODE_SLOT_(\d+)>>>/g));
+            if (s3Slots.length > 0) {
+              preferredBlock = codeBlocks[parseInt(s3Slots[0][1], 10)];
+            }
+          }
+
+          // Si no, buscar el primer bloque con lenguaje tsx/ts/jsx/js/react
+          if (!preferredBlock) {
+            preferredBlock = levelCodeBlocks.find((cb) =>
+              ['tsx', 'ts', 'typescript', 'jsx', 'javascript', 'js', 'react'].includes(cb.language)
+            );
+          }
+
+          // Si no tiene etiqueta, tomar el bloque más largo de este nivel
+          if (!preferredBlock) {
+            levelCodeBlocks.sort((a, b) => b.code.length - a.code.length);
+            preferredBlock = levelCodeBlocks[0];
+          }
+
+          if (preferredBlock && preferredBlock.code.trim()) {
+            typescriptCode = preferredBlock.code.trim();
+          }
+        }
       }
 
-      if (foundCodes.length > 0) {
-        foundCodes.sort((a, b) => b.length - a.length);
-        typescriptCode = foundCodes[0];
-      }
-
-      if (!typescriptCode || typescriptCode.length < 150 || typescriptCode.includes('Simulador interactivo de primeros principios.')) {
+      // ÚNICAMENTE si no se proporcionó ningún código en el Markdown, usar generador determinista
+      if (!typescriptCode) {
         typescriptCode = this.generateLevelInteractiveComponent(levelNumber, title, effectiveTopic, subjectFallback);
       }
 
@@ -2121,10 +2229,21 @@ export function App() {
       if (examSectionMatch) {
         const examText = examSectionMatch[1].trim();
         const questions = this.parseQuizQuestions(examText);
-        if (questions.length > 0) {
+
+        let examReactCode: string | undefined;
+        const examSlotMatches = Array.from(examText.matchAll(/<<<FEYNMAN_CODE_SLOT_(\d+)>>>/g));
+        if (examSlotMatches.length > 0) {
+          const examSlot = codeBlocks[parseInt(examSlotMatches[0][1], 10)];
+          if (examSlot && examSlot.code.trim() && examSlot.code.trim() !== typescriptCode) {
+            examReactCode = examSlot.code.trim();
+          }
+        }
+
+        if (questions.length > 0 || examReactCode) {
           levelExam = {
             title: `Examen del Nivel ${levelNumber}`,
-            questions
+            questions,
+            examReactCode
           };
         }
       }
