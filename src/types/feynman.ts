@@ -99,10 +99,10 @@ export interface FeynmanAtomicSublevel {
   concept: string;
   intuition?: string; // 1º: Intuición Feynman (resumida, cotidiana, fácil de entender)
   keyIdea: string; // 2º: Idea Clave (términos formales y rigurosos)
-  mechanism: string; // 3º: Cadena Causal (mecanismo causa-efecto)
+  mechanism?: string; // 3º: Cadena Causal (OPCIONAL: solo si es necesario, muy fácil de entender y corta)
   mathType?: 'standard' | 'eureka'; // '(FORMALISMO MATEMÁTICO)' o '(FORMALISMO MATEMÁTICO EUREKA)'
   equation?: string; // 4º: Formalismo Matemático (solo si aplica al dominio)
-  boundaryCondition?: string;
+  boundaryCondition?: string; // 5º: Condición límite o ruptura (estrictamente opcional)
   visualResourceUrl?: string;
 }
 
@@ -132,6 +132,7 @@ export interface FeynmanFinalExam {
 export interface FeynmanLevel {
   levelNumber: number;
   title: string;
+  purpose?: string; // Propósito explícito de lo que se busca entender en este nivel
   axiomIntuition: string;
   sublevels: FeynmanAtomicSublevel[];
   typescriptCode: string; // Componente interactivo React+TS (+500 líneas)

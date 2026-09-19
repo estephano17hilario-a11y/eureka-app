@@ -407,6 +407,12 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
         <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.02em;">
           # Nivel ${lvl.levelNumber}: ${escapeHtml(lvl.title)}
         </h2>
+        ${lvl.purpose ? `
+          <div style="margin-top: 10px; display: flex; align-items: flex-start; gap: 8px; font-size: 0.88rem; color: #e0f2fe; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.25); border-radius: 10px; padding: 8px 14px; line-height: 1.5;">
+            <span style="color: #38bdf8; font-weight: 800; white-space: nowrap;">🎯 Propósito del Nivel:</span>
+            <span>${escapeHtml(lvl.purpose)}</span>
+          </div>
+        ` : ''}
       </div>
 
       <!-- SECCIÓN 1: AXIOMA CENTRAL (INTUICIÓN FEYNMAN) -->
@@ -460,10 +466,12 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
                 <strong style="color: #38bdf8;">Idea Clave:</strong> ${katexService.parseAndRender(sub.keyIdea)}
               </div>
 
-              <!-- 3. Cadena Causal (Mecanismo paso a paso) -->
-              <div style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.45;">
-                <strong style="color: #c084fc;">Cadena Causal:</strong> ${katexService.parseAndRender(sub.mechanism)}
-              </div>
+              <!-- 3. Cadena Causal (Solo si es necesario, muy fácil de entender y corta) -->
+              ${sub.mechanism ? `
+                <div style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.45; background: rgba(192,132,252,0.06); border-left: 3px solid #c084fc; padding: 6px 10px; border-radius: 6px;">
+                  <strong style="color: #c084fc;">Cadena Causal:</strong> ${katexService.parseAndRender(sub.mechanism)}
+                </div>
+              ` : ''}
 
               <!-- 4. Formalismo Matemático (Solo si aplica) -->
               ${isValidEquation(sub.equation) ? `

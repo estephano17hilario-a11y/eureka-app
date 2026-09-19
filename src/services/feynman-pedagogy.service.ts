@@ -337,7 +337,36 @@ ${form.attachedInfoContent?.trim() ? `\nMATERIAL ADJUNTO PROPORCIONADO:\n"""\n${
 - 🔬 ENFOQUE ESPECÍFICO REQUERIDO: ${form.specificFocus?.trim() ? `"${form.specificFocus.trim()}"` : 'Comprensión integral de primeros principios con simuladores interactivos en React y TypeScript (+400 a +500 líneas por nivel), exámenes de nivel y examen final (+1000 líneas)'}
 ${attachedInfoInstruction}
 # ROL Y DIRECTRICES DE IDENTIDAD
-Eres un maestro pedagogo y experto mundial en el Método de Richard Feynman y el razonamiento por Primeros Principios adaptado a la materia de **${subjectProfile.name}**. Tu único objetivo es generar una ruta de estudio exhaustiva, ultraestructurada, hiper-atómica y fiel al dominio real de "${topic}" para que el estudiante domine con maestría absoluta este tema desde su nivel actual (${form.currentLevel}/5) hasta el nivel ${levelsCount} (${goalTitle}), entregado en un ÚNICO ARCHIVO O RECUADRO DE CÓDIGO MARKDOWN CONTINUO (.md).
+Eres un maestro pedagogo y experto mundial en el Método de Richard Feynman y el razonamiento por Primeros Principios adaptado a la materia de **${subjectProfile.name}**. Tu único objetivo es generar una ruta de estudio exhaustiva, ultraestructurada, hiper-atómica, progresiva y fiel al dominio real de "${topic}" para que el estudiante domine con maestría absoluta este tema desde su nivel actual (${form.currentLevel}/5) hasta el nivel ${levelsCount} (${goalTitle}), entregado en un ÚNICO ARCHIVO O RECUADRO DE CÓDIGO MARKDOWN CONTINUO (.md).
+
+================================================================================
+📚 MÁXIMO RESPALDO, VERACIDAD Y ACTUALIDAD DEL ESTADO DEL ARTE 📚
+================================================================================
+1. Toda la información, principios, mecanismos, fórmulas y análisis deben contar con el MÁXIMO RESPALDO CIENTÍFICO, DOCTRINAL O HISTÓRICO.
+2. VERACIDAD INQUEBRANTABLE: Cero invención de datos, mitos pseudocientíficos, errores fácticos o explicaciones aproximadas sin rigor.
+3. ACTUALIDAD: La explicación debe basarse en el consenso más riguroso y actualizado al ESTADO DEL ARTE del campo de "${topic}".
+
+================================================================================
+⛓️ FILOSOFÍA ESTRICTA "STEP-BY-STEP" (PROGRESIÓN SINÉRGICA E INCREMENTAL) ⛓️
+================================================================================
+Toda la ruta pedagógica debe seguir una cadena constructiva acumulativa y orgánica:
+1. CADENA DE DEPENDENCIAS SINÉRGICA:
+   - El Subnivel 1.1 es el AXIOMA CERO o ladrillo fundamental: la base más intuitiva, simple e irreducible.
+   - El Subnivel 1.2 se construye DIRECTA Y EXPLÍCITAMENTE sobre lo asimilado en el 1.1 (el 1.1 es el trampolín que desbloquea y clarifica el 1.2).
+   - El Subnivel 1.3 se apoya sobre el 1.2 para dar el siguiente paso lógico, y así sucesivamente en riguroso orden secuencial.
+   - 🚨 CERO SALTOS CONCEPTUALES: Ningún subnivel puede introducir un concepto complejo de la nada sin haber construido su cimiento previo en los subniveles anteriores.
+   - La información previa al subnivel actual siempre debe servir de base y sinergia para entender el actual, logrando que todo sea completamente comprensible paso a paso.
+2. PRESENTACIÓN DE CADA NIVEL CON TÍTULO Y PROPÓSITO:
+   - Al inicio de cada nivel principal (# Nivel X: [Título]), se debe definir un título claro del nivel y añadir inmediatamente:
+     - **Propósito del Nivel:** [Qué se busca comprender y dominar exactamente en este nivel y cuál es la meta formativa de esta etapa].
+
+================================================================================
+🚫 PROHIBICIÓN ABSOLUTA DE ACOPLAMIENTO (1 CONCEPTO POR SUBNIVEL • 6 A 10 SUBNIVELES) 🚫
+================================================================================
+- 🚨 REGLA DE DESACOPLAMIENTO ESTRICTO: Está TERMINANTEMENTE PROHIBIDO juntar, fusionar o condensar múltiples conceptos o ideas distintas en un solo subnivel.
+- 🎯 ATOMICIDAD TOTAL: Cada subnivel debe explicar ÚNICA Y EXCLUSIVAMENTE UN SOLO CONCEPTO ATÓMICO.
+- Si un tema o paso tiene 2 o más ideas, definiciones o facetas, SE DEBEN CREAR SUBNIVELES SEPARADOS (ej. Subnivel 1.1 para el principio base, Subnivel 1.2 para su efecto dinámico inmediato).
+- CADA NIVEL PRINCIPAL DEBE CONTENER OBLIGATORIAMAMENTE ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a Subnivel X.6, X.7, X.8, X.9 o X.10). La IA decide la cantidad exacta dentro del intervalo [6 - 10] según la complejidad del tema para garantizar que ningún concepto quede saturado o acoplado de información.
 
 ================================================================================
 🚨 DIRECTRICES ESPECÍFICAS PARA EL DOMINIO "${subjectProfile.name.toUpperCase()}" 🚨
@@ -356,80 +385,75 @@ Eres un maestro pedagogo y experto mundial en el Método de Richard Feynman y el
    - ${subjectProfile.simulatorRule}
 
 ================================================================================
-🚨 REGLA SUPREMA DE FORMATO, RIGOR Y ENTREGA (OBLIGATORIA E INVIOLABLE) 🚨
+🚨 ESTRUCTURA Y ORDEN OBLIGATORIO DE CADA SUBNIVEL ATÓMICO 🚨
 ================================================================================
-1. TODO EL REPORTE DEBE VENIR EN UN ÚNICO DOCUMENTO O RECUADRO MARKDOWN CONTINUO:
-   - Todo el contenido, desde el Nivel 1 hasta el Nivel ${levelsCount}, y el Examen Final del Cuaderno, debe estar dentro de un ÚNICO cuerpo de texto Markdown.
-   - CERO TEXTO CONVERSACIONAL: PROHIBIDO poner saludos ("¡Hola! Aquí tienes la guía..."), introducciones o notas al pie. Tu respuesta debe comenzar INMEDIATAMENTE con "# Nivel 1: [Título]" y terminar con el último bloque del Examen Final.
-   - PROHIBIDO EL TRUNCAMIENTO: Debes redactar explícitamente cada uno de los ${levelsCount} niveles de principio a fin.
+Cada subnivel debe organizarse en este orden exacto:
+1. **Intuición Feynman:** Micro-analogía cotidiana ultra-simple, amigable y gráfica (estilo Richard Feynman puro: como explicárselo a un amigo o niño sin jerga pesada, directa y en 1-2 frases).
+2. **Idea Clave:** Definición formal rigurosa, atómica y precisa en 1 sola frase contundente sin rodeos.
+3. **Cadena Causal (SOLO SI ES NECESARIO):**
+   - 🚨 PROHIBIDO AISLAR INFORMACIÓN CON JERGA INCOMPRENSIBLE.
+   - Si el concepto involucra un proceso dinámico causa-efecto concreto, explica de forma MUY FÁCIL DE ENTENDER Y CORTA el "por qué y cómo ocurre" (en 1-2 frases fluidas: ej. "Al ocurrir A, se produce B debido a C, dando lugar a D").
+   - Si el concepto es puramente definitorio, clasificatorio o no involucra un mecanismo activo de causa-efecto, OMITE ESTA LÍNEA POR COMPLETO.
+4. **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** Fórmula en KaTeX ($...$). Solo si la materia o concepto lo requiere formalmente. Si es cualitativo, OMITE ESTA LÍNEA.
+5. **Límite de Ruptura / Condición de Frontera (SOLO SI ES SUMAMENTE NECESARIO):** Caso límite crítico o frontera donde el principio se quiebra. Si no es sumamente necesario, OMITE ESTA LÍNEA POR COMPLETO.
 
-2. FIDELIDAD EXACTA DEL NÚMERO DE NIVELES:
-   - Debes generar EXACTAMENTE ${levelsCount} NIVELES PRINCIPALES (desde '# Nivel 1:' hasta '# Nivel ${levelsCount}:') seguidos del '# Examen Final del Cuaderno'.
+================================================================================
+🎮 CÓDIGO REACT 18 + TS: 100% INTERACTIVO, LÚDICO, GAMIFICADO Y CERO ABURRIDO (+400 A +500 LÍNEAS) 🎮
+================================================================================
+- ⚠️ **REGLA ESTRICTA**: CADA UNO DE LOS ${levelsCount} NIVELES (DESDE EL NIVEL 1 HASTA EL NIVEL ${levelsCount}) DEBE CONTENER OBLIGATORIAMAMENTE SU PROPIO BLOQUE REACT + TYPESCRIPT (\`\`\`tsx o \`\`\`typescript) CON UN MÍNIMO ESTRICTO DE +400 A +500 LÍNEAS DE CÓDIGO REAL Y ESPECÍFICO DE "${topic}".
+- ⛔ **PROHIBIDO RESUMIR DESPUÉS DEL NIVEL 1**: Prohibido poner '// Código similar al nivel anterior', '// Implementar resto...', o bloques cortos de 50 líneas. CADA nivel debe ser un programa completo, funcional y único de +400 a +500 líneas.
+- 🎨 **EXPERIENCIA TOTALMENTE VISUAL, LÚDICA E HIPER-INTERACTIVA (CERO BOTONES ABURRIDOS O FORMULARIOS PLANOS)**:
+  * CERO interfaces monótonas o grises. El programa debe sentirse como un **Laboratorio Científico Gamificado / Sandbox Interactivo**:
+  * **Animaciones Gráficas en Vivo**: Utiliza HTML5 Canvas 2D interactivo o SVGs reactivos animados mediante \`requestAnimationFrame\` o \`useEffect\` (partículas dinámicas, ondas oscilantes, trayectorias orbitales, campos vectoriales, grafos con nodos arrastrables o diagramas de estado que reaccionan con brillo al interactuar).
+  * **Mecánicas Lúdicas y de Juego**: Retos interactivos, inyector de perturbaciones y sobrecargas con explosión de partículas, medidor de vida/estabilidad en tiempo real con colores dinámicos (neón cian, esmeralda, ámbar, rojo de sobrecarga), y retroalimentación sonora con Web Audio API (\`window.playTone(freq, type, duration)\`).
+  * **Controles Visuales y Táctiles**: Sliders con pistas luminosas, interruptores futuristas, selectores con badges brillantes, HUD de telemetría estilo Sci-Fi con gráficas en vivo (osciloscopio reactivo, medidor de entropía, índice de estabilidad) y panel de logros/medallas al superar límites de prueba.
+- Arquitectura del Componente React de cada nivel:
+  - Componente Funcional de **React 18** (\`export function App()\`).
+  - Hooks de React (\`useState\`, \`useEffect\`, \`useMemo\`, \`useCallback\`, \`useRef\`).
+  - UI con **Tailwind CSS** y diseño Glassmorphism oscuro (\`bg-slate-950\`, \`p-6\`, \`rounded-2xl\`, canvas interactivo, controles táctiles y feedback didáctico visual en tiempo real).
+  - Audio sintetizado (\`window.playTone(freq, type, duration)\`) y exportación limpia.
 
-3. ESTRUCTURA Y ORDEN ESTRICTO DE CADA SUBNIVEL HIPER-ATÓMICO (6 A 10 POR NIVEL):
-   - Cada Nivel Principal debe dividirse obligatoriamente en ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a Subnivel X.6, X.7, X.8, X.9 o X.10). La IA decide la cantidad exacta dentro del intervalo [6 - 10] según la complejidad del concepto para lograr la máxima granularidad axiomática sin perder información.
-   - ⚠️ **ORDEN EXACTO E INVARIABLE PARA CADA SUBNIVEL**:
-     1. **Intuición Feynman:** Micro-analogía cotidiana ultra-simple, amigable y brillante (estilo Richard Feynman puro: como explicárselo a un niño o persona común sin jerga técnica pesada, directa y en 1-2 frases).
-     2. **Idea Clave:** Definición formal hiper-atómica, rigurosa y precisa en 1 sola frase contundente sin rodeos.
-     3. **Cadena Causal:** Secuencia causal paso a paso directa (Causa -> Efecto -> Estado resultante en 1-2 frases precisas).
-     4. **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** Fórmula en KaTeX ($...$). 🚨 SOLO SI EL TEMA O CONCEPTO REALMENTE LO REQUIERE. SI ES DE HUMANIDADES/CUALITATIVO, OMITE ESTA LÍNEA POR COMPLETO.
-     5. **Límite de Ruptura / Condición de Frontera:** 🚨 ESTRICTAMENTE OPCIONAL. Incluir ÚNICA Y EXCLUSIVAMENTE si es SUMAMENTE NECESARIO y existe un límite de frontera o ruptura crítico e indispensable. Si no es estrictamente necesario, OMITE ESTA LÍNEA POR COMPLETO.
-
-4. 🚨 REGLA INVIOLABLE DE CÓDIGO REACT + TYPESCRIPT (+400 A +500 LÍNEAS REALES EN CADA NIVEL) 🚨:
-   - ⚠️ **REGLA ESTRICTA**: CADA UNO DE LOS ${levelsCount} NIVELES (DESDE EL NIVEL 1 HASTA EL NIVEL ${levelsCount}) DEBE CONTENER OBLIGATORIAMAMENTE SU PROPIO BLOQUE REACT + TYPESCRIPT (\`\`\`tsx o \`\`\`typescript) CON UN MÍNIMO ESTRICTO DE +400 A +500 LÍNEAS DE CÓDIGO REAL Y ESPECÍFICO DE "${topic}".
-   - ⛔ **PROHIBIDO RESUMIR DESPUÉS DEL NIVEL 1**: Prohibido poner '// Código similar al nivel anterior', '// Implementar resto...', o bloques cortos de 50 líneas. CADA nivel debe ser un programa completo, funcional y único de +400 a +500 líneas.
-   - 🎨 **EXPERIENCIA TOTALMENTE VISUAL, LÚDICA E HIPER-INTERACTIVA (CERO BOTONES ABURRIDOS O FORMULARIOS PLANOS)**:
-     * CERO interfaces monótonas o grises. El programa debe sentirse como un **Laboratorio Científico Gamificado / Sandbox Interactivo**:
-     * **Animaciones Gráficas en Vivo**: Utiliza HTML5 Canvas 2D interactivo o SVGs reactivos animados mediante \`requestAnimationFrame\` o \`useEffect\` (partículas dinámicas, ondas oscilantes, trayectorias orbitales, campos vectoriales, grafos con nodos arrastrables o diagramas de estado que reaccionan con brillo al interactuar).
-     * **Mecánicas Lúdicas y de Juego**: Retos interactivos, inyector de perturbaciones y sobrecargas con explosión de partículas, medidor de vida/estabilidad en tiempo real con colores dinámicos (neón cian, esmeralda, ámbar, rojo de sobrecarga), y retroalimentación sonora con Web Audio API (\`window.playTone(freq, type, duration)\`).
-     * **Controles Visuales y Táctiles**: Sliders con pistas luminosas, interruptores futuristas, selectores con badges brillantes, HUD de telemetría estilo Sci-Fi con gráficas en vivo (osciloscopio reactivo, medidor de entropía, índice de estabilidad) y panel de logros/medallas al superar límites de prueba.
-   - Arquitectura del Componente React de cada nivel:
-     - Componente Funcional de **React 18** (\`export function App()\`).
-     - Hooks de React (\`useState\`, \`useEffect\`, \`useMemo\`, \`useCallback\`, \`useRef\`).
-     - UI con **Tailwind CSS** y diseño Glassmorphism oscuro (\`bg-slate-950\`, \`p-6\`, \`rounded-2xl\`, canvas interactivo, controles táctiles y feedback didáctico visual en tiempo real).
-     - Audio sintetizado (\`window.playTone(freq, type, duration)\`) y exportación limpia.
-
-5. 📝 EXAMEN POR NIVEL (EVALUACIÓN FORMATIVA DE CADA NIVEL):
-   - Al final de cada nivel, incluye una sección \`## 5. Examen de Nivel\` con:
-     - Entre 3 y 5 preguntas de selección múltiple con 4 opciones (A, B, C, D) que pongan a prueba la comprensión causal y los conceptos explicados en ese nivel.
-     - Indicación explícita de la **Respuesta Correcta** y la **Justificación Causal**.
-
-6. 🎓 EXAMEN FINAL DEL CUADERNO: GRAN RETO DE MAESTRÍA (AL FINAL DE LA GUÍA):
-   - Tras el Nivel ${levelsCount}, incluye la sección \`# Examen Final del Cuaderno: Gran Reto de Maestría Holística\` que contiene:
-     1. **Quizz Integral de Maestría**: 10 preguntas de alta exigencia que combinan y evalúan la síntesis de todos los niveles.
-     2. **🚨 Mega-Simulador Evaluador en React 18 + TypeScript (+1000 LÍNEAS DE CÓDIGO REAL)**:
-        - Un bloque \`\`\`tsx con UN MÍNIMO DE MÁS DE 1000 LÍNEAS DE CÓDIGO REAL.
-        - **DEBE SER UNA EXPERIENCIA FAKING VISUAL, LÚDICA Y SUMAMENTE INTERACTIVA**: Canvas 2D multi-partícula de alta fidelidad, arena de pruebas de estrés, generador de perturbaciones caóticas, medidores de telemetría en tiempo real, selector de retos de maestría con puntuación dinámica, efectos de audio e iluminación reactiva, y generador de certificado de maestría animado.
+================================================================================
+📝 EVALUACIÓN FORMATIVA Y EXAMEN FINAL
+================================================================================
+1. **Examen por Nivel (## 5. Examen de Nivel)**:
+   - Entre 3 y 5 preguntas de selección múltiple con 4 opciones (A, B, C, D) comprobando comprensión causal.
+   - Indicación explícita de **Respuesta Correcta** y **Justificación Causal**.
+2. **Examen Final del Cuaderno (# Examen Final del Cuaderno: Gran Reto de Maestría Holística)**:
+   - Al final de la guía tras el Nivel ${levelsCount}:
+     * **Quizz Integral**: 10 preguntas de síntesis que combinan todos los niveles.
+     * **🚨 Mega-Simulador Evaluador en React 18 + TS (+1000 LÍNEAS DE CÓDIGO REAL)**: Suite de laboratorio completa, multi-escenario, arena gráfica Canvas 2D de alta fidelidad, pruebas de estrés, telemetría Sci-Fi, audio reactivo y certificado animado.
 
 ================================================================================
 ESTRUCTURA MARKDOWN OBLIGATORIA
 ================================================================================
 
-# Nivel 1: [Título del Concepto Axiomático de ${topic}]
+# Nivel 1: [Título Claro y Representativo del Nivel en ${topic}]
+- **Propósito del Nivel:** [Definición clara de lo que se busca dominar y comprender en este nivel y su relevancia].
 
 ## 1. Axioma Central (Intuición Feynman)
-[Explicación concisa y nítida en 1 párrafo corto descomponiendo el fundamento de ${topic} mediante una analogía visual cotidiana, clara y directa].
+[Explicación concisa en 1 párrafo corto descomponiendo el fundamento de ${topic} mediante una analogía cotidiana, clara y directa].
 
 ## 2. Desglose Atómico
-### Subnivel 1.1: [Concepto Atómico Específico de ${topic}]
-- **Intuición Feynman:** [Micro-analogía cotidiana ultra-simple, directa y sin jerga, estilo Richard Feynman puro en 1-2 frases].
+### Subnivel 1.1: [Concepto Atómico Base / Axioma Cero de ${topic}]
+- **Intuición Feynman:** [Micro-analogía cotidiana ultra-simple, directa y sin jerga, en 1-2 frases].
 - **Idea Clave:** [Definición formal precisa y concisa en 1 sola frase contundente].
-- **Cadena Causal:** [Mecanismo causal: causa -> efecto -> estado en 1-2 frases].
-- **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** $[Fórmula KaTeX solo si aplica; si es cualitativo, omitir esta línea]$
-- **Límite de Ruptura / Condición de Frontera:** [SOLO SI ES SUMAMENTE NECESARIO; si no, omitir]
+- **Cadena Causal:** [Mecanismo causa-efecto muy fácil de entender y corto; omitir si el concepto es puramente definitorio].
+- **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** $[Fórmula KaTeX solo si aplica; de lo contrario omitir]$
+- **Límite de Ruptura / Condición de Frontera:** [Solo si es sumamente necesario; si no, omitir]
 
-### Subnivel 1.2: [Concepto Atómico Específico de ${topic}]
-- **Intuición Feynman:** [Micro-analogía cotidiana ultra-simple].
+### Subnivel 1.2: [Concepto que se apoya directamente sobre 1.1 (Step-by-Step)]
+- **Intuición Feynman:** [Micro-analogía cotidiana ultra-simple construyendo sobre lo aprendido en 1.1].
 - **Idea Clave:** [Definición formal precisa en 1 frase].
-- **Cadena Causal:** [Mecanismo causal directo].
-... (Entre 6 y 10 subniveles: de 1.1 hasta 1.6 ... 1.10 según decida la IA)
+- **Cadena Causal:** [Mecanismo muy fácil de entender y corto; omitir si no aplica].
+... (Entre 6 y 10 subniveles: de 1.1 hasta 1.6 ... 1.10 según decida la IA, sin acoplar conceptos)
 
 ## 3. Panel Interactivo (React + TypeScript)
 \`\`\`tsx
 // ============================================================================
 // COMPONENTE INTERACTIVO EN REACT Y TYPESCRIPT (+400 A +500 LÍNEAS DE CÓDIGO REAL)
 // ESPECÍFICO DE ${topic.toUpperCase()} • NIVEL 1
-// EXPERIENCIA TOTALMENTE VISUAL, LÚDICA, CON CANVAS 2D/ANIMACIONES, AUDIO Y TELEMETRÍA
+// EXPERIENCIA 100% VISUAL, LÚDICA, CANVAS 2D/ANIMACIONES, AUDIO Y TELEMETRÍA
 // ============================================================================
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 
@@ -545,29 +569,37 @@ export function App() {
 - ENFOQUE PRIORITARIO ESPECÍFICO: ${form.specificFocus?.trim() ? `"${form.specificFocus.trim()}"` : 'Comprensión integral de primeros principios con simuladores en React+TS (+400 a +500 líneas por nivel), exámenes de nivel y examen final (+1000 líneas)'}
 
 ================================================================================
-🚨 INSTRUCCIONES ESPECÍFICAS Y RECORDATORIO DE RIGOR PARA "${form.topic.trim()}" (${subjectProfile.name}) 🚨
+🚨 DIRECTRICES INVIOLABLES DE APRENDIZAJE STEP-BY-STEP Y CALIDAD PARA "${form.topic.trim()}" 🚨
 ================================================================================
-1. FIDELIDAD TOTAL AL DOMINIO "${subjectProfile.name}":
-   - ${subjectProfile.terminologyRule}
-   - ${subjectProfile.mathRule}
-2. GRANULARIDAD AXIOMÁTICA Y ORDEN ESTRICTO EN CADA SUBNIVEL (ENTRE 6 Y 10 SUBNIVELES POR NIVEL):
-   - Cada nivel debe contener ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a Subnivel X.6 ... X.10). La IA decide la cantidad exacta en ese intervalo.
-   - Todo debe ser sumamente atómico, conciso y directo al grano, sin perder información.
-   1º) Intuición Feynman (micro-analogía cotidiana ultra-simple y amigable, estilo Richard Feynman puro, fácil de entender en 1-2 frases).
-   2º) Idea Clave (definición formal, precisa y atómica en 1 sola frase sin relleno).
-   3º) Cadena Causal (mecanismo causal directo Causa -> Efecto en 1-2 frases).
-   4º) (FORMALISMO MATEMÁTICO) o (FORMALISMO MATEMÁTICO EUREKA) (SOLO SI APLICA; si no aplica, omitir).
-   5º) Límite de Ruptura / Condición de Frontera (🚨 ESTRICTAMENTE OPCIONAL: solo si es SUMAMENTE NECESARIO; si no, omitir).
-3. 🚨 CÓDIGO EN REACT Y TYPESCRIPT: MÍNIMO +400 A +500 LÍNEAS REALES EN CADA UNO DE LOS ${levelsCount} NIVELES:
-   - Prohibido resumir o truncar el código en los niveles posteriores al Nivel 1.
-   - CADA NIVEL DEBE TENER SU PROPIO BLOQUE REACT+TS (\`export function App()\`) DE MÁS DE 400-500 LÍNEAS COMPLETAS.
-   - 🎨 **DISEÑO FAKING VISUAL, LÚDICO E HIPER-INTERACTIVO (CERO BOTONES ABURRIDOS)**:
-     * CADA simulador de cada nivel debe incorporar animaciones gráficas en vivo (Canvas 2D, partículas dinámicas, campos vectoriales, diagramas interactivos).
-     * Incluye mecánicas lúdicas de laboratorio/juego (barra de estabilidad dinámica, inyección de perturbaciones y sobrecargas, retos de calibración con puntuación, sonidos con Web Audio API y medidor de telemetría HUD Sci-Fi).
-4. 📝 EXAMEN POR NIVEL: Cada nivel debe incluir la sección "## 5. Examen de Nivel" con 3 a 5 preguntas de opción múltiple (A, B, C, D) con respuesta correcta y justificación causal.
-5. 🎓 EXAMEN FINAL DEL CUADERNO: Al final, incluye la sección "# Examen Final del Cuaderno: Gran Reto de Maestría Holística" con un Quizz de 10 preguntas y el Mega-Simulador Evaluador en React+TS de MÍNIMO +1000 LÍNEAS DE CÓDIGO REAL.
-6. COMIENZA INMEDIATAMENTE CON "# Nivel 1: [Título]" SIN INTRODUCCIONES.
-7. GENERA TODOS LOS ${levelsCount} NIVELES COMPLETOS Y EL EXAMEN FINAL SIN TRUNCAMIENTO.`;
+1. VERACIDAD, MÁXIMO RESPALDO Y ESTADO DEL ARTE:
+   - Todo concepto, axioma y explicación debe contar con el más riguroso respaldo científico/doctrinal y reflejar la actualidad del estado del arte. Cero datos desactualizados o conjeturas no fundamentadas.
+
+2. FILOSOFÍA STRICT STEP-BY-STEP (SINERGIA Y CONTINUIDAD):
+   - El Subnivel 1.1 es el axioma base.
+   - El 1.2 se construye directamente sobre lo entendido en 1.1.
+   - El 1.3 se construye sobre el 1.2, y así sucesivamente en riguroso orden acumulativo y sinérgico sin saltos conceptuales.
+   - En la presentación de cada nivel principal (# Nivel X: [Título descriptivo]), incluye obligatoriamente:
+     - **Propósito del Nivel:** [Qué se busca entender y dominar exactamente en este nivel y cuál es su meta].
+
+3. PROHIBICIÓN ABSOLUTA DE ACOPLAMIENTO DE INFORMACIÓN (1 CONCEPTO POR SUBNIVEL):
+   - Prohibido amontonar o juntar múltiples conceptos en 1 solo subnivel. Cada subnivel debe ser hiper-atómico y tratar un único concepto.
+   - CADA NIVEL PRINCIPAL DEBE TENER ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a X.6 ... X.10). La IA decide la cantidad exacta dentro del intervalo [6 - 10] según la complejidad del tema para no apelmazar la información.
+
+4. ESTRUCTURA Y CADENA CAUSAL CLARA Y CORTA (SOLO SI ES NECESARIO):
+   - 1º) **Intuición Feynman:** Micro-analogía cotidiana ultra-simple, amigable y gráfica (estilo Richard Feynman puro en 1-2 frases).
+   - 2º) **Idea Clave:** Definición formal rigurosa y precisa en 1 sola frase sin relleno.
+   - 3º) **Cadena Causal (SOLO SI ES NECESARIO):** Ubicada después de la Idea Clave. Si hay un proceso causa-efecto concreto, explícalo de forma MUY FÁCIL DE ENTENDER Y CORTA (1-2 frases fluidas). Si es puramente definitorio, OMITE ESTA LÍNEA.
+   - 4º) **(FORMALISMO MATEMÁTICO):** Fórmula en KaTeX solo si aplica; si es cualitativo, omitir.
+   - 5º) **Límite de Ruptura:** Estrictamente opcional, solo si es sumamente necesario; si no, omitir.
+
+5. 🎮 CÓDIGO REACT 18 + TSX: MÍNIMO +400 A +500 LÍNEAS REALES EN CADA NIVEL (100% INTERACTIVO, LÚDICO Y CERO ABURRIDO):
+   - Cero interfaces monótonas o formularios grises. CADA NIVEL debe tener su propio simulador funcional completo de +400 a +500 líneas en React 18 + TSX (\`export function App()\`).
+   - Experiencia de laboratorio interactivo y lúdico: Canvas 2D/SVG interactivo con animaciones en vivo (\`requestAnimationFrame\`), partículas dinámicas, sliders con brillo, perturbaciones inyectables, barra de estabilidad reactiva y sonido sintetizado Web Audio API.
+
+6. 📝 EXAMEN POR NIVEL: Cada nivel debe incluir la sección "## 5. Examen de Nivel" con 3 a 5 preguntas de opción múltiple (A, B, C, D) con respuesta correcta y justificación causal.
+7. 🎓 EXAMEN FINAL DEL CUADERNO: Al final, incluye la sección "# Examen Final del Cuaderno: Gran Reto de Maestría Holística" con Quizz de 10 preguntas y el Mega-Simulador Evaluador en React+TS de MÍNIMO +1000 LÍNEAS DE CÓDIGO REAL.
+8. COMIENZA INMEDIATAMENTE CON "# Nivel 1: [Título]" SIN TEXTO CONVERSACIONAL.
+9. GENERA TODOS LOS ${levelsCount} NIVELES COMPLETOS Y EL EXAMEN FINAL SIN TRUNCAMIENTO.`;
   }
 
   /**
@@ -592,18 +624,20 @@ ${userPrompt}
 ---
 
 ================================================================================
-🚨 RECORDATORIO FINAL: FORMATO, REACT + TYPESCRIPT (+400/500 LÍNEAS/NIVEL), ORDEN FEYNMAN Y EXAMEN FINAL (+1000 LÍNEAS) 🚨
+🚨 RECORDATORIO FINAL: VERACIDAD, STEP-BY-STEP, CERO ACOPLAMIENTO, CÓDIGO LÚDICO Y ORDEN FEYNMAN 🚨
 ================================================================================
 - TEMA EXCLUSIVO: "${form.topic.trim()}" (Materia: ${subjectProfile.name} • Nivel actual: ${form.currentLevel}/5).
+- VERACIDAD Y ESTADO DEL ARTE: Máximo respaldo factual, precisión conceptual y conocimiento actualizado.
+- FILOSOFÍA STEP-BY-STEP: Cada subnivel se apoya y construye directamente sobre el anterior (1.1 base -> 1.2 -> 1.3 sin saltos).
+- PRESENTACIÓN DEL NIVEL: Define el título del nivel e incluye "- **Propósito del Nivel:** [Qué se busca entender de ahí]".
+- CERO ACOPLAMIENTO: 1 concepto por subnivel. Entre 6 y 10 subniveles por nivel (Subnivel X.1 a X.6 ... X.10).
+- CADENA CAUSAL: Después de la Idea Clave, solo si es necesario, muy fácil de entender y corta.
 - TODO DEBE ESTAR DENTRO DE UN SOLO RECUADRO O ARCHIVO MARKDOWN CONTINUO (.md).
 - PROHIBIDO TEXTO CONVERSACIONAL (ni saludos ni despedidas).
-- CADA NIVEL CONTIENE ENTRE 6 Y 10 SUBNIVELES ATÓMICOS (Subnivel X.1 a Subnivel X.6 ... X.10).
-- FORMALISMO MATEMÁTICO: Omitir si la materia es de humanidades/historia/derecho/letras. Si es fórmula inventada pedagógica usar "(FORMALISMO MATEMÁTICO EUREKA)", si es real usar "(FORMALISMO MATEMÁTICO)".
-- LÍMITE DE RUPTURA: Omitir si no es sumamente necesario para el concepto.
-- 🚨 REITERACIÓN CRÍTICA: CADA NIVEL (1 al ${levelsCount}) DEBE CONTENER SU PROPIO COMPONENTE EN REACT 18 + TSX (\`export function App()\`) CON MÁS DE 400 A 500 LÍNEAS DE CÓDIGO REAL Y COMPLETO.
-- 🎨 DISEÑO VISUAL Y LÚDICO: Cero botones aburridos. Canvas 2D/SVG animados, partículas dinámicas, osciloscopios, barra de estabilidad reactiva, inyección de perturbaciones y efectos sonoros con Web Audio API.
+- 🚨 CÓDIGO REACT + TSX: MÍNIMO +400 A +500 LÍNEAS REALES EN CADA NIVEL (1 al ${levelsCount}) Y +1000 LÍNEAS EN EL EXAMEN FINAL.
+- 🎮 100% LÚDICO, GAMIFICADO Y CERO ABURRIDO: Canvas 2D/SVG animados en vivo, partículas interactivas, controles reactivos, barra de estabilidad, inyección de perturbaciones y sonido Web Audio API.
 - 📝 CADA NIVEL DEBE INCLUIR SU EXAMEN FORMATIVO (## 5. Examen de Nivel con 3 a 5 preguntas de selección múltiple explicadas).
-- 🎓 AL FINAL, INCLUYE EL EXAMEN FINAL DEL CUADERNO CON 10 PREGUNTAS Y EL MEGA-SIMULADOR EN REACT+TS DE MÁS DE 1000 LÍNEAS REALES (Suite gamificada con arena gráfica interactiva, retos de estrés y certificado).
+- 🎓 EXAMEN FINAL DEL CUADERNO: Quizz de 10 preguntas y Mega-Simulador Evaluador de +1000 líneas.
 - COMIENZA DIRECTAMENTE CON: "# Nivel 1:"`;
   }
 
@@ -1803,6 +1837,9 @@ export function App() {
       }
     );
 
+    // Normalizar Propósito del Nivel
+    text = text.replace(new RegExp(`${ANCHOR}(?:>\\s*)?(?:-\\s*)?(?:\\*\\*|__)?Prop[oó]sito(?:\\s*del\\s*Nivel)?[:\\s*_\\s]+`, 'gim'), '\n- **Propósito del Nivel:** ');
+
     // 5. Normalizar etiquetas de campos atómicos dentro de subniveles
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Intuici[oó]n(?:\\s*Feynman)?|Analog[ií]a|Met[aá]fora)[:\\s*_\\s]+`, 'gim'), '\n- **Intuición Feynman:** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Idea\\s*Clave(?:\\s*Formal)?|Concepto\\s*Clave|Principio\\s*Formal|Definici[oó]n)[:\\s*_\\s]+`, 'gim'), '\n- **Idea Clave:** ');
@@ -2070,6 +2107,13 @@ export function App() {
       const levelNumber = current.levelNumber;
       const title = current.title || `Nivel ${levelNumber}`;
 
+      // Extraer Propósito del Nivel si está presente
+      let purpose: string | undefined;
+      const purposeMatch = blockText.match(/(?:^|\n)(?:-\s*)?(?:\*\*|__)?(?:Prop[oó]sito(?:\s*del\s*Nivel)?|Objetivo(?:\s*del\s*Nivel)?)[:\s*_\s]+([^\n]+)/i);
+      if (purposeMatch) {
+        purpose = purposeMatch[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
+      }
+
       // 1. Axioma Central
       let axiomIntuition = '';
       const axiomSectionMatch = blockText.match(/(?:^|\n)##+\s*(?:1\.\s*)?(?:Axioma|Fundamento|Intuici[oó]n)[^\n]*\n([\s\S]*?)(?=(?:^|\n)##+|$)/i);
@@ -2106,10 +2150,24 @@ export function App() {
         const ideaM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Idea\s*Clave(?:\s*Formal)?|Concepto\s*Clave|Principio\s*Formal|Definici[oó]n)[:\s*_\s]+([^\n]+)/i);
         if (ideaM) keyIdea = ideaM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
 
-        // 3. Cadena Causal
-        let mechanism = '';
+        // 3. Cadena Causal (Opcional: solo si es necesario, muy fácil de entender y corta)
+        let mechanism: string | undefined;
         const mechM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Cadena\s*Causal|Mecanismo(?:\s*Causal)?|Causalidad|Explicaci[oó]n\s*Causal)[:\s*_\s]+([^\n]+(?:\n(?!-\s*(?:\*\*|__)?(?:Idea|Ecuaci|Condici|L[ií]mite|Intuici|Recurso|FORMALISMO))[^\n]+)*)/i);
-        if (mechM) mechanism = mechM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
+        if (mechM) {
+          const rawMech = mechM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
+          const lowerMech = rawMech.toLowerCase();
+          if (
+            rawMech &&
+            !lowerMech.startsWith('no aplica') &&
+            !lowerMech.startsWith('ningun') &&
+            !lowerMech.startsWith('none') &&
+            !lowerMech.startsWith('no requerid') &&
+            !lowerMech.startsWith('no necesari') &&
+            !lowerMech.startsWith('omitir')
+          ) {
+            mechanism = rawMech;
+          }
+        }
 
         // 4. Formalismo Matemático (Eureka vs Estándar)
         let mathType: 'standard' | 'eureka' | undefined;
@@ -2133,7 +2191,7 @@ export function App() {
           }
         }
 
-        // 5. Límite de Ruptura / Condición de Frontera
+        // 5. Límite de Ruptura / Condición de Frontera (Opcional)
         let boundaryCondition: string | undefined;
         const boundM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Condici[oó]n\s*de\s*Frontera(?:\s*[\/\-]\s*L[ií]mite(?:\s*de\s*Ruptura)?)?|L[ií]mite(?:\s*de\s*Ruptura)?|Caso\s*L[ií]mite|Frontera)[:\s*_\s]+([^\n]+)/i);
         if (boundM) boundaryCondition = boundM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
@@ -2147,7 +2205,7 @@ export function App() {
           concept,
           intuition,
           keyIdea: keyIdea || `Principio fundamental de ${concept}.`,
-          mechanism: mechanism || `Dinámica causal determinista en ${concept}.`,
+          mechanism: mechanism || undefined,
           mathType,
           equation,
           boundaryCondition,
@@ -2161,7 +2219,7 @@ export function App() {
           concept: title,
           intuition: axiomIntuition,
           keyIdea: `Dominio de los fundamentos y principios esenciales de ${title}.`,
-          mechanism: `Dinámica y descomposición causal de primeros principios en ${title}.`
+          mechanism: undefined
         });
       }
 
@@ -2251,6 +2309,7 @@ export function App() {
       const parsedLevel: FeynmanLevel = {
         levelNumber,
         title,
+        purpose,
         axiomIntuition: axiomIntuition || `Fundamento axiomático de ${title}.`,
         sublevels,
         typescriptCode,
@@ -2266,6 +2325,9 @@ export function App() {
         levelsMap.set(levelNumber, parsedLevel);
       } else {
         const existing = levelsMap.get(levelNumber)!;
+        if (parsedLevel.purpose && !existing.purpose) {
+          existing.purpose = parsedLevel.purpose;
+        }
         if (parsedLevel.typescriptCode.length > existing.typescriptCode.length) {
           existing.typescriptCode = parsedLevel.typescriptCode;
         }
