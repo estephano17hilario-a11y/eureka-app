@@ -10,7 +10,7 @@ import 'mathlive/static.css';
 import { nativeService } from './services/native.service';
 import { deckService } from './services/deck.service';
 import { themeService } from './services/theme.service';
-import { eurekaSupabase, type AuthUser } from './services/supabase.service';
+import { eurekaBackend, type AuthUser } from './services/backend.service';
 import { openAuthModal } from './components/AuthModal';
 import { renderFigmaHeader, type FigmaMainTab } from './components/FigmaHeader';
 import { renderFigmaDeckList, bindFigmaDeckListEvents } from './components/FigmaDeckList';
@@ -80,8 +80,8 @@ class EurekaFigmaApp {
     });
 
     // Suscribirse a cambios de autenticación
-    eurekaSupabase.onAuthChange(async (user) => {
-      const activeId = user?.id || eurekaSupabase.getUserId();
+    eurekaBackend.onAuthChange(async (user) => {
+      const activeId = user?.id || eurekaBackend.getUserId();
       await Promise.all([
         deckService.setUser(activeId),
         activeStudyService.setUser(activeId),
@@ -99,8 +99,8 @@ class EurekaFigmaApp {
     });
 
     // Comprobar usuario conectado o continuar sesión persistente local al inicio
-    const currentUser = eurekaSupabase.getCurrentUser();
-    const activeId = currentUser?.id || eurekaSupabase.getUserId();
+    const currentUser = eurekaBackend.getCurrentUser();
+    const activeId = currentUser?.id || eurekaBackend.getUserId();
     await Promise.all([
       deckService.setUser(activeId),
       activeStudyService.setUser(activeId),
@@ -131,8 +131,8 @@ class EurekaFigmaApp {
         this.render();
       },
       onClose: () => {
-        if (!eurekaSupabase.getCurrentUser()) {
-          eurekaSupabase.setGuestSession();
+        if (!eurekaBackend.getCurrentUser()) {
+          eurekaBackend.setGuestSession();
         }
         this.render();
       }
@@ -159,7 +159,7 @@ class EurekaFigmaApp {
   }
 
   private openUserAccountMenu(): void {
-    const user = eurekaSupabase.getCurrentUser();
+    const user = eurekaBackend.getCurrentUser();
     const isGuest = !user || user.email === 'guest@eureka.local';
     const displayName = user?.username || 'Invitado (Local)';
     const email = isGuest ? 'Modo Invitado (Datos aislados en este dispositivo)' : user.email;
@@ -178,12 +178,12 @@ class EurekaFigmaApp {
     } else {
       dialogService.showConfirm({
         title: `👤 ${displayName}`,
-        message: `Cuenta: ${email}\nBase de datos: Aislada y sincronizada en Supabase Cloud.\n\n¿Deseas cerrar tu sesión actual?`,
+        message: `Cuenta: ${email}\nBase de datos: Sincronizada en Servidor VPS Propio.\n\n¿Deseas cerrar tu sesión actual?`,
         confirmText: '🚪 Cerrar Sesión',
         cancelText: 'Cancelar',
         isDanger: true,
         onConfirm: async () => {
-          await eurekaSupabase.signOut();
+          await eurekaBackend.signOut();
           this.showToast('Sesión cerrada. Espacio de datos reiniciado a invitado.');
           this.promptAuth(true);
         }

@@ -1,6 +1,6 @@
 import type { OutlineNode, StudyChunk, TopicAccessLock, ActiveStudyTopic, ActiveStudyState } from '../types/active-study';
 import { deckService } from './deck.service';
-import { eurekaSupabase } from './supabase.service';
+import { eurekaBackend } from './backend.service';
 import { Preferences } from '@capacitor/preferences';
 
 const BASE_TOPICS_STORAGE_KEY = 'eureka_active_study_topics_v1';
@@ -23,7 +23,7 @@ class ActiveStudyService {
   private cloudSyncTimer: any = null;
 
   private constructor() {
-    this.currentUserId = eurekaSupabase.getUserId();
+    this.currentUserId = eurekaBackend.getUserId();
     this.loadFromStorage();
     this.initAntiCheatTime();
     this.syncWithCloud();
@@ -48,7 +48,7 @@ class ActiveStudyService {
 
   public async setUser(userId: string): Promise<void> {
     const resolvedId = (!userId || userId === 'guest' || userId === 'default')
-      ? eurekaSupabase.getUserId()
+      ? eurekaBackend.getUserId()
       : userId;
 
     if (this.currentUserId === resolvedId && this.topics.size > 0) {
@@ -82,27 +82,27 @@ class ActiveStudyService {
   }
 
   private getTopicsKey(): string {
-    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
     return `${BASE_TOPICS_STORAGE_KEY}_${uid}`;
   }
 
   private getOutlinesKey(): string {
-    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
     return `${BASE_OUTLINES_STORAGE_KEY}_${uid}`;
   }
 
   private getLocksKey(): string {
-    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
     return `${BASE_LOCKS_STORAGE_KEY}_${uid}`;
   }
 
   private getCoinsKey(): string {
-    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
     return `${BASE_USER_COINS_KEY}_${uid}`;
   }
 
   private getMindMapsKey(): string {
-    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
     return `${BASE_MINDMAPS_STORAGE_KEY}_${uid}`;
   }
 
@@ -283,7 +283,7 @@ class ActiveStudyService {
       Preferences.set({ key: locksKey, value: locksJson }).catch(() => {});
       Preferences.set({ key: mindMapsKey, value: mindMapsJson }).catch(() => {});
 
-      // Sincronización a Supabase debounced en segundo plano
+      // Sincronización a VPS debounced en segundo plano
       this.scheduleCloudSync();
     } catch (e) {
       console.error('[ActiveStudyService] Error saving storage:', e);
@@ -316,7 +316,7 @@ class ActiveStudyService {
         mindMapsObj[topicId] = data;
       });
 
-      await eurekaSupabase.saveUserSettings({
+      await eurekaBackend.saveUserSettings({
         settingsJson: {
           activeTopics: Array.from(this.topics.values()),
           activeOutlines: outlinesObj,
@@ -333,7 +333,7 @@ class ActiveStudyService {
 
   public async syncWithCloud(): Promise<void> {
     try {
-      const remote = await eurekaSupabase.fetchUserSettings();
+      const remote = await eurekaBackend.fetchUserSettings();
       if (remote && remote.settingsJson) {
         const json = remote.settingsJson;
         let hasChanges = false;
@@ -670,7 +670,7 @@ se obtiene la energía de enlace nuclear total.`;
   // ==========================================
 
   public lockTopic(topicId: string): TopicAccessLock {
-    const user = eurekaSupabase.getCurrentUser();
+    const user = eurekaBackend.getCurrentUser();
     const userId = user?.id || 'guest';
     const now = this.getReliableCurrentTime();
     const unlockTime = now + 24 * 60 * 60 * 1000; // 24 horas

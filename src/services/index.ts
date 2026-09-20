@@ -19,8 +19,8 @@ export { katexService } from './katex.service';
 export { ce, getComputeEngine } from './math-engine.service';
 export { ttsService } from './tts.service';
 
-// 4. Plataforma, Sistema & Persistencia
-export { eurekaSupabase } from './supabase.service';
+// 4. Plataforma, Sistema & Persistencia VPS
+export { eurekaBackend } from './backend.service';
 export { dialogService } from './dialog.service';
 export { nativeService } from './native.service';
 export { themeService } from './theme.service';

@@ -1,7 +1,7 @@
 import type { Deck, Flashcard, DeckStats, StudyRating, DeckSettings, CardType, OcclusionMask, OcclusionMode } from '../types/flashcard';
 import { getInitialDemoDecks } from './demo-data';
 import { srsService } from './srs.service';
-import { eurekaSupabase } from './supabase.service';
+import { eurekaBackend } from './backend.service';
 
 export class DeckService {
   private static instance: DeckService;
@@ -11,7 +11,7 @@ export class DeckService {
   private listeners: Array<() => void> = [];
 
   private constructor() {
-    this.currentUserId = eurekaSupabase.getUserId();
+    this.currentUserId = eurekaBackend.getUserId();
     this.loadFromStorage();
     this.syncWithCloud();
   }
@@ -27,7 +27,7 @@ export class DeckService {
 
   public async setUser(userId: string): Promise<void> {
     const resolvedId = (!userId || userId === 'guest' || userId === 'default')
-      ? eurekaSupabase.getUserId()
+      ? eurekaBackend.getUserId()
       : userId;
 
     if (this.currentUserId === resolvedId && this.decks.length > 0) {
@@ -66,12 +66,12 @@ export class DeckService {
   }
 
   private getDecksStorageKey(): string {
-    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
     return `eureka_decks_user_${uid}`;
   }
 
   private getCardsStorageKey(): string {
-    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
     return `eureka_cards_user_${uid}`;
   }
 
@@ -152,11 +152,11 @@ export class DeckService {
         localStorage.setItem('eureka_cards_backup_latest', cardsJson);
       }
       
-      // Sincronización a Supabase con debounce de 600ms (coste mínimo de peticiones y latencia 0 local)
+      // Sincronización a VPS con debounce de 600ms (coste mínimo de peticiones y latencia 0 local)
       if (this.cloudSyncTimer) clearTimeout(this.cloudSyncTimer);
       this.cloudSyncTimer = setTimeout(() => {
-        eurekaSupabase.syncDecks(this.decks);
-        eurekaSupabase.syncCards(this.cards);
+        eurekaBackend.syncDecks(this.decks);
+        eurekaBackend.syncCards(this.cards);
       }, 600);
     } catch (err) {
       console.warn('Error guardando en almacenamiento:', err);
@@ -166,8 +166,8 @@ export class DeckService {
   public async syncWithCloud(): Promise<void> {
     try {
       const [remoteDecks, remoteCards] = await Promise.all([
-        eurekaSupabase.fetchDecks(),
-        eurekaSupabase.fetchCards()
+        eurekaBackend.fetchDecks(),
+        eurekaBackend.fetchCards()
       ]);
 
       let hasChanges = false;
@@ -217,8 +217,8 @@ export class DeckService {
       } else if (this.decks.length > 0 || this.cards.length > 0) {
         // Subida inicial a la base de datos de Eureka para este usuario si la nube no tiene datos
         await Promise.all([
-          eurekaSupabase.syncDecks(this.decks),
-          eurekaSupabase.syncCards(this.cards)
+          eurekaBackend.syncDecks(this.decks),
+          eurekaBackend.syncCards(this.cards)
         ]);
       }
     } catch (err) {
@@ -403,9 +403,9 @@ export class DeckService {
     this.decks = this.decks.filter(d => !allIdsToDelete.includes(d.id));
     this.cards = this.cards.filter(c => !allIdsToDelete.includes(c.deckId));
     this.notify();
-    eurekaSupabase.deleteDecksFromCloud(allIdsToDelete);
+    eurekaBackend.deleteDecksFromCloud(allIdsToDelete);
     if (cardsToDelete.length > 0) {
-      eurekaSupabase.deleteCardsFromCloud(cardsToDelete);
+      eurekaBackend.deleteCardsFromCloud(cardsToDelete);
     }
   }
 
@@ -628,7 +628,7 @@ export class DeckService {
       const cardsToDelete = groupCards.slice(masks.length).map(c => c.id);
       const deleteSet = new Set(cardsToDelete);
       this.cards = this.cards.filter(c => !deleteSet.has(c.id));
-      eurekaSupabase.deleteCardsFromCloud(cardsToDelete);
+      eurekaBackend.deleteCardsFromCloud(cardsToDelete);
     }
 
     this.notify();
@@ -680,7 +680,7 @@ export class DeckService {
   public deleteCard(cardId: string): void {
     this.cards = this.cards.filter(c => c.id !== cardId);
     this.notify();
-    eurekaSupabase.deleteCardFromCloud(cardId);
+    eurekaBackend.deleteCardFromCloud(cardId);
   }
 
   public deleteCardGroup(groupId: string): void {
@@ -688,7 +688,7 @@ export class DeckService {
     this.cards = this.cards.filter(c => c.groupId !== groupId);
     this.notify();
     if (cardsToDelete.length > 0) {
-      eurekaSupabase.deleteCardsFromCloud(cardsToDelete);
+      eurekaBackend.deleteCardsFromCloud(cardsToDelete);
     }
   }
 
@@ -734,7 +734,7 @@ export class DeckService {
     const idSet = new Set(cardIds);
     this.cards = this.cards.filter(c => !idSet.has(c.id));
     this.notify();
-    eurekaSupabase.deleteCardsFromCloud(cardIds);
+    eurekaBackend.deleteCardsFromCloud(cardIds);
   }
 
   public resetCardsProgress(cardIds: string[]): void {
@@ -820,8 +820,8 @@ export class DeckService {
 
     const nextState = srsService.calculateNextState(card, rating, settings);
 
-    // Registrar analítica de estudio en Eureka Cloud
-    eurekaSupabase.logStudyReview({
+    // Registrar analítica de estudio en Eureka VPS
+    eurekaBackend.logStudyReview({
       deckId: card.deckId,
       cardId: card.id,
       rating,

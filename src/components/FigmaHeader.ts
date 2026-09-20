@@ -1,9 +1,9 @@
-import { eurekaSupabase } from '../services/supabase.service';
+import { eurekaBackend } from '../services/backend.service';
 
 export type FigmaMainTab = 'flashcards' | 'estudio' | 'biblioteca' | 'ajustes' | 'inicio';
 
 export function renderFigmaHeader(activeTab: FigmaMainTab = 'flashcards'): string {
-  const user = eurekaSupabase.getCurrentUser();
+  const user = eurekaBackend.getCurrentUser();
   const displayName = user?.username || 'Estudiante';
   const initial = displayName.charAt(0).toUpperCase() || 'E';
   const isFlashcards = activeTab === 'flashcards' || activeTab === 'inicio';

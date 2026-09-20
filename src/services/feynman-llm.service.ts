@@ -6,7 +6,7 @@ import type {
 import { feynmanPedagogyService } from './feynman-pedagogy.service';
 import { activeStudyService } from './active-study.service';
 import { deckService } from './deck.service';
-import { eurekaSupabase } from './supabase.service';
+import { eurekaBackend } from './backend.service';
 import { Preferences } from '@capacitor/preferences';
 
 const BASE_FEYNMAN_STORAGE_KEY = 'eureka_feynman_guides_v1';
@@ -18,7 +18,7 @@ export class FeynmanLlmService {
   private savedGuides: Map<string, FeynmanStudyGuide> = new Map();
 
   private constructor() {
-    this.currentUserId = eurekaSupabase.getUserId();
+    this.currentUserId = eurekaBackend.getUserId();
     this.loadFromStorage();
     this.syncWithCloud();
   }
@@ -34,7 +34,7 @@ export class FeynmanLlmService {
 
   public async setUser(userId: string): Promise<void> {
     const resolvedId = (!userId || userId === 'guest' || userId === 'default')
-      ? eurekaSupabase.getUserId()
+      ? eurekaBackend.getUserId()
       : userId;
 
     if (this.currentUserId === resolvedId && this.savedGuides.size > 0) {
@@ -48,7 +48,7 @@ export class FeynmanLlmService {
   }
 
   private getGuidesKey(): string {
-    const uid = this.currentUserId || eurekaSupabase.getUserId() || 'default';
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
     return `${BASE_FEYNMAN_STORAGE_KEY}_${uid}`;
   }
 
@@ -109,7 +109,7 @@ export class FeynmanLlmService {
   private async syncCloudState(): Promise<void> {
     try {
       const arr = Array.from(this.savedGuides.values());
-      await eurekaSupabase.saveUserSettings({
+      await eurekaBackend.saveUserSettings({
         settingsJson: {
           feynmanGuides: arr,
           updatedAt: Date.now()
@@ -122,7 +122,7 @@ export class FeynmanLlmService {
 
   public async syncWithCloud(): Promise<void> {
     try {
-      const userSettings = await eurekaSupabase.fetchUserSettings();
+      const userSettings = await eurekaBackend.fetchUserSettings();
       if (userSettings?.settingsJson?.feynmanGuides && Array.isArray(userSettings.settingsJson.feynmanGuides)) {
         let hasChanges = false;
         userSettings.settingsJson.feynmanGuides.forEach((g: FeynmanStudyGuide) => {

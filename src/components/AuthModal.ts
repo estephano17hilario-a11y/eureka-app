@@ -1,4 +1,4 @@
-import { eurekaSupabase, type AuthUser } from '../services/supabase.service';
+import { eurekaBackend, type AuthUser } from '../services/backend.service';
 
 export interface AuthModalOptions {
   onSuccess: (user: AuthUser) => void;
@@ -184,7 +184,7 @@ export function openAuthModal(options: AuthModalOptions): void {
 
     try {
       if (activeTab === 'register') {
-        const res = await eurekaSupabase.signUp(email, password, username || email.split('@')[0]);
+        const res = await eurekaBackend.signUp(email, password, username || email.split('@')[0]);
         if (res.user) {
           modalRoot.remove();
           options.onSuccess(res.user);
@@ -193,7 +193,7 @@ export function openAuthModal(options: AuthModalOptions): void {
           errorBox.style.display = 'block';
         }
       } else {
-        const res = await eurekaSupabase.signIn(email, password);
+        const res = await eurekaBackend.signIn(email, password);
         if (res.user) {
           modalRoot.remove();
           options.onSuccess(res.user);
@@ -213,7 +213,7 @@ export function openAuthModal(options: AuthModalOptions): void {
 
   // Modo Invitado
   document.getElementById('btn-auth-guest')?.addEventListener('click', () => {
-    const guestUser = eurekaSupabase.setGuestSession();
+    const guestUser = eurekaBackend.setGuestSession();
     modalRoot.remove();
     options.onSuccess(guestUser);
   });

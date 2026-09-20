@@ -1,4 +1,4 @@
-import { eurekaSupabase } from './supabase.service';
+import { eurekaBackend } from './backend.service';
 
 export type BgThemeType = 'modern_black' | 'holo_cyber' | 'emerald_vision' | 'digital_blue' | 'sunset_magenta';
 
@@ -27,7 +27,7 @@ export class ThemeService {
   private currentTheme: AppCustomizationTheme;
 
   private getThemeStorageKey(): string {
-    const uid = eurekaSupabase.getUserId();
+    const uid = eurekaBackend.getUserId();
     return `${STORAGE_KEY}_${uid}`;
   }
 
@@ -67,7 +67,7 @@ export class ThemeService {
     localStorage.setItem(this.getThemeStorageKey(), JSON.stringify(this.currentTheme));
     this.applyTheme();
 
-    eurekaSupabase.saveUserSettings({
+    eurekaBackend.saveUserSettings({
       theme: this.currentTheme.bgTheme,
       settingsJson: { customizationTheme: this.currentTheme }
     }).catch(() => {});
@@ -76,7 +76,7 @@ export class ThemeService {
   public async syncWithCloud(): Promise<void> {
     try {
       this.loadFromStorage();
-      const userSettings = await eurekaSupabase.fetchUserSettings();
+      const userSettings = await eurekaBackend.fetchUserSettings();
       if (userSettings?.settingsJson?.customizationTheme) {
         this.currentTheme = { ...DEFAULT_THEME, ...userSettings.settingsJson.customizationTheme };
         localStorage.setItem(this.getThemeStorageKey(), JSON.stringify(this.currentTheme));
