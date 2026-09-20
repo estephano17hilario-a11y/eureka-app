@@ -1,4 +1,6 @@
 import MindMap from 'simple-mind-map';
+import '../ui/styles/mindmeister-theme.css';
+import { SimpleMindMapAdapter } from '../engine/adapters/SimpleMindMapAdapter';
 import { Preferences } from '@capacitor/preferences';
 import { Keyboard } from '@capacitor/keyboard';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -369,6 +371,7 @@ export class UltraFastMindMap {
   private mindMapInstance: any = null;
   private config: MindMapConfig;
   private activeNode: any = null;
+  private mindmeisterAdapter: SimpleMindMapAdapter | null = null;
   private saveDebounceTimer: number | null = null;
   private isDestroyed: boolean = false;
   private keyboardListenerHandle: any = null;
@@ -902,6 +905,15 @@ export class UltraFastMindMap {
         lineColor: themeObj.lineColor,
         lineWidth: themeObj.lineWidth
       }
+    });
+
+    // 🚀 Integración del Paradigma MindMeister: Splines Adaptativas C^1, Ribbons Cónicas, Frustum Culling y Gestos a 60 FPS
+    this.mindmeisterAdapter = new SimpleMindMapAdapter(this.mindMapInstance, {
+      container: canvasEl,
+      enableRibbons: true,
+      enableCulling: true,
+      enableTouchEngine: true,
+      enablePillToolbar: true
     });
 
     // Eventos y selección
@@ -2526,6 +2538,15 @@ export class UltraFastMindMap {
     try {
       this.keyboardListenerHandle?.remove?.();
     } catch {}
+
+    if (this.mindmeisterAdapter) {
+      try {
+        this.mindmeisterAdapter.destroy();
+      } catch (e) {
+        console.warn('[UltraFastMindMap] Error destruyendo mindmeisterAdapter:', e);
+      }
+      this.mindmeisterAdapter = null;
+    }
 
     if (this.mindMapInstance) {
       try {
