@@ -36,6 +36,7 @@ const DEFAULT_MAP_DATA = {
 };
 
 const COLOR_PRESETS: Record<string, { fill: string; border: string; text: string }> = {
+  transparent: { fill: 'transparent', border: 'transparent', text: '#f8fafc' },
   blue: { fill: '#0c4a6e', border: '#38bdf8', text: '#f0f9ff' },
   purple: { fill: '#581c87', border: '#c084fc', text: '#faf5ff' },
   emerald: { fill: '#064e3b', border: '#34d399', text: '#ecfdf5' },
@@ -45,6 +46,37 @@ const COLOR_PRESETS: Record<string, { fill: string; border: string; text: string
 };
 
 const THEME_PRESETS: Record<string, any> = {
+  minimalOutline: {
+    name: 'Minimalista / Invisible',
+    backgroundColor: '#07080d',
+    root: {
+      fillColor: 'transparent',
+      color: '#38bdf8',
+      borderColor: '#38bdf8',
+      borderWidth: 1.5,
+      fontSize: 16,
+      fontWeight: 'bold',
+      active: { borderColor: '#0284c7', borderWidth: 2.5 }
+    },
+    second: {
+      fillColor: 'transparent',
+      color: '#f8fafc',
+      borderColor: 'transparent',
+      borderWidth: 0,
+      fontSize: 14,
+      active: { borderColor: '#38bdf8', borderWidth: 1 }
+    },
+    node: {
+      fillColor: 'transparent',
+      color: '#e2e8f0',
+      borderColor: 'transparent',
+      borderWidth: 0,
+      fontSize: 13,
+      active: { borderColor: '#38bdf8', borderWidth: 1 }
+    },
+    lineColor: '#ec4899',
+    lineWidth: 2
+  },
   cyberDark: {
     name: 'Cyber Dark',
     backgroundColor: '#07080d',
@@ -423,6 +455,7 @@ export class UltraFastMindMap {
 
   private getThemeEmoji(theme: string): string {
     const map: Record<string, string> = {
+      minimalOutline: '✨',
       cyberDark: '🌌',
       oceanBlue: '🌊',
       bioEmerald: '🍃',
@@ -509,6 +542,7 @@ export class UltraFastMindMap {
               <span class="mini-chevron">▾</span>
             </button>
             <div class="popover-bubble popover-grid-theme" id="popover-theme" style="display:none;">
+              <button type="button" class="popover-item-emoji ${this.currentTheme === 'minimalOutline' ? 'active' : ''}" data-theme="minimalOutline" title="Minimalista / Invisible">✨</button>
               <button type="button" class="popover-item-emoji ${this.currentTheme === 'cyberDark' ? 'active' : ''}" data-theme="cyberDark" title="Cyber">🌌</button>
               <button type="button" class="popover-item-emoji ${this.currentTheme === 'oceanBlue' ? 'active' : ''}" data-theme="oceanBlue" title="Ocean">🌊</button>
               <button type="button" class="popover-item-emoji ${this.currentTheme === 'bioEmerald' ? 'active' : ''}" data-theme="bioEmerald" title="Bio">🍃</button>
@@ -574,6 +608,9 @@ export class UltraFastMindMap {
                 <span class="mini-chevron">▾</span>
               </button>
               <div class="popover-bubble" id="popover-node-bg" style="display:none;">
+                <button type="button" class="color-dot-btn mm-swatch-transparent" data-node-bg="transparent" style="background:transparent; border:1.5px dashed rgba(255,255,255,0.6); display:flex; align-items:center; justify-content:center;" title="Invisible / Sin Recuadro">
+                  <span style="font-size:10px; line-height:1;">🚫</span>
+                </button>
                 <button type="button" class="color-dot-btn" data-node-bg="blue" style="background:#0ea5e9;" title="Cyan"></button>
                 <button type="button" class="color-dot-btn" data-node-bg="purple" style="background:#a855f7;" title="Violeta"></button>
                 <button type="button" class="color-dot-btn" data-node-bg="emerald" style="background:#10b981;" title="Esmeralda"></button>
@@ -838,7 +875,16 @@ export class UltraFastMindMap {
         const div = document.createElement('div');
         div.className = 'eureka-mindmap-custom-node';
 
-        const color = (typeof node.getStyle === 'function' ? node.getStyle('color', false) : null) || '#f8fafc';
+        const nodeFill = typeof node.getStyle === 'function' ? node.getStyle('fillColor', false) : null;
+        let defaultTextColor = this.canvasBgMode === 'light' ? '#0f172a' : '#f8fafc';
+        if (this.canvasBgMode === 'light') {
+          // Si el nodo tiene un fondo oscuro o saturado en modo claro, texto blanco
+          if (nodeFill && nodeFill !== 'transparent' && nodeFill !== '#ffffff' && nodeFill !== '#f8fafc') {
+            defaultTextColor = '#ffffff';
+          }
+        }
+        const customColor = typeof node.getStyle === 'function' ? node.getStyle('color', false) : null;
+        const color = customColor || defaultTextColor;
         const fontSize = (typeof node.getStyle === 'function' ? node.getStyle('fontSize', false) : null) || 14;
         const fontWeight = (typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : null) || 'normal';
 
@@ -855,37 +901,44 @@ export class UltraFastMindMap {
         div.style.whiteSpace = 'pre-wrap';
         div.style.padding = '6px 10px';
 
-        // 📷 Renderizado de Foto en el Recuadro con Dimensiones Inmediatas
+        // 📷 Renderizado de Foto en el Recuadro con Proporción Completa (Zero Cropping)
         if (image) {
           const imgSize = node.getData ? node.getData('imageSize') : (node.nodeData?.data?.imageSize);
-          const imgW = (imgSize && imgSize.width) ? imgSize.width : 160;
-          const imgH = (imgSize && imgSize.height) ? imgSize.height : 110;
+          const maxBoxW = 240;
+          const maxBoxH = 190;
+          let targetW = imgSize?.width;
+          let targetH = imgSize?.height;
 
           const imgEl = document.createElement('img');
           imgEl.src = image;
           imgEl.className = 'eureka-node-img-rendered';
-          imgEl.width = imgW;
-          imgEl.height = imgH;
-          imgEl.style.width = `${imgW}px`;
-          imgEl.style.height = `${imgH}px`;
-          imgEl.style.minWidth = `${imgW}px`;
-          imgEl.style.minHeight = `${imgH}px`;
-          imgEl.style.maxWidth = '180px';
-          imgEl.style.maxHeight = '130px';
+          imgEl.style.maxWidth = `${maxBoxW}px`;
+          imgEl.style.maxHeight = `${maxBoxH}px`;
+          imgEl.style.objectFit = 'contain';
           imgEl.style.borderRadius = '8px';
-          imgEl.style.objectFit = 'cover';
           imgEl.style.display = 'block';
           imgEl.style.marginBottom = '6px';
 
-          // Si el tamaño no estaba guardado y la imagen se decodifica en diferido, recalcular
+          if (targetW && targetH) {
+            imgEl.style.width = `${targetW}px`;
+            imgEl.style.height = `${targetH}px`;
+          } else {
+            imgEl.style.width = 'auto';
+            imgEl.style.height = 'auto';
+          }
+
+          // Al cargarse la imagen, calcular proporción matemática exacta sin recortes
           imgEl.onload = () => {
-            if (!node.getData?.('imageSize') && imgEl.naturalWidth && imgEl.naturalHeight) {
-              const scale = Math.min(180 / imgEl.naturalWidth, 130 / imgEl.naturalHeight, 1);
-              const nw = Math.max(40, Math.round(imgEl.naturalWidth * scale));
-              const nh = Math.max(30, Math.round(imgEl.naturalHeight * scale));
-              if (nw !== imgW || nh !== imgH) {
+            if (imgEl.naturalWidth && imgEl.naturalHeight) {
+              const nw = imgEl.naturalWidth;
+              const nh = imgEl.naturalHeight;
+              const scale = Math.min(maxBoxW / nw, maxBoxH / nh, 1);
+              const computedW = Math.max(50, Math.round(nw * scale));
+              const computedH = Math.max(40, Math.round(nh * scale));
+
+              if (!imgSize?.custom || targetW !== computedW || targetH !== computedH) {
                 if (typeof node.setData === 'function') {
-                  node.setData({ imageSize: { width: nw, height: nh, custom: true } });
+                  node.setData({ imageSize: { width: computedW, height: computedH, custom: true } });
                 }
                 this.mindMapInstance?.render();
               }
@@ -937,10 +990,7 @@ export class UltraFastMindMap {
     // Restaurar modo de fondo de lienzo (oscuro / claro) guardado
     const savedBgMode = localStorage.getItem('eureka_mindmap_canvas_bg_mode') as 'dark' | 'light' | null;
     if (savedBgMode) {
-      this.canvasBgMode = savedBgMode;
-      this.mindmeisterAdapter.setCanvasBgMode(savedBgMode);
-      const preview = this.container.querySelector('#preview-canvas-mode');
-      if (preview) preview.textContent = savedBgMode === 'light' ? '☀️' : '🌙';
+      this.setCanvasBackgroundMode(savedBgMode);
     }
 
     // Eventos y selección
@@ -1786,6 +1836,18 @@ export class UltraFastMindMap {
    */
   private applyNodeColor(colorKey: string): void {
     if (!this.activeNode || !this.mindMapInstance) return;
+    if (colorKey === 'transparent') {
+      const textColor = this.canvasBgMode === 'light' ? '#0f172a' : '#f8fafc';
+      this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+        fillColor: 'transparent',
+        borderColor: 'transparent',
+        color: textColor,
+        borderWidth: 0
+      });
+      this.triggerHaptic();
+      this.saveSync();
+      return;
+    }
     const preset = COLOR_PRESETS[colorKey];
     if (preset) {
       this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
@@ -2164,6 +2226,52 @@ export class UltraFastMindMap {
   public setCanvasBackgroundMode(mode: 'dark' | 'light'): void {
     this.canvasBgMode = mode;
     this.triggerHaptic();
+
+    // Sincronizar clases en el contenedor raíz del modal
+    this.container.classList.toggle('theme-light', mode === 'light');
+    this.container.classList.toggle('theme-dark', mode === 'dark');
+
+    // Sincronizar configuración visual completa del árbol en SimpleMindMap
+    if (this.mindMapInstance && typeof this.mindMapInstance.setThemeConfig === 'function') {
+      if (mode === 'light') {
+        this.mindMapInstance.setThemeConfig({
+          backgroundColor: '#f8fafc',
+          lineColor: '#0284c7',
+          root: {
+            fillColor: '#ffffff',
+            color: '#0f172a',
+            borderColor: '#0284c7',
+            borderWidth: 2,
+            active: { borderColor: '#0369a1', borderWidth: 3 }
+          },
+          second: {
+            fillColor: '#ffffff',
+            color: '#0f172a',
+            borderColor: '#0284c7',
+            borderWidth: 1.5,
+            active: { borderColor: '#0369a1', borderWidth: 2.5 }
+          },
+          node: {
+            fillColor: '#ffffff',
+            color: '#1e293b',
+            borderColor: '#cbd5e1',
+            borderWidth: 1.2,
+            active: { borderColor: '#0284c7', borderWidth: 2 }
+          }
+        });
+      } else {
+        const darkTheme = THEME_PRESETS[this.currentTheme] || THEME_PRESETS.cyberDark;
+        this.mindMapInstance.setThemeConfig({
+          backgroundColor: darkTheme.backgroundColor || '#07080d',
+          lineColor: darkTheme.lineColor || '#0284c7',
+          root: darkTheme.root,
+          second: darkTheme.second,
+          node: darkTheme.node
+        });
+      }
+      this.mindMapInstance.render();
+    }
+
     this.mindmeisterAdapter?.setCanvasBgMode(mode);
     try {
       localStorage.setItem('eureka_mindmap_canvas_bg_mode', mode);
@@ -2211,37 +2319,41 @@ export class UltraFastMindMap {
     const targetRect = targetElement.getBoundingClientRect();
     const containerRect = canvasContainer.getBoundingClientRect();
 
-    // 3. Crear textarea superpuesto exactamente en la posición del recuadro
+    // 3. Crear textarea 100% integrado y transparente directamente sobre el texto del recuadro
     const editor = document.createElement('textarea');
     editor.className = 'eureka-inline-node-editor';
     editor.value = currentText;
     editor.autocomplete = 'off';
     editor.spellcheck = false;
 
-    // Calcular dimensiones y posición relativas al contenedor del canvas
+    // Calcular dimensiones y posición relativas exactamente al contenedor del texto
     const relLeft = targetRect.left - containerRect.left;
     const relTop = targetRect.top - containerRect.top;
-    const minW = Math.max(targetRect.width, 110);
-    const minH = Math.max(targetRect.height, 36);
+    const exactW = Math.max(targetRect.width, 40);
+    const exactH = Math.max(targetRect.height, 22);
 
     editor.style.left = `${Math.round(relLeft)}px`;
     editor.style.top = `${Math.round(relTop)}px`;
-    editor.style.width = `${Math.round(minW)}px`;
-    editor.style.minWidth = `${Math.round(minW)}px`;
-    editor.style.height = `${Math.round(minH)}px`;
-    editor.style.minHeight = `${Math.round(minH)}px`;
+    editor.style.width = `${Math.round(exactW)}px`;
+    editor.style.height = `${Math.round(exactH)}px`;
+    editor.style.background = 'transparent';
+    editor.style.backgroundColor = 'transparent';
+    editor.style.border = 'none';
+    editor.style.boxShadow = 'none';
+    editor.style.outline = 'none';
+    editor.style.padding = '0';
+    editor.style.margin = '0';
+    editor.style.textAlign = 'center';
 
     // Heredar estilos tipográficos del nodo
     const fontSize = typeof node.getStyle === 'function' ? node.getStyle('fontSize', false) : 14;
     const fontWeight = typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : 'normal';
     const textColor = typeof node.getStyle === 'function' ? node.getStyle('color', false) : (this.canvasBgMode === 'light' ? '#0f172a' : '#ffffff');
-    const fillColor = typeof node.getStyle === 'function' ? node.getStyle('fillColor', false) : (this.canvasBgMode === 'light' ? '#ffffff' : '#141724');
 
     editor.style.fontSize = `${fontSize || 14}px`;
     editor.style.fontWeight = fontWeight || 'normal';
     editor.style.color = textColor || (this.canvasBgMode === 'light' ? '#0f172a' : '#ffffff');
-    editor.style.backgroundColor = fillColor || (this.canvasBgMode === 'light' ? '#ffffff' : '#141724');
-    editor.style.caretColor = '#38bdf8'; // Indicador de la rayita para escribir (cursor visible)
+    editor.style.caretColor = '#38bdf8'; // Cursor visible y brillante
 
     // Ocultar temporalmente el texto estático para evitar doble visión
     if (textRenderedEl) {
@@ -2251,10 +2363,15 @@ export class UltraFastMindMap {
     this.activeInlineEditor = editor;
     canvasContainer.appendChild(editor);
 
-    // Auto-ajustar altura al escribir dinámicamente
+    // Auto-ajustar altura al escribir dinámicamente sin salirse del recuadro
     const autoAdjustSize = () => {
       editor.style.height = 'auto';
-      editor.style.height = `${Math.max(minH, editor.scrollHeight)}px`;
+      editor.style.height = `${Math.max(exactH, editor.scrollHeight)}px`;
+      editor.style.width = 'auto';
+      const newW = Math.max(exactW, editor.scrollWidth + 8);
+      editor.style.width = `${newW}px`;
+      const diff = (newW - exactW) / 2;
+      editor.style.left = `${Math.round(relLeft - diff)}px`;
     };
 
     editor.addEventListener('input', () => {

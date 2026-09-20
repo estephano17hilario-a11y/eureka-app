@@ -55,6 +55,11 @@ class ActiveStudyService {
       return;
     }
 
+    const previousTopics = Array.from(this.topics.values());
+    const previousOutlines = new Map(this.outlineNodes);
+    const previousMindMaps = new Map(this.mindMaps);
+    const previousLocks = new Map(this.locks);
+
     this.currentUserId = resolvedId;
     this.topics.clear();
     this.outlineNodes.clear();
@@ -63,6 +68,16 @@ class ActiveStudyService {
     this.userCoins = 150;
 
     await this.loadFromStorage();
+
+    // Migración automática si la cuenta nueva no tiene datos pero la sesión previa tenía cuadernos
+    if (this.topics.size === 0 && previousTopics.length > 0) {
+      previousTopics.forEach(t => this.topics.set(t.id, t));
+      previousOutlines.forEach((nodes, id) => this.outlineNodes.set(id, nodes));
+      previousMindMaps.forEach((mm, id) => this.mindMaps.set(id, mm));
+      previousLocks.forEach((lock, id) => this.locks.set(id, lock));
+      this.saveToStorage();
+    }
+
     await this.syncWithCloud();
   }
 
@@ -102,13 +117,42 @@ class ActiveStudyService {
       const savedCoins = localStorage.getItem(this.getCoinsKey());
       this.userCoins = savedCoins !== null ? parseInt(savedCoins, 10) : 150;
 
-      const rawTopics = localStorage.getItem(this.getTopicsKey());
+      let rawTopics = localStorage.getItem(this.getTopicsKey());
+      let rawOutlines = localStorage.getItem(this.getOutlinesKey());
+      let rawLocks = localStorage.getItem(this.getLocksKey());
+      let rawMindMaps = localStorage.getItem(this.getMindMapsKey());
+
+      // Respaldo de recuperación infalible si la clave scoped actual estuviera vacía al recargar
+      if (!rawTopics) {
+        const backupTopics = localStorage.getItem('eureka_active_study_topics_v1_backup');
+        if (backupTopics) {
+          rawTopics = backupTopics;
+          rawOutlines = localStorage.getItem('eureka_active_study_outlines_v1_backup');
+          rawLocks = localStorage.getItem('eureka_active_study_locks_v1_backup');
+          rawMindMaps = localStorage.getItem('eureka_active_study_mindmaps_v1_backup');
+        } else {
+          // Escanear otras claves de cuadernos en localStorage
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith(BASE_TOPICS_STORAGE_KEY + '_')) {
+              const val = localStorage.getItem(k);
+              if (val && val.length > 5) {
+                rawTopics = val;
+                rawOutlines = localStorage.getItem(k.replace(BASE_TOPICS_STORAGE_KEY, BASE_OUTLINES_STORAGE_KEY));
+                rawLocks = localStorage.getItem(k.replace(BASE_TOPICS_STORAGE_KEY, BASE_LOCKS_STORAGE_KEY));
+                rawMindMaps = localStorage.getItem(k.replace(BASE_TOPICS_STORAGE_KEY, BASE_MINDMAPS_STORAGE_KEY));
+                break;
+              }
+            }
+          }
+        }
+      }
+
       if (rawTopics) {
         const parsed: ActiveStudyTopic[] = JSON.parse(rawTopics);
         parsed.forEach((t) => this.topics.set(t.id, t));
       }
 
-      const rawOutlines = localStorage.getItem(this.getOutlinesKey());
       if (rawOutlines) {
         const parsed: Record<string, OutlineNode[]> = JSON.parse(rawOutlines);
         Object.entries(parsed).forEach(([topicId, nodes]) => {
@@ -116,7 +160,6 @@ class ActiveStudyService {
         });
       }
 
-      const rawLocks = localStorage.getItem(this.getLocksKey());
       if (rawLocks) {
         const parsed: Record<string, TopicAccessLock> = JSON.parse(rawLocks);
         Object.entries(parsed).forEach(([topicId, lock]) => {
@@ -124,7 +167,6 @@ class ActiveStudyService {
         });
       }
 
-      const rawMindMaps = localStorage.getItem(this.getMindMapsKey());
       if (rawMindMaps) {
         const parsed: Record<string, any> = JSON.parse(rawMindMaps);
         Object.entries(parsed).forEach(([topicId, data]) => {
@@ -225,6 +267,14 @@ class ActiveStudyService {
       });
       const mindMapsJson = JSON.stringify(mindMapsObj);
       localStorage.setItem(mindMapsKey, mindMapsJson);
+
+      // Respaldo global persistente
+      if (this.topics.size > 0) {
+        localStorage.setItem('eureka_active_study_topics_v1_backup', topicsJson);
+        localStorage.setItem('eureka_active_study_outlines_v1_backup', outlinesJson);
+        localStorage.setItem('eureka_active_study_mindmaps_v1_backup', mindMapsJson);
+        localStorage.setItem('eureka_active_study_locks_v1_backup', locksJson);
+      }
 
       // Persistencia reactiva en Capacitor Preferences
       Preferences.set({ key: coinsKey, value: this.userCoins.toString() }).catch(() => {});

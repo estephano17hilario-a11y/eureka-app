@@ -43,14 +43,13 @@ class EurekaSupabaseService {
     this.restoreSession();
 
     // Escuchar cambios de sesión de Supabase Auth
-    this.client.auth.onAuthStateChange(async (event, session) => {
+    this.client.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         await this.syncAuthUserProfile(session.user);
-      } else if (event === 'SIGNED_OUT') {
-        this.currentUser = null;
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-        this.notifyAuthListeners();
       }
+      // Nota: Si event === 'SIGNED_OUT', no borramos la sesión local automáticamente aquí
+      // para preservar la persistencia de usuarios locales/offline al recargar la página.
+      // El borrado solo debe ejecutarse tras una llamada explícita a signOut().
     });
   }
 

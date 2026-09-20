@@ -404,7 +404,28 @@ export class SimpleMindMapAdapter {
       if (this.mindMap && typeof this.mindMap.setThemeConfig === 'function') {
         this.mindMap.setThemeConfig({
           backgroundColor: '#f8fafc',
-          lineColor: '#64748b'
+          lineColor: '#0284c7',
+          root: {
+            fillColor: '#ffffff',
+            color: '#0f172a',
+            borderColor: '#0284c7',
+            borderWidth: 2,
+            active: { borderColor: '#0369a1', borderWidth: 3 }
+          },
+          second: {
+            fillColor: '#ffffff',
+            color: '#0f172a',
+            borderColor: '#0284c7',
+            borderWidth: 1.5,
+            active: { borderColor: '#0369a1', borderWidth: 2.5 }
+          },
+          node: {
+            fillColor: '#ffffff',
+            color: '#1e293b',
+            borderColor: '#cbd5e1',
+            borderWidth: 1.2,
+            active: { borderColor: '#0284c7', borderWidth: 2 }
+          }
         });
       }
     } else {
@@ -503,35 +524,51 @@ export class SimpleMindMapAdapter {
       close();
     });
 
-    // Guardar foto
+    // Guardar foto calculando proporciones completas exactas (Zero Cropping)
     modal.querySelector('#btn-save-node-photo')?.addEventListener('click', () => {
       const fileInput = modal.querySelector('#input-node-photo-file') as HTMLInputElement | null;
       const urlInput = modal.querySelector('#input-node-photo-url') as HTMLInputElement | null;
+
+      const setProportionalImage = (src: string) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxW = 240;
+          const maxH = 190;
+          const nw = img.naturalWidth || 180;
+          const nh = img.naturalHeight || 120;
+          const scale = Math.min(maxW / nw, maxH / nh, 1);
+          const computedW = Math.max(50, Math.round(nw * scale));
+          const computedH = Math.max(40, Math.round(nh * scale));
+
+          if (typeof node.setData === 'function') {
+            node.setData({ image: src, imageSize: { width: computedW, height: computedH, custom: true } });
+          }
+          if (this.mindMap && typeof this.mindMap.render === 'function') {
+            this.mindMap.render();
+          }
+          close();
+        };
+        img.onerror = () => {
+          if (typeof node.setData === 'function') {
+            node.setData({ image: src, imageSize: { width: 180, height: 120, custom: true } });
+          }
+          if (this.mindMap && typeof this.mindMap.render === 'function') {
+            this.mindMap.render();
+          }
+          close();
+        };
+        img.src = src;
+      };
 
       if (fileInput && fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
         reader.onload = (ev) => {
           const dataUrl = ev.target?.result as string;
-          if (dataUrl) {
-            if (typeof node.setData === 'function') {
-              node.setData({ image: dataUrl, imageSize: { width: 160, height: 110, custom: true } });
-            }
-            if (this.mindMap && typeof this.mindMap.render === 'function') {
-              this.mindMap.render();
-            }
-          }
-          close();
+          if (dataUrl) setProportionalImage(dataUrl);
         };
         reader.readAsDataURL(fileInput.files[0]);
       } else if (urlInput && urlInput.value.trim()) {
-        const imgUrl = urlInput.value.trim();
-        if (typeof node.setData === 'function') {
-          node.setData({ image: imgUrl, imageSize: { width: 160, height: 110, custom: true } });
-        }
-        if (this.mindMap && typeof this.mindMap.render === 'function') {
-          this.mindMap.render();
-        }
-        close();
+        setProportionalImage(urlInput.value.trim());
       } else {
         close();
       }
@@ -543,6 +580,26 @@ export class SimpleMindMapAdapter {
    */
   public applyColorToSubtree(node: any, color: string): void {
     if (!node) return;
+
+    if (color === 'transparent') {
+      const applyTransparent = (target: any) => {
+        if (typeof target.setStyle === 'function') {
+          target.setStyle('fillColor', 'transparent');
+          target.setStyle('borderColor', 'transparent');
+          target.setStyle('borderWidth', 0);
+        } else if (typeof target.setData === 'function') {
+          target.setData({ fillColor: 'transparent', borderColor: 'transparent', borderWidth: 0 });
+        }
+        if (target.children && target.children.length > 0) {
+          target.children.forEach((c: any) => applyTransparent(c));
+        }
+      };
+      applyTransparent(node);
+      if (this.mindMap && typeof this.mindMap.render === 'function') {
+        this.mindMap.render();
+      }
+      return;
+    }
 
     const propagate = (target: any) => {
       if (typeof target.setData === 'function') {

@@ -275,8 +275,13 @@
   stroke-width: 2.6;
 }
 
-/* Modo Fondo Claro para el Lienzo (Pure Light Canvas) */
-.mindmeister-canvas-viewport.theme-light {
+/* Modo Fondo Claro Integral para Todo el Entorno del Mapa Mental */
+.mindmap-viewport-wrapper.theme-light {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .mindmeister-canvas-viewport {
   background-color: #f8fafc !important;
   background-image: 
     radial-gradient(circle at 50% 50%, rgba(241, 245, 249, 0.85) 0%, rgba(248, 250, 252, 1) 100%),
@@ -284,15 +289,167 @@
   background-size: 100% 100%, 24px 24px !important;
 }
 
-.mindmeister-canvas-viewport.theme-light .eureka-mindmap-custom-node {
-  color: #0f172a !important;
+.mindmap-viewport-wrapper.theme-light .eureka-mindmap-custom-node {
+  color: #0f172a;
 }
 
-.mindmeister-canvas-viewport.theme-light .mm-floating-node.is-root {
+.mindmap-viewport-wrapper.theme-light .mm-floating-node.is-root {
   background: rgba(255, 255, 255, 0.95) !important;
   border: 1.5px solid rgba(15, 23, 42, 0.15) !important;
   color: #0f172a !important;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Barra Superior en Modo Claro */
+.mindmap-viewport-wrapper.theme-light .mindmap-top-bar {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.95) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .mindmap-header-action-pill {
+  background: rgba(241, 245, 249, 0.95) !important;
+  border: 1px solid rgba(203, 213, 225, 0.9) !important;
+  color: #334155 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .mindmap-header-action-pill:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .mindmap-header-action-pill svg {
+  stroke: #475569 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .header-btn-close {
+  background: rgba(241, 245, 249, 0.95) !important;
+  border: 1px solid rgba(203, 213, 225, 0.9) !important;
+  color: #64748b !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .header-btn-close:hover {
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+  border-color: #fca5a5 !important;
+}
+
+/* Dock Inferior en Modo Claro */
+.mindmap-viewport-wrapper.theme-light .mindmap-bottom-dock {
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08) !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .dock-action-btn {
+  color: #475569 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .dock-action-btn svg {
+  stroke: #475569 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .dock-action-btn:hover {
+  background: rgba(241, 245, 249, 0.95) !important;
+  color: #0284c7 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .dock-action-btn:hover svg {
+  stroke: #0284c7 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .dock-action-btn span {
+  color: #64748b !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .dock-action-btn:hover span {
+  color: #0284c7 !important;
+}
+
+/* Paneles Desplegables y Popovers en Modo Claro */
+.mindmap-viewport-wrapper.theme-light .mindmap-dropdown-menu-panel,
+.mindmap-viewport-wrapper.theme-light .popover-bubble,
+.mindmap-viewport-wrapper.theme-light .mm-color-palette-popover {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  color: #0f172a !important;
+  box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.12) !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .dropdown-item-btn {
+  color: #334155 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .dropdown-item-btn:hover {
+  background: rgba(241, 245, 249, 0.95) !important;
+  color: #0284c7 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .dropdown-h-divider {
+  background: rgba(226, 232, 240, 0.9) !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .compact-trigger-pill {
+  background: rgba(241, 245, 249, 0.95) !important;
+  border: 1px solid rgba(203, 213, 225, 0.9) !important;
+  color: #334155 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .canvas-bg-toggle-pill {
+  background: rgba(241, 245, 249, 0.95) !important;
+  border: 1px solid rgba(203, 213, 225, 0.9) !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .btn-canvas-bg-mode {
+  color: #64748b !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .btn-canvas-bg-mode.active {
+  background: #ffffff !important;
+  color: #0284c7 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Botón Centrar Vista en Modo Claro */
+.mindmap-viewport-wrapper.theme-light .mindmap-center-view-btn {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(203, 213, 225, 0.9) !important;
+  color: #0284c7 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .mindmap-center-view-btn:hover {
+  background: #f0f9ff !important;
+  border-color: #38bdf8 !important;
+}
+
+/* Barra Flotante Contextual en Modo Claro */
+.mindmap-viewport-wrapper.theme-light .mm-floating-pill-toolbar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .mm-pill-btn {
+  color: #475569 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .mm-pill-btn svg {
+  stroke: #475569 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .mm-pill-btn:hover {
+  background: #f1f5f9 !important;
+  color: #0284c7 !important;
+}
+
+.mindmap-viewport-wrapper.theme-light .mm-pill-btn:hover svg {
+  stroke: #0284c7 !important;
 }
 
 /* Selector Segmentado de Modo de Fondo en Panel de Mapa */
@@ -324,24 +481,39 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Editor Inline en el Mismo Recuadro (Sin segundo recuadro debajo) */
+/* Muestra de estilo transparente en la paleta */
+.mm-swatch-transparent {
+  background: transparent !important;
+  border: 1.5px dashed rgba(255, 255, 255, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 11px;
+}
+
+.mindmap-viewport-wrapper.theme-light .mm-swatch-transparent {
+  border-color: rgba(15, 23, 42, 0.4) !important;
+}
+
+/* Editor Inline en el Mismo Recuadro (100% Integrado: SIN segundo recuadro superpuesto) */
 .eureka-inline-node-editor {
   position: absolute;
   z-index: 10001;
-  background: transparent;
-  border: 2px solid #38bdf8;
-  border-radius: 8px;
-  outline: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
   color: inherit;
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
-  line-height: inherit;
-  text-align: inherit;
+  line-height: 1.4 !important;
+  text-align: center !important;
   resize: none;
-  caret-color: #38bdf8;
-  padding: 4px 8px;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+  caret-color: #38bdf8 !important;
+  padding: 0 !important;
+  margin: 0 !important;
   box-sizing: border-box;
   overflow: hidden;
   white-space: pre-wrap;

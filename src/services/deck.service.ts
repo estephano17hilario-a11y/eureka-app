@@ -34,10 +34,21 @@ export class DeckService {
       return;
     }
 
+    const previousDecks = [...this.decks];
+    const previousCards = [...this.cards];
+
     this.currentUserId = resolvedId;
     this.decks = [];
     this.cards = [];
     this.loadFromStorage();
+
+    // Si el usuario no tiene mazos guardados aún en su cuenta, pero había datos creados en la sesión previa, migrarlos
+    if (this.decks.length === 0 && previousDecks.length > 0) {
+      this.decks = previousDecks;
+      this.cards = previousCards;
+      this.saveToStorage();
+    }
+
     await this.syncWithCloud();
     this.notify();
   }
@@ -69,8 +80,31 @@ export class DeckService {
       this.decks = [];
       this.cards = [];
 
-      const storedDecks = localStorage.getItem(this.getDecksStorageKey());
-      const storedCards = localStorage.getItem(this.getCardsStorageKey());
+      let storedDecks = localStorage.getItem(this.getDecksStorageKey());
+      let storedCards = localStorage.getItem(this.getCardsStorageKey());
+
+      // Respaldo de recuperación infalible si la clave actual estuviera vacía
+      if (!storedDecks) {
+        const backupDecks = localStorage.getItem('eureka_decks_backup_latest');
+        const backupCards = localStorage.getItem('eureka_cards_backup_latest');
+        if (backupDecks) {
+          storedDecks = backupDecks;
+          storedCards = backupCards;
+        } else {
+          // Escanear cualquier clave previa de mazos en localStorage
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('eureka_decks_user_')) {
+              const cand = localStorage.getItem(key);
+              if (cand && cand.length > 10) {
+                storedDecks = cand;
+                storedCards = localStorage.getItem(key.replace('eureka_decks_user_', 'eureka_cards_user_'));
+                break;
+              }
+            }
+          }
+        }
+      }
 
       if (storedDecks) {
         this.decks = JSON.parse(storedDecks);
@@ -107,8 +141,16 @@ export class DeckService {
 
   private saveToStorage(): void {
     try {
-      localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
-      localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
+      const decksJson = JSON.stringify(this.decks);
+      const cardsJson = JSON.stringify(this.cards);
+      localStorage.setItem(this.getDecksStorageKey(), decksJson);
+      localStorage.setItem(this.getCardsStorageKey(), cardsJson);
+
+      // Respaldo global persistente
+      if (this.decks.length > 0) {
+        localStorage.setItem('eureka_decks_backup_latest', decksJson);
+        localStorage.setItem('eureka_cards_backup_latest', cardsJson);
+      }
       
       // Sincronización a Supabase con debounce de 600ms (coste mínimo de peticiones y latencia 0 local)
       if (this.cloudSyncTimer) clearTimeout(this.cloudSyncTimer);

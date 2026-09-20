@@ -209,6 +209,18 @@ export class FloatingPillToolbar {
    */
   private buildPaletteContent(): void {
     this.palettePopoverEl.innerHTML = '';
+
+    // Muestra de nodo transparente / invisible (como en MindMeister / Imagen 4)
+    const transparentSwatch = document.createElement('div');
+    transparentSwatch.className = 'mm-color-swatch mm-swatch-transparent';
+    transparentSwatch.title = 'Invisible / Transparente (Sin recuadro)';
+    transparentSwatch.innerHTML = '<span style="font-size:10px; line-height:1;">🚫</span>';
+    transparentSwatch.onclick = (e) => {
+      e.stopPropagation();
+      this.selectColor('transparent');
+    };
+    this.palettePopoverEl.appendChild(transparentSwatch);
+
     MINDMEISTER_SPECTRAL_PALETTE.forEach((color) => {
       const swatch = document.createElement('div');
       swatch.className = 'mm-color-swatch';
@@ -249,13 +261,25 @@ export class FloatingPillToolbar {
     this.currentColor = color;
     const indicator = this.toolbarEl.querySelector('.mm-color-indicator') as HTMLElement;
     if (indicator) {
-      indicator.style.backgroundColor = color;
+      if (color === 'transparent') {
+        indicator.style.backgroundColor = 'transparent';
+        indicator.style.border = '1.5px dashed rgba(255,255,255,0.7)';
+        indicator.innerHTML = '<span style="font-size:9px; display:flex; align-items:center; justify-content:center; line-height:1;">🚫</span>';
+      } else {
+        indicator.style.backgroundColor = color;
+        indicator.style.border = 'none';
+        indicator.innerHTML = '';
+      }
     }
 
     const swatches = this.palettePopoverEl.querySelectorAll('.mm-color-swatch');
     swatches.forEach((s) => {
       const el = s as HTMLElement;
-      el.classList.toggle('is-selected', el.style.backgroundColor === color);
+      if (color === 'transparent' && el.classList.contains('mm-swatch-transparent')) {
+        el.classList.add('is-selected');
+      } else {
+        el.classList.toggle('is-selected', el.style.backgroundColor === color);
+      }
     });
 
     this.closePalette();
