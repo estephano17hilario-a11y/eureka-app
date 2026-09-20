@@ -229,3 +229,121 @@
     height: 26px;
   }
 }
+
+/* Botón Flotante '+' Debajo del Recuadro Seleccionado */
+.mm-node-add-sibling-btn {
+  position: absolute;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #0284c7;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8) translateY(-4px);
+  transition: opacity 0.16s ease, transform 0.16s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.15s ease, box-shadow 0.15s ease;
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-node-add-sibling-btn.is-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+.mm-node-add-sibling-btn:hover {
+  background: #0369a1;
+  transform: scale(1.18);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.65);
+}
+
+.mm-node-add-sibling-btn:active {
+  transform: scale(0.95);
+}
+
+.mm-node-add-sibling-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: #ffffff;
+  stroke-width: 2.6;
+}
+
+/* Modo Fondo Claro para el Lienzo (Pure Light Canvas) */
+.mindmeister-canvas-viewport.theme-light {
+  background-color: #f8fafc !important;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(241, 245, 249, 0.85) 0%, rgba(248, 250, 252, 1) 100%),
+    radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 24px 24px !important;
+}
+
+.mindmeister-canvas-viewport.theme-light .eureka-mindmap-custom-node {
+  color: #0f172a !important;
+}
+
+.mindmeister-canvas-viewport.theme-light .mm-floating-node.is-root {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1.5px solid rgba(15, 23, 42, 0.15) !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Selector Segmentado de Modo de Fondo en Panel de Mapa */
+.canvas-bg-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.btn-canvas-bg-mode {
+  border: none;
+  background: transparent;
+  color: var(--f-text-secondary, #94a3b8);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-canvas-bg-mode.active {
+  background: rgba(56, 189, 248, 0.22);
+  color: #38bdf8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Editor Inline en el Mismo Recuadro (Sin segundo recuadro debajo) */
+.eureka-inline-node-editor {
+  position: absolute;
+  z-index: 10001;
+  background: transparent;
+  border: 2px solid #38bdf8;
+  border-radius: 8px;
+  outline: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  resize: none;
+  caret-color: #38bdf8;
+  padding: 4px 8px;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

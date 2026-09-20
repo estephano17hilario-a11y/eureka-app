@@ -149,21 +149,21 @@ export class SimpleMindMapAdapter {
             class: 'mm-ribbon-path'
           });
         } else {
-          // NIVEL 2+: Curva Bézier Adaptativa C^1 con Subrayado Elástico y bifurcación troncal
+          // NIVEL 2+: Curva Bézier Adaptativa C^1 Limpia hacia el puerto del hijo con identificador de óvalo
           const hasMultipleSiblings = node.children.length > 1;
-          pathStr = AdaptiveSplineEngine.generateElasticUnderlinePath(
+          pathStr = AdaptiveSplineEngine.generateChildConnectorPath(
             p0,
             p3,
-            child.width || 80,
             isLeft,
             {
               trunkOffset: 16,
               tension: 0.55,
-              useTrunkOffset: hasMultipleSiblings
+              useTrunkOffset: hasMultipleSiblings,
+              includeOvalMarker: true
             }
           );
 
-          // Trazo continuo elástico
+          // Trazo continuo y óvalo indicador
           lineElement.plot(pathStr);
           lineElement.attr({
             fill: 'none',
@@ -387,6 +387,153 @@ export class SimpleMindMapAdapter {
       },
       onToggleFormat: (node: any, format: 'bold' | 'italic') => {
         this.toggleNodeFormat(node, format);
+      },
+      onAddPhoto: (node: any) => {
+        this.promptAddPhoto(node);
+      }
+    });
+  }
+
+  /**
+   * Conmuta el modo de fondo del lienzo (Dark vs Light) garantizando coherencia visual completa.
+   */
+  public setCanvasBgMode(mode: 'dark' | 'light'): void {
+    if (mode === 'light') {
+      this.container.classList.add('theme-light');
+      this.container.classList.remove('theme-dark');
+      if (this.mindMap && typeof this.mindMap.setThemeConfig === 'function') {
+        this.mindMap.setThemeConfig({
+          backgroundColor: '#f8fafc',
+          lineColor: '#64748b'
+        });
+      }
+    } else {
+      this.container.classList.remove('theme-light');
+      this.container.classList.add('theme-dark');
+      if (this.mindMap && typeof this.mindMap.setThemeConfig === 'function') {
+        this.mindMap.setThemeConfig({
+          backgroundColor: '#07080d',
+          lineColor: '#38bdf8'
+        });
+      }
+    }
+
+    try {
+      localStorage.setItem('eureka_mindmap_canvas_bg_mode', mode);
+    } catch {}
+
+    if (this.mindMap && typeof this.mindMap.render === 'function') {
+      this.mindMap.render();
+    }
+  }
+
+  /**
+   * Abre un selector elegante para adjuntar o remover foto en el recuadro seleccionado.
+   */
+  public promptAddPhoto(node: any): void {
+    if (!node) return;
+
+    const existingImg = typeof node.getData === 'function' ? node.getData('image') : node.nodeData?.data?.image;
+
+    const modal = document.createElement('div');
+    modal.className = 'apple-modal-overlay';
+    modal.style.zIndex = '10005';
+    modal.innerHTML = `
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:22px; border-radius:22px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.3rem;">📷</span>
+            <h3 style="font-size:1.1rem; font-weight:700; color:#fff; margin:0;">Foto del Recuadro</h3>
+          </div>
+          <button id="btn-close-photo-modal" style="background:none; border:none; color:var(--f-text-secondary, #94a3b8); font-size:1.2rem; cursor:pointer;">✕</button>
+        </div>
+
+        ${existingImg ? `
+          <div style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:16px;">
+            <img src="${existingImg}" style="max-height:140px; max-width:100%; border-radius:12px; object-fit:cover; border:1px solid rgba(255,255,255,0.15);" />
+            <button id="btn-remove-node-photo" type="button" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444; border-radius:999px; padding:5px 14px; font-size:0.8rem; cursor:pointer;">
+              🗑️ Quitar Foto Actual
+            </button>
+          </div>
+        ` : ''}
+
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <label style="display:block; font-size:0.8rem; color:var(--f-text-secondary, #94a3b8); margin-bottom:6px; font-weight:600;">
+              Subir desde este dispositivo:
+            </label>
+            <input type="file" id="input-node-photo-file" accept="image/*" style="width:100%; font-size:0.82rem; color:#fff;" />
+          </div>
+
+          <div style="display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.3); font-size:0.75rem;">
+            <div style="flex:1; height:1px; background:rgba(255,255,255,0.1);"></div>
+            O
+            <div style="flex:1; height:1px; background:rgba(255,255,255,0.1);"></div>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:0.8rem; color:var(--f-text-secondary, #94a3b8); margin-bottom:6px; font-weight:600;">
+              Pegar URL de la imagen:
+            </label>
+            <input type="url" id="input-node-photo-url" placeholder="https://ejemplo.com/foto.jpg" style="width:100%; box-sizing:border-box; background:#141724; border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:8px 12px; color:#fff; font-size:0.85rem; outline:none;" />
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+          <button id="btn-cancel-photo-modal" class="figma-btn-white-pill" style="background:rgba(255,255,255,0.06); font-size:0.82rem;">Cancelar</button>
+          <button id="btn-save-node-photo" class="figma-btn-study-large" style="width:auto; padding:8px 20px; font-size:0.85rem;">Guardar Foto</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const close = () => modal.remove();
+    modal.querySelector('#btn-close-photo-modal')?.addEventListener('click', close);
+    modal.querySelector('#btn-cancel-photo-modal')?.addEventListener('click', close);
+
+    // Quitar foto
+    modal.querySelector('#btn-remove-node-photo')?.addEventListener('click', () => {
+      if (typeof node.setData === 'function') {
+        node.setData({ image: '', imageSize: null });
+      }
+      if (this.mindMap && typeof this.mindMap.render === 'function') {
+        this.mindMap.render();
+      }
+      close();
+    });
+
+    // Guardar foto
+    modal.querySelector('#btn-save-node-photo')?.addEventListener('click', () => {
+      const fileInput = modal.querySelector('#input-node-photo-file') as HTMLInputElement | null;
+      const urlInput = modal.querySelector('#input-node-photo-url') as HTMLInputElement | null;
+
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const dataUrl = ev.target?.result as string;
+          if (dataUrl) {
+            if (typeof node.setData === 'function') {
+              node.setData({ image: dataUrl, imageSize: { width: 160, height: 110, custom: true } });
+            }
+            if (this.mindMap && typeof this.mindMap.render === 'function') {
+              this.mindMap.render();
+            }
+          }
+          close();
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else if (urlInput && urlInput.value.trim()) {
+        const imgUrl = urlInput.value.trim();
+        if (typeof node.setData === 'function') {
+          node.setData({ image: imgUrl, imageSize: { width: 160, height: 110, custom: true } });
+        }
+        if (this.mindMap && typeof this.mindMap.render === 'function') {
+          this.mindMap.render();
+        }
+        close();
+      } else {
+        close();
       }
     });
   }

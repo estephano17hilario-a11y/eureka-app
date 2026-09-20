@@ -231,15 +231,16 @@ export class AdaptiveSplineEngine {
   }
 
   /**
-   * Genera el trazado de nivel 2+ con soporte tipográfico elástico (subrayado elástico)
-   * e inyección de bifurcación troncal opcional para evitar solapamientos con hermanos.
+   * Genera el trazado de conexión hacia un nodo hijo (Nivel 2+ y recuadros).
+   * La curva parte del puerto del padre P0 y termina exactamente en el puerto del hijo P3,
+   * sin atravesar el recuadro del nodo hijo.
+   * Incluye un identificador de óvalo armónico e idéntico para marcar las ramas hijas.
    */
-  public static generateElasticUnderlinePath(
+  public static generateChildConnectorPath(
     p0: Point2D,
     p3: Point2D,
-    childWidth: number,
     isLeftDirection: boolean,
-    options: SplineOptions & { useTrunkOffset?: boolean } = {}
+    options: SplineOptions & { useTrunkOffset?: boolean; includeOvalMarker?: boolean } = {}
   ): string {
     const trunkOffset = options.trunkOffset ?? this.DEFAULT_TRUNK_OFFSET;
     const signX = isLeftDirection ? -1 : 1;
@@ -263,11 +264,37 @@ export class AdaptiveSplineEngine {
       ? `C ${p1.x.toFixed(2)},${p1.y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)} ${p3.x.toFixed(2)},${p3.y.toFixed(2)}`
       : `M ${startPoint.x.toFixed(2)},${startPoint.y.toFixed(2)} C ${p1.x.toFixed(2)},${p1.y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)} ${p3.x.toFixed(2)},${p3.y.toFixed(2)}`;
 
-    // Subrayado elástico horizontal bajo el contenido tipográfico del nodo hijo
-    const underlineEndX = p3.x + (isLeftDirection ? -childWidth : childWidth);
-    const underlineSegment = ` L ${underlineEndX.toFixed(2)},${p3.y.toFixed(2)}`;
+    let fullPath = `${trunkPath}${cubicSegment}`.trim();
 
-    return `${trunkPath}${cubicSegment}${underlineSegment}`.trim();
+    // 2. Identificador entre las líneas: icono de óvalo idéntico para indicar ramas hijas
+    if (options.includeOvalMarker) {
+      // Punto representativo a lo largo de la curva (t = 0.35 para quedar visible antes del nodo)
+      const t = 0.35;
+      const ovalCenter = this.evaluateBezierPoint(startPoint, p1, p2, p3, t);
+      const rx = 5.5; // Radio horizontal del óvalo
+      const ry = 3.2; // Radio vertical del óvalo
+      // Sub-path cerrado de elipse en el mismo trazado SVG
+      const ovalSubPath = ` M ${(ovalCenter.x - rx).toFixed(2)},${ovalCenter.y.toFixed(2)} a ${rx},${ry} 0 1 0 ${(rx * 2).toFixed(2)},0 a ${rx},${ry} 0 1 0 ${(-rx * 2).toFixed(2)},0`;
+      fullPath += ovalSubPath;
+    }
+
+    return fullPath;
+  }
+
+  /**
+   * Método de compatibilidad para trazado elástico sin invasión del recuadro.
+   */
+  public static generateElasticUnderlinePath(
+    p0: Point2D,
+    p3: Point2D,
+    _childWidth: number,
+    isLeftDirection: boolean,
+    options: SplineOptions & { useTrunkOffset?: boolean; includeOvalMarker?: boolean } = {}
+  ): string {
+    return this.generateChildConnectorPath(p0, p3, isLeftDirection, {
+      ...options,
+      includeOvalMarker: options.includeOvalMarker ?? true
+    });
   }
 
   /**

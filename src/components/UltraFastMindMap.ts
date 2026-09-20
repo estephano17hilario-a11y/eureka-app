@@ -380,6 +380,8 @@ export class UltraFastMindMap {
   private searchMatches: any[] = [];
   private currentSearchIndex: number = -1;
   public activeDropdown: 'map' | 'node' | null = null;
+  private canvasBgMode: 'dark' | 'light' = 'dark';
+  private activeInlineEditor: HTMLTextAreaElement | null = null;
 
   constructor(container: HTMLElement, config: MindMapConfig = {}) {
     this.container = container;
@@ -535,6 +537,20 @@ export class UltraFastMindMap {
               <button type="button" class="color-dot-btn" data-color="amber" style="background:#f59e0b;" title="Ámbar"></button>
               <button type="button" class="color-dot-btn" data-color="rose" style="background:#ec4899;" title="Rosa"></button>
               <button type="button" class="color-dot-btn" data-color="dark" style="background:#334155;" title="Pizarra"></button>
+            </div>
+          </div>
+
+          <div class="dropdown-h-divider"></div>
+
+          <!-- 4. Modo Fondo Claro / Oscuro -->
+          <div class="dropdown-h-group popover-anchor">
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-canvas-mode" title="Modo de Fondo: Claro / Oscuro">
+              <span class="trigger-val-emoji" id="preview-canvas-mode">${this.canvasBgMode === 'light' ? '☀️' : '🌙'}</span>
+              <span class="mini-chevron">▾</span>
+            </button>
+            <div class="popover-bubble" id="popover-canvas-mode" style="display:none;">
+              <button type="button" class="popover-item-emoji ${this.canvasBgMode === 'dark' ? 'active' : ''}" data-canvas-mode="dark" title="Fondo Oscuro">🌙</button>
+              <button type="button" class="popover-item-emoji ${this.canvasBgMode === 'light' ? 'active' : ''}" data-canvas-mode="light" title="Fondo Claro">☀️</button>
             </div>
           </div>
 
@@ -882,6 +898,7 @@ export class UltraFastMindMap {
         // ✍️ Renderizado de Texto Multilínea (Respetando saltos de línea con Enter)
         const textStr = String(text);
         const textEl = document.createElement('div');
+        textEl.className = 'eureka-node-text-rendered';
         textEl.style.whiteSpace = 'pre-wrap';
         textEl.style.wordBreak = 'break-word';
         textEl.style.width = '100%';
@@ -903,7 +920,8 @@ export class UltraFastMindMap {
         second: themeObj.second,
         node: themeObj.node,
         lineColor: themeObj.lineColor,
-        lineWidth: themeObj.lineWidth
+        lineWidth: themeObj.lineWidth,
+        nodeUseLineStyle: false
       }
     });
 
@@ -915,6 +933,15 @@ export class UltraFastMindMap {
       enableTouchEngine: true,
       enablePillToolbar: true
     });
+
+    // Restaurar modo de fondo de lienzo (oscuro / claro) guardado
+    const savedBgMode = localStorage.getItem('eureka_mindmap_canvas_bg_mode') as 'dark' | 'light' | null;
+    if (savedBgMode) {
+      this.canvasBgMode = savedBgMode;
+      this.mindmeisterAdapter.setCanvasBgMode(savedBgMode);
+      const preview = this.container.querySelector('#preview-canvas-mode');
+      if (preview) preview.textContent = savedBgMode === 'light' ? '☀️' : '🌙';
+    }
 
     // Eventos y selección
     this.mindMapInstance.on('node_active', (node: any) => {
@@ -1363,6 +1390,25 @@ export class UltraFastMindMap {
       });
     });
 
+    // 4. Selector de Modo Claro / Oscuro del Lienzo
+    root.querySelector('#btn-trigger-canvas-mode')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-canvas-mode', 'btn-trigger-canvas-mode');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-canvas-mode [data-canvas-mode]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const mode = btn.dataset.canvasMode as 'dark' | 'light';
+        if (mode) {
+          this.setCanvasBackgroundMode(mode);
+          root.querySelectorAll('#popover-canvas-mode [data-canvas-mode]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          closeAllPopovers();
+        }
+      });
+    });
+
     // ============================================================
     // 🔲 CONTROL DE MENÚ DESPLEGABLE: 'RECUADRO' (Ultra Compacto)
     // ============================================================
@@ -1472,7 +1518,16 @@ export class UltraFastMindMap {
       photoInput?.click();
     };
 
-    root.querySelector('#btn-upload-node-photo')?.addEventListener('click', triggerPhotoPick);
+    root.querySelector('#btn-upload-node-photo')?.addEventListener('click', () => {
+      if (!this.activeNode) {
+        this.selectRootNode();
+      }
+      if (this.mindmeisterAdapter && this.activeNode) {
+        this.mindmeisterAdapter.promptAddPhoto(this.activeNode);
+      } else {
+        triggerPhotoPick();
+      }
+    });
     root.querySelector('#btn-node-sheet-photo')?.addEventListener('click', triggerPhotoPick);
 
     photoInput?.addEventListener('change', () => {
@@ -2104,60 +2159,167 @@ export class UltraFastMindMap {
   }
 
   /**
-   * 4. GESTIÓN DEL EDITOR MULTILÍNEA DIRECTO Y CONTROLES DE RECUADRO Y MAPA
+   * Conmuta el modo de fondo del lienzo (claro / oscuro) y lo persiste
+   */
+  public setCanvasBackgroundMode(mode: 'dark' | 'light'): void {
+    this.canvasBgMode = mode;
+    this.triggerHaptic();
+    this.mindmeisterAdapter?.setCanvasBgMode(mode);
+    try {
+      localStorage.setItem('eureka_mindmap_canvas_bg_mode', mode);
+    } catch {}
+    const preview = this.container.querySelector('#preview-canvas-mode');
+    if (preview) {
+      preview.textContent = mode === 'light' ? '☀️' : '🌙';
+    }
+  }
+
+  /**
+   * 4. GESTIÓN DE EDICIÓN DIRECTA EN EL MISMO RECUADRO SELECCIONADO (IN-PLACE INLINE EDITING)
+   * Elimina cualquier segundo recuadro superpuesto debajo y permite escribir directamente
+   * dentro del nodo con cursor/rayita de texto brillante (#38bdf8) de alto contraste.
    */
   private openDirectTextEditor(): void {
     if (!this.activeNode || !this.mindMapInstance) return;
     this.triggerHaptic();
 
-    const sheet = this.container.querySelector('#mindmap-edit-sheet') as HTMLElement | null;
-    const input = this.container.querySelector('#input-sheet-text') as HTMLTextAreaElement | null;
-    const previewBox = this.container.querySelector('#sheet-katex-preview') as HTMLElement | null;
-    const previewRendered = this.container.querySelector('#sheet-katex-preview-rendered') as HTMLElement | null;
-    const photoPreviewWrap = this.container.querySelector('#sheet-photo-preview-wrap') as HTMLElement | null;
-    const photoPreviewImg = this.container.querySelector('#sheet-photo-preview-img') as HTMLImageElement | null;
+    if (this.activeInlineEditor) {
+      this.activeInlineEditor.focus();
+      return;
+    }
 
-    if (!sheet || !input) return;
+    const node = this.activeNode;
 
-    // Obtener texto actual (si tiene rawText guardado se usa preferentemente)
-    let currentText = (this.activeNode.getData ? this.activeNode.getData('text') : this.activeNode.nodeData?.data?.text) || '';
-    const rawText = this.activeNode.getData ? this.activeNode.getData('rawText') : this.activeNode.nodeData?.data?.rawText;
+    // 1. Obtener texto actual (si tiene rawText guardado se usa preferentemente)
+    let currentText = (node.getData ? node.getData('text') : node.nodeData?.data?.text) || '';
+    const rawText = node.getData ? node.getData('rawText') : node.nodeData?.data?.rawText;
     if (rawText !== undefined && rawText !== null) {
       currentText = rawText;
     } else {
       currentText = currentText.replace(/<br\s*\/?>/gi, '\n');
     }
 
-    input.value = currentText;
+    // 2. Obtener el contenedor del texto dentro del nodo DOM o el grupo del nodo
+    const groupNode = node.group?.node as SVGGraphicsElement | null;
+    const customNodeEl = groupNode?.querySelector('.eureka-mindmap-custom-node') as HTMLElement | null;
+    const textRenderedEl = groupNode?.querySelector('.eureka-node-text-rendered') as HTMLElement | null;
+    const targetElement = textRenderedEl || customNodeEl || groupNode;
 
-    // Miniatura de foto del recuadro
-    const curImg = this.activeNode.getData ? this.activeNode.getData('image') : (this.activeNode.nodeData?.data?.image || this.activeNode.getData?.('imageUrl'));
-    if (photoPreviewWrap && photoPreviewImg) {
-      if (curImg) {
-        photoPreviewImg.src = curImg;
-        photoPreviewWrap.style.display = 'flex';
-      } else {
-        photoPreviewWrap.style.display = 'none';
-      }
+    const canvasContainer = this.container.querySelector('#mindmap-render-canvas') as HTMLElement | null;
+    if (!canvasContainer || !targetElement) return;
+
+    const targetRect = targetElement.getBoundingClientRect();
+    const containerRect = canvasContainer.getBoundingClientRect();
+
+    // 3. Crear textarea superpuesto exactamente en la posición del recuadro
+    const editor = document.createElement('textarea');
+    editor.className = 'eureka-inline-node-editor';
+    editor.value = currentText;
+    editor.autocomplete = 'off';
+    editor.spellcheck = false;
+
+    // Calcular dimensiones y posición relativas al contenedor del canvas
+    const relLeft = targetRect.left - containerRect.left;
+    const relTop = targetRect.top - containerRect.top;
+    const minW = Math.max(targetRect.width, 110);
+    const minH = Math.max(targetRect.height, 36);
+
+    editor.style.left = `${Math.round(relLeft)}px`;
+    editor.style.top = `${Math.round(relTop)}px`;
+    editor.style.width = `${Math.round(minW)}px`;
+    editor.style.minWidth = `${Math.round(minW)}px`;
+    editor.style.height = `${Math.round(minH)}px`;
+    editor.style.minHeight = `${Math.round(minH)}px`;
+
+    // Heredar estilos tipográficos del nodo
+    const fontSize = typeof node.getStyle === 'function' ? node.getStyle('fontSize', false) : 14;
+    const fontWeight = typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : 'normal';
+    const textColor = typeof node.getStyle === 'function' ? node.getStyle('color', false) : (this.canvasBgMode === 'light' ? '#0f172a' : '#ffffff');
+    const fillColor = typeof node.getStyle === 'function' ? node.getStyle('fillColor', false) : (this.canvasBgMode === 'light' ? '#ffffff' : '#141724');
+
+    editor.style.fontSize = `${fontSize || 14}px`;
+    editor.style.fontWeight = fontWeight || 'normal';
+    editor.style.color = textColor || (this.canvasBgMode === 'light' ? '#0f172a' : '#ffffff');
+    editor.style.backgroundColor = fillColor || (this.canvasBgMode === 'light' ? '#ffffff' : '#141724');
+    editor.style.caretColor = '#38bdf8'; // Indicador de la rayita para escribir (cursor visible)
+
+    // Ocultar temporalmente el texto estático para evitar doble visión
+    if (textRenderedEl) {
+      textRenderedEl.style.opacity = '0';
     }
 
-    // Preview KaTeX si aplica
-    if (previewBox && previewRendered) {
-      if (currentText.includes('$') || currentText.includes('\\') || currentText.includes('{')) {
-        previewBox.style.display = 'block';
-        previewRendered.innerHTML = katexService.parseAndRender(currentText);
-      } else {
-        previewBox.style.display = 'none';
+    this.activeInlineEditor = editor;
+    canvasContainer.appendChild(editor);
+
+    // Auto-ajustar altura al escribir dinámicamente
+    const autoAdjustSize = () => {
+      editor.style.height = 'auto';
+      editor.style.height = `${Math.max(minH, editor.scrollHeight)}px`;
+    };
+
+    editor.addEventListener('input', () => {
+      autoAdjustSize();
+    });
+
+    let isCommitted = false;
+    const commitChanges = () => {
+      if (isCommitted) return;
+      isCommitted = true;
+
+      const newText = editor.value;
+      if (textRenderedEl) {
+        textRenderedEl.style.opacity = '1';
       }
-    }
 
-    sheet.style.display = 'flex';
-    const fitFloatingBtn = this.container.querySelector('#btn-floating-fit') as HTMLElement | null;
-    if (fitFloatingBtn) fitFloatingBtn.style.display = 'none';
+      if (editor.parentNode) {
+        editor.parentNode.removeChild(editor);
+      }
+      this.activeInlineEditor = null;
 
+      if (this.activeNode && this.mindMapInstance) {
+        if (typeof this.activeNode.setData === 'function') {
+          this.activeNode.setData({ text: newText || ' ', rawText: newText });
+        } else if (this.activeNode.nodeData?.data) {
+          this.activeNode.nodeData.data.text = newText || ' ';
+          this.activeNode.nodeData.data.rawText = newText;
+        }
+
+        if (typeof this.mindMapInstance.render === 'function') {
+          this.mindMapInstance.render();
+        } else {
+          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, newText || ' ');
+        }
+        this.triggerHaptic();
+        this.scheduleDebouncedSave();
+      }
+    };
+
+    // Al perder el foco (clic afuera): confirmar y guardar
+    editor.addEventListener('blur', () => {
+      commitChanges();
+    });
+
+    // Control de teclado en el editor inline
+    editor.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        commitChanges();
+      } else if (e.key === 'Enter') {
+        if (e.shiftKey) {
+          // Shift+Enter permite salto de línea
+          autoAdjustSize();
+        } else {
+          // Enter normal confirma edición
+          e.preventDefault();
+          commitChanges();
+        }
+      }
+    });
+
+    // Enfocar inmediatamente y poner el cursor al final con rayita visible
     setTimeout(() => {
-      input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
+      editor.focus();
+      editor.setSelectionRange(editor.value.length, editor.value.length);
+      autoAdjustSize();
     }, 20);
   }
 

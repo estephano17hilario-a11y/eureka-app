@@ -13,6 +13,7 @@ export interface PillToolbarCallbacks {
   onDeleteNode?: (node: any) => void;
   onColorChange?: (node: any, color: string) => void;
   onToggleFormat?: (node: any, format: 'bold' | 'italic') => void;
+  onAddPhoto?: (node: any) => void;
 }
 
 export const MINDMEISTER_SPECTRAL_PALETTE = [
@@ -30,6 +31,7 @@ export class FloatingPillToolbar {
   private container: HTMLElement;
   private toolbarEl: HTMLElement;
   private palettePopoverEl: HTMLElement;
+  private nodeAddSiblingBtn: HTMLButtonElement;
   private activeNode: any = null;
   private callbacks: PillToolbarCallbacks;
 
@@ -52,11 +54,27 @@ export class FloatingPillToolbar {
     this.palettePopoverEl = document.createElement('div');
     this.palettePopoverEl.className = 'mm-color-palette-popover';
 
+    // Botón flotante '+' debajo del recuadro seleccionado para añadir hermano
+    this.nodeAddSiblingBtn = document.createElement('button');
+    this.nodeAddSiblingBtn.className = 'mm-node-add-sibling-btn';
+    this.nodeAddSiblingBtn.type = 'button';
+    this.nodeAddSiblingBtn.title = 'Añadir concepto hermano (+)';
+    this.nodeAddSiblingBtn.innerHTML = `
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    `;
+    this.nodeAddSiblingBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (this.activeNode && this.callbacks.onAddSibling) {
+        this.callbacks.onAddSibling(this.activeNode);
+      }
+    };
+
     this.buildToolbarContent();
     this.buildPaletteContent();
 
     this.toolbarEl.appendChild(this.palettePopoverEl);
     this.container.appendChild(this.toolbarEl);
+    this.container.appendChild(this.nodeAddSiblingBtn);
   }
 
   /**
@@ -150,10 +168,26 @@ export class FloatingPillToolbar {
     };
     this.toolbarEl.appendChild(addSiblingBtn);
 
+    // 6. Botón Foto
+    const photoBtn = document.createElement('button');
+    photoBtn.className = 'mm-pill-btn mm-pill-btn-photo';
+    photoBtn.title = 'Adjuntar foto al recuadro';
+    photoBtn.innerHTML = `
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+      <span style="font-size: 11px; margin-left: 3px; font-weight: 600;">Foto</span>
+    `;
+    photoBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (this.activeNode && this.callbacks.onAddPhoto) {
+        this.callbacks.onAddPhoto(this.activeNode);
+      }
+    };
+    this.toolbarEl.appendChild(photoBtn);
+
     // Divisor
     this.addDivider();
 
-    // 6. Botón Eliminar Nodo (Del / Supr)
+    // 7. Botón Eliminar Nodo (Del / Supr)
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'mm-pill-btn mm-pill-btn-delete';
     deleteBtn.title = 'Eliminar nodo seleccionado';
@@ -273,6 +307,13 @@ export class FloatingPillToolbar {
 
     this.toolbarEl.style.left = `${Math.round(targetX)}px`;
     this.toolbarEl.style.top = `${Math.round(targetY)}px`;
+
+    // Posicionar botón '+' exactamente debajo del recuadro seleccionado
+    const btnW = 30;
+    const btnX = nodeCenterX - btnW / 2;
+    const btnY = nodeRelativeTop + nodeRect.height + 10;
+    this.nodeAddSiblingBtn.style.left = `${Math.round(btnX)}px`;
+    this.nodeAddSiblingBtn.style.top = `${Math.round(btnY)}px`;
   }
 
   /**
@@ -308,6 +349,10 @@ export class FloatingPillToolbar {
       siblingBtn.style.display = node?.isRoot ? 'none' : 'inline-flex';
     }
 
+    // Mostrar el botón '+' flotante inferior
+    this.nodeAddSiblingBtn.style.display = node?.isRoot ? 'none' : 'flex';
+    this.nodeAddSiblingBtn.classList.add('is-visible');
+
     if (nodeRect) {
       this.updatePosition(nodeRect);
     }
@@ -323,6 +368,7 @@ export class FloatingPillToolbar {
     this.activeNode = null;
     this.closePalette();
     this.toolbarEl.classList.remove('is-visible');
+    this.nodeAddSiblingBtn.classList.remove('is-visible');
   }
 
   /**
@@ -368,6 +414,9 @@ export class FloatingPillToolbar {
     this.hide();
     if (this.toolbarEl && this.toolbarEl.parentNode) {
       this.toolbarEl.parentNode.removeChild(this.toolbarEl);
+    }
+    if (this.nodeAddSiblingBtn && this.nodeAddSiblingBtn.parentNode) {
+      this.nodeAddSiblingBtn.parentNode.removeChild(this.nodeAddSiblingBtn);
     }
   }
 }

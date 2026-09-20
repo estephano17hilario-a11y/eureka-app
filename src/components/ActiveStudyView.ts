@@ -1894,8 +1894,59 @@ export const openCreateTopicModal = openCreateNotebookModal;
  * Si se omite, informa al usuario que no podrá estudiar hasta vincularlo.
  */
 function openLinkTopicDeckModal(topic: ActiveStudyTopic, onFinish?: () => void): void {
-  const allDecks = deckService.getAllDecks();
-  let selectedDeckId: string = topic.deckId || (allDecks.length > 0 ? allDecks[0].id : '__create_new__');
+  const allRawDecks = deckService.getAllDecks().filter((d) => !d.isArchived);
+  const folders = allRawDecks.filter((d) => deckService.isFolder(d));
+  const realDecks = allRawDecks.filter((d) => !deckService.isFolder(d));
+
+  // Asegurar que el mazo preseleccionado sea un mazo real (NUNCA una carpeta)
+  let selectedDeckId: string = topic.deckId && realDecks.some((d) => d.id === topic.deckId)
+    ? topic.deckId
+    : (realDecks.length > 0 ? realDecks[0].id : '__create_new__');
+
+  function renderDeckTile(d: any): string {
+    const isSelected = selectedDeckId === d.id;
+    const cardCount = deckService.getCardsByDeck(d.id, false).length;
+    return `
+      <div class="deck-select-tile ${isSelected ? 'active' : ''}" data-deck-id="${d.id}" data-deck-name="${escapeAttr(d.name.toLowerCase())}">
+        <div class="deck-tile-color-indicator" style="background: ${d.color || '#38bdf8'};"></div>
+        <div class="deck-tile-icon-wrap" style="background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.3); color:#38bdf8;">
+          🎴
+        </div>
+        <div class="deck-tile-info">
+          <span class="deck-tile-title">${escapeHtml(d.name)}</span>
+          <span class="deck-tile-meta">${cardCount} tarjetas</span>
+        </div>
+        <div class="deck-tile-check">✓</div>
+      </div>
+    `;
+  }
+
+  // Grupos por carpeta (solo para desplegar/plegar, no para vincular)
+  const folderGroupsHtml = folders
+    .map((f) => {
+      const childDecks = realDecks.filter((d) => d.parentId === f.id);
+      if (childDecks.length === 0) return '';
+      return `
+        <div class="deck-folder-accordion-wrap" data-folder-id="${f.id}" style="border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.02); margin-bottom: 8px;">
+          <div class="deck-folder-header-btn" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; background:rgba(255,255,255,0.04); user-select:none;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.15rem;">📁</span>
+              <span style="font-size:0.88rem; font-weight:700; color:#fff;">${escapeHtml(f.name)}</span>
+              <span style="font-size:0.75rem; color:var(--f-text-secondary); background:rgba(255,255,255,0.08); padding:2px 7px; border-radius:999px;">${childDecks.length} mazos</span>
+            </div>
+            <span class="folder-accordion-chevron" style="font-size:0.8rem; color:var(--f-text-secondary); transition:transform 0.2s ease;">▾</span>
+          </div>
+          <div class="deck-folder-contents" style="display:flex; flex-direction:column; gap:8px; padding:10px 12px;">
+            ${childDecks.map((d) => renderDeckTile(d)).join('')}
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  // Mazos independientes (sin carpeta)
+  const rootDecks = realDecks.filter((d) => !d.parentId);
+  const rootDecksHtml = rootDecks.map((d) => renderDeckTile(d)).join('');
 
   const modal = document.createElement('div');
   modal.className = 'apple-modal-overlay';
@@ -1912,46 +1963,31 @@ function openLinkTopicDeckModal(topic: ActiveStudyTopic, onFinish?: () => void):
         <button id="btn-close-deck-link-modal" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
       </div>
 
+      <!-- Buscador rápido en tiempo real -->
+      <div style="margin-bottom:10px;">
+        <input 
+          type="text" 
+          id="input-link-deck-search" 
+          placeholder="🔍 Buscar mazo por nombre..." 
+          style="width:100%; box-sizing:border-box; background:#14151c; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:0.88rem; outline:none;"
+        />
+      </div>
+
       <div style="overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:14px; flex:1;">
         <div class="deck-linking-interactive-container">
-          <p class="deck-linking-subtext" style="color:var(--f-text-secondary); font-size:0.88rem; margin:0 0 12px 0;">
-            Selecciona un mazo existente para almacenar las flashcards de este cuaderno o crea uno nuevo:
-          </p>
-
-          <div class="deck-selection-grid" id="deck-link-selection-grid">
-            <div class="deck-select-tile deck-select-tile-new ${selectedDeckId === '__create_new__' ? 'active' : ''}" id="tile-link-create-new-deck" data-deck-id="__create_new__">
-              <div class="deck-tile-icon-wrap" style="background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.4); color:#c084fc;">
-                ✨
-              </div>
-              <div class="deck-tile-info">
-                <span class="deck-tile-title">+ Crear Nueva Baraja</span>
-                <span class="deck-tile-meta">Crear con el nombre de este cuaderno</span>
-              </div>
-              <div class="deck-tile-check">✓</div>
+          <!-- Opción destacada: Crear Nueva Baraja -->
+          <div class="deck-select-tile deck-select-tile-new ${selectedDeckId === '__create_new__' ? 'active' : ''}" id="tile-link-create-new-deck" data-deck-id="__create_new__" style="margin-bottom:12px;">
+            <div class="deck-tile-icon-wrap" style="background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.4); color:#c084fc;">
+              ✨
             </div>
-
-            ${allDecks
-              .map((d) => {
-                const isSelected = selectedDeckId === d.id;
-                const cardCount = deckService.getCardsByDeck(d.id, false).length;
-                return `
-                <div class="deck-select-tile ${isSelected ? 'active' : ''}" data-deck-id="${d.id}">
-                  <div class="deck-tile-color-indicator" style="background: ${d.color || '#38bdf8'};"></div>
-                  <div class="deck-tile-icon-wrap" style="background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.3); color:#38bdf8;">
-                    🎴
-                  </div>
-                  <div class="deck-tile-info">
-                    <span class="deck-tile-title">${escapeHtml(d.name)}</span>
-                    <span class="deck-tile-meta">${cardCount} tarjetas</span>
-                  </div>
-                  <div class="deck-tile-check">✓</div>
-                </div>
-              `;
-              })
-              .join('')}
+            <div class="deck-tile-info">
+              <span class="deck-tile-title">+ Crear Nueva Baraja</span>
+              <span class="deck-tile-meta">Crear automáticamente con el nombre de este cuaderno</span>
+            </div>
+            <div class="deck-tile-check">✓</div>
           </div>
 
-          <div class="deck-new-inline-card" id="deck-link-new-inline-card" style="${selectedDeckId === '__create_new__' ? 'display:block;' : 'display:none;'} margin-top:12px; padding:12px; background:rgba(0,0,0,0.25); border-radius:12px; border:1px solid rgba(255,255,200,0.08);">
+          <div class="deck-new-inline-card" id="deck-link-new-inline-card" style="${selectedDeckId === '__create_new__' ? 'display:block;' : 'display:none;'} margin-bottom:14px; padding:12px; background:rgba(0,0,0,0.25); border-radius:12px; border:1px solid rgba(255,255,200,0.08);">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
               <span style="font-size:1.1rem;">✨</span>
               <strong style="color:#fff; font-size:0.9rem;">Nombre de la Nueva Baraja:</strong>
@@ -1964,6 +2000,24 @@ function openLinkTopicDeckModal(topic: ActiveStudyTopic, onFinish?: () => void):
               style="width:100%; box-sizing:border-box; background:#14151c; border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:9px 12px; color:#fff; font-size:0.9rem; outline:none;"
             />
           </div>
+
+          <!-- Carpetas desplegables/plegables -->
+          ${folders.length > 0 ? `
+            <div style="margin-bottom:12px;">
+              <span style="display:block; font-size:0.75rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Carpetas (Toca para desplegar mazos):</span>
+              ${folderGroupsHtml}
+            </div>
+          ` : ''}
+
+          <!-- Mazos independientes -->
+          ${rootDecks.length > 0 ? `
+            <div>
+              <span style="display:block; font-size:0.75rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Mazos Sin Carpeta:</span>
+              <div class="deck-selection-grid" id="deck-link-selection-grid" style="display:flex; flex-direction:column; gap:8px;">
+                ${rootDecksHtml}
+              </div>
+            </div>
+          ` : ''}
         </div>
       </div>
 
@@ -1980,17 +2034,49 @@ function openLinkTopicDeckModal(topic: ActiveStudyTopic, onFinish?: () => void):
 
   document.body.appendChild(modal);
 
-  const grid = modal.querySelector('#deck-link-selection-grid') as HTMLElement;
   const newDeckCard = modal.querySelector('#deck-link-new-inline-card') as HTMLElement;
   const newDeckInput = modal.querySelector('#input-link-inline-deck-name') as HTMLInputElement;
+  const searchInput = modal.querySelector('#input-link-deck-search') as HTMLInputElement;
 
-  grid.querySelectorAll<HTMLElement>('.deck-select-tile').forEach((tile) => {
+  // Filtrado de mazos en tiempo real
+  searchInput?.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+    modal.querySelectorAll<HTMLElement>('.deck-select-tile:not(#tile-link-create-new-deck)').forEach((tile) => {
+      const name = tile.dataset.deckName || '';
+      tile.style.display = !q || name.includes(q) ? 'flex' : 'none';
+    });
+
+    if (q) {
+      modal.querySelectorAll<HTMLElement>('.deck-folder-accordion-wrap').forEach((wrap) => {
+        const contents = wrap.querySelector('.deck-folder-contents') as HTMLElement | null;
+        const chevron = wrap.querySelector('.folder-accordion-chevron') as HTMLElement | null;
+        if (contents) contents.style.display = 'flex';
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+      });
+    }
+  });
+
+  // Plegar / Desplegar carpetas
+  modal.querySelectorAll<HTMLElement>('.deck-folder-header-btn').forEach((header) => {
+    header.addEventListener('click', () => {
+      const wrap = header.closest('.deck-folder-accordion-wrap') as HTMLElement;
+      const contents = wrap?.querySelector('.deck-folder-contents') as HTMLElement | null;
+      const chevron = wrap?.querySelector('.folder-accordion-chevron') as HTMLElement | null;
+      if (!contents) return;
+      const isVisible = contents.style.display !== 'none';
+      contents.style.display = isVisible ? 'none' : 'flex';
+      if (chevron) chevron.style.transform = isVisible ? 'rotate(-90deg)' : 'rotate(0deg)';
+    });
+  });
+
+  // Selección de mazo (NUNCA carpeta)
+  modal.querySelectorAll<HTMLElement>('.deck-select-tile').forEach((tile) => {
     tile.addEventListener('click', () => {
       nativeService.triggerHaptics('light');
       const did = tile.dataset.deckId;
       if (!did) return;
 
-      grid.querySelectorAll('.deck-select-tile').forEach((t) => t.classList.remove('active'));
+      modal.querySelectorAll('.deck-select-tile').forEach((t) => t.classList.remove('active'));
       tile.classList.add('active');
       selectedDeckId = did;
 
@@ -2006,7 +2092,7 @@ function openLinkTopicDeckModal(topic: ActiveStudyTopic, onFinish?: () => void):
   const closeModal = () => modal.remove();
   modal.querySelector('#btn-close-deck-link-modal')?.addEventListener('click', closeModal);
 
-  // Saltar por ahora: Deja el cuaderno sin mazo y advierte que no se podrá estudiar
+  // Saltar por ahora
   modal.querySelector('#btn-skip-deck-linking')?.addEventListener('click', () => {
     topic.deckId = '';
     activeStudyService.saveToStorage();
@@ -2047,7 +2133,7 @@ export const openChangeTopicDeckModal = openLinkTopicDeckModal;
  * Modifica: nombre, descripción, categoría, mazo, foto de portada, color, emoji, tipografía, sonido
  */
 function openEditNotebookModal(topic: ActiveStudyTopic, onSaved: () => void): void {
-  const allDecks = deckService.getAllDecks();
+  const allDecks = deckService.getAllDecks().filter((d) => !deckService.isFolder(d));
   let chosenPhotoDataUrl: string | undefined = topic.coverImage;
   let chosenColor: string = topic.color || '#38bdf8';
   let chosenEmoji: string = topic.emoji || '📓';
