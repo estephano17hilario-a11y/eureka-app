@@ -444,6 +444,13 @@ se obtiene la energía de enlace nuclear total.`;
       description?: string;
       coverImage?: string;
       subject?: string;
+      color?: string;
+      emoji?: string;
+      fontFamily?: string;
+      soundTheme?: 'scifi' | 'zen' | 'arcade' | 'minimal' | 'nature';
+      isFolder?: boolean;
+      folderId?: string | null;
+      childTopicIds?: string[];
     }
   ): ActiveStudyTopic {
     const topicId = 'topic_' + Math.random().toString(36).substring(2, 9);
@@ -465,6 +472,13 @@ se obtiene la energía de enlace nuclear total.`;
       description: options?.description,
       coverImage: options?.coverImage,
       subject: options?.subject,
+      color: options?.color,
+      emoji: options?.emoji,
+      fontFamily: options?.fontFamily,
+      soundTheme: options?.soundTheme,
+      isFolder: options?.isFolder ?? false,
+      folderId: options?.folderId ?? null,
+      childTopicIds: options?.childTopicIds ?? [],
       chunks,
       currentChunkIndex: 0,
       state: 'READING_CHUNK',
@@ -476,6 +490,67 @@ se obtiene la energía de enlace nuclear total.`;
     this.outlineNodes.set(topicId, []);
     this.saveToStorage();
     return topic;
+  }
+
+  /**
+   * Convierte un cuaderno existente en una carpeta contenedora
+   */
+  public convertTopicToFolder(topicId: string): ActiveStudyTopic | null {
+    const topic = this.topics.get(topicId);
+    if (!topic) return null;
+
+    topic.isFolder = true;
+    topic.childTopicIds = topic.childTopicIds || [];
+    topic.updatedAt = Date.now();
+    this.saveToStorage();
+    return topic;
+  }
+
+  /**
+   * Mueve un cuaderno a una carpeta contenedora (o a la raíz si targetFolderId es null)
+   */
+  public moveTopicToFolder(topicId: string, targetFolderId: string | null): boolean {
+    const topic = this.topics.get(topicId);
+    if (!topic) return false;
+
+    // Remover de la carpeta previa si estaba en una
+    if (topic.folderId) {
+      const prevFolder = this.topics.get(topic.folderId);
+      if (prevFolder && prevFolder.childTopicIds) {
+        prevFolder.childTopicIds = prevFolder.childTopicIds.filter((id) => id !== topicId);
+      }
+    }
+
+    topic.folderId = targetFolderId;
+    topic.updatedAt = Date.now();
+
+    // Añadir a la nueva carpeta
+    if (targetFolderId) {
+      const newFolder = this.topics.get(targetFolderId);
+      if (newFolder) {
+        newFolder.childTopicIds = newFolder.childTopicIds || [];
+        if (!newFolder.childTopicIds.includes(topicId)) {
+          newFolder.childTopicIds.push(topicId);
+        }
+      }
+    }
+
+    this.saveToStorage();
+    return true;
+  }
+
+  /**
+   * Obtiene los cuadernos contenidos dentro de una carpeta específica
+   */
+  public getFolderContents(folderId: string): ActiveStudyTopic[] {
+    return Array.from(this.topics.values()).filter((t) => t.folderId === folderId && !t.isFolder);
+  }
+
+  /**
+   * Obtiene todas las carpetas disponibles
+   */
+  public getAllFolders(): ActiveStudyTopic[] {
+    return Array.from(this.topics.values()).filter((t) => t.isFolder === true);
   }
 
   public updateTopic(topicId: string, updates: Partial<ActiveStudyTopic>): ActiveStudyTopic | null {

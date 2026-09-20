@@ -103,6 +103,7 @@ export interface FeynmanAtomicSublevel {
   mathType?: 'standard' | 'eureka'; // '(FORMALISMO MATEMÁTICO)' o '(FORMALISMO MATEMÁTICO EUREKA)'
   equation?: string; // 4º: Formalismo Matemático (solo si aplica al dominio)
   boundaryCondition?: string; // 5º: Condición límite o ruptura (estrictamente opcional)
+  synergicTransition?: string; // Puente/Transición Sinérgica hacia el siguiente átomo
   visualResourceUrl?: string;
 }
 
@@ -148,6 +149,12 @@ export interface FeynmanStudyGuide {
   topic: string;
   formData: FeynmanDiagnosticForm;
   levelsCount: 10 | 15 | 20;
+  holisticRoadmap?: {
+    problemOverview: string;
+    solutionStrategy: string;
+    bridgeToLevel1: string;
+    rawText?: string;
+  };
   markdown: string;
   levels: FeynmanLevel[];
   finalExam?: FeynmanFinalExam;

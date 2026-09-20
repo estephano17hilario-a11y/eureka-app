@@ -350,15 +350,26 @@ Eres un maestro pedagogo y experto mundial en el Método de Richard Feynman y el
 ⛓️ FILOSOFÍA ESTRICTA "STEP-BY-STEP" (PROGRESIÓN SINÉRGICA E INCREMENTAL) ⛓️
 ================================================================================
 Toda la ruta pedagógica debe seguir una cadena constructiva acumulativa y orgánica:
-1. CADENA DE DEPENDENCIAS SINÉRGICA:
+1. HOJA DE RUTA HOLÍSTICA (OBLIGATORIA ANTES DEL NIVEL 1):
+   - Antes de iniciar el Nivel 1, debes incluir obligatoriamente la sección:
+     "# Visión Holística & Hoja de Ruta Feynman: [Tema]"
+   - En esta sección debes plantear ABSOLUTAMENTE TODO LO QUE SE VA A VENIR combinando el enfoque Feynman (analogías lúcidas y cotidianas) con el máximo rigor técnico.
+   - Debe plantear la problemática global o panorama, explicar lógicamente cómo es que las soluciones se van a dar paso a paso a través de los ${levelsCount} niveles, y conducirnos orgánicamente a la puerta del Nivel 1.
+2. ORDEN ESTRICTO DEL NIVEL (EL PROPÓSITO ES LA PRIMERA INSTANCIA):
+   - Al comenzar cada nivel (# Nivel X: [Título]), la PRIMERA SECCIÓN INMEDIATA (antes de "1. Axioma Central" y antes de los subniveles) debe ser:
+     "## Propósito del Nivel: [Problemática & Panorama Concreto]"
+   - 🚨 REGLA DE CORRELACIÓN TOTAL: El propósito del nivel debe estar ÍNTIMA Y DIRECTAMENTE CORRELACIONADO con lo que se viene inmediatamente en los subniveles. Prohibido enunciar un propósito vago o desconectado y luego pasar a los subniveles de forma abrupta o superficial. Debe plantear la problemática o panorama de esa etapa e ir iterando fluidamente step-by-step hacia cómo se resolverá.
+   - En el **Nivel 1**, el propósito debe ser excepcionalmente claro, detallado y explicativo, sentando las bases formativas de toda la materia y enlazando con la visión holística inicial.
+   - Tras el Propósito del Nivel, se presenta "## 1. Axioma Central (Intuición Feynman)".
+3. MENSAJES DE TRANSICIÓN SINÉRGICA ENTRE CADA ÁTOMO (SUBNIVEL):
+   - Entre cada átomo/subnivel (entre X.1 y X.2, entre X.2 y X.3, etc.), debes incluir obligatoriamente un mensaje puente:
+     "> 🔗 **Transición Sinérgica hacia Subnivel X.(k+1):** [Explicación fluida y pedagógica de cómo el átomo visto anteriormente sienta las bases, resuelve una pieza del puzzle y nos conduce de forma natural y lógica al siguiente átomo, alineado con el propósito del nivel]."
+4. CADENA DE DEPENDENCIAS SINÉRGICA:
    - El Subnivel 1.1 es el AXIOMA CERO o ladrillo fundamental: la base más intuitiva, simple e irreducible.
    - El Subnivel 1.2 se construye DIRECTA Y EXPLÍCITAMENTE sobre lo asimilado en el 1.1 (el 1.1 es el trampolín que desbloquea y clarifica el 1.2).
    - El Subnivel 1.3 se apoya sobre el 1.2 para dar el siguiente paso lógico, y así sucesivamente en riguroso orden secuencial.
    - 🚨 CERO SALTOS CONCEPTUALES: Ningún subnivel puede introducir un concepto complejo de la nada sin haber construido su cimiento previo en los subniveles anteriores.
    - La información previa al subnivel actual siempre debe servir de base y sinergia para entender el actual, logrando que todo sea completamente comprensible paso a paso.
-2. PRESENTACIÓN DE CADA NIVEL CON TÍTULO Y PROPÓSITO:
-   - Al inicio de cada nivel principal (# Nivel X: [Título]), se debe definir un título claro del nivel y añadir inmediatamente:
-     - **Propósito del Nivel:** [Qué se busca comprender y dominar exactamente en este nivel y cuál es la meta formativa de esta etapa].
 
 ================================================================================
 🚫 PROHIBICIÓN ABSOLUTA DE ACOPLAMIENTO (1 CONCEPTO POR SUBNIVEL • 6 A 10 SUBNIVELES) 🚫
@@ -449,8 +460,17 @@ Cada subnivel debe organizarse en este orden exacto:
 ESTRUCTURA MARKDOWN OBLIGATORIA
 ================================================================================
 
+# Visión Holística & Hoja de Ruta Feynman: ${topic}
+- **Problemática Global & Panorama:** [Planteamiento general del reto de aprendizaje de forma Feynman lúcida + Técnico riguroso, explicando de qué trata el tema y por qué es fundamental dominarlo].
+- **Estrategia Lógica de Solución (Step-by-Step):** [Desglose lógico de cómo las soluciones y asimilación conceptual se darán progresivamente a través de los ${levelsCount} niveles de forma sinérgica].
+- **Puente hacia el Nivel 1:** [Cómo este panorama nos sitúa con claridad exactamente en el punto de partida del Nivel 1].
+
+---
+
 # Nivel 1: [Título Claro y Representativo del Nivel en ${topic}]
-- **Propósito del Nivel:** [Definición clara de lo que se busca dominar y comprender en este nivel y su relevancia].
+
+## Propósito del Nivel: [Problemática & Panorama Concreto de esta Etapa]
+[Explicación clara, detallada y formativa de la problemática y panorama de esta etapa, íntimamente correlacionada con los subniveles que vienen a continuación, iterando fluidamente sin ser directo sin detalle. En el Nivel 1 debe ser especialmente explicativo y amplio].
 
 ## 1. Axioma Central (Intuición Feynman)
 [Explicación concisa en 1 párrafo corto descomponiendo el fundamento de ${topic} mediante una analogía cotidiana, clara y directa].
@@ -463,11 +483,16 @@ ESTRUCTURA MARKDOWN OBLIGATORIA
 - **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** $[Fórmula KaTeX solo si aplica; de lo contrario omitir]$
 - **Límite de Ruptura / Condición de Frontera:** [Solo si es sumamente necesario; si no, omitir]
 
+> 🔗 **Transición Sinérgica hacia Subnivel 1.2:** [Mensaje de cómo el átomo visto anteriormente sienta las bases y nos conduce naturalmente al siguiente átomo, siguiendo el propósito del nivel].
+
 ### Subnivel 1.2: [Concepto que se apoya directamente sobre 1.1 (Step-by-Step)]
 - **Intuición Feynman:** [Micro-analogía cotidiana ultra-simple construyendo sobre lo aprendido en 1.1].
 - **Idea Clave:** [Definición formal precisa en 1 frase].
 - **Cadena Causal:** [Mecanismo muy fácil de entender y corto; omitir si no aplica].
-... (Entre 6 y 10 subniveles: de 1.1 hasta 1.6 ... 1.10 según decida la IA, sin acoplar conceptos)
+
+> 🔗 **Transición Sinérgica hacia Subnivel 1.3:** [Mensaje puente al siguiente átomo].
+
+... (Entre 6 y 10 subniveles: de 1.1 hasta 1.6 ... 1.10 según decida la IA, sin acoplar conceptos y con transiciones sinérgicas explícitas entre cada uno)
 
 ## 3. Panel Interactivo (React + TypeScript)
 \`\`\`tsx
@@ -519,7 +544,7 @@ export function App() {
 
 ---
 
-(REPETIR ESTA ESTRUCTURA EXACTA PARA TODOS LOS ${levelsCount} NIVELES, CON ENTRE 6 Y 10 SUBNIVELES ATÓMICOS Y CÓDIGO REACT HIPER-VISUAL DE +400 A +500 LÍNEAS EN CADA UNO DE ELLOS)
+(REPETIR ESTA ESTRUCTURA EXACTA PARA TODOS LOS ${levelsCount} NIVELES, CON PROPÓSITO DEL NIVEL COMO PRIMERA INSTANCIA, ENTRE 6 Y 10 SUBNIVELES ATÓMICOS CON TRANSICIONES SINÉRGICAS, Y CÓDIGO REACT HIPER-VISUAL DE +400 A +500 LÍNEAS EN CADA UNO DE ELLOS)
 
 ---
 
@@ -604,12 +629,14 @@ ${
 1. VERACIDAD, MÁXIMO RESPALDO Y ESTADO DEL ARTE:
    - Todo concepto, axioma y explicación debe contar con el más riguroso respaldo científico/doctrinal y reflejar la actualidad del estado del arte. Cero datos desactualizados o conjeturas no fundamentadas.
 
-2. FILOSOFÍA STRICT STEP-BY-STEP (SINERGIA Y CONTINUIDAD):
-   - El Subnivel 1.1 es el axioma base.
-   - El 1.2 se construye directamente sobre lo entendido en 1.1.
-   - El 1.3 se construye sobre el 1.2, y así sucesivamente en riguroso orden acumulativo y sinérgico sin saltos conceptuales.
-   - En la presentación de cada nivel principal (# Nivel X: [Título descriptivo]), incluye obligatoriamente:
-     - **Propósito del Nivel:** [Qué se busca entender y dominar exactamente en este nivel y cuál es su meta].
+2. FILOSOFÍA STRICT STEP-BY-STEP, HOJA DE RUTA Y PROPÓSITO DEL NIVEL:
+   - 🗺️ HOJA DE RUTA HOLÍSTICA (OBLIGATORIA ANTES DEL NIVEL 1): Inicia obligatoriamente con "# Visión Holística & Hoja de Ruta Feynman: ${form.topic.trim()}" planteando todo lo que se va a venir de forma Feynman lúcida + Técnico riguroso, desglosando la problemática general, cómo se resolverán lógicamente las soluciones paso a paso a lo largo de los ${levelsCount} niveles y conduciéndonos orgánicamente al Nivel 1.
+   - 🎯 PROPÓSITO DEL NIVEL COMO PRIMERA INSTANCIA: En la presentación de cada nivel (# Nivel X: [Título descriptivo]), la PRIMERA SECCIÓN INMEDIATA (antes de Axioma Central y antes de los subniveles) debe ser "## Propósito del Nivel: [Problemática & Panorama Concreto]".
+     * 🚨 REGLA DE CORRELACIÓN TOTAL: El propósito del nivel debe estar ÍNTIMA Y DIRECTAMENTE CORRELACIONADO con lo que se viene directamente en los subniveles. Prohibido ser vago o directo sin detalle. Plantea la problemática o panorama de esa etapa e itera fluidamente step-by-step hacia cómo se resolverá.
+     * En el **Nivel 1**, el propósito debe ser excepcionalmente claro, detallado y explicativo, conectando con la visión holística.
+   - 💡 AXIOMA CENTRAL: Se ubica como "## 1. Axioma Central (Intuición Feynman)" inmediatamente después del propósito.
+   - 🔗 TRANSICIONES SINÉRGICAS ENTRE CADA ÁTOMO: Entre cada subnivel (X.k y X.(k+1)), incluye obligatoriamente "> 🔗 **Transición Sinérgica hacia Subnivel X.(k+1):**" explicando cómo el átomo previo sienta las bases y nos conduce de forma natural y lógica al siguiente átomo, siguiendo el propósito del nivel.
+   - CADENA INCREMENTAL: El Subnivel 1.1 es el axioma base, el 1.2 se construye directamente sobre el 1.1, el 1.3 sobre el 1.2 sin saltos conceptuales.
 
 3. PROHIBICIÓN ABSOLUTA DE ACOPLAMIENTO DE INFORMACIÓN (1 CONCEPTO POR SUBNIVEL):
    - Prohibido amontonar o juntar múltiples conceptos en 1 solo subnivel. Cada subnivel debe ser hiper-atómico y tratar un único concepto.
@@ -628,7 +655,7 @@ ${
 
 6. 📝 EXAMEN POR NIVEL: Cada nivel debe incluir la sección "## 5. Examen de Nivel" con 3 a 5 preguntas de opción múltiple (A, B, C, D) con respuesta correcta y justificación causal.
 7. 🎓 EXAMEN FINAL DEL CUADERNO: Al final, incluye la sección "# Examen Final del Cuaderno: Gran Reto de Maestría Holística" con Quizz de 10 preguntas y el Mega-Simulador Evaluador en React+TS de MÍNIMO +1000 LÍNEAS DE CÓDIGO REAL.
-8. COMIENZA INMEDIATAMENTE CON "# Nivel 1: [Título]" SIN TEXTO CONVERSACIONAL.
+8. COMIENZA INMEDIATAMENTE CON "# Visión Holística & Hoja de Ruta Feynman: ${form.topic.trim()}" SIN TEXTO CONVERSACIONAL.
 9. GENERA TODOS LOS ${levelsCount} NIVELES COMPLETOS Y EL EXAMEN FINAL SIN TRUNCAMIENTO.`;
   }
 
@@ -665,8 +692,10 @@ ${userPrompt}
     : 'Conocedor Especializado (20 Niveles): Máximo rigor hasta la frontera y casos límite del estado del arte.'
 }
 - VERACIDAD Y ESTADO DEL ARTE: Máximo respaldo factual, precisión conceptual y conocimiento actualizado.
+- HOJA DE RUTA HOLÍSTICA: Arranca obligatoriamente con "# Visión Holística & Hoja de Ruta Feynman: ${form.topic.trim()}" planteando el panorama general y la estrategia lógica de solución.
+- PROPÓSITO DEL NIVEL COMO PRIMERA INSTANCIA: En cada nivel (# Nivel X: [Título]), antes de Axioma Central y antes de X.1, incluye "## Propósito del Nivel: [Problemática & Panorama]", profundamente correlacionado con los subniveles y muy explicativo (especialmente en el Nivel 1).
+- TRANSICIONES SINÉRGICAS: Entre cada átomo, incluye "> 🔗 **Transición Sinérgica hacia Subnivel X.(k+1):**" explicando la conexión causal.
 - FILOSOFÍA STEP-BY-STEP: Cada subnivel se apoya y construye directamente sobre el anterior (1.1 base -> 1.2 -> 1.3 sin saltos).
-- PRESENTACIÓN DEL NIVEL: Define el título del nivel e incluye "- **Propósito del Nivel:** [Qué se busca entender de ahí]".
 - CERO ACOPLAMIENTO: 1 concepto por subnivel. Entre 6 y 10 subniveles por nivel (Subnivel X.1 a X.6 ... X.10).
 - CADENA CAUSAL: Después de la Idea Clave, solo si es necesario, muy fácil de entender y corta.
 - TODO DEBE ESTAR DENTRO DE UN SOLO RECUADRO O ARCHIVO MARKDOWN CONTINUO (.md).
@@ -675,7 +704,7 @@ ${userPrompt}
 - 🎮 100% LÚDICO, GAMIFICADO Y CERO ABURRIDO: Canvas 2D/SVG animados en vivo, partículas interactivas, controles reactivos, barra de estabilidad, inyección de perturbaciones y sonido Web Audio API.
 - 📝 CADA NIVEL DEBE INCLUIR SU EXAMEN FORMATIVO (## 5. Examen de Nivel con 3 a 5 preguntas de selección múltiple explicadas).
 - 🎓 EXAMEN FINAL DEL CUADERNO: Quizz de 10 preguntas y Mega-Simulador Evaluador de +1000 líneas.
-- COMIENZA DIRECTAMENTE CON: "# Nivel 1:"`;
+- COMIENZA DIRECTAMENTE CON: "# Visión Holística & Hoja de Ruta Feynman: ${form.topic.trim()}"`;
   }
 
   /**
@@ -1910,7 +1939,17 @@ export function App() {
       }
     );
 
-    // Normalizar Propósito del Nivel
+    // Normalizar Encabezado de Visión Holística & Hoja de Ruta Feynman
+    text = text.replace(
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:Visi[oó]n\\s*Hol[ií]stica|Hoja\\s*de\\s*Ruta(?:\\s*Feynman)?)[^\\n*]*[:*_\\s]*([^\\n]*)`, 'gim'),
+      (_m, topicMatch) => `\n\n# Visión Holística & Hoja de Ruta Feynman: ${(topicMatch || '').trim()}\n\n`
+    );
+
+    // Normalizar Propósito del Nivel (como H2 o viñeta)
+    text = text.replace(
+      new RegExp(`${ANCHOR}(?:#+\\s*|\\*{2}\\s*|__\\s*)?(?:Prop[oó]sito\\s*del\\s*Nivel|Objetivo\\s*del\\s*Nivel)[:\\s*_\\s]*([^\\n]*)`, 'gim'),
+      (_m, content) => content && content.trim() ? `\n\n## Propósito del Nivel: ${content.trim()}\n\n` : `\n\n## Propósito del Nivel\n\n`
+    );
     text = text.replace(new RegExp(`${ANCHOR}(?:>\\s*)?(?:-\\s*)?(?:\\*\\*|__)?Prop[oó]sito(?:\\s*del\\s*Nivel)?[:\\s*_\\s]+`, 'gim'), '\n- **Propósito del Nivel:** ');
 
     // 5. Normalizar etiquetas de campos atómicos dentro de subniveles
@@ -1924,6 +1963,12 @@ export function App() {
     
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?(?:Condici[oó]n\\s*de\\s*Frontera(?:\\s*[\\/\\-]\\s*L[ií]mite(?:\\s*de\\s*Ruptura)?)?|L[ií]mite(?:\\s*de\\s*Ruptura)?|Caso\\s*L[ií]mite|Frontera)[:\\s*_\\s]+`, 'gim'), '\n- **Límite de Ruptura:** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?Recurso\\s*Visual[:\\s*_\\s]+`, 'gim'), '\n- **Recurso Visual:** ');
+
+    // Normalizar Transición Sinérgica hacia el siguiente átomo
+    text = text.replace(
+      new RegExp(`${ANCHOR}(?:>\\s*)?(?:-\\s*)?(?:\\*\\*|__)?(?:🔗\\s*)?(?:Transici[oó]n\\s*Sin[eé]rgica(?:\\s*hacia\\s*Subnivel\\s*\\d+(?:\\.\\d+)?)?|Puente\\s*Sin[eé]rgico)[:\\s*_\\s]+`, 'gim'),
+      '\n> 🔗 **Transición Sinérgica:** '
+    );
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?Problema\\s*resuelto[:\\s*_\\s]+`, 'gim'), '\n- **Problema resuelto:** ');
     text = text.replace(new RegExp(`${ANCHOR}(?:-\\s*)?(?:\\*\\*|__)?Siguiente\\s*obst[aá]culo[:\\s*_\\s]+`, 'gim'), '\n- **Siguiente obstáculo:** ');
 
@@ -2180,11 +2225,16 @@ export function App() {
       const levelNumber = current.levelNumber;
       const title = current.title || `Nivel ${levelNumber}`;
 
-      // Extraer Propósito del Nivel si está presente
+      // Extraer Propósito del Nivel si está presente (como H2 o Viñeta antes de Axioma Central)
       let purpose: string | undefined;
-      const purposeMatch = blockText.match(/(?:^|\n)(?:-\s*)?(?:\*\*|__)?(?:Prop[oó]sito(?:\s*del\s*Nivel)?|Objetivo(?:\s*del\s*Nivel)?)[:\s*_\s]+([^\n]+)/i);
-      if (purposeMatch) {
-        purpose = purposeMatch[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
+      const purposeSectionMatch = blockText.match(/(?:^|\n)##+\s*(?:Prop[oó]sito(?:\s*del\s*Nivel)?|Objetivo(?:\s*del\s*Nivel)?)[^\n]*\n([\s\S]*?)(?=(?:^|\n)##+|$)/i);
+      if (purposeSectionMatch && purposeSectionMatch[1].trim()) {
+        purpose = purposeSectionMatch[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
+      } else {
+        const purposeMatch = blockText.match(/(?:^|\n)(?:-\s*)?(?:\*\*|__)?(?:Prop[oó]sito(?:\s*del\s*Nivel)?|Objetivo(?:\s*del\s*Nivel)?)[:\s*_\s]+([^\n]+)/i);
+        if (purposeMatch) {
+          purpose = purposeMatch[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
+        }
       }
 
       // 1. Axioma Central
@@ -2269,6 +2319,13 @@ export function App() {
         const boundM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Condici[oó]n\s*de\s*Frontera(?:\s*[\/\-]\s*L[ií]mite(?:\s*de\s*Ruptura)?)?|L[ií]mite(?:\s*de\s*Ruptura)?|Caso\s*L[ií]mite|Frontera)[:\s*_\s]+([^\n]+)/i);
         if (boundM) boundaryCondition = boundM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
 
+        // 6. Transición Sinérgica hacia el siguiente átomo
+        let synergicTransition: string | undefined;
+        const synM = subContent.match(/(?:^|\n)(?:>\s*)?(?:-\s*)?(?:\*\*|__)?(?:🔗\s*)?(?:Transici[oó]n\s*Sin[eé]rgica(?:[^\n*:]*)?|Puente\s*Sin[eé]rgico)[:\s*_\s]+([^\n]+(?:\n(?!###|##|-\s*(?:\*\*|__)?(?:Intuici|Idea|Cadena|FORMALISMO|L[ií]mite))[^\n]+)*)/i);
+        if (synM) {
+          synergicTransition = synM[1].trim().replace(/^[*_\s>]+|[*_\s>]+$/g, '');
+        }
+
         let visualResourceUrl: string | undefined;
         const imgM = subContent.match(/!\[([^\]]*)\]\((https?:\/\/[^\s\)]+)\)/i);
         if (imgM) visualResourceUrl = imgM[2].trim();
@@ -2282,6 +2339,7 @@ export function App() {
           mathType,
           equation,
           boundaryCondition,
+          synergicTransition,
           visualResourceUrl
         });
       }
@@ -2414,6 +2472,48 @@ export function App() {
     }
 
     return Array.from(levelsMap.values()).sort((a, b) => a.levelNumber - b.levelNumber);
+  }
+
+  /**
+   * Extrae la Hoja de Ruta y Visión Holística si está presente antes del Nivel 1.
+   */
+  public parseHolisticRoadmap(markdown: string): {
+    problemOverview: string;
+    solutionStrategy: string;
+    bridgeToLevel1: string;
+    rawText?: string;
+  } | undefined {
+    if (!markdown) return undefined;
+    const { shieldedText } = this.extractShieldedCodeBlocks(markdown);
+    
+    // Buscar bloque previo al Nivel 1
+    const level1Match = shieldedText.match(/(?:^|\n)#+\s*Nivel\s*1[:\s.-]/i);
+    const preText = level1Match ? shieldedText.slice(0, level1Match.index) : shieldedText;
+    
+    const roadmapHeader = preText.match(/(?:^|\n)#+\s*(?:Visi[oó]n\s*Hol[ií]stica|Hoja\s*de\s*Ruta)[^\n]*\n([\s\S]*)$/i);
+    if (!roadmapHeader && !preText.includes('Problemática Global')) return undefined;
+
+    const body = (roadmapHeader ? roadmapHeader[1] : preText).trim();
+    if (!body || body.length < 20) return undefined;
+
+    let problemOverview = '';
+    const probM = body.match(/(?:^|\n)(?:-\s*)?(?:\*\*|__)?(?:Problem[aá]tica(?:\s*Global)?(?:\s*&?\s*Panorama)?|Panorama\s*General)[:\s*_\s]+([^\n]+(?:\n(?!-\s*(?:\*\*|__)?(?:Estrategia|Soluci|Puente|Plan))[^\n]+)*)/i);
+    if (probM) problemOverview = probM[1].trim();
+
+    let solutionStrategy = '';
+    const solM = body.match(/(?:^|\n)(?:-\s*)?(?:\*\*|__)?(?:Estrategia(?:\s*L[oó]gica)?(?:\s*de\s*Soluci[oó]n)?|Plan\s*de\s*Soluci[oó]n)[:\s*_\s]+([^\n]+(?:\n(?!-\s*(?:\*\*|__)?(?:Problem|Puente|Nivel))[^\n]+)*)/i);
+    if (solM) solutionStrategy = solM[1].trim();
+
+    let bridgeToLevel1 = '';
+    const bridgeM = body.match(/(?:^|\n)(?:-\s*)?(?:\*\*|__)?(?:Puente(?:\s*(?:hacia|de\s*acceso|al))?\s*(?:Nivel\s*1)?|Transici[oó]n\s*al\s*Nivel\s*1)[:\s*_\s]+([^\n]+)/i);
+    if (bridgeM) bridgeToLevel1 = bridgeM[1].trim();
+
+    return {
+      problemOverview: problemOverview || body.slice(0, 300),
+      solutionStrategy: solutionStrategy || 'Progresión axiomática acumulativa y sinérgica de primeros principios.',
+      bridgeToLevel1: bridgeToLevel1 || 'Conduce al primer nivel axiomático para desglosar el fundamento primario.',
+      rawText: body
+    };
   }
 }
 

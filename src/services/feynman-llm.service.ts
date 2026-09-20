@@ -205,6 +205,7 @@ export class FeynmanLlmService {
     }
 
     const finalExam = feynmanPedagogyService.parseFinalExam(rawMarkdown);
+    const holisticRoadmap = feynmanPedagogyService.parseHolisticRoadmap(rawMarkdown);
 
     const count: 10 | 15 | 20 = levels.length >= 18 ? 20 : levels.length >= 13 ? 15 : 10;
 
@@ -217,6 +218,7 @@ export class FeynmanLlmService {
         targetGoal: count === 20 ? 'especializado' : count === 15 ? 'adentrado' : 'general'
       },
       levelsCount: count,
+      holisticRoadmap,
       markdown: rawMarkdown.trim(),
       levels,
       finalExam,
@@ -261,12 +263,14 @@ export class FeynmanLlmService {
     onProgress?.('Estructurando subniveles atómicos, exámenes y componentes React + TypeScript...');
     const levels = feynmanPedagogyService.parseFeynmanMarkdown(generatedMarkdown, form.topic.trim(), form.subject);
     const finalExam = feynmanPedagogyService.parseFinalExam(generatedMarkdown);
+    const holisticRoadmap = feynmanPedagogyService.parseHolisticRoadmap(generatedMarkdown);
 
     const guide: FeynmanStudyGuide = {
       id: `feynman-guide-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       topic: form.topic.trim(),
       formData: { ...form },
       levelsCount,
+      holisticRoadmap,
       markdown: generatedMarkdown,
       levels,
       finalExam,
@@ -348,13 +352,18 @@ export class FeynmanLlmService {
 
     const levelBlueprints = this.buildTopicProgressionBlueprints(topic, levelsCount, form.currentLevel, specificFocus, prev);
 
-    let doc = '';
+    let doc = `# Visión Holística & Hoja de Ruta Feynman: ${topic}\n\n`;
+    doc += `- **Problemática Global & Panorama:** Dominar ${topic} requiere desarticular sus componentes primarios y reconstruir paso a paso la cadena de causalidad sin recurrir a memorización ciega.\n`;
+    doc += `- **Estrategia Lógica de Solución (Step-by-Step):** A través de ${levelsCount} niveles de dificultad incremental, exploraremos los principios irreducibles, formalismos matemáticos exactos y simulaciones interactivas en vivo para consolidar un entendimiento intuitivo y técnico.\n`;
+    doc += `- **Puente hacia el Nivel 1:** Iniciamos el recorrido en el Nivel 1 estableciendo el axioma fundamental que actuará como base y trampolín cognitivo de toda la materia.\n\n---\n\n`;
 
     levelBlueprints.forEach((blueprint, index) => {
       const lvlNum = index + 1;
       const nextNum = lvlNum + 1;
 
       doc += `# Nivel ${lvlNum}: ${blueprint.title}\n\n`;
+      doc += `## Propósito del Nivel: Problemática & Panorama de ${blueprint.title}\n`;
+      doc += `${lvlNum === 1 ? `En este primer nivel formativo de ${topic}, establecemos la arquitectura conceptual primaria para resolver la problemática de partir de cero. Cada concepto está diseñado para articularse secuencialmente con el siguiente.` : `En esta etapa abordamos la problemática de transición derivada del obstáculo anterior, profundizando en los mecanismos de ${blueprint.title} de forma progresiva e incremental.`}\n\n`;
       doc += `## 1. Axioma Central (Intuición Feynman)\n`;
       doc += `${blueprint.axiom}\n\n`;
 
@@ -362,13 +371,18 @@ export class FeynmanLlmService {
       blueprint.sublevels.forEach((sub, sIdx) => {
         const subNum = `${lvlNum}.${sIdx + 1}`;
         doc += `### Subnivel ${subNum}: ${sub.title}\n`;
+        doc += `- **Intuición Feynman:** Analogía cotidiana de primeros principios para asimilar ${sub.title} de forma simple y amigable.\n`;
         doc += `- **Idea Clave:** ${sub.idea}\n`;
-        doc += `- **Mecanismo:** ${sub.mechanism}\n`;
+        doc += `- **Cadena Causal:** ${sub.mechanism}\n`;
         if (sub.equation) {
-          doc += `- **Ecuación / Formalismo:** $${sub.equation}$\n`;
+          doc += `- **(FORMALISMO MATEMÁTICO):** $${sub.equation}$\n`;
         }
         if (sub.imgUrl) {
           doc += `- **Recurso Visual:** [![${sub.title}](${sub.imgUrl})]\n`;
+        }
+        if (sIdx < blueprint.sublevels.length - 1) {
+          const nextSubNum = `${lvlNum}.${sIdx + 2}`;
+          doc += `\n> 🔗 **Transición Sinérgica hacia Subnivel ${nextSubNum}:** Al asimilar ${sub.title}, se desbloquea naturalmente la necesidad de comprender cómo opera ${blueprint.sublevels[sIdx + 1]?.title || 'el siguiente principio'}, garantizando una continuidad lógica sin saltos conceptuales.\n\n`;
         }
       });
       doc += `\n`;

@@ -109,6 +109,56 @@ export class NativeService {
     const result = await Preferences.get({ key });
     return result.value;
   }
+
+  private isLandscape: boolean = false;
+
+  /**
+   * Alterna la orientación de la pantalla entre horizontal (Landscape) y vertical (Portrait)
+   * de forma nativa en Android y navegadores móviles con soporte W3C Screen Orientation,
+   * aplicando sincronización por clase CSS en documentElement.
+   */
+  public async toggleScreenOrientation(): Promise<boolean> {
+    this.isLandscape = !this.isLandscape;
+
+    try {
+      const screenAny = screen as any;
+      if (this.isLandscape) {
+        if (screenAny?.orientation?.lock) {
+          await screenAny.orientation.lock('landscape').catch(() => {});
+        } else if (screenAny?.lockOrientation) {
+          screenAny.lockOrientation('landscape');
+        }
+      } else {
+        if (screenAny?.orientation?.unlock) {
+          screenAny.orientation.unlock();
+        } else if (screenAny?.orientation?.lock) {
+          await screenAny.orientation.lock('portrait').catch(() => {});
+        } else if (screenAny?.unlockOrientation) {
+          screenAny.unlockOrientation();
+        }
+      }
+    } catch (err) {
+      console.info('Screen orientation lock managed:', err);
+    }
+
+    if (this.isLandscape) {
+      document.documentElement.classList.add('eureka-landscape-mode');
+    } else {
+      document.documentElement.classList.remove('eureka-landscape-mode');
+    }
+
+    await this.triggerHaptics('light');
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('eureka-orientation-change', { detail: { isLandscape: this.isLandscape } }));
+    }
+
+    return this.isLandscape;
+  }
+
+  public getIsLandscape(): boolean {
+    return this.isLandscape;
+  }
 }
 
 export const nativeService = NativeService.getInstance();

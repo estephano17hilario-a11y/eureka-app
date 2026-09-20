@@ -52,6 +52,15 @@ export interface ActiveStudyTopic {
   description?: string;
   coverImage?: string; // Foto o portada del cuaderno (opcional)
   subject?: string;    // Materia del cuaderno (una de las 20 más populares)
+  // Personalización integral del cuaderno
+  color?: string;       // Color de acento
+  emoji?: string;       // Emoji identificador
+  fontFamily?: string;  // Tipografía seleccionada
+  soundTheme?: 'scifi' | 'zen' | 'arcade' | 'minimal' | 'nature'; // Tema sonoro
+  // Soporte de Carpetas Contenedoras
+  isFolder?: boolean;   // Indica si este cuaderno fue convertido en carpeta
+  folderId?: string | null; // ID de la carpeta contenedora
+  childTopicIds?: string[]; // Cuadernos contenidos
   chunks: StudyChunk[];
   currentChunkIndex: number;
   state: ActiveStudyState;

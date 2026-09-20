@@ -3,6 +3,7 @@ import { feynmanLlmService } from '../services/feynman-llm.service';
 import { feynmanSandboxService } from '../services/feynman-sandbox.service';
 import { katexService } from '../services/katex.service';
 import { dialogService } from '../services/dialog.service';
+import { nativeService } from '../services/native.service';
 
 export interface FeynmanGuideViewerOptions {
   guide: FeynmanStudyGuide;
@@ -98,6 +99,9 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
             </div>
 
             <!-- Botones de Utilidad -->
+            <button class="figma-icon-btn-ghost" id="btn-toggle-viewer-orientation" title="Rotar pantalla (Horizontal / Vertical)" style="padding: 8px; font-size: 1rem; border-radius: 8px;">
+              🔄📱
+            </button>
             <button class="figma-icon-btn-ghost" id="btn-copy-guide-md" title="Copiar todo el Markdown al portapapeles" style="padding: 8px; font-size: 0.9rem;">
               📋
             </button>
@@ -424,6 +428,37 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
     const renderedAxiom = katexService.parseAndRender(lvl.axiomIntuition);
 
     viewerBody.innerHTML = `
+      <!-- VISIÓN HOLÍSTICA & HOJA DE RUTA FEYNMAN (ANTES DEL NIVEL 1) -->
+      ${isFirst && guide.holisticRoadmap ? `
+        <div style="background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.15)); border: 1.5px solid rgba(168,85,247,0.4); border-radius: 18px; padding: 22px; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 0.8rem; font-weight: 800; color: #c084fc; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px;">
+              <span>🗺️</span> Visión Holística & Hoja de Ruta Feynman
+            </span>
+            <span style="font-size: 0.72rem; color: #a855f7; background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3); padding: 2px 8px; border-radius: 999px; font-weight: 700;">
+              Planteamiento Global
+            </span>
+          </div>
+          <h3 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin: 0 0 10px 0;">
+            ${escapeHtml(guide.topic)}: Panorama y Estrategia Lógica
+          </h3>
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem; color: #e2e8f0; line-height: 1.6;">
+            <div style="background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: 10px; border-left: 3px solid #38bdf8;">
+              <strong style="color: #38bdf8;">Problemática Global & Panorama:</strong>
+              <div>${katexService.parseAndRender(guide.holisticRoadmap.problemOverview)}</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: 10px; border-left: 3px solid #c084fc;">
+              <strong style="color: #c084fc;">Estrategia Lógica de Solución:</strong>
+              <div>${katexService.parseAndRender(guide.holisticRoadmap.solutionStrategy)}</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: 10px; border-left: 3px solid #34d399;">
+              <strong style="color: #34d399;">Puente hacia el Nivel 1:</strong>
+              <div>${katexService.parseAndRender(guide.holisticRoadmap.bridgeToLevel1)}</div>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
       <!-- BANNER DE ENCABEZADO DE NIVEL -->
       <div style="background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(168,85,247,0.08)); border: 1px solid rgba(56,189,248,0.2); border-radius: 16px; padding: 20px 24px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
@@ -437,13 +472,27 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
         <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.02em;">
           # Nivel ${lvl.levelNumber}: ${escapeHtml(lvl.title)}
         </h2>
-        ${lvl.purpose ? `
-          <div style="margin-top: 10px; display: flex; align-items: flex-start; gap: 8px; font-size: 0.88rem; color: #e0f2fe; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.25); border-radius: 10px; padding: 8px 14px; line-height: 1.5;">
-            <span style="color: #38bdf8; font-weight: 800; white-space: nowrap;">🎯 Propósito del Nivel:</span>
-            <span>${escapeHtml(lvl.purpose)}</span>
-          </div>
-        ` : ''}
       </div>
+
+      <!-- PRIMERA INSTANCIA: PROPÓSITO DEL NIVEL (PROBLEMÁTICA & PANORAMA) -->
+      ${lvl.purpose ? `
+        <div style="background: linear-gradient(135deg, rgba(14,165,233,0.12), rgba(139,92,246,0.12)); border: 1.5px solid rgba(56,189,248,0.35); border-radius: 16px; padding: 20px 22px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="font-size: 1.3rem;">🎯</span>
+            <div>
+              <h3 style="font-size: 1.05rem; font-weight: 800; color: #38bdf8; margin: 0;">
+                Propósito del Nivel: Problemática & Panorama
+              </h3>
+              <p style="font-size: 0.75rem; color: var(--f-text-secondary); margin: 2px 0 0 0;">
+                Planteamiento del reto y hoja de ruta inmediata de esta etapa formativa
+              </p>
+            </div>
+          </div>
+          <div style="font-size: 0.92rem; color: #f1f5f9; line-height: 1.65;">
+            ${katexService.parseAndRender(lvl.purpose)}
+          </div>
+        </div>
+      ` : ''}
 
       <!-- SECCIÓN 1: AXIOMA CENTRAL (INTUICIÓN FEYNMAN) -->
       <div style="background: var(--f-input-bg); border: 1px solid var(--f-border); border-radius: 16px; padding: 22px;">
@@ -463,12 +512,12 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
             <span style="font-size: 1.2rem;">🧩</span>
             <h3 style="font-size: 1.05rem; font-weight: 800; color: #fff; margin: 0;">2. Desglose Atómico (${lvl.sublevels.length} Principios)</h3>
           </div>
-          <span style="font-size: 0.75rem; color: var(--f-text-muted);">Microlearning atómico (2-4 oraciones)</span>
+          <span style="font-size: 0.75rem; color: var(--f-text-muted);">Microlearning atómico y progresivo</span>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px;">
-          ${lvl.sublevels.map((sub) => `
-            <div style="background: var(--f-input-bg); border: 1px solid var(--f-border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 9px;">
+          ${lvl.sublevels.map((sub, sIdx) => `
+            <div class="feynman-sublevel-card" style="background: var(--f-input-bg); border: 1px solid var(--f-border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 9px; animation-delay: ${sIdx * 0.05}s;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 0.75rem; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.1); padding: 2px 8px; border-radius: 6px;">
                   Subnivel ${sub.sublevelNumber}
@@ -517,6 +566,16 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
               ${sub.boundaryCondition ? `
                 <div style="font-size: 0.79rem; color: #fbbf24; background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; padding: 6px 10px; border-radius: 6px;">
                   <strong>⚠️ Límite de Ruptura:</strong> ${katexService.parseAndRender(sub.boundaryCondition)}
+                </div>
+              ` : ''}
+
+              <!-- 6. Transición Sinérgica hacia el siguiente átomo -->
+              ${sub.synergicTransition ? `
+                <div class="feynman-synergic-bridge" style="margin-top: 6px; font-size: 0.82rem; color: #a5f3fc; line-height: 1.5;">
+                  <strong style="color: #38bdf8; display: block; margin-bottom: 2px;">
+                    🔗 Transición Sinérgica hacia el Siguiente Átomo:
+                  </strong>
+                  ${katexService.parseAndRender(sub.synergicTransition)}
                 </div>
               ` : ''}
 
@@ -689,6 +748,12 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
     } else {
       showLocalToast('🎉 ¡Has completado todos los niveles y el examen final!');
     }
+  });
+
+  // Rotar orientación nativa / clase CSS
+  modalRoot?.querySelector('#btn-toggle-viewer-orientation')?.addEventListener('click', async () => {
+    const isLandscape = await nativeService.toggleScreenOrientation();
+    showLocalToast(isLandscape ? '📱 Modo horizontal activado' : '📱 Modo vertical restaurado');
   });
 
   // Copiar todo el Markdown
