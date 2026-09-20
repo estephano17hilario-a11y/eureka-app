@@ -6,8 +6,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:vfZlTfp1qCDnVlngOb4FDDJsNKqUgKJb@89.117.73.97:5432/postgres';
+const PORT = process.env.PORT || 3050;
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:vfZlTfp1qCDnVlngOb4FDDJsNKqUgKJb@127.0.0.1:5432/postgres';
 
 const pool = new pg.Pool({
   connectionString: DATABASE_URL,

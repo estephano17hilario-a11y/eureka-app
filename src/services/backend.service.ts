@@ -1,6 +1,6 @@
 import type { Deck, Flashcard, StudyRating } from '../types/flashcard';
 
-const API_BASE_URL = ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97:3000').trim().replace(/\/+$/, '');
+const API_BASE_URL = ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
 
 const AUTH_STORAGE_KEY = 'eureka_auth_session_v1';
 const LOCAL_USERS_KEY = 'eureka_local_registered_users_v1';
