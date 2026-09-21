@@ -6,6 +6,7 @@ import { Keyboard } from '@capacitor/keyboard';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { deckService } from '../services/deck.service';
 import { activeStudyService } from '../services/active-study.service';
+import { eurekaBackend } from '../services/backend.service';
 import { katexService } from '../services/katex.service';
 import { openScientificFormulaAssistant } from './ScientificFormulaAssistant';
 import type { Flashcard } from '../types/flashcard';
@@ -417,14 +418,25 @@ export class UltraFastMindMap {
 
   constructor(container: HTMLElement, config: MindMapConfig = {}) {
     this.container = container;
+    const uid = activeStudyService.getCurrentUserId() || eurekaBackend.getUserId();
+    const baseKey = config.topicId ? `eureka_mindmap_topic_${config.topicId}` : 'eureka_mindmap_autosave_v1';
     this.config = {
-      storageKey: config.storageKey || (config.topicId ? `eureka_mindmap_topic_${config.topicId}` : 'eureka_mindmap_autosave_v1'),
+      storageKey: config.storageKey || `${baseKey}_${uid}`,
       topicId: config.topicId,
       topicTitle: config.topicTitle || 'Mapa Mental Interactivo',
       initialData: config.initialData || DEFAULT_MAP_DATA,
       onSave: config.onSave,
       onBack: config.onBack
     };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => this.saveSync());
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          this.saveSync();
+        }
+      });
+    }
   }
 
   /**
@@ -797,7 +809,11 @@ export class UltraFastMindMap {
     try {
       // 1. Cargar instantáneamente de localStorage para nunca perder datos
       if (this.config.storageKey) {
-        const localStr = localStorage.getItem(this.config.storageKey);
+        let localStr = localStorage.getItem(this.config.storageKey);
+        if (!localStr && this.config.topicId) {
+          // Fallback a clave previa sin prefijo de usuario para migración transparente
+          localStr = localStorage.getItem(`eureka_mindmap_topic_${this.config.topicId}`);
+        }
         if (localStr) {
           const parsed = JSON.parse(localStr);
           if (parsed && (parsed.root || parsed.data)) {
@@ -806,7 +822,8 @@ export class UltraFastMindMap {
         }
 
         // Cargar metadatos de estructura y tema
-        const metaStr = localStorage.getItem(`${this.config.storageKey}_meta`);
+        const metaStr = localStorage.getItem(`${this.config.storageKey}_meta`) ||
+          (this.config.topicId ? localStorage.getItem(`eureka_mindmap_topic_${this.config.topicId}_meta`) : null);
         if (metaStr) {
           try {
             const meta = JSON.parse(metaStr);
@@ -817,28 +834,24 @@ export class UltraFastMindMap {
       }
     } catch {}
 
-    // 2. Fallback a Preferences de Capacitor o activeStudyService si localStorage no tenía datos
-    if (!mapData || mapData === this.config.initialData) {
-      if (this.config.topicId) {
-        const serviceData = activeStudyService.getMindMapState(this.config.topicId);
-        if (serviceData && (serviceData.root || serviceData.data)) {
-          mapData = serviceData;
-        }
+    // 2. Fallback a activeStudyService o Preferences de Capacitor si localStorage no tenía datos
+    if (this.config.topicId) {
+      const serviceData = activeStudyService.getMindMapState(this.config.topicId);
+      if (serviceData && (serviceData.root || serviceData.data)) {
+        mapData = serviceData;
       }
+    }
 
-      if (!mapData || mapData === this.config.initialData) {
-        try {
-          const saved = await Preferences.get({ key: this.config.storageKey! });
-          if (saved.value) {
-            const parsed = JSON.parse(saved.value);
-            if (parsed && (parsed.root || parsed.data)) {
-              mapData = parsed;
-            }
+    if (!mapData || mapData === DEFAULT_MAP_DATA) {
+      try {
+        const saved = await Preferences.get({ key: this.config.storageKey! });
+        if (saved.value) {
+          const parsed = JSON.parse(saved.value);
+          if (parsed && (parsed.root || parsed.data)) {
+            mapData = parsed;
           }
-        } catch {
-          // Fallback a datos iniciales
         }
-      }
+      } catch {}
     }
 
     const canvasEl = this.container.querySelector('#mindmap-render-canvas') as HTMLElement;

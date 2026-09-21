@@ -14,6 +14,21 @@ export class DeckService {
     this.currentUserId = eurekaBackend.getUserId();
     this.loadFromStorage();
     this.syncWithCloud();
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        this.saveToStorage();
+        eurekaBackend.syncDecks(this.decks);
+        eurekaBackend.syncCards(this.cards);
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          this.saveToStorage();
+          eurekaBackend.syncDecks(this.decks);
+          eurekaBackend.syncCards(this.cards);
+        }
+      });
+    }
   }
 
   public static getInstance(): DeckService {
@@ -30,7 +45,7 @@ export class DeckService {
       ? eurekaBackend.getUserId()
       : userId;
 
-    if (this.currentUserId === resolvedId && this.decks.length > 0) {
+    if (this.currentUserId === resolvedId && (this.decks.length > 0 || this.cards.length > 0)) {
       return;
     }
 
@@ -152,12 +167,12 @@ export class DeckService {
         localStorage.setItem('eureka_cards_backup_latest', cardsJson);
       }
       
-      // Sincronización a VPS con debounce de 600ms (coste mínimo de peticiones y latencia 0 local)
+      // Sincronización a VPS con debounce de 250ms
       if (this.cloudSyncTimer) clearTimeout(this.cloudSyncTimer);
       this.cloudSyncTimer = setTimeout(() => {
         eurekaBackend.syncDecks(this.decks);
         eurekaBackend.syncCards(this.cards);
-      }, 600);
+      }, 250);
     } catch (err) {
       console.warn('Error guardando en almacenamiento:', err);
     }

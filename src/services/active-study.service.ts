@@ -28,12 +28,16 @@ class ActiveStudyService {
     this.initAntiCheatTime();
     this.syncWithCloud();
 
-    // Directiva 5: Forzar persistencia ante suspensión o cierre de la app en segundo plano
+    // Directiva: Forzar persistencia inmediata ante suspensión, cierre o recarga de la app
     if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', () => this.saveToStorage());
+      window.addEventListener('beforeunload', () => {
+        this.saveToStorage();
+        this.syncCloudState();
+      });
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
           this.saveToStorage();
+          this.syncCloudState();
         }
       });
     }
@@ -46,12 +50,16 @@ class ActiveStudyService {
     return ActiveStudyService.instance;
   }
 
+  public getCurrentUserId(): string {
+    return this.currentUserId || eurekaBackend.getUserId();
+  }
+
   public async setUser(userId: string): Promise<void> {
     const resolvedId = (!userId || userId === 'guest' || userId === 'default')
       ? eurekaBackend.getUserId()
       : userId;
 
-    if (this.currentUserId === resolvedId && this.topics.size > 0) {
+    if (this.currentUserId === resolvedId && (this.topics.size > 0 || this.mindMaps.size > 0)) {
       return;
     }
 
@@ -296,7 +304,7 @@ class ActiveStudyService {
     }
     this.cloudSyncTimer = setTimeout(() => {
       this.syncCloudState();
-    }, 1200);
+    }, 300);
   }
 
   private async syncCloudState(): Promise<void> {
@@ -334,8 +342,10 @@ class ActiveStudyService {
   public async syncWithCloud(): Promise<void> {
     try {
       const remote = await eurekaBackend.fetchUserSettings();
-      if (remote && remote.settingsJson) {
-        const json = remote.settingsJson;
+      if (remote) {
+        const json = (remote.settingsJson && typeof remote.settingsJson === 'object' && ('activeTopics' in remote.settingsJson || 'activeMindMaps' in remote.settingsJson))
+          ? remote.settingsJson
+          : remote;
         let hasChanges = false;
 
         if (Array.isArray(json.activeTopics) && json.activeTopics.length > 0) {
@@ -359,7 +369,7 @@ class ActiveStudyService {
 
         if (json.activeMindMaps && typeof json.activeMindMaps === 'object') {
           Object.entries(json.activeMindMaps).forEach(([tid, data]) => {
-            if (!this.mindMaps.has(tid)) {
+            if (!this.mindMaps.has(tid) || !this.mindMaps.get(tid)?.root) {
               this.mindMaps.set(tid, data);
               hasChanges = true;
             }
@@ -373,8 +383,10 @@ class ActiveStudyService {
 
         if (hasChanges) {
           this.saveToStorage();
+        } else if (this.topics.size > 0 || this.mindMaps.size > 0) {
+          this.syncCloudState();
         }
-      } else if (this.topics.size > 0) {
+      } else if (this.topics.size > 0 || this.mindMaps.size > 0) {
         this.syncCloudState();
       }
     } catch (err) {

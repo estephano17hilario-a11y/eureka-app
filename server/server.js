@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
 import dotenv from 'dotenv';
+import process from 'node:process';
+import { Buffer } from 'node:buffer';
 
 dotenv.config();
 
@@ -29,23 +31,34 @@ app.get('/health', async (req, res) => {
 
 // --- AUTENTICACIÓN / USUARIOS ---
 app.post('/api/auth/register', async (req, res) => {
-  const { email, password, username } = req.body;
+  const { email, password: _password, username } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requerido' });
 
-  const userId = 'usr_' + Buffer.from(email).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 16) + '_' + Date.now().toString(36);
-  const cleanUsername = username || email.split('@')[0];
+  const cleanEmail = email.toLowerCase().trim();
+  const userId = 'usr_' + Buffer.from(cleanEmail).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+  const cleanUsername = username || cleanEmail.split('@')[0];
   const avatarUrl = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${cleanUsername}`;
 
   try {
     const query = `
       INSERT INTO eureka_users (id, device_id, username, avatar_url, xp, level, streak_days, created_at, updated_at)
       VALUES ($1, $2, $3, $4, 0, 1, 1, NOW(), NOW())
-      ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, avatar_url = EXCLUDED.avatar_url, updated_at = NOW()
+      ON CONFLICT (device_id) DO UPDATE SET
+        username = EXCLUDED.username,
+        avatar_url = EXCLUDED.avatar_url,
+        updated_at = NOW()
       RETURNING *;
     `;
-    const result = await pool.query(query, [userId, email, cleanUsername, avatarUrl]);
+    const result = await pool.query(query, [userId, cleanEmail, cleanUsername, avatarUrl]);
     res.json({ user: result.rows[0] });
   } catch (err) {
+    // Si hay conflicto de id pero ya existe el usuario por device_id
+    try {
+      const existing = await pool.query('SELECT * FROM eureka_users WHERE device_id = $1 LIMIT 1', [cleanEmail]);
+      if (existing.rows.length > 0) {
+        return res.json({ user: existing.rows[0] });
+      }
+    } catch {}
     res.status(500).json({ error: err.message });
   }
 });
@@ -55,7 +68,8 @@ app.post('/api/auth/login', async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Email requerido' });
 
   try {
-    const result = await pool.query('SELECT * FROM eureka_users WHERE device_id = $1 LIMIT 1', [email.toLowerCase().trim()]);
+    const cleanEmail = email.toLowerCase().trim();
+    const result = await pool.query('SELECT * FROM eureka_users WHERE device_id = $1 LIMIT 1', [cleanEmail]);
     if (result.rows.length > 0) {
       res.json({ user: result.rows[0] });
     } else {
@@ -91,7 +105,7 @@ app.post('/api/decks/sync', async (req, res) => {
     for (const d of decks) {
       const q = `
         INSERT INTO eureka_decks (id, user_id, parent_id, name, description, icon, is_folder, color, settings, is_archived, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, $12)
         ON CONFLICT (id) DO UPDATE SET
           name = EXCLUDED.name,
           description = EXCLUDED.description,
@@ -105,7 +119,7 @@ app.post('/api/decks/sync', async (req, res) => {
       await pool.query(q, [
         d.id, userId, d.parent_id || null, d.name, d.description || '', d.icon || 'deck',
         Boolean(d.is_folder), d.color || '#10b981', JSON.stringify(d.settings || {}),
-        Boolean(d.is_archived), d.created_at || Date.now(), d.updated_at || Date.now()
+        Boolean(d.is_archived), Number(d.created_at) || Date.now(), Number(d.updated_at) || Date.now()
       ]);
     }
     res.json({ success: true, count: decks.length });
@@ -157,6 +171,15 @@ app.post('/api/cards/sync', async (req, res) => {
 
   try {
     for (const c of cards) {
+      // Evitar violación de foreign key garantizando que el deck exista
+      if (c.deck_id) {
+        await pool.query(`
+          INSERT INTO eureka_decks (id, user_id, name, created_at, updated_at)
+          VALUES ($1, $2, 'Mazo de Estudio', $3, $4)
+          ON CONFLICT (id) DO NOTHING;
+        `, [c.deck_id, userId, Date.now(), Date.now()]).catch(() => {});
+      }
+
       const q = `
         INSERT INTO eureka_flashcards (
           id, deck_id, user_id, type, front, back, front_image, back_image,
@@ -165,7 +188,7 @@ app.post('/api/cards/sync', async (req, res) => {
           state, step_index, interval_minutes, ease_factor, lapses, reps,
           due_date, last_review_date, created_at, updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
         ON CONFLICT (id) DO UPDATE SET
           front = EXCLUDED.front,
           back = EXCLUDED.back,
@@ -173,6 +196,14 @@ app.post('/api/cards/sync', async (req, res) => {
           back_image = EXCLUDED.back_image,
           occlusion_image = EXCLUDED.occlusion_image,
           occlusion_masks = EXCLUDED.occlusion_masks,
+          active_mask_id = EXCLUDED.active_mask_id,
+          occlusion_mode = EXCLUDED.occlusion_mode,
+          audio_lang = EXCLUDED.audio_lang,
+          audio_text = EXCLUDED.audio_text,
+          is_inverted = EXCLUDED.is_inverted,
+          group_id = EXCLUDED.group_id,
+          group_title = EXCLUDED.group_title,
+          group_role = EXCLUDED.group_role,
           state = EXCLUDED.state,
           step_index = EXCLUDED.step_index,
           interval_minutes = EXCLUDED.interval_minutes,
@@ -190,8 +221,8 @@ app.post('/api/cards/sync', async (req, res) => {
         c.audio_lang || null, c.audio_text || null, Boolean(c.is_inverted),
         c.group_id || null, c.group_title || null, c.group_role || null,
         c.state || 'new', c.step_index || 0, c.interval_minutes || 0, c.ease_factor || 2.5,
-        c.lapses || 0, c.reps || 0, c.due_date || Date.now(), c.last_review_date || null,
-        c.created_at || Date.now(), c.updated_at || Date.now()
+        c.lapses || 0, c.reps || 0, Number(c.due_date) || Date.now(), c.last_review_date ? Number(c.last_review_date) : null,
+        Number(c.created_at) || Date.now(), Number(c.updated_at) || Date.now()
       ]);
     }
     res.json({ success: true, count: cards.length });
@@ -245,15 +276,15 @@ app.post('/api/profile', async (req, res) => {
   }
 });
 
-// --- AJUSTES DE USUARIO ---
+// --- AJUSTES Y CUADERNOS DE USUARIO (MIND MAPS, OUTLINES, TOPICS, GUÍAS, TEMAS) ---
 app.get('/api/settings', async (req, res) => {
   const { userId } = req.query;
   if (!userId) return res.status(400).json({ error: 'userId requerido' });
 
   try {
-    const result = await pool.query('SELECT settings FROM eureka_user_settings WHERE user_id = $1 LIMIT 1', [userId]);
-    if (result.rows.length > 0) {
-      res.json({ settings: result.rows[0].settings });
+    const result = await pool.query('SELECT settings_json FROM eureka_user_settings WHERE user_id = $1 LIMIT 1', [userId]);
+    if (result.rows.length > 0 && result.rows[0].settings_json) {
+      res.json({ settings: result.rows[0].settings_json });
     } else {
       res.json({ settings: null });
     }
@@ -263,17 +294,34 @@ app.get('/api/settings', async (req, res) => {
 });
 
 app.post('/api/settings', async (req, res) => {
-  const { userId, settings, updatedAt } = req.body;
+  const { userId, settings } = req.body;
   if (!userId) return res.status(400).json({ error: 'userId requerido' });
 
   try {
+    // 1. Obtener los ajustes previos para realizar una fusión profunda (merge)
+    const existingRes = await pool.query('SELECT settings_json FROM eureka_user_settings WHERE user_id = $1 LIMIT 1', [userId]);
+    const existing = existingRes.rows[0]?.settings_json || {};
+
+    // Fusión inteligente: nunca sobreescribir ni borrar los mapas mentales si se actualiza el tema o guías
+    const incoming = settings || {};
+    const merged = {
+      ...existing,
+      ...incoming,
+      settingsJson: {
+        ...(existing.settingsJson || {}),
+        ...(incoming.settingsJson || {})
+      }
+    };
+
     const q = `
-      INSERT INTO eureka_user_settings (user_id, settings, updated_at)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (user_id) DO UPDATE SET settings = EXCLUDED.settings, updated_at = EXCLUDED.updated_at;
+      INSERT INTO eureka_user_settings (user_id, settings_json, updated_at)
+      VALUES ($1, $2::jsonb, NOW())
+      ON CONFLICT (user_id) DO UPDATE SET
+        settings_json = EXCLUDED.settings_json,
+        updated_at = NOW();
     `;
-    await pool.query(q, [userId, JSON.stringify(settings || {}), updatedAt || Date.now()]);
-    res.json({ success: true });
+    await pool.query(q, [userId, JSON.stringify(merged)]);
+    res.json({ success: true, settings: merged });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -281,14 +329,15 @@ app.post('/api/settings', async (req, res) => {
 
 // --- REGISTRO DE REPASOS (STUDY LOGS) ---
 app.post('/api/study-logs', async (req, res) => {
-  const { id, user_id, card_id, deck_id, rating, review_duration_ms, reviewed_at } = req.body;
+  const { id, user_id, card_id, deck_id, rating, review_duration_ms, reviewDurationMs } = req.body;
+  const timeSpent = review_duration_ms || reviewDurationMs || 0;
   try {
     const q = `
-      INSERT INTO eureka_study_logs (id, user_id, card_id, deck_id, rating, review_duration_ms, reviewed_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO eureka_study_logs (id, user_id, card_id, deck_id, rating, time_spent_ms, reviewed_at)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
       ON CONFLICT (id) DO NOTHING;
     `;
-    await pool.query(q, [id, user_id, card_id, deck_id, rating, review_duration_ms || 0, reviewed_at || Date.now()]);
+    await pool.query(q, [id, user_id, card_id, deck_id, rating, timeSpent]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

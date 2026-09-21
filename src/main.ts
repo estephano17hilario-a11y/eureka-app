@@ -263,19 +263,26 @@ class EurekaFigmaApp {
     let topicTitle = 'Mapa Mental Táctil';
 
     if (resolvedTopicId) {
+      const savedMap = activeStudyService.getMindMapState(resolvedTopicId);
+      if (savedMap && (savedMap.root || savedMap.data)) {
+        initialData = savedMap;
+      }
+
       const topic = activeStudyService.getTopicById(resolvedTopicId);
       if (topic) {
         topicTitle = topic.title;
-        const roots = activeStudyService.getOutlineTree(resolvedTopicId);
-        if (roots.length > 0) {
-          const mapNode = (n: any): any => ({
-            data: { text: n.text, id: n.id },
-            children: n.children && n.children.length > 0 ? n.children.map(mapNode) : []
-          });
-          initialData = {
-            data: { text: topic.title },
-            children: roots.map(mapNode)
-          };
+        if (!initialData) {
+          const roots = activeStudyService.getOutlineTree(resolvedTopicId);
+          if (roots.length > 0) {
+            const mapNode = (n: any): any => ({
+              data: { text: n.text, id: n.id },
+              children: n.children && n.children.length > 0 ? n.children.map(mapNode) : []
+            });
+            initialData = {
+              data: { text: topic.title },
+              children: roots.map(mapNode)
+            };
+          }
         }
       }
     }
