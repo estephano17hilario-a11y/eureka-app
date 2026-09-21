@@ -95,6 +95,14 @@ export function openAuthModal(options: AuthModalOptions): void {
 
         </form>
 
+        <!-- Cuentas Detectadas en el Servidor (Acceso Rápido 1-Clic) -->
+        <div id="auth-server-accounts-section" style="display:none; margin-bottom:18px;">
+          <div style="font-size:0.75rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">
+            Cuentas en este Servidor VPS
+          </div>
+          <div id="auth-server-accounts-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+
         <!-- Divisor -->
         <div style="display:flex; align-items:center; gap:12px; margin:20px 0 16px 0;">
           <div style="flex:1; height:1px; background:rgba(255,255,255,0.08);"></div>
@@ -223,4 +231,40 @@ export function openAuthModal(options: AuthModalOptions): void {
     modalRoot.remove();
     options.onClose?.();
   });
+
+  // Cargar cuentas detectadas en el servidor para conexión rápida en 1 clic
+  eurekaBackend.fetchAccounts().then(accounts => {
+    const section = document.getElementById('auth-server-accounts-section');
+    const list = document.getElementById('auth-server-accounts-list');
+    if (!section || !list || accounts.length === 0) return;
+
+    list.innerHTML = accounts.map(acc => `
+      <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:10px 14px; border-radius:14px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="${acc.avatarUrl}" style="width:34px; height:34px; border-radius:10px; background:#1e293b;" />
+          <div>
+            <div style="font-weight:700; color:#fff; font-size:0.92rem;">${acc.username}</div>
+            <div style="font-size:0.75rem; color:var(--f-text-muted);">${acc.email || 'Cuenta Eureka'}</div>
+          </div>
+        </div>
+        <button type="button" class="btn-select-account figma-btn-blue-pill" data-account-id="${acc.id}" style="padding:6px 14px; font-size:0.82rem; border-radius:10px; font-weight:700;">
+          Conectar
+        </button>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.btn-select-account').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = (btn as HTMLElement).dataset.accountId;
+        const selected = accounts.find(a => a.id === id);
+        if (selected) {
+          eurekaBackend.selectAccount(selected);
+          modalRoot.remove();
+          options.onSuccess(selected);
+        }
+      });
+    });
+
+    section.style.display = 'block';
+  }).catch(() => {});
 }

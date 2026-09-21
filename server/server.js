@@ -63,18 +63,63 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+app.get('/api/auth/primary-account', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM eureka_users ORDER BY updated_at DESC LIMIT 1');
+    if (result.rows.length > 0) {
+      res.json({ user: result.rows[0] });
+    } else {
+      res.json({ user: null });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/auth/accounts', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, device_id as email, username, avatar_url, xp, level, streak_days, updated_at FROM eureka_users ORDER BY updated_at DESC');
+    res.json({ accounts: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/auth/login', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email requerido' });
+  const { email, username } = req.body;
+  const term = (email || username || '').toLowerCase().trim();
+  if (!term) return res.status(400).json({ error: 'Email o nombre de usuario requerido' });
 
   try {
-    const cleanEmail = email.toLowerCase().trim();
-    const result = await pool.query('SELECT * FROM eureka_users WHERE device_id = $1 LIMIT 1', [cleanEmail]);
+    const result = await pool.query(
+      'SELECT * FROM eureka_users WHERE LOWER(device_id) = $1 OR LOWER(username) = $1 OR id = $1 LIMIT 1',
+      [term]
+    );
     if (result.rows.length > 0) {
       res.json({ user: result.rows[0] });
     } else {
       res.status(404).json({ error: 'Usuario no encontrado' });
     }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/sync/version', async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: 'userId requerido' });
+
+  try {
+    const [decksRes, cardsRes, settingsRes] = await Promise.all([
+      pool.query('SELECT MAX(updated_at) as max_decks FROM eureka_decks WHERE user_id = $1', [userId]),
+      pool.query('SELECT MAX(updated_at) as max_cards FROM eureka_flashcards WHERE user_id = $1', [userId]),
+      pool.query('SELECT updated_at as max_settings FROM eureka_user_settings WHERE user_id = $1 LIMIT 1', [userId])
+    ]);
+    res.json({
+      decksUpdatedAt: Number(decksRes.rows[0]?.max_decks) || 0,
+      cardsUpdatedAt: Number(cardsRes.rows[0]?.max_cards) || 0,
+      settingsUpdatedAt: settingsRes.rows[0]?.max_settings ? new Date(settingsRes.rows[0].max_settings).getTime() : 0
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

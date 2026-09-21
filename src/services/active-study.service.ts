@@ -347,20 +347,40 @@ class ActiveStudyService {
           ? remote.settingsJson
           : remote;
         let hasChanges = false;
+        const now = Date.now();
 
-        if (Array.isArray(json.activeTopics) && json.activeTopics.length > 0) {
+        if (Array.isArray(json.activeTopics)) {
+          const remoteMap = new Map<string, ActiveStudyTopic>();
+          json.activeTopics.forEach((t: ActiveStudyTopic) => remoteMap.set(t.id, t));
+
+          // 1. Añadir o actualizar temas remotos
           json.activeTopics.forEach((t: ActiveStudyTopic) => {
             const local = this.topics.get(t.id);
-            if (!local || (t.updatedAt || 0) > (local.updatedAt || 0)) {
+            if (!local || (t.updatedAt || 0) >= (local.updatedAt || 0)) {
               this.topics.set(t.id, t);
               hasChanges = true;
             }
           });
+
+          // 2. Eliminar temas locales borrados en otro dispositivo
+          if (json.activeTopics.length > 0) {
+            Array.from(this.topics.values()).forEach((local) => {
+              if (!remoteMap.has(local.id)) {
+                const isRecent = (now - (local.createdAt || 0)) < 30000;
+                if (!isRecent) {
+                  this.topics.delete(local.id);
+                  this.outlineNodes.delete(local.id);
+                  this.mindMaps.delete(local.id);
+                  hasChanges = true;
+                }
+              }
+            });
+          }
         }
 
         if (json.activeOutlines && typeof json.activeOutlines === 'object') {
           Object.entries(json.activeOutlines).forEach(([tid, nodes]) => {
-            if (Array.isArray(nodes) && (!this.outlineNodes.has(tid) || (this.outlineNodes.get(tid)?.length || 0) === 0)) {
+            if (Array.isArray(nodes)) {
               this.outlineNodes.set(tid, nodes as OutlineNode[]);
               hasChanges = true;
             }
@@ -369,22 +389,20 @@ class ActiveStudyService {
 
         if (json.activeMindMaps && typeof json.activeMindMaps === 'object') {
           Object.entries(json.activeMindMaps).forEach(([tid, data]) => {
-            if (!this.mindMaps.has(tid) || !this.mindMaps.get(tid)?.root) {
+            if (data) {
               this.mindMaps.set(tid, data);
               hasChanges = true;
             }
           });
         }
 
-        if (typeof json.userCoins === 'number' && json.userCoins > this.userCoins) {
+        if (typeof json.userCoins === 'number' && json.userCoins !== this.userCoins) {
           this.userCoins = json.userCoins;
           hasChanges = true;
         }
 
         if (hasChanges) {
           this.saveToStorage();
-        } else if (this.topics.size > 0 || this.mindMaps.size > 0) {
-          this.syncCloudState();
         }
       } else if (this.topics.size > 0 || this.mindMaps.size > 0) {
         this.syncCloudState();

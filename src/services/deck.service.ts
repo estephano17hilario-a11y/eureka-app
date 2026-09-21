@@ -186,55 +186,109 @@ export class DeckService {
       ]);
 
       let hasChanges = false;
+      const now = Date.now();
 
-      // Fusión inteligente LWW (Last-Write-Wins) para mazos
-      if (remoteDecks && remoteDecks.length > 0) {
-        const mergedDecks = new Map<string, Deck>();
-        this.decks.forEach(d => mergedDecks.set(d.id, d));
+      // Sincronización fidedigna de mazos
+      if (remoteDecks !== null) {
+        const remoteDeckMap = new Map<string, Deck>();
+        remoteDecks.forEach(d => remoteDeckMap.set(d.id, d));
 
+        const finalDecks: Deck[] = [];
+        const localDeckMap = new Map<string, Deck>();
+        this.decks.forEach(d => localDeckMap.set(d.id, d));
+
+        // 1. Procesar elementos del servidor
         remoteDecks.forEach(remote => {
-          const local = mergedDecks.get(remote.id);
+          const local = localDeckMap.get(remote.id);
           if (!local) {
-            mergedDecks.set(remote.id, remote);
+            finalDecks.push(remote);
             hasChanges = true;
-          } else if ((remote.updatedAt || 0) > (local.updatedAt || 0)) {
-            mergedDecks.set(remote.id, { ...local, ...remote });
+          } else if ((remote.updatedAt || 0) >= (local.updatedAt || 0)) {
+            finalDecks.push({ ...local, ...remote });
+            if (remote.updatedAt !== local.updatedAt) hasChanges = true;
+          } else {
+            // El cambio local es más reciente: conservarlo y enviarlo al servidor
+            finalDecks.push(local);
             hasChanges = true;
           }
         });
 
-        this.decks = Array.from(mergedDecks.values());
+        // 2. Comprobar si hay elementos creados localmente de manera reciente (últimos 30s) que aún no están en la nube
+        this.decks.forEach(local => {
+          if (!remoteDeckMap.has(local.id)) {
+            const isRecent = (now - (local.createdAt || 0)) < 30000;
+            if (isRecent || remoteDecks.length === 0) {
+              finalDecks.push(local);
+              hasChanges = true;
+            } else {
+              // El elemento fue borrado en otro dispositivo/navegador: eliminarlo localmente
+              hasChanges = true;
+            }
+          }
+        });
+
+        if (finalDecks.length > 0 || remoteDecks.length > 0) {
+          this.decks = finalDecks;
+        }
       }
 
-      // Fusión inteligente LWW (Last-Write-Wins) para tarjetas
-      if (remoteCards && remoteCards.length > 0) {
-        const mergedCards = new Map<string, Flashcard>();
-        this.cards.forEach(c => mergedCards.set(c.id, c));
+      // Sincronización fidedigna de tarjetas
+      if (remoteCards !== null) {
+        const remoteCardMap = new Map<string, Flashcard>();
+        remoteCards.forEach(c => remoteCardMap.set(c.id, c));
 
+        const finalCards: Flashcard[] = [];
+        const localCardMap = new Map<string, Flashcard>();
+        this.cards.forEach(c => localCardMap.set(c.id, c));
+
+        // 1. Procesar tarjetas del servidor
         remoteCards.forEach(remote => {
-          const local = mergedCards.get(remote.id);
+          const local = localCardMap.get(remote.id);
           if (!local) {
-            mergedCards.set(remote.id, remote);
+            finalCards.push(remote);
             hasChanges = true;
-          } else if ((remote.updatedAt || 0) > (local.updatedAt || 0)) {
-            mergedCards.set(remote.id, { ...local, ...remote });
+          } else if ((remote.updatedAt || 0) >= (local.updatedAt || 0)) {
+            finalCards.push({ ...local, ...remote });
+            if (remote.updatedAt !== local.updatedAt) hasChanges = true;
+          } else {
+            finalCards.push(local);
             hasChanges = true;
           }
         });
 
-        this.cards = Array.from(mergedCards.values());
+        // 2. Comprobar si hay tarjetas creadas localmente recientemente que aún no están en la nube
+        this.cards.forEach(local => {
+          if (!remoteCardMap.has(local.id)) {
+            const isRecent = (now - (local.createdAt || 0)) < 30000;
+            if (isRecent || remoteCards.length === 0) {
+              finalCards.push(local);
+              hasChanges = true;
+            } else {
+              // La tarjeta fue eliminada en otro navegador/dispositivo: eliminarla localmente
+              hasChanges = true;
+            }
+          }
+        });
+
+        if (finalCards.length > 0 || remoteCards.length > 0) {
+          this.cards = finalCards;
+        }
       }
 
       if (hasChanges) {
         localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
         localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
         this.listeners.forEach(fn => fn());
-      } else if (this.decks.length > 0 || this.cards.length > 0) {
-        // Subida inicial a la base de datos de Eureka para este usuario si la nube no tiene datos
-        await Promise.all([
-          eurekaBackend.syncDecks(this.decks),
-          eurekaBackend.syncCards(this.cards)
-        ]);
+      }
+
+      // Asegurar que cualquier elemento nuevo local se transmita al servidor
+      const unsyncedDecks = this.decks.filter(d => (now - (d.updatedAt || 0)) < 10000);
+      if (unsyncedDecks.length > 0) {
+        eurekaBackend.syncDecks(this.decks);
+      }
+      const unsyncedCards = this.cards.filter(c => (now - (c.updatedAt || 0)) < 10000);
+      if (unsyncedCards.length > 0) {
+        eurekaBackend.syncCards(this.cards);
       }
     } catch (err) {
       console.warn('[EUREKA SYNC] Error sincronizando con la nube:', err);

@@ -98,8 +98,11 @@ class EurekaFigmaApp {
       this.render();
     });
 
-    // Comprobar usuario conectado o continuar sesión persistente local al inicio
-    const currentUser = eurekaBackend.getCurrentUser();
+    // Conexión automática universal a la base de datos de la cuenta activa
+    let currentUser = eurekaBackend.getCurrentUser();
+    if (!currentUser) {
+      currentUser = await eurekaBackend.ensureActiveAccount();
+    }
     const activeId = currentUser?.id || eurekaBackend.getUserId();
     await Promise.all([
       deckService.setUser(activeId),
@@ -115,6 +118,37 @@ class EurekaFigmaApp {
       this.selectedSubdeckId = sub.length > 0 ? sub[0].id : rootDecks[0].id;
     }
     this.render();
+
+    // 2. Transmisión Automática entre Navegadores y Dispositivos:
+    // Al volver a enfocar la ventana o periódicamente cada 3.5 segundos, sincronizar con el servidor para reflejar cambios
+    let isPolling = false;
+    const pollRemoteSync = async () => {
+      if (isPolling || this.currentView === 'study') return;
+      isPolling = true;
+      try {
+        await Promise.all([
+          deckService.syncWithCloud(),
+          activeStudyService.syncWithCloud()
+        ]);
+      } catch {}
+      finally {
+        isPolling = false;
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', () => {
+        pollRemoteSync();
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          pollRemoteSync();
+        }
+      });
+      setInterval(() => {
+        pollRemoteSync();
+      }, 3500);
+    }
   }
 
   public promptAuth(allowDismiss: boolean = true): void {

@@ -1,6 +1,17 @@
 import type { Deck, Flashcard, StudyRating } from '../types/flashcard';
 
-const API_BASE_URL = ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
+const isBrowser = typeof window !== 'undefined';
+const isLocalhost = isBrowser && (
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1' ||
+  window.location.hostname.endsWith('.localhost')
+);
+
+// En navegador en localhost usa la ruta relativa '' (enrutada por el proxy de Vite)
+// Esto evita que Brave Shields, bloqueadores de anuncios o cortafuegos bloqueen peticiones a 89.117.73.97
+export const API_BASE_URL = isLocalhost
+  ? ''
+  : ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
 
 const AUTH_STORAGE_KEY = 'eureka_auth_session_v1';
 const LOCAL_USERS_KEY = 'eureka_local_registered_users_v1';
@@ -28,7 +39,7 @@ export interface UserProfile {
 
 /**
  * EurekaBackendService
- * Gestiona la autenticación, sincronización con el servidor VPS propio y persistencia local aislada por cuenta.
+ * Gestiona la autenticación, sincronización con el servidor VPS propio y persistencia universal por cuenta.
  */
 class EurekaBackendService {
   private static instance: EurekaBackendService;
@@ -74,6 +85,84 @@ class EurekaBackendService {
 
   private notifyAuthListeners(): void {
     this.authListeners.forEach((fn) => fn(this.currentUser));
+  }
+
+  public async ensureActiveAccount(): Promise<AuthUser | null> {
+    // Si el usuario ya está conectado a una cuenta real registrada (no guest)
+    if (this.currentUser && !this.currentUser.id.startsWith('guest_') && this.currentUser.id !== 'default') {
+      return this.currentUser;
+    }
+
+    // Detectar si hay una cuenta registrada activa en el VPS para conectar automáticamente este navegador
+    const primary = await this.fetchPrimaryAccount();
+    if (primary) {
+      this.currentUser = primary;
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(primary));
+      this.notifyAuthListeners();
+      return primary;
+    }
+
+    return this.currentUser;
+  }
+
+  public async fetchPrimaryAccount(): Promise<AuthUser | null> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/primary-account`).catch(() => null);
+      if (!res || !res.ok) return null;
+      const data = await res.json();
+      if (!data?.user) return null;
+      const u = data.user;
+      return {
+        id: u.id,
+        email: u.device_id || u.email || 'user@eureka.local',
+        username: u.username || 'Estudiante',
+        avatarUrl: u.avatar_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username || 'User'}`,
+        xp: u.xp || 0,
+        level: u.level || 1,
+        streakDays: u.streak_days || 1,
+        createdAt: u.created_at || new Date().toISOString()
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  public async fetchAccounts(): Promise<AuthUser[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/accounts`).catch(() => null);
+      if (!res || !res.ok) return [];
+      const data = await res.json();
+      if (!Array.isArray(data?.accounts)) return [];
+      return data.accounts.map((u: any) => ({
+        id: u.id,
+        email: u.email || u.device_id || '',
+        username: u.username || 'Estudiante',
+        avatarUrl: u.avatar_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username || 'User'}`,
+        xp: u.xp || 0,
+        level: u.level || 1,
+        streakDays: u.streak_days || 1,
+        createdAt: u.updated_at || new Date().toISOString()
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  public async fetchSyncVersion(): Promise<{ decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number } | null> {
+    const activeUserId = this.getUserId();
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sync/version?userId=${encodeURIComponent(activeUserId)}`).catch(() => null);
+      if (!res || !res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  public selectAccount(user: AuthUser): void {
+    this.currentUser = user;
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    this.notifyAuthListeners();
   }
 
   private getOrCreateDeviceId(): string {
