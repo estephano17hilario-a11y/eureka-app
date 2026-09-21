@@ -128,11 +128,17 @@ export class DeckService {
           if (d.id === 'deck-mates-sub') {
             d.isFolder = false;
             d.icon = 'deck';
-          } else if (d.id === 'deck-mates' || d.id === 'deck-idioma') {
+          } else if (d.id === 'deck-mates' || d.id === 'deck-idioma' || d.id === 'deck-humans' || d.id === 'deck-tools') {
             d.isFolder = true;
-            d.icon = 'folder';
+            if (d.id === 'deck-tools') {
+              d.icon = 'briefcase';
+            } else {
+              d.icon = 'folder';
+            }
+          } else if (d.icon === 'folder' || d.icon === 'folder-sub' || d.icon === 'briefcase') {
+            d.isFolder = true;
           } else if (d.isFolder === undefined) {
-            d.isFolder = (d.icon === 'folder' || d.icon === 'folder-sub' || d.icon === 'briefcase');
+            d.isFolder = false;
           }
         });
       }
@@ -301,8 +307,12 @@ export class DeckService {
     if (!deckOrId) return false;
     const deck = typeof deckOrId === 'string' ? this.getDeckById(deckOrId) : deckOrId;
     if (!deck) return false;
-    if (deck.isFolder !== undefined) return deck.isFolder;
-    return deck.icon === 'folder' || deck.icon === 'folder-sub' || deck.icon === 'briefcase';
+    if (deck.id === 'deck-mates-sub') return false;
+    if (['deck-mates', 'deck-idioma', 'deck-humans', 'deck-tools'].includes(deck.id)) return true;
+    if (deck.icon === 'folder' || deck.icon === 'folder-sub' || deck.icon === 'briefcase') return true;
+    if (this.decks.some(d => d.parentId === deck.id && !d.isArchived)) return true;
+    if (deck.isFolder !== undefined) return Boolean(deck.isFolder);
+    return false;
   }
 
   public getAllDecks(): Deck[] {

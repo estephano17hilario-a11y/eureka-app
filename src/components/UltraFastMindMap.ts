@@ -415,6 +415,7 @@ export class UltraFastMindMap {
   public activeDropdown: 'map' | 'node' | null = null;
   private canvasBgMode: 'dark' | 'light' = 'dark';
   private activeInlineEditor: HTMLTextAreaElement | null = null;
+  public globalInvisibleBoxes: boolean = false;
 
   constructor(container: HTMLElement, config: MindMapConfig = {}) {
     this.container = container;
@@ -577,6 +578,9 @@ export class UltraFastMindMap {
               <span class="mini-chevron">▾</span>
             </button>
             <div class="popover-bubble" id="popover-global-color" style="display:none;">
+              <button type="button" class="color-dot-btn mm-swatch-transparent" data-color="transparent" style="background:transparent; border:1.5px dashed rgba(255,255,255,0.6); display:flex; align-items:center; justify-content:center;" title="Todo Invisible / Sin Recuadros (Existentes y Futuros)">
+                <span style="font-size:10px; line-height:1;">🚫</span>
+              </button>
               <button type="button" class="color-dot-btn" data-color="blue" style="background:#0ea5e9;" title="Cyan"></button>
               <button type="button" class="color-dot-btn" data-color="purple" style="background:#a855f7;" title="Violeta"></button>
               <button type="button" class="color-dot-btn" data-color="emerald" style="background:#10b981;" title="Esmeralda"></button>
@@ -585,6 +589,14 @@ export class UltraFastMindMap {
               <button type="button" class="color-dot-btn" data-color="dark" style="background:#334155;" title="Pizarra"></button>
             </div>
           </div>
+
+          <div class="dropdown-h-divider"></div>
+
+          <!-- 3b. Botón Directo: Todo Recuadro Invisible (Existentes y Nuevos) -->
+          <button type="button" class="compact-trigger-pill ${this.globalInvisibleBoxes ? 'active' : ''}" id="btn-toggle-all-invisible" title="Hacer todo el mapa con recuadros invisibles (existentes y nuevos)" style="${this.globalInvisibleBoxes ? 'background:rgba(56,189,248,0.2); border:1px solid #38bdf8; color:#38bdf8;' : ''}">
+            <span class="pill-icon" style="font-size:12px;">🚫</span>
+            <span class="pill-text" style="font-size:11px; font-weight:600; padding:0 2px;">Invisibles</span>
+          </button>
 
           <div class="dropdown-h-divider"></div>
 
@@ -829,6 +841,7 @@ export class UltraFastMindMap {
             const meta = JSON.parse(metaStr);
             if (meta.layout) this.currentLayout = meta.layout;
             if (meta.theme && THEME_PRESETS[meta.theme]) this.currentTheme = meta.theme;
+            if (typeof meta.globalInvisibleBoxes === 'boolean') this.globalInvisibleBoxes = meta.globalInvisibleBoxes;
           } catch {}
         }
       }
@@ -857,7 +870,19 @@ export class UltraFastMindMap {
     const canvasEl = this.container.querySelector('#mindmap-render-canvas') as HTMLElement;
     if (!canvasEl) return;
 
-    const themeObj = THEME_PRESETS[this.currentTheme] || THEME_PRESETS.cyberDark;
+    const baseTheme = THEME_PRESETS[this.currentTheme] || THEME_PRESETS.cyberDark;
+    const themeObj = JSON.parse(JSON.stringify(baseTheme));
+    if (this.globalInvisibleBoxes) {
+      themeObj.root.fillColor = 'transparent';
+      themeObj.root.borderColor = 'transparent';
+      themeObj.root.borderWidth = 0;
+      themeObj.second.fillColor = 'transparent';
+      themeObj.second.borderColor = 'transparent';
+      themeObj.second.borderWidth = 0;
+      themeObj.node.fillColor = 'transparent';
+      themeObj.node.borderColor = 'transparent';
+      themeObj.node.borderWidth = 0;
+    }
 
     // Configuración para gama ultra-baja y localización
     this.mindMapInstance = new (MindMap as any)({
@@ -888,9 +913,10 @@ export class UltraFastMindMap {
         const div = document.createElement('div');
         div.className = 'eureka-mindmap-custom-node';
 
-        const nodeFill = typeof node.getStyle === 'function' ? node.getStyle('fillColor', false) : null;
+        const isGlobalInvisible = this.globalInvisibleBoxes;
+        const nodeFill = isGlobalInvisible ? 'transparent' : (typeof node.getStyle === 'function' ? node.getStyle('fillColor', false) : null);
         let defaultTextColor = this.canvasBgMode === 'light' ? '#0f172a' : '#f8fafc';
-        if (this.canvasBgMode === 'light') {
+        if (this.canvasBgMode === 'light' && !isGlobalInvisible) {
           // Si el nodo tiene un fondo oscuro o saturado en modo claro, texto blanco
           if (nodeFill && nodeFill !== 'transparent' && nodeFill !== '#ffffff' && nodeFill !== '#f8fafc') {
             defaultTextColor = '#ffffff';
@@ -952,6 +978,9 @@ export class UltraFastMindMap {
               if (!imgSize?.custom || targetW !== computedW || targetH !== computedH) {
                 if (typeof node.setData === 'function') {
                   node.setData({ imageSize: { width: computedW, height: computedH, custom: true } });
+                }
+                if (typeof node.reRender === 'function') {
+                  node.reRender();
                 }
                 this.mindMapInstance?.render();
               }
@@ -1037,6 +1066,30 @@ export class UltraFastMindMap {
     // Auto-ajuste de vista centrado inicial infalible al terminar el renderizado
     let initialRenderAttempts = 0;
     this.mindMapInstance.on('node_tree_render_end', () => {
+      if (this.globalInvisibleBoxes && this.mindMapInstance?.renderer?.root) {
+        let hasFixed = false;
+        const applyInvisibleToAll = (n: any) => {
+          if (!n) return;
+          if (n.nodeData?.data) {
+            if (n.nodeData.data.fillColor !== 'transparent' || n.nodeData.data.borderWidth !== 0) {
+              n.nodeData.data.fillColor = 'transparent';
+              n.nodeData.data.borderColor = 'transparent';
+              n.nodeData.data.borderWidth = 0;
+              hasFixed = true;
+              if (typeof n.reRender === 'function') {
+                n.reRender();
+              }
+            }
+          }
+          if (n.children && Array.isArray(n.children)) {
+            n.children.forEach(applyInvisibleToAll);
+          }
+        };
+        applyInvisibleToAll(this.mindMapInstance.renderer.root);
+        if (hasFixed && typeof this.mindMapInstance.render === 'function') {
+          this.mindMapInstance.render();
+        }
+      }
       if (initialRenderAttempts < 4) {
         initialRenderAttempts++;
         requestAnimationFrame(() => {
@@ -1453,6 +1506,13 @@ export class UltraFastMindMap {
       });
     });
 
+    // 3b. Botón directo de Recuadros Invisibles en todo el mapa (existentes y nuevos)
+    root.querySelector('#btn-toggle-all-invisible')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeAllPopovers();
+      this.setAllNodesInvisible(!this.globalInvisibleBoxes);
+    });
+
     // 4. Selector de Modo Claro / Oscuro del Lienzo
     root.querySelector('#btn-trigger-canvas-mode')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1857,6 +1917,18 @@ export class UltraFastMindMap {
         color: textColor,
         borderWidth: 0
       });
+      if (this.activeNode.nodeData?.data) {
+        this.activeNode.nodeData.data.fillColor = 'transparent';
+        this.activeNode.nodeData.data.borderColor = 'transparent';
+        this.activeNode.nodeData.data.borderWidth = 0;
+        this.activeNode.nodeData.data.color = textColor;
+      }
+      if (typeof this.activeNode.reRender === 'function') {
+        this.activeNode.reRender();
+      }
+      if (typeof this.mindMapInstance.render === 'function') {
+        this.mindMapInstance.render();
+      }
       this.triggerHaptic();
       this.saveSync();
       return;
@@ -1867,8 +1939,20 @@ export class UltraFastMindMap {
         fillColor: preset.fill,
         borderColor: preset.border,
         color: preset.text,
-        borderWidth: 2
+        borderWidth: 1.5
       });
+      if (this.activeNode.nodeData?.data) {
+        this.activeNode.nodeData.data.fillColor = preset.fill;
+        this.activeNode.nodeData.data.borderColor = preset.border;
+        this.activeNode.nodeData.data.borderWidth = 1.5;
+        this.activeNode.nodeData.data.color = preset.text;
+      }
+      if (typeof this.activeNode.reRender === 'function') {
+        this.activeNode.reRender();
+      }
+      if (typeof this.mindMapInstance.render === 'function') {
+        this.mindMapInstance.render();
+      }
       this.triggerHaptic();
       this.saveSync();
     }
@@ -2299,6 +2383,7 @@ export class UltraFastMindMap {
    * 4. GESTIÓN DE EDICIÓN DIRECTA EN EL MISMO RECUADRO SELECCIONADO (IN-PLACE INLINE EDITING)
    * Elimina cualquier segundo recuadro superpuesto debajo y permite escribir directamente
    * dentro del nodo con cursor/rayita de texto brillante (#38bdf8) de alto contraste.
+   * Auto-redimensiona el recuadro dinámicamente al escribir y preserva el tamaño exacto al pulsar Enter.
    */
   private openDirectTextEditor(): void {
     if (!this.activeNode || !this.mindMapInstance) return;
@@ -2329,8 +2414,8 @@ export class UltraFastMindMap {
     const canvasContainer = this.container.querySelector('#mindmap-render-canvas') as HTMLElement | null;
     if (!canvasContainer || !targetElement) return;
 
-    const targetRect = targetElement.getBoundingClientRect();
-    const containerRect = canvasContainer.getBoundingClientRect();
+    // Obtener la escala actual del lienzo SimpleMindMap para que las letras no se encojan
+    const scale = this.mindMapInstance.view?.scale || 1;
 
     // 3. Crear textarea 100% integrado y transparente directamente sobre el texto del recuadro
     const editor = document.createElement('textarea');
@@ -2339,16 +2424,15 @@ export class UltraFastMindMap {
     editor.autocomplete = 'off';
     editor.spellcheck = false;
 
-    // Calcular dimensiones y posición relativas exactamente al contenedor del texto
-    const relLeft = targetRect.left - containerRect.left;
-    const relTop = targetRect.top - containerRect.top;
-    const exactW = Math.max(targetRect.width, 40);
-    const exactH = Math.max(targetRect.height, 22);
+    // Heredar estilos tipográficos del nodo y multiplicarlo por la escala del lienzo
+    // para que las letras NUNCA se hagan más pequeñas al escribir
+    const rawFontSize = (typeof node.getStyle === 'function' ? node.getStyle('fontSize', false) : null) || 14;
+    const visualFontSize = Math.max(11, Math.round(rawFontSize * scale));
+    const fontWeight = typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : 'normal';
+    const textColor = typeof node.getStyle === 'function' ? node.getStyle('color', false) : (this.canvasBgMode === 'light' ? '#0f172a' : '#ffffff');
 
-    editor.style.left = `${Math.round(relLeft)}px`;
-    editor.style.top = `${Math.round(relTop)}px`;
-    editor.style.width = `${Math.round(exactW)}px`;
-    editor.style.height = `${Math.round(exactH)}px`;
+    editor.style.position = 'absolute';
+    editor.style.zIndex = '500';
     editor.style.background = 'transparent';
     editor.style.backgroundColor = 'transparent';
     editor.style.border = 'none';
@@ -2357,16 +2441,40 @@ export class UltraFastMindMap {
     editor.style.padding = '0';
     editor.style.margin = '0';
     editor.style.textAlign = 'center';
-
-    // Heredar estilos tipográficos del nodo
-    const fontSize = typeof node.getStyle === 'function' ? node.getStyle('fontSize', false) : 14;
-    const fontWeight = typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : 'normal';
-    const textColor = typeof node.getStyle === 'function' ? node.getStyle('color', false) : (this.canvasBgMode === 'light' ? '#0f172a' : '#ffffff');
-
-    editor.style.fontSize = `${fontSize || 14}px`;
-    editor.style.fontWeight = fontWeight || 'normal';
+    editor.style.boxSizing = 'border-box';
+    editor.style.resize = 'none';
+    editor.style.overflow = 'hidden';
+    editor.style.fontSize = `${visualFontSize}px`;
+    editor.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    editor.style.fontWeight = fontWeight ? String(fontWeight) : 'normal';
+    editor.style.lineHeight = '1.4';
     editor.style.color = textColor || (this.canvasBgMode === 'light' ? '#0f172a' : '#ffffff');
     editor.style.caretColor = '#38bdf8'; // Cursor visible y brillante
+
+    // Función para reposicionar y redimensionar el editor adaptándose al recuadro en tiempo real
+    const repositionAndResize = () => {
+      const curGroup = node.group?.node as SVGGraphicsElement | null;
+      const curText = curGroup?.querySelector('.eureka-node-text-rendered') as HTMLElement | null;
+      const curCustom = curGroup?.querySelector('.eureka-mindmap-custom-node') as HTMLElement | null;
+      const curTarget = curText || curCustom || curGroup || targetElement;
+      if (!curTarget || !canvasContainer) return;
+
+      const tRect = curTarget.getBoundingClientRect();
+      const cRect = canvasContainer.getBoundingClientRect();
+
+      const relLeft = tRect.left - cRect.left;
+      const relTop = tRect.top - cRect.top;
+      const exactW = Math.max(tRect.width, 40 * scale);
+      const exactH = Math.max(tRect.height, 22 * scale);
+
+      editor.style.left = `${Math.round(relLeft)}px`;
+      editor.style.top = `${Math.round(relTop)}px`;
+      editor.style.width = `${Math.round(exactW)}px`;
+      editor.style.height = `${Math.round(exactH)}px`;
+    };
+
+    // Ajuste de posición y tamaño inicial
+    repositionAndResize();
 
     // Ocultar temporalmente el texto estático para evitar doble visión
     if (textRenderedEl) {
@@ -2376,19 +2484,37 @@ export class UltraFastMindMap {
     this.activeInlineEditor = editor;
     canvasContainer.appendChild(editor);
 
-    // Auto-ajustar altura al escribir dinámicamente sin salirse del recuadro
-    const autoAdjustSize = () => {
-      editor.style.height = 'auto';
-      editor.style.height = `${Math.max(exactH, editor.scrollHeight)}px`;
-      editor.style.width = 'auto';
-      const newW = Math.max(exactW, editor.scrollWidth + 8);
-      editor.style.width = `${newW}px`;
-      const diff = (newW - exactW) / 2;
-      editor.style.left = `${Math.round(relLeft - diff)}px`;
-    };
-
+    // Auto-ajustar en tiempo real mientras el usuario escribe: el recuadro SVG responde de inmediato
     editor.addEventListener('input', () => {
-      autoAdjustSize();
+      const currentVal = editor.value;
+
+      // 1. Actualizar datos en memoria del nodo
+      if (typeof node.setData === 'function') {
+        node.setData({ text: currentVal || ' ', rawText: currentVal });
+      } else if (node.nodeData?.data) {
+        node.nodeData.data.text = currentVal || ' ';
+        node.nodeData.data.rawText = currentVal;
+      }
+
+      // 2. Si hay elemento estático, actualizar su texto para medición DOM precisa
+      if (textRenderedEl) {
+        textRenderedEl.textContent = currentVal || ' ';
+      }
+
+      // 3. Forzar reRender del nodo para que el recuadro SVG recalcule tamaño y forma en tiempo real
+      try {
+        if (typeof node.reRender === 'function') {
+          node.reRender();
+        }
+        if (this.mindMapInstance && typeof this.mindMapInstance.render === 'function') {
+          this.mindMapInstance.render();
+        }
+      } catch (err) {
+        console.warn('[UltraFastMindMap] Error en reRender interactivo:', err);
+      }
+
+      // 4. Re-alinear el editor sobre el elemento recién redimensionado
+      repositionAndResize();
     });
 
     let isCommitted = false;
@@ -2396,7 +2522,7 @@ export class UltraFastMindMap {
       if (isCommitted) return;
       isCommitted = true;
 
-      const newText = editor.value;
+      const newText = editor.value.trim() ? editor.value : ' ';
       if (textRenderedEl) {
         textRenderedEl.style.opacity = '1';
       }
@@ -2407,18 +2533,28 @@ export class UltraFastMindMap {
       this.activeInlineEditor = null;
 
       if (this.activeNode && this.mindMapInstance) {
-        if (typeof this.activeNode.setData === 'function') {
-          this.activeNode.setData({ text: newText || ' ', rawText: newText });
-        } else if (this.activeNode.nodeData?.data) {
-          this.activeNode.nodeData.data.text = newText || ' ';
-          this.activeNode.nodeData.data.rawText = newText;
+        // Ejecutar comando para actualizar texto y permitir historial undo/redo
+        try {
+          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, newText);
+        } catch {
+          if (typeof this.activeNode.setData === 'function') {
+            this.activeNode.setData({ text: newText, rawText: newText });
+          } else if (this.activeNode.nodeData?.data) {
+            this.activeNode.nodeData.data.text = newText;
+            this.activeNode.nodeData.data.rawText = newText;
+          }
         }
 
-        if (typeof this.mindMapInstance.render === 'function') {
-          this.mindMapInstance.render();
-        } else {
-          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, newText || ' ');
+        // Forzar recálculo infalible de tamaño del nodo para que el recuadro nunca quede distorsionado ni cortado
+        if (typeof this.activeNode.reRender === 'function') {
+          this.activeNode.reRender();
         }
+        if (typeof this.mindMapInstance.reRender === 'function') {
+          this.mindMapInstance.reRender();
+        } else if (typeof this.mindMapInstance.render === 'function') {
+          this.mindMapInstance.render();
+        }
+
         this.triggerHaptic();
         this.scheduleDebouncedSave();
       }
@@ -2435,10 +2571,12 @@ export class UltraFastMindMap {
         commitChanges();
       } else if (e.key === 'Enter') {
         if (e.shiftKey) {
-          // Shift+Enter permite salto de línea
-          autoAdjustSize();
+          // Shift+Enter permite salto de línea: disparar input en el siguiente tick para redimensionar recuadro
+          setTimeout(() => {
+            editor.dispatchEvent(new Event('input'));
+          }, 0);
         } else {
-          // Enter normal confirma edición
+          // Enter normal confirma y termina de escribir, manteniendo el tamaño exacto del recuadro
           e.preventDefault();
           commitChanges();
         }
@@ -2449,7 +2587,7 @@ export class UltraFastMindMap {
     setTimeout(() => {
       editor.focus();
       editor.setSelectionRange(editor.value.length, editor.value.length);
-      autoAdjustSize();
+      repositionAndResize();
     }, 20);
   }
 
@@ -2693,12 +2831,48 @@ export class UltraFastMindMap {
   }
 
   /**
-   * Aplica color global a todos los recuadros
+   * Aplica color global a todos los recuadros o activa modo invisible global
    */
   private applyGlobalNodesColor(colorKey: string): void {
     if (!this.mindMapInstance) return;
+    if (colorKey === 'transparent') {
+      this.setAllNodesInvisible(true);
+      return;
+    }
+
+    // Desactivar modo invisible global si se elige un color concreto
+    this.globalInvisibleBoxes = false;
+    const btnToggle = this.container.querySelector('#btn-toggle-all-invisible');
+    if (btnToggle) {
+      btnToggle.classList.remove('active');
+      btnToggle.removeAttribute('style');
+    }
+
     const preset = COLOR_PRESETS[colorKey];
     if (!preset) return;
+
+    // Actualizar themeConfig para que los nuevos nodos adopten este color
+    const curThemeConfig = (typeof this.mindMapInstance?.getCustomThemeConfig === 'function' 
+      ? this.mindMapInstance.getCustomThemeConfig() 
+      : this.mindMapInstance?.opt?.themeConfig) || {};
+
+    const nodeStyle = {
+      fillColor: preset.fill,
+      borderColor: preset.border,
+      borderWidth: 1.5,
+      color: preset.text
+    };
+    const updatedThemeConfig = {
+      ...curThemeConfig,
+      root: { ...(curThemeConfig.root || {}), ...nodeStyle, borderWidth: 2 },
+      second: { ...(curThemeConfig.second || {}), ...nodeStyle, borderWidth: 1.5 },
+      node: { ...(curThemeConfig.node || {}), ...nodeStyle, borderWidth: 1 }
+    };
+    if (typeof this.mindMapInstance?.setThemeConfig === 'function') {
+      this.mindMapInstance.setThemeConfig(updatedThemeConfig, true);
+    } else if (typeof this.mindMapInstance?.theme?.setThemeConfig === 'function') {
+      this.mindMapInstance.theme.setThemeConfig(updatedThemeConfig, true);
+    }
 
     try {
       const traverse = (node: any) => {
@@ -2707,18 +2881,142 @@ export class UltraFastMindMap {
           fillColor: preset.fill,
           borderColor: preset.border,
           color: preset.text,
-          borderWidth: 2
+          borderWidth: 1.5
         });
+        if (node.nodeData?.data) {
+          node.nodeData.data.fillColor = preset.fill;
+          node.nodeData.data.borderColor = preset.border;
+          node.nodeData.data.borderWidth = 1.5;
+          node.nodeData.data.color = preset.text;
+        }
+        if (typeof node.reRender === 'function') {
+          node.reRender();
+        }
         if (node.children && Array.isArray(node.children)) {
           node.children.forEach(traverse);
         }
       };
       traverse(this.mindMapInstance.renderer?.root);
+      if (typeof this.mindMapInstance.reRender === 'function') {
+        this.mindMapInstance.reRender();
+      } else if (typeof this.mindMapInstance.render === 'function') {
+        this.mindMapInstance.render();
+      }
       this.triggerHaptic();
-      this.scheduleDebouncedSave();
+      this.saveSync();
     } catch (e) {
       console.warn('[UltraFastMindMap] Error aplicando color global:', e);
     }
+  }
+
+  /**
+   * Requisito 3: Convierte todos los recuadros existentes y futuros en recuadros 100% invisibles
+   * (sin fondo y sin borde, dejando únicamente el texto y las líneas conectoras)
+   */
+  public setAllNodesInvisible(enable: boolean = true): void {
+    this.globalInvisibleBoxes = enable;
+
+    // 1. Actualizar configuración de tema para que TODOS los nodos futuros se creen invisibles
+    const curThemeConfig = (typeof this.mindMapInstance?.getCustomThemeConfig === 'function' 
+      ? this.mindMapInstance.getCustomThemeConfig() 
+      : this.mindMapInstance?.opt?.themeConfig) || {};
+
+    const transparentNodeStyle = enable ? {
+      fillColor: 'transparent',
+      borderColor: 'transparent',
+      borderWidth: 0,
+      active: { borderColor: '#38bdf8', borderWidth: 1.5 }
+    } : {};
+
+    const updatedThemeConfig = {
+      ...curThemeConfig,
+      root: { ...(curThemeConfig.root || {}), ...(enable ? transparentNodeStyle : { fillColor: '#0c4a6e', borderColor: '#38bdf8', borderWidth: 2 }) },
+      second: { ...(curThemeConfig.second || {}), ...(enable ? transparentNodeStyle : { fillColor: '#075985', borderColor: '#0284c7', borderWidth: 1.5 }) },
+      node: { ...(curThemeConfig.node || {}), ...(enable ? transparentNodeStyle : { fillColor: '#032b43', borderColor: '#0c4a6e', borderWidth: 1 }) }
+    };
+
+    if (typeof this.mindMapInstance?.setThemeConfig === 'function') {
+      this.mindMapInstance.setThemeConfig(updatedThemeConfig, true);
+    } else if (typeof this.mindMapInstance?.theme?.setThemeConfig === 'function') {
+      this.mindMapInstance.theme.setThemeConfig(updatedThemeConfig, true);
+    }
+
+    // 2. Modificar TODOS los nodos existentes en el árbol del mapa
+    if (this.mindMapInstance?.renderer?.root) {
+      const textColor = this.canvasBgMode === 'light' ? '#0f172a' : '#f8fafc';
+      const traverse = (node: any) => {
+        if (!node) return;
+        if (enable) {
+          if (typeof this.mindMapInstance.execCommand === 'function') {
+            this.mindMapInstance.execCommand('SET_NODE_STYLES', node, {
+              fillColor: 'transparent',
+              borderColor: 'transparent',
+              borderWidth: 0,
+              color: textColor
+            });
+          }
+          if (node.nodeData?.data) {
+            node.nodeData.data.fillColor = 'transparent';
+            node.nodeData.data.borderColor = 'transparent';
+            node.nodeData.data.borderWidth = 0;
+            node.nodeData.data.color = textColor;
+          }
+        } else {
+          if (typeof this.mindMapInstance.execCommand === 'function') {
+            this.mindMapInstance.execCommand('SET_NODE_STYLES', node, {
+              fillColor: '#0c4a6e',
+              borderColor: '#38bdf8',
+              borderWidth: 1.5
+            });
+          }
+          if (node.nodeData?.data) {
+            node.nodeData.data.fillColor = '#0c4a6e';
+            node.nodeData.data.borderColor = '#38bdf8';
+            node.nodeData.data.borderWidth = 1.5;
+          }
+        }
+        if (typeof node.reRender === 'function') {
+          node.reRender();
+        }
+        if (node.children && Array.isArray(node.children)) {
+          node.children.forEach(traverse);
+        }
+      };
+      traverse(this.mindMapInstance.renderer.root);
+    }
+
+    // 3. Forzar re-render general para refrescar conectores y geometría
+    if (typeof this.mindMapInstance?.reRender === 'function') {
+      this.mindMapInstance.reRender();
+    } else if (typeof this.mindMapInstance?.render === 'function') {
+      this.mindMapInstance.render();
+    }
+
+    // 4. Actualizar botón en la barra superior
+    const btnToggle = this.container.querySelector('#btn-toggle-all-invisible');
+    if (btnToggle) {
+      if (this.globalInvisibleBoxes) {
+        btnToggle.classList.add('active');
+        btnToggle.setAttribute('style', 'background:rgba(56,189,248,0.2); border:1px solid #38bdf8; color:#38bdf8;');
+      } else {
+        btnToggle.classList.remove('active');
+        btnToggle.removeAttribute('style');
+      }
+    }
+
+    const preview = this.container.querySelector('#preview-global-color') as HTMLElement | null;
+    if (preview) {
+      if (enable) {
+        preview.style.background = 'transparent';
+        preview.style.border = '1.5px dashed rgba(255,255,255,0.6)';
+      } else {
+        preview.style.background = '#0ea5e9';
+        preview.style.border = 'none';
+      }
+    }
+
+    this.triggerHaptic();
+    this.saveSync();
   }
 
   private initKeyboardAdaptiveHandler(): void {
@@ -2756,6 +3054,7 @@ export class UltraFastMindMap {
         localStorage.setItem(`${this.config.storageKey}_meta`, JSON.stringify({
           layout: this.currentLayout,
           theme: this.currentTheme,
+          globalInvisibleBoxes: this.globalInvisibleBoxes,
           updatedAt: Date.now()
         }));
       }

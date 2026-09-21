@@ -964,11 +964,11 @@ export function bindActiveStudyDashboardEvents(
       if (!t) return;
 
       const linkedDeck = t.deckId ? deckService.getDeckById(t.deckId) : null;
-      if (!t.deckId || !linkedDeck) {
+      if (!t.deckId || !linkedDeck || deckService.isFolder(linkedDeck)) {
         nativeService.triggerHaptics('heavy');
         dialogService.showAlert({
           title: '🔗 Mazo Requerido para Estudiar',
-          message: 'No puedes iniciar la sesión de estudio de este cuaderno porque no está vinculado a ningún mazo de flashcards.\n\nPor favor vincula un mazo existente o crea uno nuevo para continuar.',
+          message: 'No puedes iniciar la sesión de estudio de este cuaderno porque no está vinculado a un mazo de flashcards válido.\n\nPor favor vincula un mazo existente o crea uno nuevo para continuar.',
           buttonText: 'Vincular a Mazo Ahora',
           onConfirm: () => {
             openLinkTopicDeckModal(t, () => onRefresh());
@@ -1921,11 +1921,10 @@ function openLinkTopicDeckModal(topic: ActiveStudyTopic, onFinish?: () => void):
     `;
   }
 
-  // Grupos por carpeta (solo para desplegar/plegar, no para vincular)
+  // Grupos por carpeta (solo para desplegar/plegar, nunca seleccionables como mazo)
   const folderGroupsHtml = folders
     .map((f) => {
       const childDecks = realDecks.filter((d) => d.parentId === f.id);
-      if (childDecks.length === 0) return '';
       return `
         <div class="deck-folder-accordion-wrap" data-folder-id="${f.id}" style="border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.02); margin-bottom: 8px;">
           <div class="deck-folder-header-btn" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; background:rgba(255,255,255,0.04); user-select:none;">
@@ -1937,7 +1936,9 @@ function openLinkTopicDeckModal(topic: ActiveStudyTopic, onFinish?: () => void):
             <span class="folder-accordion-chevron" style="font-size:0.8rem; color:var(--f-text-secondary); transition:transform 0.2s ease;">▾</span>
           </div>
           <div class="deck-folder-contents" style="display:flex; flex-direction:column; gap:8px; padding:10px 12px;">
-            ${childDecks.map((d) => renderDeckTile(d)).join('')}
+            ${childDecks.length > 0 
+              ? childDecks.map((d) => renderDeckTile(d)).join('') 
+              : '<span style="font-size:0.8rem; color:var(--f-text-secondary); font-style:italic; padding:4px 6px;">Esta carpeta no contiene ningún mazo de estudio.</span>'}
           </div>
         </div>
       `;
@@ -2112,13 +2113,24 @@ function openLinkTopicDeckModal(topic: ActiveStudyTopic, onFinish?: () => void):
       const subjInfo = getSubjectInfo(topic.subject);
       const newDeck = deckService.createDeck({
         name: customName,
-        icon: subjInfo.icon || 'deck',
+        icon: 'deck',
+        isFolder: false,
         color: topic.color || subjInfo.color || '#38bdf8'
       });
       finalDeckId = newDeck.id;
     }
 
+    const targetDeck = deckService.getDeckById(finalDeckId);
+    if (!targetDeck || deckService.isFolder(targetDeck)) {
+      dialogService.showAlert({
+        title: '⚠️ Selección Inválida',
+        message: 'No puedes vincular una carpeta como mazo de estudio. Por favor selecciona un mazo de tarjetas o crea uno nuevo.'
+      });
+      return;
+    }
+
     topic.deckId = finalDeckId;
+    activeStudyService.updateTopic(topic.id, { deckId: finalDeckId });
     activeStudyService.saveToStorage();
     nativeService.triggerHaptics('medium');
     closeModal();

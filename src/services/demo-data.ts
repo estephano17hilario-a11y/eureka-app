@@ -91,6 +91,7 @@ export function getInitialDemoDecks(): { decks: Deck[]; cards: Flashcard[] } {
     name: 'HUMANS',
     description: 'Anatomía humana, fisiología y medicina clínica',
     icon: 'folder',
+    isFolder: true,
     color: '#f59e0b', // Orange
     settings: {
       algorithmType: 'medical',
@@ -113,6 +114,7 @@ export function getInitialDemoDecks(): { decks: Deck[]; cards: Flashcard[] } {
     name: 'TOOLS',
     description: 'Algoritmos, arquitecturas y herramientas',
     icon: 'briefcase',
+    isFolder: true,
     color: '#ec4899', // Pink / Suitcase
     settings: {
       algorithmType: 'fsrs',
