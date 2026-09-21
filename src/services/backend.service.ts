@@ -1,15 +1,17 @@
 import type { Deck, Flashcard, StudyRating } from '../types/flashcard';
 
 const isBrowser = typeof window !== 'undefined';
-const isLocalhost = isBrowser && (
+const isVercelOrWeb = isBrowser && (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1' ||
-  window.location.hostname.endsWith('.localhost')
+  window.location.hostname.endsWith('.localhost') ||
+  window.location.hostname.endsWith('.vercel.app') ||
+  window.location.protocol === 'https:'
 );
 
-// En navegador en localhost usa la ruta relativa '' (enrutada por el proxy de Vite)
-// Esto evita que Brave Shields, bloqueadores de anuncios o cortafuegos bloqueen peticiones a 89.117.73.97
-export const API_BASE_URL = isLocalhost
+// En navegador (localhost o Vercel) usa la ruta relativa '' (enrutada por el proxy de Vite o Vercel rewrites)
+// Esto evita bloqueos de Brave Shields, adblockers, CORS o errores de contenido mixto HTTPS/HTTP
+export const API_BASE_URL = isVercelOrWeb
   ? ''
   : ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
 
