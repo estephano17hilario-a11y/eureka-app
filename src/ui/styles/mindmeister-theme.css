@@ -496,26 +496,28 @@
 }
 
 /* Editor Inline en el Mismo Recuadro (100% Integrado: SIN segundo recuadro superpuesto) */
-.eureka-inline-node-editor {
-  position: absolute;
-  z-index: 10001;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-  border-radius: 0 !important;
-  color: inherit;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  line-height: 1.4 !important;
-  text-align: center !important;
-  resize: none;
-  caret-color: #38bdf8 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  box-sizing: border-box;
-  overflow: hidden;
-  white-space: pre-wrap;
-  word-break: break-word;
+.eureka-mindmap-custom-node.is-editing {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  pointer-events: auto !important;
 }
+
+.eureka-node-text-rendered[contenteditable="true"] {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  pointer-events: auto !important;
+  outline: none !important;
+  cursor: text !important;
+  caret-color: #38bdf8 !important;
+  min-width: 24px;
+}
+
+.mindmap-canvas-container foreignObject {
+  overflow: visible !important;
+}
+
+/* Ocultar cualquier dock residual si existe */
+.mindmap-bottom-dock {
+  display: none !important;
+}
+

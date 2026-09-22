@@ -92,7 +92,7 @@ export class SimpleMindMapAdapter {
         return originalRenderLine ? originalRenderLine(node, lines, style, lineStyle) : [];
       }
 
-      const { left, top, width, height, expandBtnSize = 0, isRoot, layerIndex } = node;
+      const { left, top, width, height, isRoot, layerIndex } = node;
       const isRootNode = Boolean(isRoot || layerIndex === 0);
 
       node.children.forEach((child: any, index: number) => {
@@ -102,16 +102,11 @@ export class SimpleMindMapAdapter {
         // Determinar orientación espacial (izquierda vs derecha)
         const isLeft = child.dir === 'left' || (child.left + child.width / 2 < left + width / 2);
 
-        // Puerto de salida en el nodo origen (P0)
-        let x0: number;
-        if (isRootNode) {
-          x0 = isLeft ? left : left + width;
-        } else {
-          x0 = isLeft ? left - expandBtnSize : left + width + expandBtnSize;
-        }
+        // Puerto de salida en el nodo origen (P0) exacto en el borde del recuadro
+        const x0 = isLeft ? left : left + width;
         let y0 = top + height / 2;
 
-        // Puerto de llegada en el nodo destino (P3)
+        // Puerto de llegada en el nodo destino (P3) exacto en el borde del hijo
         const x3 = isLeft ? child.left + child.width : child.left;
         let y3 = child.top + child.height / 2;
 
@@ -149,21 +144,20 @@ export class SimpleMindMapAdapter {
             class: 'mm-ribbon-path'
           });
         } else {
-          // NIVEL 2+: Curva Bézier Adaptativa C^1 Limpia hacia el puerto del hijo con identificador de óvalo
-          const hasMultipleSiblings = node.children.length > 1;
+          // NIVEL 2+: Curva Bézier Adaptativa C^1 Limpia hacia el puerto del hijo sin óvalos ni descuadres
           pathStr = AdaptiveSplineEngine.generateChildConnectorPath(
             p0,
             p3,
             isLeft,
             {
-              trunkOffset: 16,
+              trunkOffset: 0,
               tension: 0.55,
-              useTrunkOffset: hasMultipleSiblings,
-              includeOvalMarker: true
+              useTrunkOffset: false,
+              includeOvalMarker: false
             }
           );
 
-          // Trazo continuo y óvalo indicador
+          // Trazo continuo sin óvalos
           lineElement.plot(pathStr);
           lineElement.attr({
             fill: 'none',
@@ -183,14 +177,33 @@ export class SimpleMindMapAdapter {
    * Raíz neutral -> Nivel 1 asigna color espectral -> Niveles 2+ heredan del ancestro de Nivel 1.
    */
   public resolveNodeColor(node: any, siblingIndex = 0): string {
-    if (!node) return MINDMEISTER_SPECTRAL_PALETTE[0];
-    if (node.isRoot) return '#94a3b8'; // Raíz neutral
+    if (!node) return this.mindMap.themeConfig?.lineColor || MINDMEISTER_SPECTRAL_PALETTE[0];
+    if (node.isRoot) return this.mindMap.themeConfig?.lineColor || '#94a3b8';
 
-    // Si tiene color personalizado explícito en sus datos
-    const customColor = typeof node.getData === 'function' ? (node.getData('branchColor') || node.getData('lineColor')) : null;
-    if (customColor) return customColor;
+    // 1. Si el propio nodo tiene branchColor, lineColor o borderColor definido
+    const customColor = typeof node.getData === 'function' 
+      ? (node.getData('branchColor') || node.getData('lineColor') || node.getData('borderColor')) 
+      : null;
+    if (customColor && customColor !== 'transparent') return customColor;
 
-    // Si es nodo hijo de primer nivel
+    // 2. Rastrear hacia arriba en la jerarquía: si cualquier ancestro tiene un color personalizado, heredarlo
+    let current = node.parent;
+    while (current && !current.isRoot) {
+      const parentColor = typeof current.getData === 'function' 
+        ? (current.getData('branchColor') || current.getData('lineColor') || current.getData('borderColor')) 
+        : null;
+      if (parentColor && parentColor !== 'transparent') {
+        return parentColor;
+      }
+      current = current.parent;
+    }
+
+    // 3. Si el mapa tiene un lineColor general configurado por el usuario
+    if (this.mindMap.themeConfig?.lineColor && this.mindMap.themeConfig.lineColor !== 'transparent') {
+      return this.mindMap.themeConfig.lineColor;
+    }
+
+    // 4. Si es nodo hijo de primer nivel
     if (node.layerIndex === 1 || node.parent?.isRoot) {
       const siblings = node.parent?.children || [];
       const idx = siblings.length > 0 ? siblings.indexOf(node) : siblingIndex;
@@ -198,7 +211,7 @@ export class SimpleMindMapAdapter {
       return MINDMEISTER_SPECTRAL_PALETTE[safeIndex % MINDMEISTER_SPECTRAL_PALETTE.length];
     }
 
-    // Si es nivel 2+, rastrear hasta el ancestro de nivel 1
+    // 5. Ancestros de nivel 1
     let ancestor = node.parent;
     while (ancestor && !ancestor.isRoot && ancestor.parent && !ancestor.parent.isRoot) {
       ancestor = ancestor.parent;
@@ -213,7 +226,7 @@ export class SimpleMindMapAdapter {
       return MINDMEISTER_SPECTRAL_PALETTE[idx % MINDMEISTER_SPECTRAL_PALETTE.length];
     }
 
-    return MINDMEISTER_SPECTRAL_PALETTE[0];
+    return this.mindMap.themeConfig?.lineColor || MINDMEISTER_SPECTRAL_PALETTE[0];
   }
 
   /**

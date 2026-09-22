@@ -8,6 +8,7 @@ import { deckService } from '../services/deck.service';
 import { activeStudyService } from '../services/active-study.service';
 import { eurekaBackend } from '../services/backend.service';
 import { katexService } from '../services/katex.service';
+import { dialogService } from '../services/dialog.service';
 import { openScientificFormulaAssistant } from './ScientificFormulaAssistant';
 import type { Flashcard } from '../types/flashcard';
 
@@ -414,7 +415,6 @@ export class UltraFastMindMap {
   private currentSearchIndex: number = -1;
   public activeDropdown: 'map' | 'node' | null = null;
   private canvasBgMode: 'dark' | 'light' = 'dark';
-  private activeInlineEditor: HTMLTextAreaElement | null = null;
   public globalInvisibleBoxes: boolean = false;
 
   constructor(container: HTMLElement, config: MindMapConfig = {}) {
@@ -592,6 +592,64 @@ export class UltraFastMindMap {
 
           <div class="dropdown-h-divider"></div>
 
+          <!-- Color de Vectores / Líneas de Conexión General -->
+          <div class="dropdown-h-group popover-anchor">
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-line-color" title="Color general de vectores / líneas">
+              <span style="font-size:11px; margin-right:2px;">〰️</span>
+              <span class="color-dot-circle" id="preview-line-color" style="background:#0ea5e9;"></span>
+              <span class="mini-chevron">▾</span>
+            </button>
+            <div class="popover-bubble" id="popover-line-color" style="display:none;">
+              <button type="button" class="color-dot-btn" data-line-color="#0ea5e9" style="background:#0ea5e9;" title="Cyan"></button>
+              <button type="button" class="color-dot-btn" data-line-color="#a855f7" style="background:#a855f7;" title="Violeta"></button>
+              <button type="button" class="color-dot-btn" data-line-color="#10b981" style="background:#10b981;" title="Esmeralda"></button>
+              <button type="button" class="color-dot-btn" data-line-color="#f59e0b" style="background:#f59e0b;" title="Ámbar"></button>
+              <button type="button" class="color-dot-btn" data-line-color="#ec4899" style="background:#ec4899;" title="Rosa"></button>
+              <button type="button" class="color-dot-btn" data-line-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
+              <button type="button" class="color-dot-btn" data-line-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
+            </div>
+          </div>
+
+          <div class="dropdown-h-divider"></div>
+
+          <!-- Tamaño de Letra General (Con Advertencia) -->
+          <div class="dropdown-h-group popover-anchor">
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-global-font-size" title="Tamaño de letra general (todo el mapa)">
+              <span style="font-size:10px; font-weight:700; color:var(--f-text-secondary); margin-right:2px;">A</span>
+              <span class="trigger-val-num" id="preview-global-font-size">14</span>
+              <span class="mini-chevron">▾</span>
+            </button>
+            <div class="popover-bubble" id="popover-global-font-size" style="display:none;">
+              <button type="button" class="popover-item-number" data-global-size="12">12</button>
+              <button type="button" class="popover-item-number active" data-global-size="14">14</button>
+              <button type="button" class="popover-item-number" data-global-size="16">16</button>
+              <button type="button" class="popover-item-number" data-global-size="18">18</button>
+              <button type="button" class="popover-item-number" data-global-size="22">22</button>
+            </div>
+          </div>
+
+          <div class="dropdown-h-divider"></div>
+
+          <!-- Color de Letra General (Con Advertencia) -->
+          <div class="dropdown-h-group popover-anchor">
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-global-font-color" title="Color de texto general (todo el mapa)">
+              <span style="font-size:10px; font-weight:700; margin-right:2px;">T</span>
+              <span class="color-dot-circle" id="preview-global-font-color" style="background:#ffffff; border:1px solid rgba(255,255,255,0.4);"></span>
+              <span class="mini-chevron">▾</span>
+            </button>
+            <div class="popover-bubble" id="popover-global-font-color" style="display:none;">
+              <button type="button" class="color-dot-btn" data-global-text-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
+              <button type="button" class="color-dot-btn" data-global-text-color="#38bdf8" style="background:#38bdf8;" title="Cyan"></button>
+              <button type="button" class="color-dot-btn" data-global-text-color="#34d399" style="background:#34d399;" title="Verde"></button>
+              <button type="button" class="color-dot-btn" data-global-text-color="#fbbf24" style="background:#fbbf24;" title="Dorado"></button>
+              <button type="button" class="color-dot-btn" data-global-text-color="#f472b6" style="background:#f472b6;" title="Rosa"></button>
+              <button type="button" class="color-dot-btn" data-global-text-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
+              <button type="button" class="color-dot-btn" data-global-text-color="#0f172a" style="background:#0f172a; border:1px solid #94a3b8;" title="Oscuro"></button>
+            </div>
+          </div>
+
+          <div class="dropdown-h-divider"></div>
+
           <!-- 3b. Botón Directo: Todo Recuadro Invisible (Existentes y Nuevos) -->
           <button type="button" class="compact-trigger-pill ${this.globalInvisibleBoxes ? 'active' : ''}" id="btn-toggle-all-invisible" title="Hacer todo el mapa con recuadros invisibles (existentes y nuevos)" style="${this.globalInvisibleBoxes ? 'background:rgba(56,189,248,0.2); border:1px solid #38bdf8; color:#38bdf8;' : ''}">
             <span class="pill-icon" style="font-size:12px;">🚫</span>
@@ -643,6 +701,11 @@ export class UltraFastMindMap {
                 <button type="button" class="color-dot-btn" data-node-bg="dark" style="background:#334155;" title="Pizarra"></button>
               </div>
             </div>
+
+            <!-- Botón de Heredar Color a Hijos -->
+            <button type="button" class="compact-trigger-pill" id="btn-inherit-color-children" title="Heredar este color a todos los recuadros hijos">
+              <span style="font-size:11px; font-weight:600; padding:0 2px;">🌳 Heredar</span>
+            </button>
 
             <div class="dropdown-h-divider"></div>
 
@@ -702,6 +765,21 @@ export class UltraFastMindMap {
                 📐
               </button>
             </div>
+
+            <div class="dropdown-h-divider"></div>
+
+            <!-- 6. Acciones Estructurales (+ Hijo, + Hermano, Borrar) -->
+            <div class="dropdown-h-group">
+              <button type="button" class="compact-trigger-pill" id="btn-node-dropdown-child" title="Añadir subnodo hijo (Tab)">
+                <span style="font-size:11px; font-weight:600;">➕ Hijo</span>
+              </button>
+              <button type="button" class="compact-trigger-pill" id="btn-node-dropdown-sibling" title="Añadir concepto paralelo hermano (Enter)">
+                <span style="font-size:11px; font-weight:600;">🌿 Hermano</span>
+              </button>
+              <button type="button" class="compact-trigger-pill danger" id="btn-node-dropdown-delete" title="Eliminar recuadro (Supr)">
+                <span style="font-size:11px;">🗑️</span>
+              </button>
+            </div>
           </div>
 
           <button type="button" class="btn-dropdown-close-sm" id="btn-close-node-dropdown" title="Cerrar barra">✕</button>
@@ -728,26 +806,6 @@ export class UltraFastMindMap {
           </svg>
           <span>Centrar Vista</span>
         </button>
-
-        <!-- 3. Bottom Action Dock (Botones táctiles de gran tamaño 48px+ para pulgares) -->
-        <footer class="mindmap-bottom-dock">
-          <button class="dock-action-btn" id="btn-node-child" disabled title="Añadir subnodo (Tab)">
-            <span class="dock-icon">➕</span>
-            <span class="dock-label">Hijo (Tab)</span>
-          </button>
-          <button class="dock-action-btn" id="btn-node-sibling" disabled title="Añadir concepto paralelo (Enter)">
-            <span class="dock-icon">🌿</span>
-            <span class="dock-label">Hermano (Enter)</span>
-          </button>
-          <button class="dock-action-btn" id="btn-node-edit" disabled title="Editar texto (F2)">
-            <span class="dock-icon">✏️</span>
-            <span class="dock-label">Editar</span>
-          </button>
-          <button class="dock-action-btn dock-btn-danger" id="btn-node-delete" disabled title="Eliminar nodo (Supr / Backspace)">
-            <span class="dock-icon">🗑️</span>
-            <span class="dock-label">Borrar</span>
-          </button>
-        </footer>
 
         <!-- 4. Overlay de Edición Directa Multilínea (Con saltos de reglón por Enter) -->
         <div class="mindmap-edit-overlay" id="mindmap-edit-sheet" style="display: none;">
@@ -818,6 +876,10 @@ export class UltraFastMindMap {
     if (this.isDestroyed) return;
 
     let mapData = this.config.initialData;
+    let savedLineColor: string | null = null;
+    let savedFontSize: number | null = null;
+    let savedFontColor: string | null = null;
+
     try {
       // 1. Cargar instantáneamente de localStorage para nunca perder datos
       if (this.config.storageKey) {
@@ -842,6 +904,9 @@ export class UltraFastMindMap {
             if (meta.layout) this.currentLayout = meta.layout;
             if (meta.theme && THEME_PRESETS[meta.theme]) this.currentTheme = meta.theme;
             if (typeof meta.globalInvisibleBoxes === 'boolean') this.globalInvisibleBoxes = meta.globalInvisibleBoxes;
+            if (meta.lineColor) savedLineColor = meta.lineColor;
+            if (meta.globalFontSize) savedFontSize = Number(meta.globalFontSize);
+            if (meta.globalFontColor) savedFontColor = meta.globalFontColor;
           } catch {}
         }
       }
@@ -872,6 +937,9 @@ export class UltraFastMindMap {
 
     const baseTheme = THEME_PRESETS[this.currentTheme] || THEME_PRESETS.cyberDark;
     const themeObj = JSON.parse(JSON.stringify(baseTheme));
+    if (savedLineColor) {
+      themeObj.lineColor = savedLineColor;
+    }
     if (this.globalInvisibleBoxes) {
       themeObj.root.fillColor = 'transparent';
       themeObj.root.borderColor = 'transparent';
@@ -1035,6 +1103,26 @@ export class UltraFastMindMap {
       this.setCanvasBackgroundMode(savedBgMode);
     }
 
+    // Restaurar indicadores visuales guardados
+    if (savedLineColor) {
+      const preview = this.container.querySelector('#preview-line-color') as HTMLElement | null;
+      if (preview) {
+        preview.style.background = savedLineColor;
+        preview.style.borderColor = savedLineColor === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+      }
+    }
+    if (savedFontSize) {
+      const preview = this.container.querySelector('#preview-global-font-size') as HTMLElement | null;
+      if (preview) preview.textContent = String(savedFontSize);
+    }
+    if (savedFontColor) {
+      const preview = this.container.querySelector('#preview-global-font-color') as HTMLElement | null;
+      if (preview) {
+        preview.style.background = savedFontColor;
+        preview.style.borderColor = savedFontColor === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+      }
+    }
+
     // Eventos y selección
     this.mindMapInstance.on('node_active', (node: any) => {
       this.activeNode = node;
@@ -1188,21 +1276,19 @@ export class UltraFastMindMap {
 
       const canvasEl = this.container.querySelector('#mindmap-render-canvas') as HTMLElement | null;
       const topBar = this.container.querySelector('.mindmap-top-bar') as HTMLElement | null;
-      const bottomDock = this.container.querySelector('.mindmap-bottom-dock') as HTMLElement | null;
 
       const screenW = canvasEl?.clientWidth || window.innerWidth;
       const screenH = canvasEl?.clientHeight || window.innerHeight;
 
       const topH = topBar?.offsetHeight || 56;
-      const bottomH = bottomDock?.offsetHeight || 76;
 
-      // Área libre real entre Header y Bottom Dock
-      const availW = Math.max(100, screenW - 80); // 40px margen a cada lado
-      const availH = Math.max(100, screenH - topH - bottomH - 50); // 25px margen vertical
+      // Área libre completa de pantalla
+      const availW = Math.max(100, screenW - 60); // 30px margen lateral
+      const availH = Math.max(100, screenH - topH - 40); // 20px margen vertical
 
       // Centro visual geométrico EXACTO del área visible en la pantalla
       const targetCenterX = screenW / 2;
-      const targetCenterY = topH + (screenH - topH - bottomH) / 2;
+      const targetCenterY = topH + (screenH - topH) / 2;
 
       const bbox = this.getTreeBoundingBox();
 
@@ -1227,10 +1313,6 @@ export class UltraFastMindMap {
       } else if (this.mindMapInstance.view) {
         // Fallback nativo
         this.mindMapInstance.view.fit(undefined, true, 45);
-        const visualCenterOffsetY = (topH - bottomH) / 2;
-        if (visualCenterOffsetY !== 0) {
-          this.mindMapInstance.view.translateY(visualCenterOffsetY);
-        }
       } else {
         this.mindMapInstance.renderer?.setRootNodeCenter?.();
       }
@@ -1277,8 +1359,13 @@ export class UltraFastMindMap {
     // Atajo Tab: Insertar subnodo hijo
     if (e.key === 'Tab') {
       e.preventDefault();
-      if (this.activeNode) {
-        this.mindMapInstance.execCommand('INSERT_CHILD_NODE');
+      const target = this.activeNode || this.mindMapInstance.renderer?.activeNodeList?.[0];
+      if (target) {
+        target.active();
+        if (this.mindMapInstance.renderer) {
+          this.mindMapInstance.renderer.activeNodeList = [target];
+        }
+        this.mindMapInstance.execCommand('INSERT_CHILD_NODE', false, [target]);
         this.triggerHaptic();
       }
       return;
@@ -1287,8 +1374,13 @@ export class UltraFastMindMap {
     // Atajo Enter: Insertar concepto paralelo (hermano)
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (this.activeNode) {
-        this.mindMapInstance.execCommand('INSERT_NODE');
+      const target = this.activeNode || this.mindMapInstance.renderer?.activeNodeList?.[0];
+      if (target && !target.isRoot) {
+        target.active();
+        if (this.mindMapInstance.renderer) {
+          this.mindMapInstance.renderer.activeNodeList = [target];
+        }
+        this.mindMapInstance.execCommand('INSERT_NODE', false, [target]);
         this.triggerHaptic();
       }
       return;
@@ -1297,8 +1389,11 @@ export class UltraFastMindMap {
     // Atajo Supr / Backspace: Eliminar nodo
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
-      if (this.activeNode) {
-        this.mindMapInstance.execCommand('REMOVE_NODE');
+      const target = this.activeNode || this.mindMapInstance.renderer?.activeNodeList?.[0];
+      if (target) {
+        this.mindMapInstance.execCommand('REMOVE_NODE', [target]);
+        this.activeNode = null;
+        this.updateNodeDropdownUI();
         this.triggerHaptic();
       }
       return;
@@ -1502,6 +1597,80 @@ export class UltraFastMindMap {
           const preview = root.querySelector('#preview-global-color') as HTMLElement | null;
           if (preview) preview.style.background = btn.style.background;
           closeAllPopovers();
+        }
+      });
+    });
+
+    // Selector de Color de Vectores / Líneas de Conexión General
+    root.querySelector('#btn-trigger-line-color')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-line-color', 'btn-trigger-line-color');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-line-color [data-line-color]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const lineColor = btn.dataset.lineColor;
+        if (lineColor) {
+          this.setGlobalLineColor(lineColor);
+          const preview = root.querySelector('#preview-line-color') as HTMLElement | null;
+          if (preview) {
+            preview.style.background = lineColor;
+            preview.style.borderColor = lineColor === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+          }
+          closeAllPopovers();
+        }
+      });
+    });
+
+    // Selector de Tamaño de Letra General (Con Diálogo de Advertencia)
+    root.querySelector('#btn-trigger-global-font-size')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-global-font-size', 'btn-trigger-global-font-size');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-global-font-size [data-global-size]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const size = Number(btn.dataset.globalSize);
+        if (size) {
+          closeAllPopovers();
+          dialogService.showConfirm({
+            title: '⚠️ Cambiar Tipografía General',
+            message: `¿Estás seguro de que deseas cambiar el tamaño de letra de TODO el mapa mental a ${size}px? Se aplicará a todos los recuadros existentes y futuros.`,
+            confirmText: 'Sí, aplicar a todos',
+            cancelText: 'Cancelar',
+            onConfirm: () => {
+              this.applyGlobalFontSize(size);
+              root.querySelectorAll('#popover-global-font-size [data-global-size]').forEach((b) => b.classList.remove('active'));
+              btn.classList.add('active');
+            }
+          });
+        }
+      });
+    });
+
+    // Selector de Color de Texto General (Con Diálogo de Advertencia)
+    root.querySelector('#btn-trigger-global-font-color')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-global-font-color', 'btn-trigger-global-font-color');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-global-font-color [data-global-text-color]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const color = btn.dataset.globalTextColor;
+        if (color) {
+          closeAllPopovers();
+          dialogService.showConfirm({
+            title: '⚠️ Cambiar Color de Texto General',
+            message: '¿Estás seguro de que deseas cambiar el color de letra de TODO el mapa mental? Esto actualizará el color de texto en todos los recuadros.',
+            confirmText: 'Sí, cambiar a todos',
+            cancelText: 'Cancelar',
+            onConfirm: () => {
+              this.applyGlobalFontColor(color);
+            }
+          });
         }
       });
     });
@@ -1726,26 +1895,44 @@ export class UltraFastMindMap {
     });
 
     // ============================================================
-    // DOCK INFERIOR
+    // ACCIONES DE RECUADRO EN DROPDOWN (+ Hijo, + Hermano, Borrar, Heredar)
     // ============================================================
-    root.querySelector('#btn-node-child')?.addEventListener('click', () => {
-      this.triggerHaptic();
-      this.mindMapInstance?.execCommand('INSERT_CHILD_NODE');
+    root.querySelector('#btn-inherit-color-children')?.addEventListener('click', () => {
+      this.inheritNodeColorToChildren();
     });
 
-    root.querySelector('#btn-node-sibling')?.addEventListener('click', () => {
+    root.querySelector('#btn-node-dropdown-child')?.addEventListener('click', () => {
       this.triggerHaptic();
-      this.mindMapInstance?.execCommand('INSERT_NODE');
+      const target = this.activeNode || this.mindMapInstance?.renderer?.activeNodeList?.[0];
+      if (target) {
+        target.active();
+        if (this.mindMapInstance?.renderer) {
+          this.mindMapInstance.renderer.activeNodeList = [target];
+        }
+        this.mindMapInstance?.execCommand('INSERT_CHILD_NODE', false, [target]);
+      }
     });
 
-    root.querySelector('#btn-node-edit')?.addEventListener('click', () => {
+    root.querySelector('#btn-node-dropdown-sibling')?.addEventListener('click', () => {
       this.triggerHaptic();
-      this.openDirectTextEditor();
+      const target = this.activeNode || this.mindMapInstance?.renderer?.activeNodeList?.[0];
+      if (target && !target.isRoot) {
+        target.active();
+        if (this.mindMapInstance?.renderer) {
+          this.mindMapInstance.renderer.activeNodeList = [target];
+        }
+        this.mindMapInstance?.execCommand('INSERT_NODE', false, [target]);
+      }
     });
 
-    root.querySelector('#btn-node-delete')?.addEventListener('click', () => {
+    root.querySelector('#btn-node-dropdown-delete')?.addEventListener('click', () => {
       this.triggerHaptic();
-      this.mindMapInstance?.execCommand('REMOVE_NODE');
+      const target = this.activeNode || this.mindMapInstance?.renderer?.activeNodeList?.[0];
+      if (target) {
+        this.mindMapInstance?.execCommand('REMOVE_NODE', [target]);
+        this.activeNode = null;
+        this.updateNodeDropdownUI();
+      }
     });
 
     // ============================================================
@@ -2380,23 +2567,20 @@ export class UltraFastMindMap {
   }
 
   /**
-   * 4. GESTIÓN DE EDICIÓN DIRECTA EN EL MISMO RECUADRO SELECCIONADO (IN-PLACE INLINE EDITING)
-   * Elimina cualquier segundo recuadro superpuesto debajo y permite escribir directamente
-   * dentro del nodo con cursor/rayita de texto brillante (#38bdf8) de alto contraste.
-   * Auto-redimensiona el recuadro dinámicamente al escribir y preserva el tamaño exacto al pulsar Enter.
+   * 4. GESTIÓN DE EDICIÓN DIRECTA EN EL MISMO RECUADRO SELECCIONADO (IN-PLACE DIRECT EDITING)
+   * Edita directamente sobre el mismo texto del nodo (contenteditable).
+   * Cero desfase de posición, cero duplicados de capas de texto, cero distorsión.
+   * Al pulsar Enter (o blur), recalcula el recuadro y preserva el nodo activo.
    */
-  private openDirectTextEditor(): void {
-    if (!this.activeNode || !this.mindMapInstance) return;
-    this.triggerHaptic();
+  private isEditingText: boolean = false;
 
-    if (this.activeInlineEditor) {
-      this.activeInlineEditor.focus();
-      return;
-    }
+  private openDirectTextEditor(): void {
+    if (!this.activeNode || !this.mindMapInstance || this.isEditingText) return;
+    this.triggerHaptic();
 
     const node = this.activeNode;
 
-    // 1. Obtener texto actual (si tiene rawText guardado se usa preferentemente)
+    // 1. Obtener texto actual del nodo
     let currentText = (node.getData ? node.getData('text') : node.nodeData?.data?.text) || '';
     const rawText = node.getData ? node.getData('rawText') : node.nodeData?.data?.rawText;
     if (rawText !== undefined && rawText !== null) {
@@ -2405,135 +2589,75 @@ export class UltraFastMindMap {
       currentText = currentText.replace(/<br\s*\/?>/gi, '\n');
     }
 
-    // 2. Obtener el contenedor del texto dentro del nodo DOM o el grupo del nodo
+    // 2. Obtener el elemento de texto renderizado en el nodo SVG
     const groupNode = node.group?.node as SVGGraphicsElement | null;
     const customNodeEl = groupNode?.querySelector('.eureka-mindmap-custom-node') as HTMLElement | null;
     const textRenderedEl = groupNode?.querySelector('.eureka-node-text-rendered') as HTMLElement | null;
-    const targetElement = textRenderedEl || customNodeEl || groupNode;
 
-    const canvasContainer = this.container.querySelector('#mindmap-render-canvas') as HTMLElement | null;
-    if (!canvasContainer || !targetElement) return;
+    if (!textRenderedEl || !customNodeEl) return;
 
-    // Obtener la escala actual del lienzo SimpleMindMap para que las letras no se encojan
-    const scale = this.mindMapInstance.view?.scale || 1;
+    this.isEditingText = true;
 
-    // 3. Crear textarea 100% integrado y transparente directamente sobre el texto del recuadro
-    const editor = document.createElement('textarea');
-    editor.className = 'eureka-inline-node-editor';
-    editor.value = currentText;
-    editor.autocomplete = 'off';
-    editor.spellcheck = false;
+    // Activar edición in-place directamente en el mismo elemento sin duplicados ni desplazamientos
+    customNodeEl.classList.add('is-editing');
+    textRenderedEl.contentEditable = 'true';
+    textRenderedEl.spellcheck = false;
+    textRenderedEl.innerText = currentText;
 
-    // Heredar estilos tipográficos del nodo y multiplicarlo por la escala del lienzo
-    // para que las letras NUNCA se hagan más pequeñas al escribir
-    const rawFontSize = (typeof node.getStyle === 'function' ? node.getStyle('fontSize', false) : null) || 14;
-    const visualFontSize = Math.max(11, Math.round(rawFontSize * scale));
-    const fontWeight = typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : 'normal';
-    const textColor = typeof node.getStyle === 'function' ? node.getStyle('color', false) : (this.canvasBgMode === 'light' ? '#0f172a' : '#ffffff');
+    // Colocar cursor al final del texto
+    try {
+      const range = document.createRange();
+      range.selectNodeContents(textRenderedEl);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+    } catch {}
 
-    editor.style.position = 'absolute';
-    editor.style.zIndex = '500';
-    editor.style.background = 'transparent';
-    editor.style.backgroundColor = 'transparent';
-    editor.style.border = 'none';
-    editor.style.boxShadow = 'none';
-    editor.style.outline = 'none';
-    editor.style.padding = '0';
-    editor.style.margin = '0';
-    editor.style.textAlign = 'center';
-    editor.style.boxSizing = 'border-box';
-    editor.style.resize = 'none';
-    editor.style.overflow = 'hidden';
-    editor.style.fontSize = `${visualFontSize}px`;
-    editor.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    editor.style.fontWeight = fontWeight ? String(fontWeight) : 'normal';
-    editor.style.lineHeight = '1.4';
-    editor.style.color = textColor || (this.canvasBgMode === 'light' ? '#0f172a' : '#ffffff');
-    editor.style.caretColor = '#38bdf8'; // Cursor visible y brillante
+    textRenderedEl.focus();
 
-    // Función para reposicionar y redimensionar el editor adaptándose al recuadro en tiempo real
-    const repositionAndResize = () => {
-      const curGroup = node.group?.node as SVGGraphicsElement | null;
-      const curText = curGroup?.querySelector('.eureka-node-text-rendered') as HTMLElement | null;
-      const curCustom = curGroup?.querySelector('.eureka-mindmap-custom-node') as HTMLElement | null;
-      const curTarget = curText || curCustom || curGroup || targetElement;
-      if (!curTarget || !canvasContainer) return;
-
-      const tRect = curTarget.getBoundingClientRect();
-      const cRect = canvasContainer.getBoundingClientRect();
-
-      const relLeft = tRect.left - cRect.left;
-      const relTop = tRect.top - cRect.top;
-      const exactW = Math.max(tRect.width, 40 * scale);
-      const exactH = Math.max(tRect.height, 22 * scale);
-
-      editor.style.left = `${Math.round(relLeft)}px`;
-      editor.style.top = `${Math.round(relTop)}px`;
-      editor.style.width = `${Math.round(exactW)}px`;
-      editor.style.height = `${Math.round(exactH)}px`;
+    // Auto-ajustar en tiempo real mientras el usuario escribe: solo actualizar atributos SVG sin recrear el DOM
+    const onInput = () => {
+      if (customNodeEl && groupNode) {
+        const currentW = Math.max(customNodeEl.offsetWidth + 24, 60);
+        const currentH = Math.max(customNodeEl.offsetHeight + 14, 32);
+        const fo = groupNode.querySelector('foreignObject');
+        const rect = groupNode.querySelector('rect');
+        if (fo) {
+          fo.setAttribute('width', String(currentW));
+          fo.setAttribute('height', String(currentH));
+        }
+        if (rect) {
+          rect.setAttribute('width', String(currentW));
+          rect.setAttribute('height', String(currentH));
+        }
+      }
     };
+    textRenderedEl.addEventListener('input', onInput);
 
-    // Ajuste de posición y tamaño inicial
-    repositionAndResize();
-
-    // Ocultar temporalmente el texto estático para evitar doble visión
-    if (textRenderedEl) {
-      textRenderedEl.style.opacity = '0';
-    }
-
-    this.activeInlineEditor = editor;
-    canvasContainer.appendChild(editor);
-
-    // Auto-ajustar en tiempo real mientras el usuario escribe: el recuadro SVG responde de inmediato
-    editor.addEventListener('input', () => {
-      const currentVal = editor.value;
-
-      // 1. Actualizar datos en memoria del nodo
-      if (typeof node.setData === 'function') {
-        node.setData({ text: currentVal || ' ', rawText: currentVal });
-      } else if (node.nodeData?.data) {
-        node.nodeData.data.text = currentVal || ' ';
-        node.nodeData.data.rawText = currentVal;
-      }
-
-      // 2. Si hay elemento estático, actualizar su texto para medición DOM precisa
-      if (textRenderedEl) {
-        textRenderedEl.textContent = currentVal || ' ';
-      }
-
-      // 3. Forzar reRender del nodo para que el recuadro SVG recalcule tamaño y forma en tiempo real
-      try {
-        if (typeof node.reRender === 'function') {
-          node.reRender();
-        }
-        if (this.mindMapInstance && typeof this.mindMapInstance.render === 'function') {
-          this.mindMapInstance.render();
-        }
-      } catch (err) {
-        console.warn('[UltraFastMindMap] Error en reRender interactivo:', err);
-      }
-
-      // 4. Re-alinear el editor sobre el elemento recién redimensionado
-      repositionAndResize();
-    });
+    // Evitar que hacer clic o arrastrar en el texto dispare el paneo del lienzo SimpleMindMap
+    const stopProp = (e: Event) => e.stopPropagation();
+    textRenderedEl.addEventListener('mousedown', stopProp);
+    textRenderedEl.addEventListener('pointerdown', stopProp);
 
     let isCommitted = false;
-    const commitChanges = () => {
+    const commitChanges = (save: boolean = true) => {
       if (isCommitted) return;
       isCommitted = true;
+      this.isEditingText = false;
 
-      const newText = editor.value.trim() ? editor.value : ' ';
-      if (textRenderedEl) {
-        textRenderedEl.style.opacity = '1';
-      }
+      textRenderedEl.removeEventListener('input', onInput);
+      textRenderedEl.removeEventListener('keydown', onKeyDown);
+      textRenderedEl.removeEventListener('blur', onBlur);
+      textRenderedEl.removeEventListener('mousedown', stopProp);
+      textRenderedEl.removeEventListener('pointerdown', stopProp);
 
-      if (editor.parentNode) {
-        editor.parentNode.removeChild(editor);
-      }
-      this.activeInlineEditor = null;
+      textRenderedEl.contentEditable = 'false';
+      customNodeEl.classList.remove('is-editing');
+
+      const newText = save ? (textRenderedEl.innerText.trim() || ' ') : currentText;
 
       if (this.activeNode && this.mindMapInstance) {
-        // Ejecutar comando para actualizar texto y permitir historial undo/redo
         try {
           this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, newText);
         } catch {
@@ -2545,7 +2669,6 @@ export class UltraFastMindMap {
           }
         }
 
-        // Forzar recálculo infalible de tamaño del nodo para que el recuadro nunca quede distorsionado ni cortado
         if (typeof this.activeNode.reRender === 'function') {
           this.activeNode.reRender();
         }
@@ -2555,40 +2678,45 @@ export class UltraFastMindMap {
           this.mindMapInstance.render();
         }
 
+        // Mantener el nodo seleccionado y activo para que al pulsar Hijo (Tab) o Hermano (Enter) funcione de inmediato
+        const savedNode = this.activeNode;
+        setTimeout(() => {
+          if (savedNode && !this.isDestroyed) {
+            savedNode.active();
+            if (this.mindMapInstance?.renderer) {
+              this.mindMapInstance.renderer.activeNodeList = [savedNode];
+            }
+            this.activeNode = savedNode;
+            this.updateNodeDropdownUI();
+          }
+        }, 40);
+
         this.triggerHaptic();
         this.scheduleDebouncedSave();
       }
     };
 
-    // Al perder el foco (clic afuera): confirmar y guardar
-    editor.addEventListener('blur', () => {
-      commitChanges();
-    });
+    const onBlur = () => {
+      commitChanges(true);
+    };
+    textRenderedEl.addEventListener('blur', onBlur, { once: true });
 
-    // Control de teclado en el editor inline
-    editor.addEventListener('keydown', (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      e.stopPropagation();
       if (e.key === 'Escape') {
-        commitChanges();
+        e.preventDefault();
+        commitChanges(false);
       } else if (e.key === 'Enter') {
         if (e.shiftKey) {
-          // Shift+Enter permite salto de línea: disparar input en el siguiente tick para redimensionar recuadro
-          setTimeout(() => {
-            editor.dispatchEvent(new Event('input'));
-          }, 0);
+          // Shift+Enter permite salto de línea
         } else {
-          // Enter normal confirma y termina de escribir, manteniendo el tamaño exacto del recuadro
+          // Enter normal confirma y termina de escribir
           e.preventDefault();
-          commitChanges();
+          commitChanges(true);
         }
       }
-    });
-
-    // Enfocar inmediatamente y poner el cursor al final con rayita visible
-    setTimeout(() => {
-      editor.focus();
-      editor.setSelectionRange(editor.value.length, editor.value.length);
-      repositionAndResize();
-    }, 20);
+    };
+    textRenderedEl.addEventListener('keydown', onKeyDown);
   }
 
   /**
@@ -3033,8 +3161,203 @@ export class UltraFastMindMap {
     }
   }
 
+  /**
+   * Cambia el color de vectores/líneas de conexión de forma general
+   */
+  public setGlobalLineColor(color: string): void {
+    if (!this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    const curThemeConfig = (typeof this.mindMapInstance?.getCustomThemeConfig === 'function' 
+      ? this.mindMapInstance.getCustomThemeConfig() 
+      : this.mindMapInstance?.opt?.themeConfig) || {};
+
+    const updatedThemeConfig = {
+      ...curThemeConfig,
+      lineColor: color
+    };
+
+    if (typeof this.mindMapInstance?.setThemeConfig === 'function') {
+      this.mindMapInstance.setThemeConfig(updatedThemeConfig, true);
+    } else if (typeof this.mindMapInstance?.theme?.setThemeConfig === 'function') {
+      this.mindMapInstance.theme.setThemeConfig(updatedThemeConfig, true);
+    }
+
+    const preview = this.container.querySelector('#preview-line-color') as HTMLElement | null;
+    if (preview) {
+      preview.style.background = color;
+      preview.style.borderColor = color === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+    }
+
+    if (typeof this.mindMapInstance.reRender === 'function') {
+      this.mindMapInstance.reRender();
+    } else if (typeof this.mindMapInstance.render === 'function') {
+      this.mindMapInstance.render();
+    }
+
+    this.saveSync();
+  }
+
+  /**
+   * Hereda el color y borde del recuadro activo a todos sus recuadros hijos recursivamente
+   */
+  public inheritNodeColorToChildren(): void {
+    if (!this.activeNode || !this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    const node = this.activeNode;
+    const nodeBg = node.getData ? node.getData('fillColor') : node.nodeData?.data?.fillColor;
+    const nodeBorder = node.getData ? node.getData('borderColor') : node.nodeData?.data?.borderColor;
+    const branchColor = node.getData ? node.getData('branchColor') : node.nodeData?.data?.branchColor;
+    const colorToApply = branchColor || nodeBorder || nodeBg || '#0ea5e9';
+
+    const applyRecursively = (n: any) => {
+      if (!n || !n.children) return;
+      n.children.forEach((child: any) => {
+        const updateData: any = {
+          branchColor: colorToApply
+        };
+        if (nodeBg && nodeBg !== 'transparent') {
+          updateData.fillColor = nodeBg;
+        }
+        if (nodeBorder && nodeBorder !== 'transparent') {
+          updateData.borderColor = nodeBorder;
+        }
+
+        if (typeof child.setData === 'function') {
+          child.setData(updateData);
+        } else if (child.nodeData?.data) {
+          Object.assign(child.nodeData.data, updateData);
+        }
+
+        if (typeof child.reRender === 'function') {
+          child.reRender();
+        }
+        applyRecursively(child);
+      });
+    };
+
+    applyRecursively(node);
+    if (typeof this.mindMapInstance.reRender === 'function') {
+      this.mindMapInstance.reRender();
+    } else if (typeof this.mindMapInstance.render === 'function') {
+      this.mindMapInstance.render();
+    }
+    this.scheduleDebouncedSave();
+  }
+
+  /**
+   * Aplica un nuevo tamaño de letra de forma general a todo el mapa mental
+   */
+  public applyGlobalFontSize(size: number): void {
+    if (!this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    const curThemeConfig = (typeof this.mindMapInstance?.getCustomThemeConfig === 'function' 
+      ? this.mindMapInstance.getCustomThemeConfig() 
+      : this.mindMapInstance?.opt?.themeConfig) || {};
+
+    const updatedThemeConfig = {
+      ...curThemeConfig,
+      root: { ...(curThemeConfig.root || {}), fontSize: Math.max(16, size + 2) },
+      second: { ...(curThemeConfig.second || {}), fontSize: Math.max(14, size) },
+      node: { ...(curThemeConfig.node || {}), fontSize: size }
+    };
+
+    if (typeof this.mindMapInstance?.setThemeConfig === 'function') {
+      this.mindMapInstance.setThemeConfig(updatedThemeConfig, true);
+    } else if (typeof this.mindMapInstance?.theme?.setThemeConfig === 'function') {
+      this.mindMapInstance.theme.setThemeConfig(updatedThemeConfig, true);
+    }
+
+    const traverse = (node: any) => {
+      if (!node) return;
+      const targetSize = node.isRoot ? Math.max(16, size + 2) : (node.layerIndex === 1 || node.parent?.isRoot ? Math.max(14, size) : size);
+      this.mindMapInstance.execCommand('SET_NODE_STYLES', node, {
+        fontSize: targetSize
+      });
+      if (node.nodeData?.data) {
+        node.nodeData.data.fontSize = targetSize;
+      }
+      if (typeof node.reRender === 'function') {
+        node.reRender();
+      }
+      if (node.children && Array.isArray(node.children)) {
+        node.children.forEach(traverse);
+      }
+    };
+
+    traverse(this.mindMapInstance.renderer?.root);
+    if (typeof this.mindMapInstance.reRender === 'function') {
+      this.mindMapInstance.reRender();
+    } else if (typeof this.mindMapInstance.render === 'function') {
+      this.mindMapInstance.render();
+    }
+
+    const preview = this.container.querySelector('#preview-global-font-size');
+    if (preview) preview.textContent = String(size);
+
+    this.saveSync();
+  }
+
+  /**
+   * Aplica un nuevo color de texto de forma general a todo el mapa mental
+   */
+  public applyGlobalFontColor(color: string): void {
+    if (!this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    const curThemeConfig = (typeof this.mindMapInstance?.getCustomThemeConfig === 'function' 
+      ? this.mindMapInstance.getCustomThemeConfig() 
+      : this.mindMapInstance?.opt?.themeConfig) || {};
+
+    const updatedThemeConfig = {
+      ...curThemeConfig,
+      root: { ...(curThemeConfig.root || {}), color },
+      second: { ...(curThemeConfig.second || {}), color },
+      node: { ...(curThemeConfig.node || {}), color }
+    };
+
+    if (typeof this.mindMapInstance?.setThemeConfig === 'function') {
+      this.mindMapInstance.setThemeConfig(updatedThemeConfig, true);
+    } else if (typeof this.mindMapInstance?.theme?.setThemeConfig === 'function') {
+      this.mindMapInstance.theme.setThemeConfig(updatedThemeConfig, true);
+    }
+
+    const traverse = (node: any) => {
+      if (!node) return;
+      this.mindMapInstance.execCommand('SET_NODE_STYLES', node, {
+        color
+      });
+      if (node.nodeData?.data) {
+        node.nodeData.data.color = color;
+      }
+      if (typeof node.reRender === 'function') {
+        node.reRender();
+      }
+      if (node.children && Array.isArray(node.children)) {
+        node.children.forEach(traverse);
+      }
+    };
+
+    traverse(this.mindMapInstance.renderer?.root);
+    if (typeof this.mindMapInstance.reRender === 'function') {
+      this.mindMapInstance.reRender();
+    } else if (typeof this.mindMapInstance.render === 'function') {
+      this.mindMapInstance.render();
+    }
+
+    const preview = this.container.querySelector('#preview-global-font-color') as HTMLElement | null;
+    if (preview) {
+      preview.style.background = color;
+      preview.style.borderColor = color === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+    }
+
+    this.saveSync();
+  }
+
   private updateDockButtons(hasActiveNode: boolean): void {
-    const ids = ['#btn-node-child', '#btn-node-sibling', '#btn-node-edit', '#btn-node-delete'];
+    const ids = ['#btn-node-dropdown-child', '#btn-node-dropdown-sibling', '#btn-node-dropdown-delete', '#btn-inherit-color-children'];
     ids.forEach((id) => {
       const btn = this.container.querySelector(id) as HTMLButtonElement | null;
       if (btn) btn.disabled = !hasActiveNode;
@@ -3051,10 +3374,17 @@ export class UltraFastMindMap {
       const json = JSON.stringify(data);
       if (this.config.storageKey) {
         localStorage.setItem(this.config.storageKey, json);
+        const metaLineColor = this.mindMapInstance.themeConfig?.lineColor;
+        const metaFontSize = this.container.querySelector('#preview-global-font-size')?.textContent;
+        const metaFontColor = (this.container.querySelector('#preview-global-font-color') as HTMLElement)?.style.background;
+
         localStorage.setItem(`${this.config.storageKey}_meta`, JSON.stringify({
           layout: this.currentLayout,
           theme: this.currentTheme,
           globalInvisibleBoxes: this.globalInvisibleBoxes,
+          lineColor: metaLineColor,
+          globalFontSize: metaFontSize,
+          globalFontColor: metaFontColor,
           updatedAt: Date.now()
         }));
       }
