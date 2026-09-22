@@ -1013,11 +1013,15 @@ export class UltraFastMindMap {
         div.style.display = 'flex';
         div.style.flexDirection = 'column';
         div.style.alignItems = 'center';
+        div.style.justifyContent = 'center';
         div.style.textAlign = 'center';
         div.style.maxWidth = '360px';
+        div.style.minWidth = '76px';
+        div.style.minHeight = '36px';
+        div.style.boxSizing = 'border-box';
         div.style.wordBreak = 'break-word';
         div.style.whiteSpace = 'pre-wrap';
-        div.style.padding = '6px 10px';
+        div.style.padding = '6px 12px';
 
         // 📷 Renderizado de Foto en el Recuadro con Proporción Completa (Zero Cropping)
         if (image) {
@@ -1070,14 +1074,20 @@ export class UltraFastMindMap {
         }
 
         // ✍️ Renderizado de Texto Multilínea (Respetando saltos de línea con Enter)
-        const textStr = String(text);
+        const textStr = (text === undefined || text === null) ? '' : String(text);
+        const cleanText = textStr.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
         const textEl = document.createElement('div');
         textEl.className = 'eureka-node-text-rendered';
         textEl.style.whiteSpace = 'pre-wrap';
         textEl.style.wordBreak = 'break-word';
         textEl.style.width = '100%';
+        textEl.style.minHeight = '1.3em';
+        textEl.style.minWidth = '48px';
+        textEl.style.display = 'inline-block';
 
-        if (textStr.includes('class="katex"') || textStr.includes("<span class='katex'")) {
+        if (!cleanText && !image) {
+          textEl.innerHTML = '<span class="eureka-node-placeholder">Escribe aquí...</span>';
+        } else if (textStr.includes('class="katex"') || textStr.includes("<span class='katex'")) {
           textEl.innerHTML = textStr;
         } else {
           textEl.innerHTML = katexService.parseAndRender(textStr);
@@ -1977,15 +1987,21 @@ export class UltraFastMindMap {
       // 1. Actualizar inmediatamente en el mapa mental en vivo
       if (this.activeNode && this.mindMapInstance) {
         if (typeof this.activeNode.setData === 'function') {
-          this.activeNode.setData({ text: text || ' ', rawText: text });
+          this.activeNode.setData({ text: text, rawText: text });
         } else if (this.activeNode.nodeData?.data) {
-          this.activeNode.nodeData.data.text = text || ' ';
+          this.activeNode.nodeData.data.text = text;
           this.activeNode.nodeData.data.rawText = text;
         }
-        if (typeof this.mindMapInstance.render === 'function') {
+        try {
+          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, text);
+        } catch {}
+        if (typeof this.activeNode.reRender === 'function') {
+          this.activeNode.reRender();
+        }
+        if (typeof this.mindMapInstance.reRender === 'function') {
+          this.mindMapInstance.reRender();
+        } else if (typeof this.mindMapInstance.render === 'function') {
           this.mindMapInstance.render();
-        } else {
-          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, text || ' ');
         }
       }
 
@@ -2036,16 +2052,23 @@ export class UltraFastMindMap {
       const text = input.value;
       if (this.activeNode && this.mindMapInstance) {
         if (typeof this.activeNode.setData === 'function') {
-          this.activeNode.setData({ text: text || ' ', rawText: text });
+          this.activeNode.setData({ text: text, rawText: text });
         } else if (this.activeNode.nodeData?.data) {
-          this.activeNode.nodeData.data.text = text || ' ';
+          this.activeNode.nodeData.data.text = text;
           this.activeNode.nodeData.data.rawText = text;
         }
 
-        if (typeof this.mindMapInstance.render === 'function') {
+        try {
+          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, text);
+        } catch {}
+
+        if (typeof this.activeNode.reRender === 'function') {
+          this.activeNode.reRender();
+        }
+        if (typeof this.mindMapInstance.reRender === 'function') {
+          this.mindMapInstance.reRender();
+        } else if (typeof this.mindMapInstance.render === 'function') {
           this.mindMapInstance.render();
-        } else {
-          this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, text || ' ');
         }
         this.triggerHaptic();
         this.scheduleDebouncedSave();
@@ -2725,6 +2748,9 @@ export class UltraFastMindMap {
     } else {
       currentText = currentText.replace(/<br\s*\/?>/gi, '\n');
     }
+    if (currentText.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() === '') {
+      currentText = '';
+    }
 
     // 2. Obtener el elemento de texto renderizado en el nodo SVG
     const groupNode = node.group?.node as SVGGraphicsElement | null;
@@ -2792,8 +2818,8 @@ export class UltraFastMindMap {
       const offsetW = customNodeEl.offsetWidth ? customNodeEl.offsetWidth + padX : 0;
       const offsetH = customNodeEl.offsetHeight ? customNodeEl.offsetHeight + padY : 0;
 
-      neededW = Math.max(neededW, scrollW, offsetW, 64);
-      neededH = Math.max(neededH, scrollH, offsetH, 34);
+      neededW = Math.max(neededW, scrollW, offsetW, 76);
+      neededH = Math.max(neededH, scrollH, offsetH, 36);
 
       // Asignar al nodo para que el shape y el motor geométrico usen estas dimensiones exactas
       node.width = neededW;
@@ -2855,19 +2881,20 @@ export class UltraFastMindMap {
       textRenderedEl.contentEditable = 'false';
       customNodeEl.classList.remove('is-editing');
 
-      const newText = save ? (textRenderedEl.innerText.trim() || ' ') : currentText;
+      const rawVal = textRenderedEl.innerText || '';
+      const newText = save ? (rawVal.trim() === '' ? '' : rawVal.trim()) : currentText;
 
       if (this.activeNode && this.mindMapInstance) {
+        if (typeof this.activeNode.setData === 'function') {
+          this.activeNode.setData({ text: newText, rawText: newText });
+        } else if (this.activeNode.nodeData?.data) {
+          this.activeNode.nodeData.data.text = newText;
+          this.activeNode.nodeData.data.rawText = newText;
+        }
+
         try {
           this.mindMapInstance.execCommand('SET_NODE_TEXT', this.activeNode, newText);
-        } catch {
-          if (typeof this.activeNode.setData === 'function') {
-            this.activeNode.setData({ text: newText, rawText: newText });
-          } else if (this.activeNode.nodeData?.data) {
-            this.activeNode.nodeData.data.text = newText;
-            this.activeNode.nodeData.data.rawText = newText;
-          }
-        }
+        } catch {}
 
         if (typeof this.activeNode.reRender === 'function') {
           this.activeNode.reRender();

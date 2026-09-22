@@ -536,4 +536,46 @@ g:has(.eureka-mindmap-custom-node.is-editing) .smm-expand-btn,
   color: #f8fafc;
 }
 
+/* Nodo con texto vacío: garantizar que el recuadro nunca colapse ni desaparezca */
+.eureka-mindmap-custom-node {
+  min-width: 76px !important;
+  min-height: 36px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.eureka-node-placeholder {
+  opacity: 0.45 !important;
+  font-style: italic !important;
+  font-size: 0.88em !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  display: inline-block !important;
+  white-space: nowrap !important;
+}
+
+.eureka-node-text-rendered {
+  min-height: 1.3em;
+}
+
+.eureka-node-text-rendered[contenteditable="true"] {
+  outline: none !important;
+  min-width: 48px;
+  min-height: 1.3em;
+  display: inline-block;
+}
+
+.eureka-node-text-rendered[contenteditable="true"]:empty::before {
+  content: 'Escribe aquí...';
+  opacity: 0.38 !important;
+  font-style: italic !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  display: inline-block !important;
+}
+
+
 
