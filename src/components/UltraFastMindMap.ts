@@ -722,6 +722,7 @@ export class UltraFastMindMap {
                 <button type="button" class="color-dot-btn" data-text-color="#fbbf24" style="background:#fbbf24;" title="Dorado"></button>
                 <button type="button" class="color-dot-btn" data-text-color="#f472b6" style="background:#f472b6;" title="Rosa"></button>
                 <button type="button" class="color-dot-btn" data-text-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
+                <button type="button" class="color-dot-btn" data-text-color="#0f172a" style="background:#0f172a; border:1px solid #94a3b8;" title="Oscuro / Negro"></button>
               </div>
             </div>
 
@@ -991,7 +992,17 @@ export class UltraFastMindMap {
           }
         }
         const customColor = typeof node.getStyle === 'function' ? node.getStyle('color', false) : null;
-        const color = customColor || defaultTextColor;
+        let color = customColor || defaultTextColor;
+
+        // Inversión automática según el modo de fondo del lienzo
+        if (this.canvasBgMode === 'light' && this.isWhiteOrLightTextColor(color)) {
+          if (!nodeFill || nodeFill === 'transparent' || nodeFill === '#ffffff' || nodeFill === '#f8fafc') {
+            color = '#0f172a';
+          }
+        } else if (this.canvasBgMode === 'dark' && this.isBlackOrDarkTextColor(color)) {
+          color = '#f8fafc';
+        }
+
         const fontSize = (typeof node.getStyle === 'function' ? node.getStyle('fontSize', false) : null) || 14;
         const fontWeight = (typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : null) || 'normal';
 
@@ -2505,7 +2516,72 @@ export class UltraFastMindMap {
   }
 
   /**
-   * Conmuta el modo de fondo del lienzo (claro / oscuro) y lo persiste
+   * Determina si un color de texto es considerado blanco o tono muy claro (cercano al blanco)
+   */
+  private isWhiteOrLightTextColor(color?: string | null): boolean {
+    if (!color) return true;
+    const c = color.trim().toLowerCase();
+    if (['#ffffff', '#fff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#f0f9ff', '#faf5ff', '#ecfdf5', '#fffbeb', '#fff1f2', 'white'].includes(c)) {
+      return true;
+    }
+    if (c.startsWith('#')) {
+      let r = 255, g = 255, b = 255;
+      if (c.length === 7) {
+        r = parseInt(c.slice(1, 3), 16);
+        g = parseInt(c.slice(3, 5), 16);
+        b = parseInt(c.slice(5, 7), 16);
+      } else if (c.length === 4) {
+        r = parseInt(c[1] + c[1], 16);
+        g = parseInt(c[2] + c[2], 16);
+        b = parseInt(c[3] + c[3], 16);
+      }
+      return r >= 195 && g >= 195 && b >= 195;
+    }
+    const rgbMatch = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (rgbMatch) {
+      const r = Number(rgbMatch[1]);
+      const g = Number(rgbMatch[2]);
+      const b = Number(rgbMatch[3]);
+      return r >= 195 && g >= 195 && b >= 195;
+    }
+    return false;
+  }
+
+  /**
+   * Determina si un color de texto es considerado negro o tono muy oscuro (cercano al negro)
+   */
+  private isBlackOrDarkTextColor(color?: string | null): boolean {
+    if (!color) return false;
+    const c = color.trim().toLowerCase();
+    if (['#000000', '#000', '#0f172a', '#1e293b', '#334155', '#111827', '#18181b', '#09090b', 'black'].includes(c)) {
+      return true;
+    }
+    if (c.startsWith('#')) {
+      let r = 0, g = 0, b = 0;
+      if (c.length === 7) {
+        r = parseInt(c.slice(1, 3), 16);
+        g = parseInt(c.slice(3, 5), 16);
+        b = parseInt(c.slice(5, 7), 16);
+      } else if (c.length === 4) {
+        r = parseInt(c[1] + c[1], 16);
+        g = parseInt(c[2] + c[2], 16);
+        b = parseInt(c[3] + c[3], 16);
+      }
+      return r <= 65 && g <= 65 && b <= 65;
+    }
+    const rgbMatch = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (rgbMatch) {
+      const r = Number(rgbMatch[1]);
+      const g = Number(rgbMatch[2]);
+      const b = Number(rgbMatch[3]);
+      return r <= 65 && g <= 65 && b <= 65;
+    }
+    return false;
+  }
+
+  /**
+   * Conmuta el modo de fondo del lienzo (claro / oscuro), invierte automáticamente
+   * los colores de texto blanco <-> negro según el modo, y persiste el estado.
    */
   public setCanvasBackgroundMode(mode: 'dark' | 'light'): void {
     this.canvasBgMode = mode;
@@ -2514,6 +2590,8 @@ export class UltraFastMindMap {
     // Sincronizar clases en el contenedor raíz del modal
     this.container.classList.toggle('theme-light', mode === 'light');
     this.container.classList.toggle('theme-dark', mode === 'dark');
+
+    const defaultTextColor = mode === 'light' ? '#0f172a' : '#f8fafc';
 
     // Sincronizar configuración visual completa del árbol en SimpleMindMap
     if (this.mindMapInstance && typeof this.mindMapInstance.setThemeConfig === 'function') {
@@ -2548,11 +2626,60 @@ export class UltraFastMindMap {
         this.mindMapInstance.setThemeConfig({
           backgroundColor: darkTheme.backgroundColor || '#07080d',
           lineColor: darkTheme.lineColor || '#0284c7',
-          root: darkTheme.root,
-          second: darkTheme.second,
-          node: darkTheme.node
+          root: { ...(darkTheme.root || {}), color: '#f8fafc' },
+          second: { ...(darkTheme.second || {}), color: '#f8fafc' },
+          node: { ...(darkTheme.node || {}), color: '#f8fafc' }
         });
       }
+    }
+
+    // Invertir automáticamente los colores de texto de todos los nodos del árbol:
+    // Modo Claro: todas las letras blancas/claras pasan a negro (#0f172a)
+    // Modo Oscuro: todas las letras negras/oscuras pasan a blanco (#f8fafc)
+    if (this.mindMapInstance?.renderer?.root) {
+      const traverseInvert = (node: any) => {
+        if (!node) return;
+        const curColor = (typeof node.getStyle === 'function' ? node.getStyle('color', false) : null) || node.nodeData?.data?.color;
+        let shouldInvert = false;
+        let newColor = defaultTextColor;
+
+        if (mode === 'light') {
+          // Si la letra es blanca o clara, convertir a negro
+          if (!curColor || this.isWhiteOrLightTextColor(curColor)) {
+            shouldInvert = true;
+            newColor = '#0f172a';
+          }
+        } else {
+          // Si la letra es negra u oscura, convertir a blanco
+          if (!curColor || this.isBlackOrDarkTextColor(curColor)) {
+            shouldInvert = true;
+            newColor = '#f8fafc';
+          }
+        }
+
+        if (shouldInvert) {
+          try {
+            this.mindMapInstance.execCommand('SET_NODE_STYLES', node, { color: newColor });
+          } catch {}
+          if (node.nodeData?.data) {
+            node.nodeData.data.color = newColor;
+          }
+          if (typeof node.reRender === 'function') {
+            node.reRender();
+          }
+        }
+
+        if (node.children && Array.isArray(node.children)) {
+          node.children.forEach(traverseInvert);
+        }
+      };
+
+      traverseInvert(this.mindMapInstance.renderer.root);
+    }
+
+    if (typeof this.mindMapInstance?.reRender === 'function') {
+      this.mindMapInstance.reRender();
+    } else if (typeof this.mindMapInstance?.render === 'function') {
       this.mindMapInstance.render();
     }
 
@@ -2560,10 +2687,20 @@ export class UltraFastMindMap {
     try {
       localStorage.setItem('eureka_mindmap_canvas_bg_mode', mode);
     } catch {}
+
     const preview = this.container.querySelector('#preview-canvas-mode');
     if (preview) {
       preview.textContent = mode === 'light' ? '☀️' : '🌙';
     }
+
+    const previewGlobalFont = this.container.querySelector('#preview-global-font-color') as HTMLElement | null;
+    if (previewGlobalFont) {
+      previewGlobalFont.style.background = defaultTextColor;
+      previewGlobalFont.style.borderColor = defaultTextColor === '#f8fafc' ? 'rgba(255,255,255,0.4)' : 'transparent';
+    }
+
+    this.updateNodeDropdownUI();
+    this.saveSync();
   }
 
   /**
@@ -2598,6 +2735,17 @@ export class UltraFastMindMap {
 
     this.isEditingText = true;
 
+    // Ocultar e inhabilitar temporalmente el botón de expandir (+) para que NUNCA se superponga mientras se escribe
+    const originalShowExpandBtn = (node as any).showExpandBtn;
+    (node as any).showExpandBtn = () => {};
+    if (typeof (node as any).removeExpandBtn === 'function') {
+      (node as any).removeExpandBtn();
+    } else if ((node as any)._expandBtn) {
+      try {
+        (node as any)._expandBtn.remove();
+      } catch {}
+    }
+
     // Activar edición in-place directamente en el mismo elemento sin duplicados ni desplazamientos
     customNodeEl.classList.add('is-editing');
     textRenderedEl.contentEditable = 'true';
@@ -2616,24 +2764,73 @@ export class UltraFastMindMap {
 
     textRenderedEl.focus();
 
-    // Auto-ajustar en tiempo real mientras el usuario escribe: solo actualizar atributos SVG sin recrear el DOM
+    // Auto-ajustar en tiempo real mientras el usuario escribe:
+    // Expande el recuadro geométricamente para contener todas las líneas sin ningún desborde
     const onInput = () => {
-      if (customNodeEl && groupNode) {
-        const currentW = Math.max(customNodeEl.offsetWidth + 24, 60);
-        const currentH = Math.max(customNodeEl.offsetHeight + 14, 32);
-        const fo = groupNode.querySelector('foreignObject');
-        const rect = groupNode.querySelector('rect');
-        if (fo) {
-          fo.setAttribute('width', String(currentW));
-          fo.setAttribute('height', String(currentH));
-        }
-        if (rect) {
-          rect.setAttribute('width', String(currentW));
-          rect.setAttribute('height', String(currentH));
-        }
+      if (!customNodeEl || !groupNode || !this.activeNode) return;
+
+      // Medir ancho y alto requeridos
+      let neededW = 0;
+      let neededH = 0;
+
+      if (typeof (node as any).measureCustomNodeContentSize === 'function') {
+        try {
+          const clone = customNodeEl.cloneNode(true) as HTMLElement;
+          const size = (node as any).measureCustomNodeContentSize(clone);
+          if (size && size.width > 0 && size.height > 0) {
+            neededW = Math.ceil(size.width);
+            neededH = Math.ceil(size.height);
+          }
+        } catch {}
+      }
+
+      // Medir con scroll y offset del elemento DOM activo para asegurar que jamás sobresalga texto
+      const padX = 14;
+      const padY = 10;
+      const scrollW = customNodeEl.scrollWidth ? customNodeEl.scrollWidth + padX : 0;
+      const scrollH = customNodeEl.scrollHeight ? customNodeEl.scrollHeight + padY : 0;
+      const offsetW = customNodeEl.offsetWidth ? customNodeEl.offsetWidth + padX : 0;
+      const offsetH = customNodeEl.offsetHeight ? customNodeEl.offsetHeight + padY : 0;
+
+      neededW = Math.max(neededW, scrollW, offsetW, 64);
+      neededH = Math.max(neededH, scrollH, offsetH, 34);
+
+      // Asignar al nodo para que el shape y el motor geométrico usen estas dimensiones exactas
+      node.width = neededW;
+      node.height = neededH;
+
+      // Actualizar shape y foreignObject en tiempo real
+      if (typeof (node as any).customNodeContentRealtimeLayout === 'function') {
+        (node as any).customNodeContentRealtimeLayout();
+      }
+
+      // Asegurar que foreignObject tenga las dimensiones exactas
+      const fo = groupNode.querySelector('foreignObject');
+      if (fo) {
+        fo.setAttribute('width', String(neededW));
+        fo.setAttribute('height', String(neededH));
+      }
+
+      // Asegurar que el shape SVG (.smm-node-shape) coincida al 100% con el contenido
+      const shapePath = groupNode.querySelector('.smm-node-shape') as SVGPathElement | null;
+      if (shapePath) {
+        const r = 8;
+        const d = `M${r},0 L${neededW - r},0 C${neededW - r},0 ${neededW},0 ${neededW},${r} L${neededW},${neededH - r} C${neededW},${neededH - r} ${neededW},${neededH} ${neededW - r},${neededH} L${r},${neededH} C${r},${neededH} 0,${neededH} 0,${neededH - r} L0,${r} C0,${r} 0,0 ${r},0 Z`;
+        shapePath.setAttribute('d', d);
+      }
+
+      // Mantener conectores spline alineados con el nuevo borde del recuadro
+      if (node.parent && typeof node.parent.renderLine === 'function') {
+        node.parent.renderLine();
+      }
+      if (typeof node.renderLine === 'function') {
+        node.renderLine();
       }
     };
+
     textRenderedEl.addEventListener('input', onInput);
+    // Ejecutar inmediatamente para ajustar el recuadro al texto inicial si es multilínea
+    onInput();
 
     // Evitar que hacer clic o arrastrar en el texto dispare el paneo del lienzo SimpleMindMap
     const stopProp = (e: Event) => e.stopPropagation();
@@ -2645,6 +2842,9 @@ export class UltraFastMindMap {
       if (isCommitted) return;
       isCommitted = true;
       this.isEditingText = false;
+
+      // Restaurar el botón expandir
+      (node as any).showExpandBtn = originalShowExpandBtn;
 
       textRenderedEl.removeEventListener('input', onInput);
       textRenderedEl.removeEventListener('keydown', onKeyDown);
@@ -2678,6 +2878,12 @@ export class UltraFastMindMap {
           this.mindMapInstance.render();
         }
 
+        if (typeof (this.activeNode as any).renderExpandBtn === 'function' && typeof (this.activeNode as any).getChildrenLength === 'function' && (this.activeNode as any).getChildrenLength() > 0 && !this.activeNode.isRoot) {
+          try {
+            (this.activeNode as any).renderExpandBtn();
+          } catch {}
+        }
+
         // Mantener el nodo seleccionado y activo para que al pulsar Hijo (Tab) o Hermano (Enter) funcione de inmediato
         const savedNode = this.activeNode;
         setTimeout(() => {
@@ -2688,6 +2894,7 @@ export class UltraFastMindMap {
             }
             this.activeNode = savedNode;
             this.updateNodeDropdownUI();
+            this.updateDockButtons(true);
           }
         }, 40);
 

@@ -521,3 +521,19 @@
   display: none !important;
 }
 
+/* Ocultar el botón expandir (+) mientras el nodo se está editando activamente */
+.smm-node-container .is-editing ~ .smm-expand-btn,
+g:has(.eureka-mindmap-custom-node.is-editing) .smm-expand-btn,
+.smm-expand-btn.is-editing-hidden {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* En modo oscuro, asegurar legibilidad cristalina del texto */
+.mindmap-viewport-wrapper.theme-dark .eureka-mindmap-custom-node {
+  color: #f8fafc;
+}
+
+
