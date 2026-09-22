@@ -180,17 +180,17 @@ export class SimpleMindMapAdapter {
     if (!node) return this.mindMap.themeConfig?.lineColor || MINDMEISTER_SPECTRAL_PALETTE[0];
     if (node.isRoot) return this.mindMap.themeConfig?.lineColor || '#94a3b8';
 
-    // 1. Si el propio nodo tiene branchColor, lineColor o borderColor definido
+    // 1. Si el propio nodo tiene branchColor o lineColor explícito para su línea
     const customColor = typeof node.getData === 'function' 
-      ? (node.getData('branchColor') || node.getData('lineColor') || node.getData('borderColor')) 
+      ? (node.getData('branchColor') || node.getData('lineColor')) 
       : null;
     if (customColor && customColor !== 'transparent') return customColor;
 
-    // 2. Rastrear hacia arriba en la jerarquía: si cualquier ancestro tiene un color personalizado, heredarlo
+    // 2. Rastrear hacia arriba en la jerarquía: si cualquier ancestro tiene un color de línea/rama personalizado, heredarlo
     let current = node.parent;
     while (current && !current.isRoot) {
       const parentColor = typeof current.getData === 'function' 
-        ? (current.getData('branchColor') || current.getData('lineColor') || current.getData('borderColor')) 
+        ? (current.getData('branchColor') || current.getData('lineColor')) 
         : null;
       if (parentColor && parentColor !== 'transparent') {
         return parentColor;

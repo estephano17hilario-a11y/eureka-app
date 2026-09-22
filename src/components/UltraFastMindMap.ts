@@ -416,6 +416,8 @@ export class UltraFastMindMap {
   public activeDropdown: 'map' | 'node' | null = null;
   private canvasBgMode: 'dark' | 'light' = 'dark';
   public globalInvisibleBoxes: boolean = false;
+  private globalFontFamily: string = 'Inter, sans-serif';
+  private nodeFillEnabled: boolean = false;
 
   constructor(container: HTMLElement, config: MindMapConfig = {}) {
     this.container = container;
@@ -429,6 +431,13 @@ export class UltraFastMindMap {
       onSave: config.onSave,
       onBack: config.onBack
     };
+
+    try {
+      const savedFont = localStorage.getItem('eureka_mindmap_font_family');
+      if (savedFont) this.globalFontFamily = savedFont;
+      const savedFill = localStorage.getItem('eureka_mindmap_node_fill_enabled');
+      if (savedFill !== null) this.nodeFillEnabled = savedFill === 'true';
+    } catch {}
 
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeunload', () => this.saveSync());
@@ -501,14 +510,14 @@ export class UltraFastMindMap {
             </div>
           </div>
 
-          <!-- LOS 2 BOTONES CHICOS SOLICITADOS (SIN NOMBRES): '🗺️' Y '🔲' -->
+          <!-- LOS 2 BOTONES PRINCIPALES: '🗺️' Y '🔤' -->
           <div class="mindmap-top-two-buttons">
             <button class="mindmap-header-action-pill mindmap-icon-only-pill" id="btn-toggle-menu-map" title="Configuración del mapa">
               <span class="pill-icon">🗺️</span>
               <span class="pill-chevron">▾</span>
             </button>
-            <button class="mindmap-header-action-pill mindmap-icon-only-pill" id="btn-toggle-menu-node" title="Configuración del recuadro">
-              <span class="pill-icon">🔲</span>
+            <button class="mindmap-header-action-pill mindmap-icon-only-pill" id="btn-toggle-menu-node" title="Estilo y Tipografía">
+              <span class="pill-icon">🔤</span>
               <span class="pill-chevron">▾</span>
             </button>
           </div>
@@ -526,9 +535,9 @@ export class UltraFastMindMap {
         <!-- Input Oculto para Cargar Fotos en los Recuadros -->
         <input type="file" id="mindmap-photo-file-input" accept="image/*" style="display:none;" />
 
-        <!-- Panel Desplegable: 'MAPA' (Ultra Compacto: Solo Emojis y Círculos) -->
+        <!-- 1. Panel Desplegable: 'MAPA' (Lienzo, Estructura y Fondo) -->
         <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-map" style="display:none;">
-          <!-- 1. Esquema: Solo Emoji -->
+          <!-- Esquema: Solo Emoji -->
           <div class="dropdown-h-group popover-anchor">
             <button type="button" class="compact-trigger-pill" id="btn-trigger-layout" title="Tipo de esquema">
               <span class="trigger-val-emoji" id="preview-layout-emoji">${this.getLayoutEmoji(this.currentLayout)}</span>
@@ -548,53 +557,43 @@ export class UltraFastMindMap {
 
           <div class="dropdown-h-divider"></div>
 
-          <!-- 2. Fondo: Solo Emoji -->
+          <!-- Modo Fondo Claro / Oscuro -->
           <div class="dropdown-h-group popover-anchor">
-            <button type="button" class="compact-trigger-pill" id="btn-trigger-theme" title="Tema de fondo">
-              <span class="trigger-val-emoji" id="preview-theme-emoji">${this.getThemeEmoji(this.currentTheme)}</span>
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-canvas-mode" title="Modo de Fondo: Claro / Oscuro">
+              <span class="trigger-val-emoji" id="preview-canvas-mode">${this.canvasBgMode === 'light' ? '☀️' : '🌙'}</span>
               <span class="mini-chevron">▾</span>
             </button>
-            <div class="popover-bubble popover-grid-theme" id="popover-theme" style="display:none;">
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'minimalOutline' ? 'active' : ''}" data-theme="minimalOutline" title="Minimalista / Invisible">✨</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'cyberDark' ? 'active' : ''}" data-theme="cyberDark" title="Cyber">🌌</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'oceanBlue' ? 'active' : ''}" data-theme="oceanBlue" title="Ocean">🌊</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'bioEmerald' ? 'active' : ''}" data-theme="bioEmerald" title="Bio">🍃</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'midnightPurple' ? 'active' : ''}" data-theme="midnightPurple" title="Purple">🔮</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'obsidianGold' ? 'active' : ''}" data-theme="obsidianGold" title="Gold">⚡</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'draculaNeon' ? 'active' : ''}" data-theme="draculaNeon" title="Dracula">🧛</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'nordArctic' ? 'active' : ''}" data-theme="nordArctic" title="Nord">❄️</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'sunsetCrimson' ? 'active' : ''}" data-theme="sunsetCrimson" title="Sunset">🌅</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'sakuraRose' ? 'active' : ''}" data-theme="sakuraRose" title="Sakura">🌸</button>
-              <button type="button" class="popover-item-emoji ${this.currentTheme === 'cleanOled' ? 'active' : ''}" data-theme="cleanOled" title="OLED">🖤</button>
+            <div class="popover-bubble" id="popover-canvas-mode" style="display:none;">
+              <button type="button" class="popover-item-emoji ${this.canvasBgMode === 'dark' ? 'active' : ''}" data-canvas-mode="dark" title="Fondo Oscuro">🌙</button>
+              <button type="button" class="popover-item-emoji ${this.canvasBgMode === 'light' ? 'active' : ''}" data-canvas-mode="light" title="Fondo Claro">☀️</button>
             </div>
           </div>
 
           <div class="dropdown-h-divider"></div>
 
-          <!-- 3. Color Recuadros: Solo Círculo de Color -->
+          <!-- Color de Fondo del Lienzo Personalizado -->
           <div class="dropdown-h-group popover-anchor">
-            <button type="button" class="compact-trigger-pill" id="btn-trigger-global-color" title="Color de recuadros">
-              <span class="color-dot-circle" id="preview-global-color" style="background:#0ea5e9;"></span>
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-canvas-color" title="Color de fondo del mapa">
+              <span style="font-size:11px; margin-right:2px;">🎨</span>
+              <span class="color-dot-circle" id="preview-canvas-color" style="background:${this.canvasBgMode === 'light' ? '#f8fafc' : '#090d16'}; border:1px solid rgba(255,255,255,0.3);"></span>
               <span class="mini-chevron">▾</span>
             </button>
-            <div class="popover-bubble" id="popover-global-color" style="display:none;">
-              <button type="button" class="color-dot-btn mm-swatch-transparent" data-color="transparent" style="background:transparent; border:1.5px dashed rgba(255,255,255,0.6); display:flex; align-items:center; justify-content:center;" title="Todo Invisible / Sin Recuadros (Existentes y Futuros)">
-                <span style="font-size:10px; line-height:1;">🚫</span>
-              </button>
-              <button type="button" class="color-dot-btn" data-color="blue" style="background:#0ea5e9;" title="Cyan"></button>
-              <button type="button" class="color-dot-btn" data-color="purple" style="background:#a855f7;" title="Violeta"></button>
-              <button type="button" class="color-dot-btn" data-color="emerald" style="background:#10b981;" title="Esmeralda"></button>
-              <button type="button" class="color-dot-btn" data-color="amber" style="background:#f59e0b;" title="Ámbar"></button>
-              <button type="button" class="color-dot-btn" data-color="rose" style="background:#ec4899;" title="Rosa"></button>
-              <button type="button" class="color-dot-btn" data-color="dark" style="background:#334155;" title="Pizarra"></button>
+            <div class="popover-bubble" id="popover-canvas-color" style="display:none;">
+              <button type="button" class="color-dot-btn" data-canvas-bg="#090d16" style="background:#090d16; border:1px solid #334155;" title="Noche"></button>
+              <button type="button" class="color-dot-btn" data-canvas-bg="#000000" style="background:#000000; border:1px solid #334155;" title="OLED"></button>
+              <button type="button" class="color-dot-btn" data-canvas-bg="#0f172a" style="background:#0f172a; border:1px solid #334155;" title="Pizarra"></button>
+              <button type="button" class="color-dot-btn" data-canvas-bg="#1e1e2e" style="background:#1e1e2e; border:1px solid #334155;" title="Catppuccin"></button>
+              <button type="button" class="color-dot-btn" data-canvas-bg="#f8fafc" style="background:#f8fafc; border:1px solid #94a3b8;" title="Blanco Hielo"></button>
+              <button type="button" class="color-dot-btn" data-canvas-bg="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco Puro"></button>
+              <button type="button" class="color-dot-btn" data-canvas-bg="#fef3c7" style="background:#fef3c7; border:1px solid #94a3b8;" title="Papel Crema"></button>
             </div>
           </div>
 
           <div class="dropdown-h-divider"></div>
 
-          <!-- Color de Vectores / Líneas de Conexión General -->
+          <!-- Color General de Líneas Conectoras (Vectores) -->
           <div class="dropdown-h-group popover-anchor">
-            <button type="button" class="compact-trigger-pill" id="btn-trigger-line-color" title="Color general de vectores / líneas">
+            <button type="button" class="compact-trigger-pill" id="btn-trigger-line-color" title="Color general de líneas / vectores">
               <span style="font-size:11px; margin-right:2px;">〰️</span>
               <span class="color-dot-circle" id="preview-line-color" style="background:#0ea5e9;"></span>
               <span class="mini-chevron">▾</span>
@@ -612,68 +611,16 @@ export class UltraFastMindMap {
 
           <div class="dropdown-h-divider"></div>
 
-          <!-- Tamaño de Letra General (Con Advertencia) -->
-          <div class="dropdown-h-group popover-anchor">
-            <button type="button" class="compact-trigger-pill" id="btn-trigger-global-font-size" title="Tamaño de letra general (todo el mapa)">
-              <span style="font-size:10px; font-weight:700; color:var(--f-text-secondary); margin-right:2px;">A</span>
-              <span class="trigger-val-num" id="preview-global-font-size">14</span>
-              <span class="mini-chevron">▾</span>
-            </button>
-            <div class="popover-bubble" id="popover-global-font-size" style="display:none;">
-              <button type="button" class="popover-item-number" data-global-size="12">12</button>
-              <button type="button" class="popover-item-number active" data-global-size="14">14</button>
-              <button type="button" class="popover-item-number" data-global-size="16">16</button>
-              <button type="button" class="popover-item-number" data-global-size="18">18</button>
-              <button type="button" class="popover-item-number" data-global-size="22">22</button>
-            </div>
-          </div>
-
-          <div class="dropdown-h-divider"></div>
-
-          <!-- Color de Letra General (Con Advertencia) -->
-          <div class="dropdown-h-group popover-anchor">
-            <button type="button" class="compact-trigger-pill" id="btn-trigger-global-font-color" title="Color de texto general (todo el mapa)">
-              <span style="font-size:10px; font-weight:700; margin-right:2px;">T</span>
-              <span class="color-dot-circle" id="preview-global-font-color" style="background:#ffffff; border:1px solid rgba(255,255,255,0.4);"></span>
-              <span class="mini-chevron">▾</span>
-            </button>
-            <div class="popover-bubble" id="popover-global-font-color" style="display:none;">
-              <button type="button" class="color-dot-btn" data-global-text-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
-              <button type="button" class="color-dot-btn" data-global-text-color="#38bdf8" style="background:#38bdf8;" title="Cyan"></button>
-              <button type="button" class="color-dot-btn" data-global-text-color="#34d399" style="background:#34d399;" title="Verde"></button>
-              <button type="button" class="color-dot-btn" data-global-text-color="#fbbf24" style="background:#fbbf24;" title="Dorado"></button>
-              <button type="button" class="color-dot-btn" data-global-text-color="#f472b6" style="background:#f472b6;" title="Rosa"></button>
-              <button type="button" class="color-dot-btn" data-global-text-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
-              <button type="button" class="color-dot-btn" data-global-text-color="#0f172a" style="background:#0f172a; border:1px solid #94a3b8;" title="Oscuro"></button>
-            </div>
-          </div>
-
-          <div class="dropdown-h-divider"></div>
-
-          <!-- 3b. Botón Directo: Todo Recuadro Invisible (Existentes y Nuevos) -->
-          <button type="button" class="compact-trigger-pill ${this.globalInvisibleBoxes ? 'active' : ''}" id="btn-toggle-all-invisible" title="Hacer todo el mapa con recuadros invisibles (existentes y nuevos)" style="${this.globalInvisibleBoxes ? 'background:rgba(56,189,248,0.2); border:1px solid #38bdf8; color:#38bdf8;' : ''}">
+          <!-- Recuadros Invisibles en Todo el Mapa -->
+          <button type="button" class="compact-trigger-pill ${this.globalInvisibleBoxes ? 'active' : ''}" id="btn-toggle-all-invisible" title="Hacer todo el mapa con recuadros invisibles" style="${this.globalInvisibleBoxes ? 'background:rgba(56,189,248,0.2); border:1px solid #38bdf8; color:#38bdf8;' : ''}">
             <span class="pill-icon" style="font-size:12px;">🚫</span>
-            <span class="pill-text" style="font-size:11px; font-weight:600; padding:0 2px;">Invisibles</span>
+            <span class="pill-text" style="font-size:11px; font-weight:600; padding:0 2px;">Sin Recuadros</span>
           </button>
-
-          <div class="dropdown-h-divider"></div>
-
-          <!-- 4. Modo Fondo Claro / Oscuro -->
-          <div class="dropdown-h-group popover-anchor">
-            <button type="button" class="compact-trigger-pill" id="btn-trigger-canvas-mode" title="Modo de Fondo: Claro / Oscuro">
-              <span class="trigger-val-emoji" id="preview-canvas-mode">${this.canvasBgMode === 'light' ? '☀️' : '🌙'}</span>
-              <span class="mini-chevron">▾</span>
-            </button>
-            <div class="popover-bubble" id="popover-canvas-mode" style="display:none;">
-              <button type="button" class="popover-item-emoji ${this.canvasBgMode === 'dark' ? 'active' : ''}" data-canvas-mode="dark" title="Fondo Oscuro">🌙</button>
-              <button type="button" class="popover-item-emoji ${this.canvasBgMode === 'light' ? 'active' : ''}" data-canvas-mode="light" title="Fondo Claro">☀️</button>
-            </div>
-          </div>
 
           <button type="button" class="btn-dropdown-close-sm" id="btn-close-map-dropdown" title="Cerrar barra">✕</button>
         </div>
 
-        <!-- Panel Desplegable: 'RECUADRO' (Ultra Compacto: Solo Emojis, Números y Círculos) -->
+        <!-- 2. Panel Desplegable: 'ESTILO & LETRAS' -->
         <div class="mindmap-dropdown-menu-panel apple-glass-panel" id="mindmap-dropdown-node" style="display:none;">
           <div id="node-dropdown-empty-notice" class="dropdown-h-group" style="display:none; align-items:center; gap:8px;">
             <span style="font-size:0.8rem; color:var(--f-text-secondary);">Toca un recuadro o</span>
@@ -683,103 +630,161 @@ export class UltraFastMindMap {
           </div>
 
           <div id="node-dropdown-content" style="display:inline-flex; align-items:center; gap:8px;">
-            <!-- 1. Color de Fondo del Recuadro (Solo Círculo de Color) -->
+            <!-- SECCIÓN A: RECUADRO & LÍNEAS -->
+            <!-- Color de Recuadro + Relleno Opcional -->
             <div class="dropdown-h-group popover-anchor">
-              <button type="button" class="compact-trigger-pill" id="btn-trigger-node-bg" title="Color de fondo del recuadro">
+              <button type="button" class="compact-trigger-pill" id="btn-trigger-node-bg" title="Color de recuadro y relleno interior">
                 <span class="color-dot-circle" id="preview-node-bg" style="background:#0ea5e9;"></span>
                 <span class="mini-chevron">▾</span>
               </button>
-              <div class="popover-bubble" id="popover-node-bg" style="display:none;">
-                <button type="button" class="color-dot-btn mm-swatch-transparent" data-node-bg="transparent" style="background:transparent; border:1.5px dashed rgba(255,255,255,0.6); display:flex; align-items:center; justify-content:center;" title="Invisible / Sin Recuadro">
-                  <span style="font-size:10px; line-height:1;">🚫</span>
+              <div class="popover-bubble" id="popover-node-bg" style="display:none; padding:10px; min-width:190px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                  <span style="font-size:11px; font-weight:700; color:#94a3b8;">Recuadro</span>
+                  <button type="button" class="compact-toggle-btn ${this.nodeFillEnabled ? 'active' : ''}" id="btn-toggle-node-fill" title="Alternar si el color rellena el fondo o solo el borde">
+                    <span id="label-node-fill" style="font-size:10px; font-weight:700;">${this.nodeFillEnabled ? 'Relleno: ON' : 'Relleno: OFF'}</span>
+                  </button>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <button type="button" class="color-dot-btn mm-swatch-transparent" data-node-bg="transparent" style="background:transparent; border:1.5px dashed rgba(255,255,255,0.6); display:flex; align-items:center; justify-content:center;" title="Sin Recuadro">
+                    <span style="font-size:10px; line-height:1;">🚫</span>
+                  </button>
+                  <button type="button" class="color-dot-btn" data-node-bg="blue" style="background:#0ea5e9;" title="Cyan"></button>
+                  <button type="button" class="color-dot-btn" data-node-bg="purple" style="background:#a855f7;" title="Violeta"></button>
+                  <button type="button" class="color-dot-btn" data-node-bg="emerald" style="background:#10b981;" title="Esmeralda"></button>
+                  <button type="button" class="color-dot-btn" data-node-bg="amber" style="background:#f59e0b;" title="Ámbar"></button>
+                  <button type="button" class="color-dot-btn" data-node-bg="rose" style="background:#ec4899;" title="Rosa"></button>
+                  <button type="button" class="color-dot-btn" data-node-bg="dark" style="background:#334155;" title="Pizarra"></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Color de Línea Conectora Individual para este recuadro -->
+            <div class="dropdown-h-group popover-anchor">
+              <button type="button" class="compact-trigger-pill" id="btn-trigger-node-line-color" title="Color de línea conectora de este recuadro">
+                <span style="font-size:11px; margin-right:2px;">〰️</span>
+                <span class="color-dot-circle" id="preview-node-line-color" style="background:#0ea5e9;"></span>
+                <span class="mini-chevron">▾</span>
+              </button>
+              <div class="popover-bubble" id="popover-node-line-color" style="display:none; padding:10px; min-width:190px;">
+                <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:6px;">Línea Conectora</div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <button type="button" class="color-dot-btn" data-node-line-color="#0ea5e9" style="background:#0ea5e9;" title="Cyan"></button>
+                  <button type="button" class="color-dot-btn" data-node-line-color="#a855f7" style="background:#a855f7;" title="Violeta"></button>
+                  <button type="button" class="color-dot-btn" data-node-line-color="#10b981" style="background:#10b981;" title="Esmeralda"></button>
+                  <button type="button" class="color-dot-btn" data-node-line-color="#f59e0b" style="background:#f59e0b;" title="Ámbar"></button>
+                  <button type="button" class="color-dot-btn" data-node-line-color="#ec4899" style="background:#ec4899;" title="Rosa"></button>
+                  <button type="button" class="color-dot-btn" data-node-line-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
+                  <button type="button" class="color-dot-btn" data-node-line-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
+                </div>
+                <button type="button" class="compact-trigger-pill" id="btn-inherit-node-line-children" style="margin-top:8px; width:100%; justify-content:center; font-size:11px; font-weight:600;" title="Heredar este color de línea a todos los recuadros hijos">
+                  🌳 Heredar Línea a Hijos
                 </button>
-                <button type="button" class="color-dot-btn" data-node-bg="blue" style="background:#0ea5e9;" title="Cyan"></button>
-                <button type="button" class="color-dot-btn" data-node-bg="purple" style="background:#a855f7;" title="Violeta"></button>
-                <button type="button" class="color-dot-btn" data-node-bg="emerald" style="background:#10b981;" title="Esmeralda"></button>
-                <button type="button" class="color-dot-btn" data-node-bg="amber" style="background:#f59e0b;" title="Ámbar"></button>
-                <button type="button" class="color-dot-btn" data-node-bg="rose" style="background:#ec4899;" title="Rosa"></button>
-                <button type="button" class="color-dot-btn" data-node-bg="dark" style="background:#334155;" title="Pizarra"></button>
-              </div>
-            </div>
-
-            <!-- Botón de Heredar Color a Hijos -->
-            <button type="button" class="compact-trigger-pill" id="btn-inherit-color-children" title="Heredar este color a todos los recuadros hijos">
-              <span style="font-size:11px; font-weight:600; padding:0 2px;">🌳 Heredar</span>
-            </button>
-
-            <div class="dropdown-h-divider"></div>
-
-            <!-- 2. Color del Texto (Solo Círculo de Color) -->
-            <div class="dropdown-h-group popover-anchor">
-              <button type="button" class="compact-trigger-pill" id="btn-trigger-node-text" title="Color del texto">
-                <span class="color-dot-circle" id="preview-node-text" style="background:#ffffff; border:1px solid rgba(255,255,255,0.4);"></span>
-                <span class="mini-chevron">▾</span>
-              </button>
-              <div class="popover-bubble" id="popover-node-text" style="display:none;">
-                <button type="button" class="color-dot-btn" data-text-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
-                <button type="button" class="color-dot-btn" data-text-color="#38bdf8" style="background:#38bdf8;" title="Cyan"></button>
-                <button type="button" class="color-dot-btn" data-text-color="#34d399" style="background:#34d399;" title="Verde"></button>
-                <button type="button" class="color-dot-btn" data-text-color="#fbbf24" style="background:#fbbf24;" title="Dorado"></button>
-                <button type="button" class="color-dot-btn" data-text-color="#f472b6" style="background:#f472b6;" title="Rosa"></button>
-                <button type="button" class="color-dot-btn" data-text-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
-                <button type="button" class="color-dot-btn" data-text-color="#0f172a" style="background:#0f172a; border:1px solid #94a3b8;" title="Oscuro / Negro"></button>
               </div>
             </div>
 
             <div class="dropdown-h-divider"></div>
 
-            <!-- 3. Tamaño de Letra (Solo Número) + Negrita -->
+            <!-- SECCIÓN B: TIPOGRAFÍA & LETRAS -->
+            <!-- 1. Tipo de Letra (Fuente) con Advertencia KaTeX -->
             <div class="dropdown-h-group popover-anchor">
-              <button type="button" class="compact-trigger-pill" id="btn-trigger-font-size" title="Tamaño de texto">
-                <span class="trigger-val-num" id="preview-node-font-size">14</span>
+              <button type="button" class="compact-trigger-pill" id="btn-trigger-font-family" title="Tipo de letra (Fuente)">
+                <span style="font-size:11px; font-weight:700; margin-right:2px;">F</span>
                 <span class="mini-chevron">▾</span>
               </button>
+              <div class="popover-bubble popover-font-family-bubble" id="popover-font-family" style="display:none; min-width:260px; padding:12px;">
+                <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:8px;">Tipo de Letra</div>
+                
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <button type="button" class="popover-font-option-btn ${this.globalFontFamily === 'Inter, sans-serif' ? 'active' : ''}" data-font="Inter, sans-serif" style="font-family:'Inter', sans-serif;">
+                    <span>Inter (Sans-serif)</span>
+                    <span class="badge-font-rec">Recomendada</span>
+                  </button>
+                  <button type="button" class="popover-font-option-btn ${this.globalFontFamily === 'Merriweather, serif' ? 'active' : ''}" data-font="Merriweather, serif" style="font-family:'Merriweather', serif;">
+                    <span>Merriweather (Serif)</span>
+                  </button>
+                  <button type="button" class="popover-font-option-btn ${this.globalFontFamily.includes('Mono') ? 'active' : ''}" data-font="'JetBrains Mono', monospace" style="font-family:'JetBrains Mono', monospace;">
+                    <span>JetBrains Mono (Código)</span>
+                  </button>
+                  <button type="button" class="popover-font-option-btn ${this.globalFontFamily.includes('Caveat') ? 'active' : ''}" data-font="'Caveat', cursive" style="font-family:'Caveat', cursive; font-size:1.15em;">
+                    <span>Caveat (Manuscrita)</span>
+                  </button>
+                  <button type="button" class="popover-font-option-btn ${this.globalFontFamily.includes('OpenDyslexic') ? 'active' : ''}" data-font="'OpenDyslexic', sans-serif">
+                    <span>OpenDyslexic (Accesible)</span>
+                  </button>
+                </div>
+
+                <div class="font-katex-warning" style="margin-top:10px; padding:6px 8px; border-radius:6px; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); color:#fcd34d; font-size:10px; line-height:1.35;">
+                  ⚠️ <strong>Aviso:</strong> Fuentes cursivas o decorativas pueden dificultar la lectura de símbolos KaTeX y fórmulas.
+                </div>
+
+                <div style="display:flex; gap:6px; margin-top:8px;">
+                  <button type="button" class="popover-action-btn-sm" id="btn-font-apply-node" style="flex:1;">Solo este nodo</button>
+                  <button type="button" class="popover-action-btn-sm primary" id="btn-font-apply-global" style="flex:1;">Todo el mapa</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Tamaño de Letra Personalizado (- / num / +) -->
+            <div class="dropdown-h-group popover-anchor">
+              <div class="number-stepper-group" style="display:inline-flex; align-items:center; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px;">
+                <button type="button" class="stepper-btn" id="btn-font-size-dec" title="Disminuir tamaño">-</button>
+                <button type="button" class="stepper-val-btn" id="btn-trigger-font-size" title="Elegir tamaño">
+                  <span id="preview-node-font-size">14</span>
+                </button>
+                <button type="button" class="stepper-btn" id="btn-font-size-inc" title="Aumentar tamaño">+</button>
+              </div>
               <div class="popover-bubble" id="popover-node-font-size" style="display:none;">
                 <button type="button" class="popover-item-number" data-size="12">12</button>
                 <button type="button" class="popover-item-number active" data-size="14">14</button>
+                <button type="button" class="popover-item-number" data-size="16">16</button>
                 <button type="button" class="popover-item-number" data-size="18">18</button>
                 <button type="button" class="popover-item-number" data-size="22">22</button>
+                <button type="button" class="popover-item-number" data-size="28">28</button>
               </div>
             </div>
-            <button type="button" class="text-size-btn text-size-btn-sm" id="btn-toggle-bold" title="Negrita"><strong>B</strong></button>
 
-            <div class="dropdown-h-divider"></div>
+            <!-- 3. Color del Texto Personalizado -->
+            <div class="dropdown-h-group popover-anchor">
+              <button type="button" class="compact-trigger-pill" id="btn-trigger-node-text" title="Color de letra">
+                <span class="color-dot-circle" id="preview-node-text" style="background:#ffffff; border:1px solid rgba(255,255,255,0.4);"></span>
+                <span class="mini-chevron">▾</span>
+              </button>
+              <div class="popover-bubble" id="popover-node-text" style="display:none; padding:10px;">
+                <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:6px;">Color de Texto</div>
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                  <button type="button" class="color-dot-btn" data-text-color="#ffffff" style="background:#ffffff; border:1px solid #94a3b8;" title="Blanco"></button>
+                  <button type="button" class="color-dot-btn" data-text-color="#38bdf8" style="background:#38bdf8;" title="Cyan"></button>
+                  <button type="button" class="color-dot-btn" data-text-color="#34d399" style="background:#34d399;" title="Verde"></button>
+                  <button type="button" class="color-dot-btn" data-text-color="#fbbf24" style="background:#fbbf24;" title="Dorado"></button>
+                  <button type="button" class="color-dot-btn" data-text-color="#f472b6" style="background:#f472b6;" title="Rosa"></button>
+                  <button type="button" class="color-dot-btn" data-text-color="#94a3b8" style="background:#94a3b8;" title="Gris"></button>
+                  <button type="button" class="color-dot-btn" data-text-color="#0f172a" style="background:#0f172a; border:1px solid #94a3b8;" title="Oscuro"></button>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px;">
+                  <span style="font-size:10px; color:#94a3b8;">Personalizado:</span>
+                  <input type="color" id="input-custom-font-color" value="#ffffff" style="width:26px; height:22px; border:none; background:transparent; cursor:pointer; padding:0;" title="Color RGB personalizado" />
+                </div>
+              </div>
+            </div>
 
-            <!-- 4. Foto del Recuadro -->
-            <div class="dropdown-h-group">
-              <button type="button" class="compact-trigger-pill" id="btn-upload-node-photo" title="Adjuntar foto al recuadro">
-                📷
-              </button>
-              <button type="button" class="compact-trigger-pill danger" id="btn-remove-node-photo" style="display:none;" title="Eliminar foto">
-                🗑️
-              </button>
+            <!-- 4. Efectos de Letra (Negrita, Cursiva, Subrayado) -->
+            <div class="dropdown-h-group" style="display:inline-flex; gap:4px;">
+              <button type="button" class="text-size-btn text-size-btn-sm" id="btn-toggle-bold" title="Negrita"><strong>B</strong></button>
+              <button type="button" class="text-size-btn text-size-btn-sm" id="btn-toggle-italic" title="Cursiva"><em>I</em></button>
+              <button type="button" class="text-size-btn text-size-btn-sm" id="btn-toggle-underline" title="Subrayado"><u>U</u></button>
             </div>
 
             <div class="dropdown-h-divider"></div>
 
-            <!-- 5. Acciones de Edición -->
+            <!-- SECCIÓN C: ACCIONES ESTRUCTURALES -->
             <div class="dropdown-h-group">
-              <button type="button" class="compact-trigger-pill" id="btn-open-direct-text-editor" title="Editar texto">
-                ✏️
-              </button>
-              <button type="button" class="compact-trigger-pill" id="btn-open-katex-from-node-menu" title="Fórmula KaTeX">
-                📐
-              </button>
-            </div>
-
-            <div class="dropdown-h-divider"></div>
-
-            <!-- 6. Acciones Estructurales (+ Hijo, + Hermano, Borrar) -->
-            <div class="dropdown-h-group">
-              <button type="button" class="compact-trigger-pill" id="btn-node-dropdown-child" title="Añadir subnodo hijo (Tab)">
-                <span style="font-size:11px; font-weight:600;">➕ Hijo</span>
-              </button>
-              <button type="button" class="compact-trigger-pill" id="btn-node-dropdown-sibling" title="Añadir concepto paralelo hermano (Enter)">
-                <span style="font-size:11px; font-weight:600;">🌿 Hermano</span>
-              </button>
-              <button type="button" class="compact-trigger-pill danger" id="btn-node-dropdown-delete" title="Eliminar recuadro (Supr)">
-                <span style="font-size:11px;">🗑️</span>
-              </button>
+              <button type="button" class="compact-trigger-pill" id="btn-open-direct-text-editor" title="Editar texto (F2)">✏️</button>
+              <button type="button" class="compact-trigger-pill" id="btn-open-katex-from-node-menu" title="Fórmula KaTeX">📐</button>
+              <button type="button" class="compact-trigger-pill" id="btn-upload-node-photo" title="Adjuntar foto">📷</button>
+              <button type="button" class="compact-trigger-pill danger" id="btn-remove-node-photo" style="display:none;" title="Eliminar foto">🗑️</button>
+              <button type="button" class="compact-trigger-pill" id="btn-node-dropdown-child" title="Añadir hijo (Tab)"><span style="font-size:11px; font-weight:600;">➕ Hijo</span></button>
+              <button type="button" class="compact-trigger-pill" id="btn-node-dropdown-sibling" title="Añadir hermano (Enter)"><span style="font-size:11px; font-weight:600;">🌿 Hermano</span></button>
+              <button type="button" class="compact-trigger-pill danger" id="btn-node-dropdown-delete" title="Eliminar recuadro (Supr)">🗑️</button>
             </div>
           </div>
 
@@ -1003,12 +1008,18 @@ export class UltraFastMindMap {
           color = '#f8fafc';
         }
 
+        const fontFamily = (node.getData ? node.getData('fontFamily') : null) || this.globalFontFamily || '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         const fontSize = (typeof node.getStyle === 'function' ? node.getStyle('fontSize', false) : null) || 14;
-        const fontWeight = (typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : null) || 'normal';
+        const fontWeight = (node.getData ? node.getData('fontWeight') : null) || (typeof node.getStyle === 'function' ? node.getStyle('fontWeight', false) : 'normal') || 'normal';
+        const fontStyle = (node.getData ? node.getData('fontStyle') : null) || 'normal';
+        const textDecoration = (node.getData ? node.getData('textDecoration') : null) || 'none';
 
+        div.style.fontFamily = fontFamily;
         div.style.color = color;
         div.style.fontSize = `${fontSize}px`;
         div.style.fontWeight = fontWeight;
+        div.style.fontStyle = fontStyle;
+        div.style.textDecoration = textDecoration;
         div.style.lineHeight = '1.4';
         div.style.display = 'flex';
         div.style.flexDirection = 'column';
@@ -1362,7 +1373,7 @@ export class UltraFastMindMap {
   }
 
   private handleKeyDown = (e: KeyboardEvent): void => {
-    if (this.isDestroyed || !this.mindMapInstance) return;
+    if (this.isDestroyed || !this.mindMapInstance || this.isEditingText) return;
 
     // Si el usuario está escribiendo en un input, textarea o contenteditable, no interceptar
     const activeEl = document.activeElement as HTMLElement | null;
@@ -1622,6 +1633,25 @@ export class UltraFastMindMap {
       });
     });
 
+    // Selector de Color de Fondo del Lienzo Personalizado
+    root.querySelector('#btn-trigger-canvas-color')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-canvas-color', 'btn-trigger-canvas-color');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-canvas-color [data-canvas-bg]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const color = btn.dataset.canvasBg;
+        if (color) {
+          this.setCanvasBackgroundColor(color);
+          root.querySelectorAll('#popover-canvas-color [data-canvas-bg]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          closeAllPopovers();
+        }
+      });
+    });
+
     // Selector de Color de Vectores / Líneas de Conexión General
     root.querySelector('#btn-trigger-line-color')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1644,66 +1674,14 @@ export class UltraFastMindMap {
       });
     });
 
-    // Selector de Tamaño de Letra General (Con Diálogo de Advertencia)
-    root.querySelector('#btn-trigger-global-font-size')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      togglePopover('popover-global-font-size', 'btn-trigger-global-font-size');
-    });
-
-    root.querySelectorAll<HTMLButtonElement>('#popover-global-font-size [data-global-size]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const size = Number(btn.dataset.globalSize);
-        if (size) {
-          closeAllPopovers();
-          dialogService.showConfirm({
-            title: '⚠️ Cambiar Tipografía General',
-            message: `¿Estás seguro de que deseas cambiar el tamaño de letra de TODO el mapa mental a ${size}px? Se aplicará a todos los recuadros existentes y futuros.`,
-            confirmText: 'Sí, aplicar a todos',
-            cancelText: 'Cancelar',
-            onConfirm: () => {
-              this.applyGlobalFontSize(size);
-              root.querySelectorAll('#popover-global-font-size [data-global-size]').forEach((b) => b.classList.remove('active'));
-              btn.classList.add('active');
-            }
-          });
-        }
-      });
-    });
-
-    // Selector de Color de Texto General (Con Diálogo de Advertencia)
-    root.querySelector('#btn-trigger-global-font-color')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      togglePopover('popover-global-font-color', 'btn-trigger-global-font-color');
-    });
-
-    root.querySelectorAll<HTMLButtonElement>('#popover-global-font-color [data-global-text-color]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const color = btn.dataset.globalTextColor;
-        if (color) {
-          closeAllPopovers();
-          dialogService.showConfirm({
-            title: '⚠️ Cambiar Color de Texto General',
-            message: '¿Estás seguro de que deseas cambiar el color de letra de TODO el mapa mental? Esto actualizará el color de texto en todos los recuadros.',
-            confirmText: 'Sí, cambiar a todos',
-            cancelText: 'Cancelar',
-            onConfirm: () => {
-              this.applyGlobalFontColor(color);
-            }
-          });
-        }
-      });
-    });
-
-    // 3b. Botón directo de Recuadros Invisibles en todo el mapa (existentes y nuevos)
+    // Botón directo de Recuadros Invisibles en todo el mapa (existentes y nuevos)
     root.querySelector('#btn-toggle-all-invisible')?.addEventListener('click', (e) => {
       e.stopPropagation();
       closeAllPopovers();
       this.setAllNodesInvisible(!this.globalInvisibleBoxes);
     });
 
-    // 4. Selector de Modo Claro / Oscuro del Lienzo
+    // Selector de Modo Claro / Oscuro del Lienzo
     root.querySelector('#btn-trigger-canvas-mode')?.addEventListener('click', (e) => {
       e.stopPropagation();
       togglePopover('popover-canvas-mode', 'btn-trigger-canvas-mode');
@@ -1723,7 +1701,7 @@ export class UltraFastMindMap {
     });
 
     // ============================================================
-    // 🔲 CONTROL DE MENÚ DESPLEGABLE: 'RECUADRO' (Ultra Compacto)
+    // 🔲 CONTROL DE MENÚ DESPLEGABLE: 'ESTILO & LETRAS'
     // ============================================================
     root.querySelector('#btn-toggle-menu-node')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1740,7 +1718,7 @@ export class UltraFastMindMap {
       this.selectRootNode();
     });
 
-    // 1. Selector de Color de Fondo del Recuadro (Solo Círculo)
+    // 1. Selector de Color de Recuadro y Relleno Interior
     root.querySelector('#btn-trigger-node-bg')?.addEventListener('click', (e) => {
       e.stopPropagation();
       togglePopover('popover-node-bg', 'btn-trigger-node-bg');
@@ -1759,33 +1737,90 @@ export class UltraFastMindMap {
       });
     });
 
-    // 2. Selector de Color del Texto del Recuadro (Solo Círculo)
-    root.querySelector('#btn-trigger-node-text')?.addEventListener('click', (e) => {
+    // Alternar Relleno Interior (ON / OFF)
+    root.querySelector('#btn-toggle-node-fill')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      togglePopover('popover-node-text', 'btn-trigger-node-text');
+      this.toggleNodeFill();
     });
 
-    root.querySelectorAll<HTMLButtonElement>('#popover-node-text [data-text-color]').forEach((btn) => {
+    // 2. Selector de Color de Línea Conectora Individual para este recuadro
+    root.querySelector('#btn-trigger-node-line-color')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-node-line-color', 'btn-trigger-node-line-color');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-node-line-color [data-node-line-color]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const textColor = btn.dataset.textColor;
-        if (textColor && this.activeNode && this.mindMapInstance) {
-          this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
-            color: textColor
-          });
-          const preview = root.querySelector('#preview-node-text') as HTMLElement | null;
-          if (preview) {
-            preview.style.background = textColor;
-            preview.style.borderColor = textColor === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
-          }
-          this.triggerHaptic();
-          this.scheduleDebouncedSave();
+        const lineColor = btn.dataset.nodeLineColor;
+        if (lineColor) {
+          this.setNodeLineColor(lineColor);
           closeAllPopovers();
         }
       });
     });
 
-    // 3. Selector de Tamaño de Texto del Recuadro (Solo Número)
+    root.querySelector('#btn-inherit-node-line-children')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.inheritNodeLineColorToChildren();
+      closeAllPopovers();
+    });
+
+    // 3. Selector de Tipo de Letra (Fuente) con Advertencia KaTeX
+    root.querySelector('#btn-trigger-font-family')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-font-family', 'btn-trigger-font-family');
+    });
+
+    let selectedFontFamily = this.globalFontFamily;
+    root.querySelectorAll<HTMLButtonElement>('#popover-font-family [data-font]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const font = btn.dataset.font;
+        if (font) {
+          selectedFontFamily = font;
+          root.querySelectorAll('#popover-font-family [data-font]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.triggerHaptic();
+        }
+      });
+    });
+
+    root.querySelector('#btn-font-apply-node')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (selectedFontFamily) {
+        this.setFontFamily(selectedFontFamily, false);
+      }
+      closeAllPopovers();
+    });
+
+    root.querySelector('#btn-font-apply-global')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (selectedFontFamily) {
+        dialogService.showConfirm({
+          title: '⚠️ Cambiar Fuente en Todo el Mapa',
+          message: '¿Estás seguro de que deseas cambiar la fuente de letra en TODOS los recuadros del mapa mental? Nota: Las fórmulas matemáticas KaTeX se visualizan con mayor nitidez en Inter o JetBrains Mono.',
+          confirmText: 'Sí, aplicar a todos',
+          cancelText: 'Cancelar',
+          onConfirm: () => {
+            this.setFontFamily(selectedFontFamily, true);
+          }
+        });
+      }
+      closeAllPopovers();
+    });
+
+    // 4. Tamaño de Letra Personalizado (- / num / +)
+    root.querySelector('#btn-font-size-dec')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.adjustActiveNodeFontSize(-1);
+    });
+
+    root.querySelector('#btn-font-size-inc')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.adjustActiveNodeFontSize(1);
+    });
+
     root.querySelector('#btn-trigger-font-size')?.addEventListener('click', (e) => {
       e.stopPropagation();
       togglePopover('popover-node-font-size', 'btn-trigger-font-size');
@@ -1810,16 +1845,64 @@ export class UltraFastMindMap {
       });
     });
 
-    // Alternar Negrita en Texto
-    root.querySelector('#btn-toggle-bold')?.addEventListener('click', () => {
-      if (!this.activeNode || !this.mindMapInstance) return;
-      const curWeight = typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('fontWeight', false) : 'normal';
-      const newWeight = curWeight === 'bold' || curWeight === '700' ? 'normal' : 'bold';
-      this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
-        fontWeight: newWeight
+    // 5. Selector de Color del Texto del Recuadro y Color Personalizado
+    root.querySelector('#btn-trigger-node-text')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover('popover-node-text', 'btn-trigger-node-text');
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('#popover-node-text [data-text-color]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const textColor = btn.dataset.textColor;
+        if (textColor && this.activeNode && this.mindMapInstance) {
+          this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+            color: textColor
+          });
+          if (this.activeNode.nodeData?.data) {
+            this.activeNode.nodeData.data.color = textColor;
+          }
+          const preview = root.querySelector('#preview-node-text') as HTMLElement | null;
+          if (preview) {
+            preview.style.background = textColor;
+            preview.style.borderColor = textColor === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+          }
+          this.triggerHaptic();
+          this.scheduleDebouncedSave();
+          closeAllPopovers();
+        }
       });
-      this.triggerHaptic();
-      this.scheduleDebouncedSave();
+    });
+
+    root.querySelector('#input-custom-font-color')?.addEventListener('input', (e) => {
+      const color = (e.target as HTMLInputElement).value;
+      if (color && this.activeNode && this.mindMapInstance) {
+        this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+          color: color
+        });
+        if (this.activeNode.nodeData?.data) {
+          this.activeNode.nodeData.data.color = color;
+        }
+        const preview = root.querySelector('#preview-node-text') as HTMLElement | null;
+        if (preview) {
+          preview.style.background = color;
+          preview.style.borderColor = 'rgba(255,255,255,0.4)';
+        }
+        this.scheduleDebouncedSave();
+      }
+    });
+
+    // 6. Alternar Negrita, Cursiva y Subrayado
+    root.querySelector('#btn-toggle-bold')?.addEventListener('click', () => {
+      this.toggleNodeFontEffect('bold');
+    });
+
+    root.querySelector('#btn-toggle-italic')?.addEventListener('click', () => {
+      this.toggleNodeFontEffect('italic');
+    });
+
+    root.querySelector('#btn-toggle-underline')?.addEventListener('click', () => {
+      this.toggleNodeFontEffect('underline');
     });
 
     // 📷 Inserción de Fotos en Recuadros
@@ -2156,14 +2239,15 @@ export class UltraFastMindMap {
     }
     const preset = COLOR_PRESETS[colorKey];
     if (preset) {
+      const fill = this.nodeFillEnabled ? preset.fill : 'transparent';
       this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
-        fillColor: preset.fill,
+        fillColor: fill,
         borderColor: preset.border,
         color: preset.text,
         borderWidth: 1.5
       });
       if (this.activeNode.nodeData?.data) {
-        this.activeNode.nodeData.data.fillColor = preset.fill;
+        this.activeNode.nodeData.data.fillColor = fill;
         this.activeNode.nodeData.data.borderColor = preset.border;
         this.activeNode.nodeData.data.borderWidth = 1.5;
         this.activeNode.nodeData.data.color = preset.text;
@@ -2766,9 +2850,13 @@ export class UltraFastMindMap {
     (node as any).showExpandBtn = () => {};
     if (typeof (node as any).removeExpandBtn === 'function') {
       (node as any).removeExpandBtn();
-    } else if ((node as any)._expandBtn) {
+    }
+    if ((node as any)._expandBtn) {
       try {
-        (node as any)._expandBtn.remove();
+        (node as any)._expandBtn.hide?.();
+        if ((node as any)._expandBtn.node) {
+          (node as any)._expandBtn.node.style.setProperty('display', 'none', 'important');
+        }
       } catch {}
     }
 
@@ -2791,44 +2879,44 @@ export class UltraFastMindMap {
     textRenderedEl.focus();
 
     // Auto-ajustar en tiempo real mientras el usuario escribe:
-    // Expande el recuadro geométricamente para contener todas las líneas sin ningún desborde
+    // Mide de manera determinista cada línea con Canvas 2D para que coincida exactamente con el texto
+    // y NUNCA se produzca expansión descontrolada ni efecto globo.
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+
     const onInput = () => {
       if (!customNodeEl || !groupNode || !this.activeNode) return;
 
-      // Medir ancho y alto requeridos
-      let neededW = 0;
-      let neededH = 0;
+      const fullText = textRenderedEl.innerText || '';
+      const lines = fullText.split('\n');
 
-      if (typeof (node as any).measureCustomNodeContentSize === 'function') {
-        try {
-          const clone = customNodeEl.cloneNode(true) as HTMLElement;
-          const size = (node as any).measureCustomNodeContentSize(clone);
-          if (size && size.width > 0 && size.height > 0) {
-            neededW = Math.ceil(size.width);
-            neededH = Math.ceil(size.height);
-          }
-        } catch {}
+      const computed = window.getComputedStyle(textRenderedEl);
+      const fontSize = parseFloat(computed.fontSize) || 14;
+      const fontFamily = computed.fontFamily || '-apple-system, BlinkMacSystemFont, sans-serif';
+      const fontWeight = computed.fontWeight || 'normal';
+
+      let maxLineW = 0;
+      if (measureCtx) {
+        measureCtx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+        for (const line of lines) {
+          const w = measureCtx.measureText(line || 'M').width;
+          if (w > maxLineW) maxLineW = w;
+        }
       }
 
-      // Medir con scroll y offset del elemento DOM activo para asegurar que jamás sobresalga texto
-      const padX = 14;
-      const padY = 10;
-      const scrollW = customNodeEl.scrollWidth ? customNodeEl.scrollWidth + padX : 0;
-      const scrollH = customNodeEl.scrollHeight ? customNodeEl.scrollHeight + padY : 0;
-      const offsetW = customNodeEl.offsetWidth ? customNodeEl.offsetWidth + padX : 0;
-      const offsetH = customNodeEl.offsetHeight ? customNodeEl.offsetHeight + padY : 0;
+      // Proporción exacta al contenido: margen lateral 24px + margen cursor 14px = 38px
+      const minW = 76;
+      const maxW = 420;
+      const neededW = Math.max(minW, Math.min(maxW, Math.ceil(maxLineW + 38)));
 
-      neededW = Math.max(neededW, scrollW, offsetW, 76);
-      neededH = Math.max(neededH, scrollH, offsetH, 36);
+      // Altura: líneas * interlineado + margen vertical
+      const lineHeight = fontSize * 1.42;
+      const lineCount = Math.max(1, lines.length);
+      const neededH = Math.max(36, Math.ceil(lineCount * lineHeight + 16));
 
       // Asignar al nodo para que el shape y el motor geométrico usen estas dimensiones exactas
       node.width = neededW;
       node.height = neededH;
-
-      // Actualizar shape y foreignObject en tiempo real
-      if (typeof (node as any).customNodeContentRealtimeLayout === 'function') {
-        (node as any).customNodeContentRealtimeLayout();
-      }
 
       // Asegurar que foreignObject tenga las dimensiones exactas
       const fo = groupNode.querySelector('foreignObject');
@@ -2939,15 +3027,11 @@ export class UltraFastMindMap {
       e.stopPropagation();
       if (e.key === 'Escape') {
         e.preventDefault();
-        commitChanges(false);
+        commitChanges(true);
       } else if (e.key === 'Enter') {
-        if (e.shiftKey) {
-          // Shift+Enter permite salto de línea
-        } else {
-          // Enter normal confirma y termina de escribir
-          e.preventDefault();
-          commitChanges(true);
-        }
+        // Req 4: Enter sirve para dar un enter hacia abajo (salto de línea), NO para finalizar ni crear nuevo nodo
+        e.stopPropagation();
+        setTimeout(onInput, 10);
       }
     };
     textRenderedEl.addEventListener('keydown', onKeyDown);
@@ -3053,11 +3137,45 @@ export class UltraFastMindMap {
         previewText.style.borderColor = curTextColor === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
       }
 
-      // Color de fondo: círculo de color
+      // Color de recuadro / fondo: círculo de color
+      const curBorderColor = typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('borderColor', false) : null;
       const curFillColor = typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('fillColor', false) : null;
       const previewBg = this.container.querySelector('#preview-node-bg') as HTMLElement | null;
-      if (previewBg && curFillColor) {
-        previewBg.style.background = curFillColor;
+      if (previewBg) {
+        previewBg.style.background = (curBorderColor && curBorderColor !== 'transparent') ? curBorderColor : (curFillColor || '#0ea5e9');
+      }
+
+      // Relleno toggle button estado
+      const btnToggleFill = this.container.querySelector('#btn-toggle-node-fill');
+      const labelFill = this.container.querySelector('#label-node-fill');
+      if (btnToggleFill) btnToggleFill.classList.toggle('active', this.nodeFillEnabled);
+      if (labelFill) labelFill.textContent = this.nodeFillEnabled ? 'Relleno: ON' : 'Relleno: OFF';
+
+      // Color de línea conectora individual
+      const curLineColor = (this.activeNode.getData ? this.activeNode.getData('branchColor') || this.activeNode.getData('lineColor') : null) || '#0ea5e9';
+      const previewLine = this.container.querySelector('#preview-node-line-color') as HTMLElement | null;
+      if (previewLine) {
+        previewLine.style.background = curLineColor;
+        previewLine.style.borderColor = curLineColor === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+      }
+
+      // Efectos de fuente: Negrita, Cursiva, Subrayado
+      const curWeight = (this.activeNode.getData ? this.activeNode.getData('fontWeight') : null) || (typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('fontWeight', false) : 'normal');
+      const curStyle = (this.activeNode.getData ? this.activeNode.getData('fontStyle') : null) || 'normal';
+      const curDecor = (this.activeNode.getData ? this.activeNode.getData('textDecoration') : null) || 'none';
+
+      const btnBold = this.container.querySelector('#btn-toggle-bold');
+      const btnItalic = this.container.querySelector('#btn-toggle-italic');
+      const btnUnderline = this.container.querySelector('#btn-toggle-underline');
+
+      btnBold?.classList.toggle('active', curWeight === 'bold' || curWeight === '700');
+      btnItalic?.classList.toggle('active', curStyle === 'italic');
+      btnUnderline?.classList.toggle('active', curDecor === 'underline');
+
+      // Input de color de texto personalizado
+      const customColorInput = this.container.querySelector('#input-custom-font-color') as HTMLInputElement | null;
+      if (customColorInput && curTextColor && curTextColor.startsWith('#') && curTextColor.length === 7) {
+        customColorInput.value = curTextColor;
       }
     }
   }
@@ -3433,6 +3551,284 @@ export class UltraFastMindMap {
   }
 
   /**
+   * Cambia el color de fondo personalizado del lienzo del mapa
+   */
+  public setCanvasBackgroundColor(color: string): void {
+    if (!this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    const curThemeConfig = (typeof this.mindMapInstance?.getCustomThemeConfig === 'function' 
+      ? this.mindMapInstance.getCustomThemeConfig() 
+      : this.mindMapInstance?.opt?.themeConfig) || {};
+
+    const updatedThemeConfig = {
+      ...curThemeConfig,
+      backgroundColor: color
+    };
+
+    if (typeof this.mindMapInstance?.setThemeConfig === 'function') {
+      this.mindMapInstance.setThemeConfig(updatedThemeConfig, true);
+    } else if (typeof this.mindMapInstance?.theme?.setThemeConfig === 'function') {
+      this.mindMapInstance.theme.setThemeConfig(updatedThemeConfig, true);
+    }
+
+    const canvasEl = this.container.querySelector('#mindmap-canvas') as HTMLElement | null;
+    if (canvasEl) {
+      canvasEl.style.backgroundColor = color;
+    }
+
+    const preview = this.container.querySelector('#preview-canvas-color') as HTMLElement | null;
+    if (preview) {
+      preview.style.background = color;
+    }
+
+    if (typeof this.mindMapInstance.reRender === 'function') {
+      this.mindMapInstance.reRender();
+    }
+    this.saveSync();
+  }
+
+  /**
+   * Cambia el color de la línea conectora del nodo activo
+   */
+  public setNodeLineColor(color: string): void {
+    if (!this.activeNode || !this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    if (typeof this.activeNode.setData === 'function') {
+      this.activeNode.setData({ branchColor: color, lineColor: color });
+    } else if (this.activeNode.nodeData?.data) {
+      this.activeNode.nodeData.data.branchColor = color;
+      this.activeNode.nodeData.data.lineColor = color;
+    }
+
+    if (this.activeNode.parent && typeof this.activeNode.parent.renderLine === 'function') {
+      this.activeNode.parent.renderLine();
+    }
+    if (typeof this.activeNode.renderLine === 'function') {
+      this.activeNode.renderLine();
+    }
+    if (typeof this.mindMapInstance.reRender === 'function') {
+      this.mindMapInstance.reRender();
+    } else if (typeof this.mindMapInstance.render === 'function') {
+      this.mindMapInstance.render();
+    }
+
+    const preview = this.container.querySelector('#preview-node-line-color') as HTMLElement | null;
+    if (preview) {
+      preview.style.background = color;
+      preview.style.borderColor = color === '#ffffff' ? 'rgba(255,255,255,0.4)' : 'transparent';
+    }
+
+    this.scheduleDebouncedSave();
+  }
+
+  /**
+   * Hereda el color de la línea conectora activa a todos sus recuadros hijos y descendientes
+   */
+  public inheritNodeLineColorToChildren(): void {
+    if (!this.activeNode || !this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    const color = (this.activeNode.getData ? this.activeNode.getData('branchColor') || this.activeNode.getData('lineColor') : null) || '#0ea5e9';
+
+    const applyDescendants = (n: any) => {
+      const children = (typeof n.getChildren === 'function' ? n.getChildren() : n.children) || [];
+      for (const child of children) {
+        if (typeof child.setData === 'function') {
+          child.setData({ branchColor: color, lineColor: color });
+        } else if (child.nodeData?.data) {
+          child.nodeData.data.branchColor = color;
+          child.nodeData.data.lineColor = color;
+        }
+        if (typeof child.renderLine === 'function') {
+          child.renderLine();
+        }
+        applyDescendants(child);
+      }
+    };
+
+    applyDescendants(this.activeNode);
+
+    if (typeof this.mindMapInstance.reRender === 'function') {
+      this.mindMapInstance.reRender();
+    } else if (typeof this.mindMapInstance.render === 'function') {
+      this.mindMapInstance.render();
+    }
+
+    this.scheduleDebouncedSave();
+  }
+
+  /**
+   * Conmuta si los recuadros tienen relleno interior (ON) o solo borde (OFF)
+   */
+  public toggleNodeFill(): void {
+    this.nodeFillEnabled = !this.nodeFillEnabled;
+    try {
+      localStorage.setItem('eureka_mindmap_node_fill_enabled', String(this.nodeFillEnabled));
+    } catch {}
+
+    const btn = this.container.querySelector('#btn-toggle-node-fill');
+    const label = this.container.querySelector('#label-node-fill');
+    if (btn) btn.classList.toggle('active', this.nodeFillEnabled);
+    if (label) label.textContent = this.nodeFillEnabled ? 'Relleno: ON' : 'Relleno: OFF';
+
+    if (this.activeNode && this.mindMapInstance) {
+      const curBorder = typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('borderColor', false) : null;
+      let newFill = 'transparent';
+      if (this.nodeFillEnabled && curBorder && curBorder !== 'transparent') {
+        const matchingEntry = Object.values(COLOR_PRESETS).find((p) => p.border === curBorder);
+        newFill = matchingEntry ? matchingEntry.fill : `${curBorder}22`;
+      }
+      this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+        fillColor: newFill
+      });
+      if (this.activeNode.nodeData?.data) {
+        this.activeNode.nodeData.data.fillColor = newFill;
+      }
+      if (typeof this.activeNode.reRender === 'function') {
+        this.activeNode.reRender();
+      }
+      if (typeof this.mindMapInstance.render === 'function') {
+        this.mindMapInstance.render();
+      }
+      this.scheduleDebouncedSave();
+    }
+    this.triggerHaptic();
+  }
+
+  /**
+   * Incrementa o reduce el tamaño de letra del nodo activo en 1px (stepper)
+   */
+  public adjustActiveNodeFontSize(delta: number): void {
+    if (!this.activeNode || !this.mindMapInstance) return;
+    const curSize = (typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('fontSize', false) : 14) || 14;
+    const newSize = Math.max(10, Math.min(48, curSize + delta));
+
+    this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, {
+      fontSize: newSize
+    });
+    if (this.activeNode.nodeData?.data) {
+      this.activeNode.nodeData.data.fontSize = newSize;
+    }
+
+    const preview = this.container.querySelector('#preview-node-font-size');
+    if (preview) preview.textContent = String(newSize);
+
+    if (typeof this.activeNode.reRender === 'function') {
+      this.activeNode.reRender();
+    }
+    if (typeof this.mindMapInstance.render === 'function') {
+      this.mindMapInstance.render();
+    }
+
+    this.triggerHaptic();
+    this.scheduleDebouncedSave();
+  }
+
+  /**
+   * Conmuta un efecto tipográfico en el nodo activo (Negrita, Cursiva, Subrayado)
+   */
+  public toggleNodeFontEffect(effect: 'bold' | 'italic' | 'underline'): void {
+    if (!this.activeNode || !this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    if (effect === 'bold') {
+      const curWeight = (this.activeNode.getData ? this.activeNode.getData('fontWeight') : null) || 
+        (typeof this.activeNode.getStyle === 'function' ? this.activeNode.getStyle('fontWeight', false) : 'normal');
+      const newWeight = curWeight === 'bold' || curWeight === '700' ? 'normal' : 'bold';
+      this.mindMapInstance.execCommand('SET_NODE_STYLES', this.activeNode, { fontWeight: newWeight });
+      if (typeof this.activeNode.setData === 'function') {
+        this.activeNode.setData({ fontWeight: newWeight });
+      } else if (this.activeNode.nodeData?.data) {
+        this.activeNode.nodeData.data.fontWeight = newWeight;
+      }
+    } else if (effect === 'italic') {
+      const curStyle = (this.activeNode.getData ? this.activeNode.getData('fontStyle') : null) || 'normal';
+      const newStyle = curStyle === 'italic' ? 'normal' : 'italic';
+      if (typeof this.activeNode.setData === 'function') {
+        this.activeNode.setData({ fontStyle: newStyle });
+      } else if (this.activeNode.nodeData?.data) {
+        this.activeNode.nodeData.data.fontStyle = newStyle;
+      }
+    } else if (effect === 'underline') {
+      const curDecor = (this.activeNode.getData ? this.activeNode.getData('textDecoration') : null) || 'none';
+      const newDecor = curDecor === 'underline' ? 'none' : 'underline';
+      if (typeof this.activeNode.setData === 'function') {
+        this.activeNode.setData({ textDecoration: newDecor });
+      } else if (this.activeNode.nodeData?.data) {
+        this.activeNode.nodeData.data.textDecoration = newDecor;
+      }
+    }
+
+    if (typeof this.activeNode.reRender === 'function') {
+      this.activeNode.reRender();
+    }
+    if (typeof this.mindMapInstance.render === 'function') {
+      this.mindMapInstance.render();
+    }
+
+    this.updateNodeDropdownUI();
+    this.scheduleDebouncedSave();
+  }
+
+  /**
+   * Aplica un tipo de letra (fuente) a un nodo individual o a todo el mapa
+   */
+  public setFontFamily(font: string, applyGlobal: boolean): void {
+    if (!this.mindMapInstance) return;
+    this.triggerHaptic();
+
+    if (applyGlobal) {
+      this.globalFontFamily = font;
+      try {
+        localStorage.setItem('eureka_mindmap_font_family', font);
+      } catch {}
+
+      const applyToSubtree = (node: any) => {
+        if (typeof node.setData === 'function') {
+          node.setData({ fontFamily: font });
+        } else if (node.nodeData?.data) {
+          node.nodeData.data.fontFamily = font;
+        }
+        if (typeof node.reRender === 'function') {
+          node.reRender();
+        }
+        const children = (typeof node.getChildren === 'function' ? node.getChildren() : node.children) || [];
+        children.forEach(applyToSubtree);
+      };
+
+      const root = this.mindMapInstance.renderer?.root;
+      if (root) applyToSubtree(root);
+
+      if (typeof this.mindMapInstance.reRender === 'function') {
+        this.mindMapInstance.reRender();
+      } else if (typeof this.mindMapInstance.render === 'function') {
+        this.mindMapInstance.render();
+      }
+      this.scheduleDebouncedSave();
+    } else {
+      if (!this.activeNode) {
+        this.selectRootNode();
+      }
+      if (this.activeNode) {
+        if (typeof this.activeNode.setData === 'function') {
+          this.activeNode.setData({ fontFamily: font });
+        } else if (this.activeNode.nodeData?.data) {
+          this.activeNode.nodeData.data.fontFamily = font;
+        }
+        if (typeof this.activeNode.reRender === 'function') {
+          this.activeNode.reRender();
+        }
+        if (typeof this.mindMapInstance.render === 'function') {
+          this.mindMapInstance.render();
+        }
+        this.scheduleDebouncedSave();
+      }
+    }
+  }
+
+  /**
    * Hereda el color y borde del recuadro activo a todos sus recuadros hijos recursivamente
    */
   public inheritNodeColorToChildren(): void {
@@ -3442,19 +3838,15 @@ export class UltraFastMindMap {
     const node = this.activeNode;
     const nodeBg = node.getData ? node.getData('fillColor') : node.nodeData?.data?.fillColor;
     const nodeBorder = node.getData ? node.getData('borderColor') : node.nodeData?.data?.borderColor;
-    const branchColor = node.getData ? node.getData('branchColor') : node.nodeData?.data?.branchColor;
-    const colorToApply = branchColor || nodeBorder || nodeBg || '#0ea5e9';
 
     const applyRecursively = (n: any) => {
       if (!n || !n.children) return;
       n.children.forEach((child: any) => {
-        const updateData: any = {
-          branchColor: colorToApply
-        };
-        if (nodeBg && nodeBg !== 'transparent') {
+        const updateData: any = {};
+        if (nodeBg !== undefined) {
           updateData.fillColor = nodeBg;
         }
-        if (nodeBorder && nodeBorder !== 'transparent') {
+        if (nodeBorder !== undefined) {
           updateData.borderColor = nodeBorder;
         }
 

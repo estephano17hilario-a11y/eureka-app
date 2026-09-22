@@ -577,5 +577,115 @@ g:has(.eureka-mindmap-custom-node.is-editing) .smm-expand-btn,
   display: inline-block !important;
 }
 
+/* Controles avanzados para el panel 'Estilo & Letras' */
+.popover-font-option-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: var(--f-text-primary, #f8fafc);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
 
+.popover-font-option-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
 
+.popover-font-option-btn.active {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.badge-font-rec {
+  font-size: 0.62rem;
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-family: -apple-system, sans-serif !important;
+}
+
+.popover-action-btn-sm {
+  padding: 5px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.popover-action-btn-sm:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.popover-action-btn-sm.primary {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+}
+
+.popover-action-btn-sm.primary:hover {
+  background: rgba(56, 189, 248, 0.3);
+}
+
+.compact-toggle-btn {
+  padding: 3px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.compact-toggle-btn.active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.number-stepper-group .stepper-btn {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  padding: 3px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.number-stepper-group .stepper-btn:hover {
+  color: #38bdf8;
+}
+
+.number-stepper-group .stepper-val-btn {
+  border: none;
+  background: transparent;
+  color: var(--f-text-primary, #f8fafc);
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.text-size-btn.active {
+  background: rgba(56, 189, 248, 0.25) !important;
+  border-color: #38bdf8 !important;
+  color: #38bdf8 !important;
+}
