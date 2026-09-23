@@ -1031,6 +1031,7 @@ export class UltraFastMindMap {
         div.style.minHeight = '36px';
         div.style.boxSizing = 'border-box';
         div.style.wordBreak = 'break-word';
+        div.style.overflowWrap = 'anywhere';
         div.style.whiteSpace = 'pre-wrap';
         div.style.padding = '6px 12px';
 
@@ -1091,6 +1092,7 @@ export class UltraFastMindMap {
         textEl.className = 'eureka-node-text-rendered';
         textEl.style.whiteSpace = 'pre-wrap';
         textEl.style.wordBreak = 'break-word';
+        textEl.style.overflowWrap = 'anywhere';
         textEl.style.width = '100%';
         textEl.style.minHeight = '1.3em';
         textEl.style.minWidth = '48px';
@@ -2845,6 +2847,17 @@ export class UltraFastMindMap {
 
     this.isEditingText = true;
 
+    // Pausar comandos globales de SimpleMindMap para que Enter, Tab, Del no creen nodos ni borren nada mientras se escribe
+    this.mindMapInstance?.keyCommand?.pause();
+    this.mindMapInstance?.keyCommand?.stopCheckInSvg?.();
+    if (this.mindMapInstance?.renderer && typeof this.mindMapInstance.renderer.startTextEdit === 'function') {
+      this.mindMapInstance.renderer.startTextEdit();
+    }
+
+    // Ocultar botón '+' flotante inferior mientras se escribe para evitar cualquier superposición
+    const pillSiblingBtn = this.container.querySelector('.mm-node-add-sibling-btn') as HTMLElement | null;
+    if (pillSiblingBtn) pillSiblingBtn.style.display = 'none';
+
     // Ocultar e inhabilitar temporalmente el botón de expandir (+) para que NUNCA se superponga mientras se escribe
     const originalShowExpandBtn = (node as any).showExpandBtn;
     (node as any).showExpandBtn = () => {};
@@ -2888,7 +2901,7 @@ export class UltraFastMindMap {
       if (!customNodeEl || !groupNode || !this.activeNode) return;
 
       const fullText = textRenderedEl.innerText || '';
-      const lines = fullText.split('\n');
+      const explicitLines = fullText.split('\n');
 
       const computed = window.getComputedStyle(textRenderedEl);
       const fontSize = parseFloat(computed.fontSize) || 14;
@@ -2898,21 +2911,28 @@ export class UltraFastMindMap {
       let maxLineW = 0;
       if (measureCtx) {
         measureCtx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-        for (const line of lines) {
+        for (const line of explicitLines) {
           const w = measureCtx.measureText(line || 'M').width;
           if (w > maxLineW) maxLineW = w;
         }
+      } else {
+        maxLineW = textRenderedEl.scrollWidth || 60;
       }
 
-      // Proporción exacta al contenido: margen lateral 24px + margen cursor 14px = 38px
+      // Constreñir ancho entre 76px y 360px (coherente con el estilo de customNodeEl)
       const minW = 76;
-      const maxW = 420;
-      const neededW = Math.max(minW, Math.min(maxW, Math.ceil(maxLineW + 38)));
+      const maxW = 360;
+      const neededW = Math.max(minW, Math.min(maxW, Math.ceil(maxLineW + 36)));
 
-      // Altura: líneas * interlineado + margen vertical
-      const lineHeight = fontSize * 1.42;
-      const lineCount = Math.max(1, lines.length);
-      const neededH = Math.max(36, Math.ceil(lineCount * lineHeight + 16));
+      // Aplicar ancho a customNodeEl para que el motor CSS realice el ajuste de línea (word-wrap) a este ancho
+      customNodeEl.style.width = `${neededW}px`;
+      customNodeEl.style.maxWidth = `${maxW}px`;
+
+      // Altura real renderizada en el DOM (scrollHeight / offsetHeight reflejan exactamente todas las líneas envueltas)
+      const scrollH = customNodeEl.scrollHeight;
+      const offsetH = customNodeEl.offsetHeight;
+      const clientH = customNodeEl.clientHeight;
+      const neededH = Math.max(36, Math.ceil(Math.max(scrollH, offsetH, clientH)));
 
       // Asignar al nodo para que el shape y el motor geométrico usen estas dimensiones exactas
       node.width = neededW;
@@ -2933,12 +2953,29 @@ export class UltraFastMindMap {
         shapePath.setAttribute('d', d);
       }
 
+      // Actualizar contorno activo de selección (.smm-hover-node) para que envuelva exactamente todo el texto multilínea
+      const hoverNodeRect = groupNode.querySelector('.smm-hover-node') as SVGRectElement | null;
+      if (hoverNodeRect) {
+        const pad = (this.mindMapInstance?.opt?.hoverRectPadding ?? 2);
+        hoverNodeRect.setAttribute('width', String(neededW + pad * 2));
+        hoverNodeRect.setAttribute('height', String(neededH + pad * 2));
+        hoverNodeRect.setAttribute('x', String(-pad));
+        hoverNodeRect.setAttribute('y', String(-pad));
+      }
+
       // Mantener conectores spline alineados con el nuevo borde del recuadro
       if (node.parent && typeof node.parent.renderLine === 'function') {
         node.parent.renderLine();
       }
       if (typeof node.renderLine === 'function') {
         node.renderLine();
+      }
+
+      // Sincronizar posición de la barra contextual flotante si está visible
+      if (this.mindmeisterAdapter) {
+        try {
+          (this.mindmeisterAdapter as any).updatePillPosition?.();
+        } catch {}
       }
     };
 
@@ -2956,6 +2993,13 @@ export class UltraFastMindMap {
       if (isCommitted) return;
       isCommitted = true;
       this.isEditingText = false;
+
+      // Reanudar shortcuts globales de SimpleMindMap
+      this.mindMapInstance?.keyCommand?.recovery();
+      this.mindMapInstance?.keyCommand?.recoveryCheckInSvg?.();
+      if (this.mindMapInstance?.renderer && typeof this.mindMapInstance.renderer.endTextEdit === 'function') {
+        this.mindMapInstance.renderer.endTextEdit();
+      }
 
       // Restaurar el botón expandir
       (node as any).showExpandBtn = originalShowExpandBtn;
@@ -2987,9 +3031,7 @@ export class UltraFastMindMap {
         if (typeof this.activeNode.reRender === 'function') {
           this.activeNode.reRender();
         }
-        if (typeof this.mindMapInstance.reRender === 'function') {
-          this.mindMapInstance.reRender();
-        } else if (typeof this.mindMapInstance.render === 'function') {
+        if (typeof this.mindMapInstance.render === 'function') {
           this.mindMapInstance.render();
         }
 
@@ -2999,7 +3041,7 @@ export class UltraFastMindMap {
           } catch {}
         }
 
-        // Mantener el nodo seleccionado y activo para que al pulsar Hijo (Tab) o Hermano (Enter) funcione de inmediato
+        // Mantener el nodo seleccionado y activo para que al pulsar Hijo (Tab) o Hermano (+) funcione de inmediato
         const savedNode = this.activeNode;
         setTimeout(() => {
           if (savedNode && !this.isDestroyed) {
@@ -3010,6 +3052,9 @@ export class UltraFastMindMap {
             this.activeNode = savedNode;
             this.updateNodeDropdownUI();
             this.updateDockButtons(true);
+            if (this.mindmeisterAdapter) {
+              (this.mindmeisterAdapter as any).updatePillPosition?.();
+            }
           }
         }, 40);
 
@@ -3025,13 +3070,37 @@ export class UltraFastMindMap {
 
     const onKeyDown = (e: KeyboardEvent) => {
       e.stopPropagation();
+      (e as any).stopImmediatePropagation?.();
+
       if (e.key === 'Escape') {
         e.preventDefault();
         commitChanges(true);
       } else if (e.key === 'Enter') {
-        // Req 4: Enter sirve para dar un enter hacia abajo (salto de línea), NO para finalizar ni crear nuevo nodo
+        // Req 4: Enter sirve para dar un enter hacia abajo (salto de línea), NUNCA para finalizar ni crear nuevo nodo
+        e.preventDefault();
         e.stopPropagation();
-        setTimeout(onInput, 10);
+        (e as any).stopImmediatePropagation?.();
+
+        let inserted = false;
+        try {
+          inserted = document.execCommand('insertLineBreak');
+        } catch {}
+
+        if (!inserted) {
+          const sel = window.getSelection();
+          if (sel && sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            range.deleteContents();
+            const br = document.createElement('br');
+            range.insertNode(br);
+            range.setStartAfter(br);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+
+        onInput();
       }
     };
     textRenderedEl.addEventListener('keydown', onKeyDown);
