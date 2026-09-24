@@ -6,6 +6,7 @@
  * y la Barra Contextual Flotante de Alta Gama con el núcleo de SimpleMindMap.
  */
 
+import { AdaptiveSplineEngine, Point2D } from '../geometry/AdaptiveSplineEngine';
 import { TouchGestureEngine, GestureTransformState } from '../gestures/TouchGestureEngine';
 import { SpatialQuadTree } from '../spatial/SpatialQuadTree';
 import { FloatingPillToolbar, MINDMEISTER_SPECTRAL_PALETTE } from '../../ui/components/FloatingPillToolbar';
@@ -53,8 +54,9 @@ export class SimpleMindMapAdapter {
     // 1. Aplicar clase visual y estilos al contenedor
     this.container.classList.add('mindmeister-canvas-viewport');
 
-    // 2. Sobrecargar e integrar color de líneas respetando la geometría del layout
+    // 2. Sobrecargar e integrar color de líneas y trazador de splines dinámicas seguras
     this.patchNodeStyleLine();
+    this.patchLayoutRenderLine();
 
     // 3. Inicializar e integrar el QuadTree espacial para Frustum Culling
     if (this.config.enableCulling) {
@@ -96,8 +98,175 @@ export class SimpleMindMapAdapter {
         const branchColor = self.resolveNodeColor(childNode);
         if (branchColor && branchColor !== 'transparent') {
           line.stroke({ color: branchColor, width: 2.2 });
+          line.fill('none');
         }
       }
+    };
+  }
+
+  /**
+   * Sobrecarga el método `renderLine` del layout activo de SimpleMindMap implementando
+   * un despachador geométrico inteligente con medidas de seguridad anti-errores visuales:
+   * 1. Layouts Horizontales (LogicalStructure, MindMap): Cintas orgánicas (Root -> L1) y Splines C^1 (L1 -> L2+).
+   * 2. Layouts Verticales (OrganizationStructure, VerticalMindMap): Curvas Bézier verticales C^1 puras.
+   * 3. Layouts Especiales (Timeline, Timeline2, Fishbone, CatalogOrganization): Delega al motor matemático nativo.
+   * 4. Medidas de Seguridad: Validación estricta de finitud (anti-NaN), fallback silencioso y 60 FPS garantizados.
+   */
+  public patchLayoutRenderLine(): void {
+    const layout = this.mindMap.renderer?.layout;
+    if (!layout) return;
+
+    if (layout._isAdaptiveSplinePatched) return;
+    layout._isAdaptiveSplinePatched = true;
+
+    const self = this;
+    const originalRenderLine = layout.renderLine ? layout.renderLine.bind(layout) : null;
+
+    layout.renderLine = function (node: any, lines: any[], style: any, lineStyle: any) {
+      if (!node || !node.children || node.children.length === 0) {
+        return originalRenderLine ? originalRenderLine(node, lines, style, lineStyle) : [];
+      }
+
+      // Identificar el esquema de layout activo
+      const layoutName = self.mindMap.opt?.layout || layout.layoutName || '';
+      const isHorizontalLayout = layoutName === 'logicalStructure' || layoutName === 'mindMap' || !layoutName;
+      const isVerticalLayout = layoutName === 'organizationStructure' || layoutName === 'verticalMindMap';
+
+      // Si es un layout matemático especializado (Fishbone, Timeline, Timeline2, CatalogOrganization):
+      // Medida de seguridad 1: delegar al algoritmo nativo para preservar la topología matemática exacta
+      if (!isHorizontalLayout && !isVerticalLayout) {
+        return originalRenderLine ? originalRenderLine(node, lines, style, lineStyle) : [];
+      }
+
+      const { left, top, width, height, isRoot, layerIndex } = node;
+      const isRootNode = Boolean(isRoot || layerIndex === 0);
+
+      // Medida de seguridad 2: validar que las coordenadas del nodo origen sean números finitos válidos
+      if (!Number.isFinite(left) || !Number.isFinite(top) || !Number.isFinite(width) || !Number.isFinite(height)) {
+        return originalRenderLine ? originalRenderLine(node, lines, style, lineStyle) : [];
+      }
+
+      if (isHorizontalLayout) {
+        // --- 1. LAYOUTS HORIZONTALES (LogicalStructure, MindMap) ---
+        node.children.forEach((child: any, index: number) => {
+          const lineElement = lines[index];
+          if (!lineElement) return;
+
+          // Medida de seguridad 3: validar coordenadas del nodo hijo
+          if (!Number.isFinite(child.left) || !Number.isFinite(child.top) || !Number.isFinite(child.width) || !Number.isFinite(child.height)) {
+            return;
+          }
+
+          // Orientación espacial (izquierda vs derecha)
+          const isLeft = child.dir === 'left' || (child.left + child.width / 2 < left + width / 2);
+
+          // Puertos de salida y llegada en los bordes horizontales exactos de los recuadros
+          const x0 = isLeft ? left : left + width;
+          let y0 = top + height / 2;
+
+          const x3 = isLeft ? child.left + child.width : child.left;
+          let y3 = child.top + child.height / 2;
+
+          const nodeUseLineStyle = Boolean(self.mindMap.themeConfig?.nodeUseLineStyle);
+          if (nodeUseLineStyle) {
+            if (!isRootNode) y0 += height / 4;
+            y3 += child.height / 2;
+          }
+
+          const p0: Point2D = { x: x0, y: y0 };
+          const p3: Point2D = { x: x3, y: y3 };
+
+          const branchColor = self.resolveNodeColor(child, index);
+
+          let pathStr = '';
+
+          if (isRootNode && self.config.enableRibbons) {
+            // NIVEL 1: Organic Tapering Ribbon (Cinta cónica con grosor variable)
+            pathStr = AdaptiveSplineEngine.generateOrganicRibbonPath(p0, p3, {
+              wRoot: 8.5,
+              wChild: 2.6,
+              alpha: 1.25,
+              tension: 0.55,
+              samples: 24
+            });
+
+            lineElement.plot(pathStr);
+            lineElement.attr({
+              fill: branchColor,
+              stroke: 'none',
+              'fill-opacity': 0.9,
+              class: 'mm-ribbon-path'
+            });
+          } else {
+            // NIVEL 2+: Curva Bézier Adaptativa C^1 Limpia con tangencia horizontal
+            pathStr = AdaptiveSplineEngine.generateChildConnectorPath(
+              p0,
+              p3,
+              isLeft,
+              {
+                tension: 0.55,
+                useTrunkOffset: false,
+                includeOvalMarker: false
+              }
+            );
+
+            lineElement.plot(pathStr);
+            lineElement.attr({
+              fill: 'none',
+              stroke: branchColor,
+              'stroke-width': 2.2,
+              'stroke-linecap': 'round',
+              'stroke-linejoin': 'round',
+              class: 'mm-spline-path'
+            });
+          }
+        });
+      } else if (isVerticalLayout) {
+        // --- 2. LAYOUTS VERTICALES (OrganizationStructure, VerticalMindMap) ---
+        node.children.forEach((child: any, index: number) => {
+          const lineElement = lines[index];
+          if (!lineElement) return;
+
+          // Medida de seguridad 3: validar coordenadas del nodo hijo
+          if (!Number.isFinite(child.left) || !Number.isFinite(child.top) || !Number.isFinite(child.width) || !Number.isFinite(child.height)) {
+            return;
+          }
+
+          // Puerto de salida en el centro inferior del nodo padre
+          const x0 = left + width / 2;
+          const y0 = top + height;
+
+          // Puerto de llegada en el centro superior del nodo hijo
+          const x3 = child.left + child.width / 2;
+          const y3 = child.top;
+
+          const branchColor = self.resolveNodeColor(child, index);
+
+          let pathStr = '';
+          const dx = Math.abs(x3 - x0);
+
+          if (dx < 2) {
+            // Perfectamente alineados en el eje vertical: línea vertical pura
+            pathStr = `M ${x0.toFixed(1)},${y0.toFixed(1)} L ${x3.toFixed(1)},${y3.toFixed(1)}`;
+          } else {
+            // Conexión Bézier C^1 vertical con tangencia en el punto medio de la altura
+            const midY = y0 + (y3 - y0) * 0.5;
+            pathStr = `M ${x0.toFixed(1)},${y0.toFixed(1)} C ${x0.toFixed(1)},${midY.toFixed(1)} ${x3.toFixed(1)},${midY.toFixed(1)} ${x3.toFixed(1)},${y3.toFixed(1)}`;
+          }
+
+          lineElement.plot(pathStr);
+          lineElement.attr({
+            fill: 'none',
+            stroke: branchColor,
+            'stroke-width': 2.2,
+            'stroke-linecap': 'round',
+            'stroke-linejoin': 'round',
+            class: 'mm-spline-path-vertical'
+          });
+        });
+      }
+
+      return lines;
     };
   }
 
@@ -614,6 +783,7 @@ export class SimpleMindMapAdapter {
     // 3. Fin de renderizado de la estructura
     this.mindMap.on('node_tree_render_end', () => {
       this.patchNodeStyleLine();
+      this.patchLayoutRenderLine();
       this.rebuildSpatialIndex();
       if (this.activeNode && this.pillToolbar) {
         this.updatePillPosition();
@@ -623,6 +793,7 @@ export class SimpleMindMapAdapter {
     // 3b. Cambio de estructura o layout
     this.mindMap.on('layout_change', () => {
       this.patchNodeStyleLine();
+      this.patchLayoutRenderLine();
     });
 
     // 4. Cambios en la vista (transformación, zoom, pan)

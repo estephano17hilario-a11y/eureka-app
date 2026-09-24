@@ -719,8 +719,13 @@ g:has(.eureka-mindmap-custom-node.is-editing) .smm-expand-btn,
 
 /* Ocultar mientras se está editando para no tapar el texto al escribir */
 .smm-node-container .is-editing ~ .smm-quick-create-child-btn,
+g.is-editing .smm-quick-create-child-btn,
 g:has(.eureka-mindmap-custom-node.is-editing) .smm-quick-create-child-btn,
-.smm-quick-create-child-btn.is-editing-hidden {
+.smm-quick-create-child-btn.is-editing-hidden,
+.smm-node-container .is-editing ~ .smm-expand-btn,
+g.is-editing .smm-expand-btn,
+g:has(.eureka-mindmap-custom-node.is-editing) .smm-expand-btn,
+.smm-expand-btn.is-editing-hidden {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;

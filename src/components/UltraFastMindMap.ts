@@ -1317,7 +1317,7 @@ export class UltraFastMindMap {
 
     // Sobrecargar creación y renderizado del botón (+) para recuadros hijos
     proto.showQuickCreateChildBtn = function() {
-      if (this.isGeneralization || this.getChildrenLength() > 0) return;
+      if (this.isGeneralization || this.getChildrenLength() > 0 || this._isEditingText) return;
 
       const nodeInstance = this;
       const expandBtnSize = this.mindMap?.opt?.expandBtnSize || 24;
@@ -1415,22 +1415,22 @@ export class UltraFastMindMap {
       }
     };
 
-    proto.removeQuickCreateChildBtn = function() {
+    proto.removeQuickCreateChildBtn = function(force?: boolean) {
       if (this.isGeneralization) return;
       const isActive = typeof this.getData === 'function' ? this.getData('isActive') : Boolean(this.nodeData?.data?.isActive);
-      // NUNCA borrar el botón si el nodo está activo o si el cursor está sobre el botón
-      if (isActive || this._isBtnHovered) return;
+      // NUNCA borrar el botón si el nodo está activo o si el cursor está sobre el botón, excepto si es forzado o durante edición
+      if (!force && !this._isEditingText && (isActive || this._isBtnHovered)) return;
       if (this._quickCreateChildBtn && this._showQuickCreateChildBtn) {
         this._quickCreateChildBtn.remove();
         this._showQuickCreateChildBtn = false;
       }
     };
 
-    proto.hideQuickCreateChildBtn = function() {
+    proto.hideQuickCreateChildBtn = function(force?: boolean) {
       if (this.isGeneralization) return;
       const isActive = typeof this.getData === 'function' ? this.getData('isActive') : Boolean(this.nodeData?.data?.isActive);
-      if (!isActive && !this._isMouseenter && !this._isBtnHovered) {
-        this.removeQuickCreateChildBtn();
+      if (force || (!isActive && !this._isMouseenter && !this._isBtnHovered)) {
+        this.removeQuickCreateChildBtn(force);
       }
     };
 
@@ -1442,7 +1442,7 @@ export class UltraFastMindMap {
         if (this.group) {
           this.group.on('mouseenter', () => {
             this._isMouseenter = true;
-            if (this.getChildrenLength() === 0) {
+            if (this.getChildrenLength() === 0 && !this._isEditingText) {
               this.showQuickCreateChildBtn();
             }
           });
@@ -3180,6 +3180,8 @@ export class UltraFastMindMap {
     if (!textRenderedEl || !customNodeEl) return;
 
     this.isEditingText = true;
+    (node as any)._isEditingText = true;
+    const initialWidth = Math.max(node.width || 0, 76);
 
     // Pausar comandos globales de SimpleMindMap para que Enter, Tab, Del no creen nodos ni borren nada mientras se escribe
     this.mindMapInstance?.keyCommand?.pause();
@@ -3207,14 +3209,27 @@ export class UltraFastMindMap {
       } catch {}
     }
 
-    // Ocultar botón '+' hijo de SimpleMindMap mientras se escribe
-    if ((node as any)._quickCreateChildBtn && typeof (node as any).removeQuickCreateChildBtn === 'function') {
+    // Ocultar e inhabilitar botón '+' hijo de SimpleMindMap mientras se escribe con seguridad total
+    const originalShowQuickCreateChildBtn = (node as any).showQuickCreateChildBtn;
+    (node as any).showQuickCreateChildBtn = () => {};
+    if ((node as any)._quickCreateChildBtn) {
       try {
-        (node as any).removeQuickCreateChildBtn();
+        (node as any)._quickCreateChildBtn.hide?.();
+        if ((node as any)._quickCreateChildBtn.node) {
+          (node as any)._quickCreateChildBtn.node.style.setProperty('display', 'none', 'important');
+        }
+        (node as any)._quickCreateChildBtn.remove?.();
+        (node as any)._showQuickCreateChildBtn = false;
+      } catch {}
+    }
+    if (typeof (node as any).removeQuickCreateChildBtn === 'function') {
+      try {
+        (node as any).removeQuickCreateChildBtn(true);
       } catch {}
     }
 
     // Activar edición in-place directamente en el mismo elemento sin duplicados ni desplazamientos
+    groupNode?.classList.add('is-editing');
     customNodeEl.classList.add('is-editing');
     textRenderedEl.contentEditable = 'true';
     textRenderedEl.spellcheck = false;
@@ -3233,87 +3248,53 @@ export class UltraFastMindMap {
     textRenderedEl.focus();
 
     // Auto-ajustar en tiempo real mientras el usuario escribe:
-    // Mide matemáticamente con exactitud cada línea para que el recuadro y el contorno
-    // azul se acoplen perfectamente al texto en tiempo real, sin espacios sobrantes.
+    // Mantiene el ancho del nodo estable durante la edición para evitar colisiones con hermanos
+    // y desalineación de líneas, mientras permite que la altura responda dinámicamente al eje Y a 60 FPS.
     const onInput = () => {
       if (!customNodeEl || !groupNode || !this.activeNode) return;
 
-      const fullText = textRenderedEl.innerText || '';
-      const computed = window.getComputedStyle(textRenderedEl);
-      const fontSize = parseFloat(computed.fontSize) || 14;
-      const fontFamily = computed.fontFamily || '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      const fontWeight = computed.fontWeight || 'normal';
-
-      const imgEl = customNodeEl.querySelector('img') as HTMLImageElement | null;
-      const hasImage = Boolean(imgEl);
-      const imageW = imgEl?.offsetWidth || 0;
-      const imageH = imgEl?.offsetHeight || 0;
-
-      const optSize = this.measureOptimalNodeSize(
-        fullText,
-        fontSize,
-        fontFamily,
-        fontWeight,
-        hasImage,
-        imageW,
-        imageH
-      );
-
-      const neededW = optSize.width;
-
-      // Aplicar ancho y permitir que la altura fluya para leer el scrollHeight real del DOM
-      customNodeEl.style.width = `${neededW}px`;
+      const editW = initialWidth;
+      customNodeEl.style.width = `${editW}px`;
       customNodeEl.style.maxWidth = '284px';
       customNodeEl.style.wordBreak = 'break-word';
       customNodeEl.style.overflowWrap = 'break-word';
+      customNodeEl.style.whiteSpace = 'pre-wrap';
       customNodeEl.style.height = 'auto';
 
-      // Altura real renderizada en el DOM
+      // Altura real renderizada en el DOM en tiempo real (responsiva al eje Y)
       const domH = Math.max(36, Math.ceil(customNodeEl.scrollHeight || (textRenderedEl.offsetHeight + 12)));
-      const neededH = Math.max(optSize.height, domH);
+      customNodeEl.style.height = `${domH}px`;
 
-      customNodeEl.style.height = `${neededH}px`;
-
-      // Asignar al nodo para que el shape y el motor geométrico usen estas dimensiones exactas
-      node.width = neededW;
-      node.height = neededH;
-
-      // Asegurar que foreignObject tenga las dimensiones exactas
+      // foreignObject: mantener editW y ajustar domH
       const fo = groupNode.querySelector('foreignObject');
       if (fo) {
-        fo.setAttribute('width', String(neededW));
-        fo.setAttribute('height', String(neededH));
+        fo.setAttribute('width', String(editW));
+        fo.setAttribute('height', String(domH));
       }
 
-      // Sincronizar el layout nativo del nodo con SimpleMindMap
-      if (typeof (node as any).customNodeContentRealtimeLayout === 'function') {
-        (node as any).customNodeContentRealtimeLayout();
-      }
-
-      // Asegurar que el shape SVG (.smm-node-shape) coincida al 100% con el contenido
+      // Asegurar que el shape SVG (.smm-node-shape) coincida exactamente con el contenido en el eje Y
       const shapePath = groupNode.querySelector('.smm-node-shape') as SVGPathElement | null;
       if (shapePath) {
         const r = 8;
-        const d = `M${r},0 L${neededW - r},0 C${neededW - r},0 ${neededW},0 ${neededW},${r} L${neededW},${neededH - r} C${neededW},${neededH - r} ${neededW},${neededH} ${neededW - r},${neededH} L${r},${neededH} C${r},${neededH} 0,${neededH} 0,${neededH - r} L0,${r} C0,${r} 0,0 ${r},0 Z`;
+        const d = `M${r},0 L${editW - r},0 C${editW - r},0 ${editW},0 ${editW},${r} L${editW},${domH - r} C${editW},${domH - r} ${editW},${domH} ${editW - r},${domH} L${r},${domH} C${r},${domH} 0,${domH} 0,${domH - r} L0,${r} C0,${r} 0,0 ${r},0 Z`;
         shapePath.setAttribute('d', d);
       }
 
-      // Actualizar contorno activo de selección (.smm-hover-node) para que envuelva exactamente todo el texto multilínea
+      // Actualizar contorno activo de selección (.smm-hover-node) en el eje Y
       const hoverNodeRect = groupNode.querySelector('.smm-hover-node') as SVGRectElement | null;
       if (hoverNodeRect) {
         const pad = (this.mindMapInstance?.opt?.hoverRectPadding ?? 2);
-        hoverNodeRect.setAttribute('width', String(neededW + pad * 2));
-        hoverNodeRect.setAttribute('height', String(neededH + pad * 2));
+        hoverNodeRect.setAttribute('width', String(editW + pad * 2));
+        hoverNodeRect.setAttribute('height', String(domH + pad * 2));
         hoverNodeRect.setAttribute('x', String(-pad));
         hoverNodeRect.setAttribute('y', String(-pad));
         hoverNodeRect.style.display = 'block';
         hoverNodeRect.style.opacity = '1';
       }
 
-      // Mantener conectores spline alineados con el nuevo borde del recuadro
-      if (node.parent && typeof node.parent.renderLine === 'function') {
-        node.parent.renderLine();
-      }
+      // Actualizar la altura en el objeto del nodo y renderizar conectores de manera segura
+      // (al mantenerse editW constante, el centro X del nodo no salta y las líneas se mantienen rectas)
+      node.height = domH;
       if (typeof node.renderLine === 'function') {
         node.renderLine();
       }
@@ -3340,6 +3321,7 @@ export class UltraFastMindMap {
       if (isCommitted) return;
       isCommitted = true;
       this.isEditingText = false;
+      (node as any)._isEditingText = false;
 
       // Reanudar shortcuts globales de SimpleMindMap
       this.mindMapInstance?.keyCommand?.recovery();
@@ -3348,8 +3330,9 @@ export class UltraFastMindMap {
         this.mindMapInstance.renderer.endTextEdit();
       }
 
-      // Restaurar el botón expandir
+      // Restaurar botones expandir y crear hijo
       (node as any).showExpandBtn = originalShowExpandBtn;
+      (node as any).showQuickCreateChildBtn = originalShowQuickCreateChildBtn;
 
       textRenderedEl.removeEventListener('input', onInput);
       textRenderedEl.removeEventListener('keydown', onKeyDown);
@@ -3359,6 +3342,7 @@ export class UltraFastMindMap {
 
       textRenderedEl.contentEditable = 'false';
       customNodeEl.classList.remove('is-editing');
+      groupNode?.classList.remove('is-editing');
 
       const rawVal = textRenderedEl.innerText || '';
       const newText = save ? (rawVal.trim() === '' ? '' : rawVal.trim()) : currentText;
