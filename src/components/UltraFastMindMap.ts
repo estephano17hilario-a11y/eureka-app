@@ -1215,7 +1215,11 @@ export class UltraFastMindMap {
       this.scheduleDebouncedSave();
     });
 
-    // Robustecer el botón (+) de SimpleMindMap para evitar parpadeo y permitir clics 100% estables
+    // Eventos y ganchos de renderizado para parchar de forma infalible el prototipo de MindMapNode
+    this.mindMapInstance.on('node_tree_render_start', () => {
+      this.patchMindMapNodePrototype();
+    });
+
     this.mindMapInstance.on('quick_create_btn_click', (node: any) => {
       if (node) {
         this.triggerHaptic();
@@ -1226,51 +1230,15 @@ export class UltraFastMindMap {
       }
     });
 
-    const rootNode = (this.mindMapInstance as any)?.renderer?.root;
-    if (rootNode) {
-      const nodeProto = Object.getPrototypeOf(rootNode);
-      if (nodeProto && typeof nodeProto.showQuickCreateChildBtn === 'function') {
-        const origShowQuickCreate = nodeProto.showQuickCreateChildBtn;
-        nodeProto.showQuickCreateChildBtn = function() {
-          if (this.isGeneralization || this.getChildrenLength() > 0) return;
-          origShowQuickCreate.call(this);
-          if (this._quickCreateChildBtn && !this._quickCreateChildBtn._hasHitBridge) {
-            this._quickCreateChildBtn._hasHitBridge = true;
-            try {
-              const expandBtnSize = this.mindMap?.opt?.expandBtnSize || 22;
-              const RectClass = this.getSvgObjects ? this.getSvgObjects().Rect : null;
-              if (RectClass) {
-                const hitBridge = new RectClass()
-                  .size(expandBtnSize + 28, expandBtnSize + 18)
-                  .x(-18)
-                  .y(-expandBtnSize / 2 - 9)
-                  .fill({ color: 'transparent' })
-                  .css({ cursor: 'pointer' });
-                this._quickCreateChildBtn.add(hitBridge);
-              }
-            } catch {}
+    this.mindMapInstance.on('before_node_active', (node: any) => {
+      if (node) this.patchMindMapNodePrototype(node);
+    });
 
-            this._quickCreateChildBtn.on('mousedown', (e: any) => {
-              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-            });
-            this._quickCreateChildBtn.on('pointerdown', (e: any) => {
-              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-            });
-            this._quickCreateChildBtn.on('touchstart', (e: any) => {
-              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-            });
-          }
-        };
+    this.mindMapInstance.on('node_click', (node: any) => {
+      if (node) this.patchMindMapNodePrototype(node);
+    });
 
-        nodeProto.hideQuickCreateChildBtn = function() {
-          if (this.isGeneralization) return;
-          const { isActive } = this.getData ? this.getData() : (this.nodeData?.data || {});
-          if (!isActive && !this._isMouseenter) {
-            this.removeQuickCreateChildBtn();
-          }
-        };
-      }
-    }
+    this.patchMindMapNodePrototype();
 
     // Interceptar el editor nativo de la librería para usar el editor multilínea directo
     if (this.mindMapInstance.textEdit) {
@@ -1333,6 +1301,160 @@ export class UltraFastMindMap {
     }, 450);
 
     this.initKeyboardAdaptiveHandler();
+  }
+
+  /**
+   * Sobrecarga infalible y permanente de MindMapNode.prototype para el botón (+) de agregar hijos
+   */
+  private patchMindMapNodePrototype(sampleNode?: any): void {
+    const rootOrSample = sampleNode || (this.mindMapInstance as any)?.renderer?.root;
+    if (!rootOrSample) return;
+    const proto = Object.getPrototypeOf(rootOrSample);
+    if (!proto || proto._isEurekaQuickBtnPatched) return;
+    proto._isEurekaQuickBtnPatched = true;
+
+    const self = this;
+
+    // Sobrecargar creación y renderizado del botón (+) para recuadros hijos
+    proto.showQuickCreateChildBtn = function() {
+      if (this.isGeneralization || this.getChildrenLength() > 0) return;
+
+      const nodeInstance = this;
+      const expandBtnSize = this.mindMap?.opt?.expandBtnSize || 24;
+      const svgObjs = this.getSvgObjects ? this.getSvgObjects() : null;
+      const GClass = svgObjs?.G;
+      const RectClass = svgObjs?.Rect;
+
+      if (!this._quickCreateChildBtn && GClass && RectClass) {
+        this._quickCreateChildBtn = new GClass();
+        this._quickCreateChildBtn.addClass('smm-quick-create-child-btn');
+
+        // 1. Puente de impacto invisible y amplio (Zero Dead Zone)
+        const hitBridge = new RectClass()
+          .size(expandBtnSize + 36, expandBtnSize + 26)
+          .x(-18)
+          .y(-expandBtnSize / 2 - 13)
+          .fill({ color: 'transparent' })
+          .css({ cursor: 'pointer', 'pointer-events': 'all' });
+        this._quickCreateChildBtn.add(hitBridge);
+
+        // 2. Círculo de fondo con radio redondeado y contraste nítido
+        const fillNode = new RectClass()
+          .size(expandBtnSize, expandBtnSize)
+          .radius(expandBtnSize / 2)
+          .x(0)
+          .y(-expandBtnSize / 2)
+          .fill({ color: '#0284c7' })
+          .stroke({ color: '#ffffff', width: 2 })
+          .css({ cursor: 'pointer', 'pointer-events': 'all' });
+        this._quickCreateChildBtn.add(fillNode);
+
+        // 3. Icono SVG '+' centrado y nítido
+        try {
+          const SVGFactory = svgObjs?.SVG || (window as any).SVG;
+          if (SVGFactory) {
+            const plusSvg = `<svg viewBox="0 0 24 24" width="${expandBtnSize}" height="${expandBtnSize}"><line x1="12" y1="5.5" x2="12" y2="18.5" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/><line x1="5.5" y1="12" x2="18.5" y2="12" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/></svg>`;
+            const iconNode = SVGFactory(plusSvg).size(expandBtnSize, expandBtnSize);
+            iconNode.x(0).y(-expandBtnSize / 2);
+            iconNode.css({ cursor: 'pointer', 'pointer-events': 'none' });
+            this._quickCreateChildBtn.add(iconNode);
+          }
+        } catch {}
+
+        // 4. Detener TODA propagación de mousedown/pointerdown/touchstart para que NUNCA desactive el nodo en el canvas
+        const stopAll = (e: any) => {
+          if (e) {
+            if (typeof e.stopPropagation === 'function') e.stopPropagation();
+            if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+            if (typeof e.preventDefault === 'function') e.preventDefault();
+          }
+        };
+
+        this._quickCreateChildBtn.on('mousedown', stopAll);
+        this._quickCreateChildBtn.on('pointerdown', stopAll);
+        this._quickCreateChildBtn.on('touchstart', stopAll);
+        this._quickCreateChildBtn.on('mouseup', (e: any) => {
+          if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        });
+        this._quickCreateChildBtn.on('touchend', (e: any) => {
+          if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        });
+
+        // 5. Inserción de hijo en Clic
+        const handleCreateChild = (e: any) => {
+          stopAll(e);
+          self.triggerHaptic();
+          nodeInstance.active();
+          if (self.mindMapInstance?.renderer) {
+            self.mindMapInstance.renderer.activeNodeList = [nodeInstance];
+          }
+          self.mindMapInstance?.execCommand('INSERT_CHILD_NODE', true, [nodeInstance]);
+        };
+
+        this._quickCreateChildBtn.on('click', handleCreateChild);
+        this._quickCreateChildBtn.on('dblclick', stopAll);
+        this._quickCreateChildBtn.on('contextmenu', stopAll);
+
+        // 6. Rastrear estado de hover del botón
+        this._quickCreateChildBtn.on('mouseenter', () => {
+          nodeInstance._isMouseenter = true;
+          nodeInstance._isBtnHovered = true;
+        });
+        this._quickCreateChildBtn.on('mouseleave', () => {
+          nodeInstance._isBtnHovered = false;
+        });
+
+        this.group.add(this._quickCreateChildBtn);
+      } else if (this._quickCreateChildBtn && !this.group.has(this._quickCreateChildBtn)) {
+        this.group.add(this._quickCreateChildBtn);
+      }
+
+      this._showQuickCreateChildBtn = true;
+      if (this.renderer?.layout?.renderExpandBtn && this._quickCreateChildBtn) {
+        this.renderer.layout.renderExpandBtn(this, this._quickCreateChildBtn);
+      }
+    };
+
+    proto.removeQuickCreateChildBtn = function() {
+      if (this.isGeneralization) return;
+      const isActive = typeof this.getData === 'function' ? this.getData('isActive') : Boolean(this.nodeData?.data?.isActive);
+      // NUNCA borrar el botón si el nodo está activo o si el cursor está sobre el botón
+      if (isActive || this._isBtnHovered) return;
+      if (this._quickCreateChildBtn && this._showQuickCreateChildBtn) {
+        this._quickCreateChildBtn.remove();
+        this._showQuickCreateChildBtn = false;
+      }
+    };
+
+    proto.hideQuickCreateChildBtn = function() {
+      if (this.isGeneralization) return;
+      const isActive = typeof this.getData === 'function' ? this.getData('isActive') : Boolean(this.nodeData?.data?.isActive);
+      if (!isActive && !this._isMouseenter && !this._isBtnHovered) {
+        this.removeQuickCreateChildBtn();
+      }
+    };
+
+    // Sobrecargar bindGroupEvent para que hover sobre el nodo también muestre el botón (+)
+    const origBindGroupEvent = proto.bindGroupEvent;
+    if (typeof origBindGroupEvent === 'function') {
+      proto.bindGroupEvent = function() {
+        origBindGroupEvent.call(this);
+        if (this.group) {
+          this.group.on('mouseenter', () => {
+            this._isMouseenter = true;
+            if (this.getChildrenLength() === 0) {
+              this.showQuickCreateChildBtn();
+            }
+          });
+          this.group.on('mouseleave', () => {
+            const isActive = typeof this.getData === 'function' ? this.getData('isActive') : Boolean(this.nodeData?.data?.isActive);
+            if (!isActive && !this._isBtnHovered) {
+              this.hideQuickCreateChildBtn();
+            }
+          });
+        }
+      };
+    }
   }
 
   /**

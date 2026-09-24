@@ -126,6 +126,11 @@ export class TouchGestureEngine {
    * Manejador de touchstart: intercepta el toque y detiene la inercia anterior.
    */
   private handleTouchStart(e: TouchEvent): void {
+    const target = e.target as Element | null;
+    if (target?.closest?.('.smm-quick-create-child-btn, .mm-node-add-sibling-btn, .mm-floating-pill-toolbar, .compact-trigger-pill, .mindmap-top-bar, .mindmap-dropdown-menu-panel, button, input, textarea, a')) {
+      return;
+    }
+
     // Síncronamente prevenir desplazamiento nativo o rebotes en WKWebView / Android WebView
     e.preventDefault();
 
