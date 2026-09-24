@@ -1799,6 +1799,9 @@ export class UltraFastMindMap {
         if (layout && this.mindMapInstance) {
           this.currentLayout = layout;
           this.mindMapInstance.setLayout(layout);
+          if (typeof this.mindMapInstance.render === 'function') {
+            this.mindMapInstance.render();
+          }
           const preview = root.querySelector('#preview-layout-emoji');
           if (preview) preview.textContent = this.getLayoutEmoji(layout);
           root.querySelectorAll('#popover-layout [data-layout]').forEach((b) => b.classList.remove('active'));
@@ -1806,7 +1809,8 @@ export class UltraFastMindMap {
           this.triggerHaptic();
           this.saveSync();
           closeAllPopovers();
-          setTimeout(() => this.fitToScreenBounds(), 120);
+          setTimeout(() => this.fitToScreenBounds(), 80);
+          setTimeout(() => this.fitToScreenBounds(), 250);
         }
       });
     });

@@ -6,7 +6,6 @@
  * y la Barra Contextual Flotante de Alta Gama con el núcleo de SimpleMindMap.
  */
 
-import { AdaptiveSplineEngine, Point2D } from '../geometry/AdaptiveSplineEngine';
 import { TouchGestureEngine, GestureTransformState } from '../gestures/TouchGestureEngine';
 import { SpatialQuadTree } from '../spatial/SpatialQuadTree';
 import { FloatingPillToolbar, MINDMEISTER_SPECTRAL_PALETTE } from '../../ui/components/FloatingPillToolbar';
@@ -54,8 +53,8 @@ export class SimpleMindMapAdapter {
     // 1. Aplicar clase visual y estilos al contenedor
     this.container.classList.add('mindmeister-canvas-viewport');
 
-    // 2. Sobrecargar el algoritmo de trazado de conectores de SimpleMindMap
-    this.patchLayoutRenderLine();
+    // 2. Sobrecargar e integrar color de líneas respetando la geometría del layout
+    this.patchNodeStyleLine();
 
     // 3. Inicializar e integrar el QuadTree espacial para Frustum Culling
     if (this.config.enableCulling) {
@@ -77,98 +76,28 @@ export class SimpleMindMapAdapter {
   }
 
   /**
-   * Sobrecarga el método `renderLine` de los layouts de SimpleMindMap (MindMap, LogicalStructure, etc.)
-   * para sustituir curvas estáticas por Curvas Bézier C1 Adaptativas y Cintas Cónicas (Ribbons).
+   * Integra colores cromáticos y herencia espectral en el método nativo `styleLine` de SimpleMindMap
+   * respetando al 100% las ecuaciones geométricas de cada uno de los 8 esquemas de layout.
    */
-  private patchLayoutRenderLine(): void {
-    const layout = this.mindMap.renderer?.layout;
-    if (!layout) return;
+  public patchNodeStyleLine(): void {
+    const rootNode = this.mindMap.renderer?.root;
+    if (!rootNode) return;
+    const proto = Object.getPrototypeOf(rootNode);
+    if (!proto || proto._isAdapterStyleLinePatched) return;
+    proto._isAdapterStyleLinePatched = true;
 
     const self = this;
-    const originalRenderLine = layout.renderLine ? layout.renderLine.bind(layout) : null;
-
-    layout.renderLine = function (node: any, lines: any[], style: any, lineStyle: any) {
-      if (!node.children || node.children.length === 0) {
-        return originalRenderLine ? originalRenderLine(node, lines, style, lineStyle) : [];
+    const origStyleLine = proto.styleLine;
+    proto.styleLine = function (line: any, childNode: any, enableMarker: any) {
+      if (typeof origStyleLine === 'function') {
+        origStyleLine.call(this, line, childNode, enableMarker);
       }
-
-      const { left, top, width, height, isRoot, layerIndex } = node;
-      const isRootNode = Boolean(isRoot || layerIndex === 0);
-
-      node.children.forEach((child: any, index: number) => {
-        const lineElement = lines[index];
-        if (!lineElement) return;
-
-        // Determinar orientación espacial (izquierda vs derecha)
-        const isLeft = child.dir === 'left' || (child.left + child.width / 2 < left + width / 2);
-
-        // Puerto de salida en el nodo origen (P0) exacto en el borde del recuadro
-        const x0 = isLeft ? left : left + width;
-        let y0 = top + height / 2;
-
-        // Puerto de llegada en el nodo destino (P3) exacto en el borde del hijo
-        const x3 = isLeft ? child.left + child.width : child.left;
-        let y3 = child.top + child.height / 2;
-
-        // Ajuste cuando el nodo usa estilo de línea base (underline)
-        const nodeUseLineStyle = Boolean(self.mindMap.themeConfig?.nodeUseLineStyle);
-        if (nodeUseLineStyle) {
-          if (!isRootNode) y0 += height / 4;
-          y3 += child.height / 2;
+      if (line && childNode) {
+        const branchColor = self.resolveNodeColor(childNode);
+        if (branchColor && branchColor !== 'transparent') {
+          line.stroke({ color: branchColor, width: 2.2 });
         }
-
-        const p0: Point2D = { x: x0, y: y0 };
-        const p3: Point2D = { x: x3, y: y3 };
-
-        // Obtener color cromático heredado determinista
-        const branchColor = self.resolveNodeColor(child, index);
-
-        let pathStr = '';
-
-        if (isRootNode && self.config.enableRibbons) {
-          // NIVEL 1: Organic Tapering Ribbon (Cinta Cónica de Sección Variable)
-          pathStr = AdaptiveSplineEngine.generateOrganicRibbonPath(p0, p3, {
-            wRoot: 9.0,
-            wChild: 2.8,
-            alpha: 1.25,
-            tension: 0.55,
-            samples: 32
-          });
-
-          // Relleno sólido cerrado sin borde
-          lineElement.plot(pathStr);
-          lineElement.attr({
-            fill: branchColor,
-            stroke: 'none',
-            'fill-opacity': 0.88,
-            class: 'mm-ribbon-path'
-          });
-        } else {
-          // NIVEL 2+: Curva Bézier Adaptativa C^1 Limpia hacia el puerto del hijo sin óvalos ni descuadres
-          pathStr = AdaptiveSplineEngine.generateChildConnectorPath(
-            p0,
-            p3,
-            isLeft,
-            {
-              trunkOffset: 0,
-              tension: 0.55,
-              useTrunkOffset: false,
-              includeOvalMarker: false
-            }
-          );
-
-          // Trazo continuo sin óvalos
-          lineElement.plot(pathStr);
-          lineElement.attr({
-            fill: 'none',
-            stroke: branchColor,
-            'stroke-width': 2.2,
-            'stroke-linecap': 'round',
-            'stroke-linejoin': 'round',
-            class: 'mm-spline-path'
-          });
-        }
-      });
+      }
     };
   }
 
@@ -684,7 +613,7 @@ export class SimpleMindMapAdapter {
 
     // 3. Fin de renderizado de la estructura
     this.mindMap.on('node_tree_render_end', () => {
-      this.patchLayoutRenderLine();
+      this.patchNodeStyleLine();
       this.rebuildSpatialIndex();
       if (this.activeNode && this.pillToolbar) {
         this.updatePillPosition();
@@ -693,7 +622,7 @@ export class SimpleMindMapAdapter {
 
     // 3b. Cambio de estructura o layout
     this.mindMap.on('layout_change', () => {
-      this.patchLayoutRenderLine();
+      this.patchNodeStyleLine();
     });
 
     // 4. Cambios en la vista (transformación, zoom, pan)
