@@ -689,3 +689,17 @@ g:has(.eureka-mindmap-custom-node.is-editing) .smm-expand-btn,
   border-color: #38bdf8 !important;
   color: #38bdf8 !important;
 }
+
+/* Ocultar botón duplicado simple-mind-map quick-create child (+) */
+.smm-quick-create-child-btn {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Contorno activo de selección (.smm-hover-node) con radio uniforme y acople perfecto */
+.smm-hover-node {
+  rx: 8px !important;
+  ry: 8px !important;
+}

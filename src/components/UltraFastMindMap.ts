@@ -418,6 +418,7 @@ export class UltraFastMindMap {
   public globalInvisibleBoxes: boolean = false;
   private globalFontFamily: string = 'Inter, sans-serif';
   private nodeFillEnabled: boolean = false;
+  private measureContainer: HTMLDivElement | null = null;
 
   constructor(container: HTMLElement, config: MindMapConfig = {}) {
     this.container = container;
@@ -972,6 +973,7 @@ export class UltraFastMindMap {
       customLineType: 'straight',
       isLimitMindMapInCanvas: false,
       fitPadding: 45,
+      isShowCreateChildBtnIcon: false,
 
       // LOCALIZACIÓN 100% ESPAÑOL (Supresión total de caracteres chinos)
       defaultInsertSecondLevelNodeText: 'Subconcepto',
@@ -1014,6 +1016,18 @@ export class UltraFastMindMap {
         const fontStyle = (node.getData ? node.getData('fontStyle') : null) || 'normal';
         const textDecoration = (node.getData ? node.getData('textDecoration') : null) || 'none';
 
+        const textStr = (text === undefined || text === null) ? '' : String(text);
+        const imgSize = image ? (node.getData ? node.getData('imageSize') : (node.nodeData?.data?.imageSize)) : null;
+        const optimalSize = this.measureOptimalNodeSize(
+          textStr,
+          fontSize,
+          fontFamily,
+          fontWeight,
+          Boolean(image),
+          imgSize?.width || 0,
+          imgSize?.height || 0
+        );
+
         div.style.fontFamily = fontFamily;
         div.style.color = color;
         div.style.fontSize = `${fontSize}px`;
@@ -1026,7 +1040,9 @@ export class UltraFastMindMap {
         div.style.alignItems = 'center';
         div.style.justifyContent = 'center';
         div.style.textAlign = 'center';
-        div.style.maxWidth = '360px';
+        div.style.width = `${optimalSize.width}px`;
+        div.style.height = `${optimalSize.height}px`;
+        div.style.maxWidth = '260px';
         div.style.minWidth = '76px';
         div.style.minHeight = '36px';
         div.style.boxSizing = 'border-box';
@@ -1086,7 +1102,6 @@ export class UltraFastMindMap {
         }
 
         // ✍️ Renderizado de Texto Multilínea (Respetando saltos de línea con Enter)
-        const textStr = (text === undefined || text === null) ? '' : String(text);
         const cleanText = textStr.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
         const textEl = document.createElement('div');
         textEl.className = 'eureka-node-text-rendered';
@@ -2813,6 +2828,114 @@ export class UltraFastMindMap {
   }
 
   /**
+   * Mide de manera determinista y matemática el tamaño óptimo (width x height) del recuadro
+   * para envolver exactamente el texto renderizado, eliminando espacios vacíos a la derecha
+   * y holguras excesivas en los costados al hacer saltos de línea.
+   */
+  private measureOptimalNodeSize(
+    text: string,
+    fontSize: number = 14,
+    fontFamily: string = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontWeight: string = 'normal',
+    hasImage: boolean = false,
+    imageW: number = 0,
+    imageH: number = 0
+  ): { width: number; height: number } {
+    const minW = 76;
+    const maxW = 260;
+    const minH = 36;
+    const paddingX = 24; // 12px izquierda + 12px derecha
+
+    const clean = (text || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+    if (!clean && !hasImage) {
+      return { width: 110, height: minH }; // Espacio para el placeholder "Escribe aquí..."
+    }
+
+    if (!this.measureContainer || !this.measureContainer.parentElement) {
+      this.measureContainer = document.createElement('div');
+      this.measureContainer.style.cssText = 'position:fixed;left:-99999px;top:-99999px;visibility:hidden;pointer-events:none;z-index:-9999;box-sizing:border-box;';
+      document.body.appendChild(this.measureContainer);
+    }
+
+    const testEl = document.createElement('div');
+    testEl.className = 'eureka-mindmap-custom-node';
+    testEl.style.cssText = `
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-family: ${fontFamily};
+      font-size: ${fontSize}px;
+      font-weight: ${fontWeight};
+      line-height: 1.4;
+      padding: 6px 12px;
+      box-sizing: border-box;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      text-align: center;
+      display: inline-block;
+      width: auto;
+      max-width: ${maxW}px;
+    `;
+
+    const textSpan = document.createElement('span');
+    textSpan.style.cssText = 'display:inline;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;';
+
+    const textStr = (text === undefined || text === null) ? '' : String(text);
+    if (textStr.includes('class="katex"') || textStr.includes("<span class='katex'")) {
+      textSpan.innerHTML = textStr;
+    } else if (textStr.includes('\\') || textStr.includes('$')) {
+      try {
+        textSpan.innerHTML = katexService.parseAndRender(textStr);
+      } catch {
+        textSpan.innerText = clean;
+      }
+    } else {
+      textSpan.innerText = clean;
+    }
+
+    testEl.appendChild(textSpan);
+    this.measureContainer.innerHTML = '';
+    this.measureContainer.appendChild(testEl);
+
+    // Medir ancho real de cada una de las líneas renderizadas
+    let maxLineW = 0;
+    try {
+      const range = document.createRange();
+      range.selectNodeContents(textSpan);
+      const rects = range.getClientRects();
+      if (rects && rects.length > 0) {
+        for (let i = 0; i < rects.length; i++) {
+          if (rects[i].width > maxLineW) {
+            maxLineW = rects[i].width;
+          }
+        }
+      } else {
+        maxLineW = textSpan.getBoundingClientRect().width;
+      }
+    } catch {
+      maxLineW = testEl.scrollWidth - paddingX;
+    }
+
+    let optimalW = Math.max(minW, Math.min(maxW, Math.ceil(maxLineW + paddingX)));
+    if (hasImage && imageW > 0) {
+      optimalW = Math.max(optimalW, Math.min(maxW, Math.ceil(imageW + paddingX)));
+    }
+
+    // Probar altura exacta con el ancho óptimo fijado
+    testEl.style.width = `${optimalW}px`;
+    testEl.style.maxWidth = `${optimalW}px`;
+
+    let optimalH = Math.max(minH, Math.ceil(testEl.offsetHeight));
+    if (hasImage && imageH > 0) {
+      optimalH += Math.ceil(imageH + 6);
+    }
+
+    this.measureContainer.innerHTML = '';
+    return { width: optimalW, height: optimalH };
+  }
+
+  /**
    * 4. GESTIÓN DE EDICIÓN DIRECTA EN EL MISMO RECUADRO SELECCIONADO (IN-PLACE DIRECT EDITING)
    * Edita directamente sobre el mismo texto del nodo (contenteditable).
    * Cero desfase de posición, cero duplicados de capas de texto, cero distorsión.
@@ -2892,47 +3015,39 @@ export class UltraFastMindMap {
     textRenderedEl.focus();
 
     // Auto-ajustar en tiempo real mientras el usuario escribe:
-    // Mide de manera determinista cada línea con Canvas 2D para que coincida exactamente con el texto
-    // y NUNCA se produzca expansión descontrolada ni efecto globo.
-    const measureCanvas = document.createElement('canvas');
-    const measureCtx = measureCanvas.getContext('2d');
-
+    // Mide matemáticamente con exactitud cada línea para que el recuadro y el contorno
+    // azul se acoplen perfectamente al texto en tiempo real, sin espacios sobrantes.
     const onInput = () => {
       if (!customNodeEl || !groupNode || !this.activeNode) return;
 
       const fullText = textRenderedEl.innerText || '';
-      const explicitLines = fullText.split('\n');
-
       const computed = window.getComputedStyle(textRenderedEl);
       const fontSize = parseFloat(computed.fontSize) || 14;
-      const fontFamily = computed.fontFamily || '-apple-system, BlinkMacSystemFont, sans-serif';
+      const fontFamily = computed.fontFamily || '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       const fontWeight = computed.fontWeight || 'normal';
 
-      let maxLineW = 0;
-      if (measureCtx) {
-        measureCtx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-        for (const line of explicitLines) {
-          const w = measureCtx.measureText(line || 'M').width;
-          if (w > maxLineW) maxLineW = w;
-        }
-      } else {
-        maxLineW = textRenderedEl.scrollWidth || 60;
-      }
+      const imgEl = customNodeEl.querySelector('img') as HTMLImageElement | null;
+      const hasImage = Boolean(imgEl);
+      const imageW = imgEl?.offsetWidth || 0;
+      const imageH = imgEl?.offsetHeight || 0;
 
-      // Constreñir ancho entre 76px y 360px (coherente con el estilo de customNodeEl)
-      const minW = 76;
-      const maxW = 360;
-      const neededW = Math.max(minW, Math.min(maxW, Math.ceil(maxLineW + 36)));
+      const optSize = this.measureOptimalNodeSize(
+        fullText,
+        fontSize,
+        fontFamily,
+        fontWeight,
+        hasImage,
+        imageW,
+        imageH
+      );
 
-      // Aplicar ancho a customNodeEl para que el motor CSS realice el ajuste de línea (word-wrap) a este ancho
+      const neededW = optSize.width;
+      const neededH = optSize.height;
+
+      // Aplicar ancho y alto directamente al contenedor DOM del nodo
       customNodeEl.style.width = `${neededW}px`;
-      customNodeEl.style.maxWidth = `${maxW}px`;
-
-      // Altura real renderizada en el DOM (scrollHeight / offsetHeight reflejan exactamente todas las líneas envueltas)
-      const scrollH = customNodeEl.scrollHeight;
-      const offsetH = customNodeEl.offsetHeight;
-      const clientH = customNodeEl.clientHeight;
-      const neededH = Math.max(36, Math.ceil(Math.max(scrollH, offsetH, clientH)));
+      customNodeEl.style.height = `${neededH}px`;
+      customNodeEl.style.maxWidth = '260px';
 
       // Asignar al nodo para que el shape y el motor geométrico usen estas dimensiones exactas
       node.width = neededW;
@@ -2943,6 +3058,11 @@ export class UltraFastMindMap {
       if (fo) {
         fo.setAttribute('width', String(neededW));
         fo.setAttribute('height', String(neededH));
+      }
+
+      // Sincronizar el layout nativo del nodo con SimpleMindMap
+      if (typeof (node as any).customNodeContentRealtimeLayout === 'function') {
+        (node as any).customNodeContentRealtimeLayout();
       }
 
       // Asegurar que el shape SVG (.smm-node-shape) coincida al 100% con el contenido
@@ -2961,6 +3081,8 @@ export class UltraFastMindMap {
         hoverNodeRect.setAttribute('height', String(neededH + pad * 2));
         hoverNodeRect.setAttribute('x', String(-pad));
         hoverNodeRect.setAttribute('y', String(-pad));
+        hoverNodeRect.style.display = 'block';
+        hoverNodeRect.style.opacity = '1';
       }
 
       // Mantener conectores spline alineados con el nuevo borde del recuadro
@@ -4171,6 +4293,10 @@ export class UltraFastMindMap {
         console.warn('[UltraFastMindMap] Error en mindMap.destroy():', e);
       }
       this.mindMapInstance = null;
+    }
+    if (this.measureContainer && this.measureContainer.parentElement) {
+      this.measureContainer.parentElement.removeChild(this.measureContainer);
+      this.measureContainer = null;
     }
     this.container.innerHTML = '';
   }
