@@ -778,15 +778,12 @@ export class UltraFastMindMap {
 
             <div class="dropdown-h-divider"></div>
 
-            <!-- SECCIÓN C: ACCIONES ESTRUCTURALES -->
+            <!-- SECCIÓN C: ACCIONES DE EDICIÓN Y CONTENIDO DEL RECUADRO -->
             <div class="dropdown-h-group">
               <button type="button" class="compact-trigger-pill" id="btn-open-direct-text-editor" title="Editar texto (F2)">✏️</button>
               <button type="button" class="compact-trigger-pill" id="btn-open-katex-from-node-menu" title="Fórmula KaTeX">📐</button>
               <button type="button" class="compact-trigger-pill" id="btn-upload-node-photo" title="Adjuntar foto">📷</button>
               <button type="button" class="compact-trigger-pill danger" id="btn-remove-node-photo" style="display:none;" title="Eliminar foto">🗑️</button>
-              <button type="button" class="compact-trigger-pill" id="btn-node-dropdown-child" title="Añadir hijo (Tab)"><span style="font-size:11px; font-weight:600;">➕ Hijo</span></button>
-              <button type="button" class="compact-trigger-pill" id="btn-node-dropdown-sibling" title="Añadir hermano (Enter)"><span style="font-size:11px; font-weight:600;">🌿 Hermano</span></button>
-              <button type="button" class="compact-trigger-pill danger" id="btn-node-dropdown-delete" title="Eliminar recuadro (Supr)">🗑️</button>
             </div>
           </div>
 
@@ -1752,13 +1749,15 @@ export class UltraFastMindMap {
     const closeAllPopovers = () => {
       root.querySelectorAll<HTMLElement>('.popover-bubble').forEach((el) => {
         el.style.display = 'none';
+        el.style.left = '';
+        el.style.right = '';
       });
       root.querySelectorAll<HTMLElement>('.compact-trigger-pill').forEach((btn) => {
         btn.classList.remove('active');
       });
     };
 
-    // Helper para alternar un popover específico
+    // Helper para alternar un popover específico con ajuste responsivo a bordes
     const togglePopover = (popoverId: string, triggerId: string) => {
       const popover = root.querySelector(`#${popoverId}`) as HTMLElement | null;
       const trigger = root.querySelector(`#${triggerId}`) as HTMLElement | null;
@@ -1768,6 +1767,19 @@ export class UltraFastMindMap {
       if (isClosed) {
         popover.style.display = 'flex';
         trigger?.classList.add('active');
+
+        // Medida de responsividad dinámica: ajustar posición si se desborda por los bordes de pantalla
+        requestAnimationFrame(() => {
+          const rect = popover.getBoundingClientRect();
+          const winW = window.innerWidth;
+          if (rect.right > winW - 10) {
+            popover.style.left = 'auto';
+            popover.style.right = '0px';
+          } else if (rect.left < 10) {
+            popover.style.left = '0px';
+            popover.style.right = 'auto';
+          }
+        });
       }
       this.triggerHaptic();
     };
@@ -2221,44 +2233,10 @@ export class UltraFastMindMap {
     });
 
     // ============================================================
-    // ACCIONES DE RECUADRO EN DROPDOWN (+ Hijo, + Hermano, Borrar, Heredar)
+    // ACCIONES DE RECUADRO EN DROPDOWN (Heredar color)
     // ============================================================
     root.querySelector('#btn-inherit-color-children')?.addEventListener('click', () => {
       this.inheritNodeColorToChildren();
-    });
-
-    root.querySelector('#btn-node-dropdown-child')?.addEventListener('click', () => {
-      this.triggerHaptic();
-      const target = this.activeNode || this.mindMapInstance?.renderer?.activeNodeList?.[0];
-      if (target) {
-        target.active();
-        if (this.mindMapInstance?.renderer) {
-          this.mindMapInstance.renderer.activeNodeList = [target];
-        }
-        this.mindMapInstance?.execCommand('INSERT_CHILD_NODE', false, [target]);
-      }
-    });
-
-    root.querySelector('#btn-node-dropdown-sibling')?.addEventListener('click', () => {
-      this.triggerHaptic();
-      const target = this.activeNode || this.mindMapInstance?.renderer?.activeNodeList?.[0];
-      if (target && !target.isRoot) {
-        target.active();
-        if (this.mindMapInstance?.renderer) {
-          this.mindMapInstance.renderer.activeNodeList = [target];
-        }
-        this.mindMapInstance?.execCommand('INSERT_NODE', false, [target]);
-      }
-    });
-
-    root.querySelector('#btn-node-dropdown-delete')?.addEventListener('click', () => {
-      this.triggerHaptic();
-      const target = this.activeNode || this.mindMapInstance?.renderer?.activeNodeList?.[0];
-      if (target) {
-        this.mindMapInstance?.execCommand('REMOVE_NODE', [target]);
-        this.activeNode = null;
-        this.updateNodeDropdownUI();
-      }
     });
 
     // ============================================================
@@ -4383,7 +4361,7 @@ export class UltraFastMindMap {
   }
 
   private updateDockButtons(hasActiveNode: boolean): void {
-    const ids = ['#btn-node-dropdown-child', '#btn-node-dropdown-sibling', '#btn-node-dropdown-delete', '#btn-inherit-color-children'];
+    const ids = ['#btn-inherit-color-children', '#btn-open-direct-text-editor', '#btn-open-katex-from-node-menu', '#btn-upload-node-photo'];
     ids.forEach((id) => {
       const btn = this.container.querySelector(id) as HTMLButtonElement | null;
       if (btn) btn.disabled = !hasActiveNode;

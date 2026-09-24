@@ -136,39 +136,7 @@ export class FloatingPillToolbar {
     // Divisor
     this.addDivider();
 
-    // 4. Botón Añadir Hijo (Tab)
-    const addChildBtn = document.createElement('button');
-    addChildBtn.className = 'mm-pill-btn mm-pill-btn-add-child';
-    addChildBtn.title = 'Insertar subrama (Tab)';
-    addChildBtn.innerHTML = `
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-      <span style="font-size: 11px; margin-left: 3px; font-weight: 600;">Hijo</span>
-    `;
-    addChildBtn.onclick = (e) => {
-      e.stopPropagation();
-      if (this.activeNode && this.callbacks.onAddChild) {
-        this.callbacks.onAddChild(this.activeNode);
-      }
-    };
-    this.toolbarEl.appendChild(addChildBtn);
-
-    // 5. Botón Añadir Hermano (Enter)
-    const addSiblingBtn = document.createElement('button');
-    addSiblingBtn.className = 'mm-pill-btn mm-pill-btn-add-sibling';
-    addSiblingBtn.title = 'Insertar nodo hermano (Enter)';
-    addSiblingBtn.innerHTML = `
-      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-      <span style="font-size: 11px; margin-left: 3px; font-weight: 600;">Hermano</span>
-    `;
-    addSiblingBtn.onclick = (e) => {
-      e.stopPropagation();
-      if (this.activeNode && this.callbacks.onAddSibling) {
-        this.callbacks.onAddSibling(this.activeNode);
-      }
-    };
-    this.toolbarEl.appendChild(addSiblingBtn);
-
-    // 6. Botón Foto
+    // 4. Botón Foto
     const photoBtn = document.createElement('button');
     photoBtn.className = 'mm-pill-btn mm-pill-btn-photo';
     photoBtn.title = 'Adjuntar foto al recuadro';
@@ -183,25 +151,6 @@ export class FloatingPillToolbar {
       }
     };
     this.toolbarEl.appendChild(photoBtn);
-
-    // Divisor
-    this.addDivider();
-
-    // 7. Botón Eliminar Nodo (Del / Supr)
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'mm-pill-btn mm-pill-btn-delete';
-    deleteBtn.title = 'Eliminar nodo seleccionado';
-    deleteBtn.style.color = '#fb7185';
-    deleteBtn.innerHTML = `
-      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-    `;
-    deleteBtn.onclick = (e) => {
-      e.stopPropagation();
-      if (this.activeNode && this.callbacks.onDeleteNode) {
-        this.callbacks.onDeleteNode(this.activeNode);
-      }
-    };
-    this.toolbarEl.appendChild(deleteBtn);
   }
 
   /**
@@ -298,8 +247,8 @@ export class FloatingPillToolbar {
     if (!this.isVisible) return;
 
     const containerRect = this.container.getBoundingClientRect();
-    const toolbarW = this.toolbarEl.offsetWidth || 340;
-    const toolbarH = this.toolbarEl.offsetHeight || 48;
+    const toolbarW = this.toolbarEl.offsetWidth || 180;
+    const toolbarH = this.toolbarEl.offsetHeight || 44;
     const margin = 12;
 
     // Posición del nodo relativa al contenedor
@@ -307,10 +256,10 @@ export class FloatingPillToolbar {
     const nodeRelativeLeft = nodeRect.left - containerRect.left;
     const nodeCenterX = nodeRelativeLeft + nodeRect.width / 2;
 
-    // Centrado horizontal con acotamiento dentro de los límites del contenedor
+    // Centrado horizontal con acotamiento dentro de los límites del contenedor (anti-desbordamiento)
     let targetX = nodeCenterX - toolbarW / 2;
     const minX = margin;
-    const maxX = containerRect.width - toolbarW - margin;
+    const maxX = Math.max(minX, containerRect.width - toolbarW - margin);
     targetX = Math.max(minX, Math.min(targetX, maxX));
 
     // Boundary Flipping vertical:

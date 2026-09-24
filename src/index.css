@@ -7346,14 +7346,33 @@ math-field::part(virtual-keyboard-toggle) {
 }
 
 @media (max-width: 640px) {
+  .mindmap-top-bar {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .mindmap-top-title {
+    max-width: 110px;
+    font-size: 0.82rem;
+  }
+  .mindmap-touch-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .mindmap-touch-btn svg {
+    width: 18px;
+    height: 18px;
+  }
   .mindmap-dropdown-menu-panel {
-    top: 50px;
+    top: 48px;
     left: 6px;
     right: 6px;
     max-width: calc(100vw - 12px);
     padding: 0 8px;
     height: 46px;
     gap: 6px;
+  }
+  .dropdown-h-title {
+    font-size: 0.76rem;
   }
   .compact-trigger-pill {
     height: 32px;
@@ -7366,6 +7385,42 @@ math-field::part(virtual-keyboard-toggle) {
   .mindmap-header-action-pill.mindmap-icon-only-pill {
     padding: 5px 8px;
     min-width: 40px;
+  }
+  .popover-bubble {
+    max-width: calc(100vw - 20px);
+    box-sizing: border-box;
+  }
+  .popover-bubble.popover-grid-theme {
+    grid-template-columns: repeat(4, 32px);
+    gap: 4px;
+  }
+  .mindmap-floating-fit-btn {
+    bottom: 24px;
+    right: 14px;
+    padding: 0;
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .mindmap-floating-fit-btn span {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .mindmap-top-title {
+    max-width: 85px;
+    font-size: 0.78rem;
+  }
+  .dropdown-h-title {
+    display: none;
+  }
+  .dropdown-h-divider {
+    display: none;
+  }
+  .popover-bubble.popover-grid-theme {
+    grid-template-columns: repeat(3, 32px);
   }
 }
 
