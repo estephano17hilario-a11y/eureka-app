@@ -974,7 +974,7 @@ export class UltraFastMindMap {
       customLineType: 'straight',
       isLimitMindMapInCanvas: false,
       fitPadding: 45,
-      isShowCreateChildBtnIcon: false,
+      isShowCreateChildBtnIcon: true,
 
       // LOCALIZACIÓN 100% ESPAÑOL (Supresión total de caracteres chinos)
       defaultInsertSecondLevelNodeText: 'Subconcepto',
@@ -2847,10 +2847,18 @@ export class UltraFastMindMap {
     const paddingX = 24; // 12px izquierda + 12px derecha
     const paddingY = 12; // 6px arriba + 6px abajo
     const minH = 36;
-    const lineHeight = Math.round(fontSize * 1.4);
+    const lineHeight = Math.round(fontSize * 1.45);
 
-    const clean = (text || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-    if (!clean && !hasImage) {
+    const textStr = (text === undefined || text === null) ? '' : String(text);
+    const normalized = textStr
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .trim();
+
+    if (!normalized && !hasImage) {
       return { width: 110, height: minH }; // Espacio para el placeholder "Escribe aquí..."
     }
 
@@ -2869,7 +2877,7 @@ export class UltraFastMindMap {
       return ctx.measureText(str).width;
     };
 
-    const paragraphs = clean.split('\n');
+    const paragraphs = normalized.split('\n');
     const wrappedLines: string[] = [];
 
     for (const para of paragraphs) {
@@ -2878,37 +2886,35 @@ export class UltraFastMindMap {
         continue;
       }
 
-      // Si el párrafo completo cabe en maxContentWidth, se mantiene en 1 sola línea sin dividir
-      if (measureTextW(para) <= maxContentWidth) {
-        wrappedLines.push(para);
-        continue;
-      }
-
-      // Si excede maxContentWidth, separar por palabras respetando la gramática
       const words = para.split(' ');
       let currentLine = '';
 
       for (const word of words) {
-        const testLine = currentLine ? `${currentLine} ${word}` : word;
-        if (measureTextW(testLine) <= maxContentWidth) {
-          currentLine = testLine;
+        if (!word) continue;
+
+        if (measureTextW(word) <= maxContentWidth) {
+          if (currentLine && measureTextW(`${currentLine} ${word}`) <= maxContentWidth) {
+            currentLine = `${currentLine} ${word}`;
+          } else {
+            if (currentLine) wrappedLines.push(currentLine);
+            currentLine = word;
+          }
         } else {
+          // Palabra individual más larga que maxContentWidth: dividir en trozos
           if (currentLine) {
             wrappedLines.push(currentLine);
-            currentLine = word;
-          } else {
-            // Palabra individual más larga que maxContentWidth: dividir por caracteres
-            let chunk = '';
-            for (const ch of word) {
-              if (measureTextW(chunk + ch) <= maxContentWidth) {
-                chunk += ch;
-              } else {
-                if (chunk) wrappedLines.push(chunk);
-                chunk = ch;
-              }
-            }
-            currentLine = chunk;
+            currentLine = '';
           }
+          let chunk = '';
+          for (const ch of word) {
+            if (measureTextW(chunk + ch) <= maxContentWidth) {
+              chunk += ch;
+            } else {
+              if (chunk) wrappedLines.push(chunk);
+              chunk = ch;
+            }
+          }
+          currentLine = chunk;
         }
       }
       if (currentLine) {
@@ -2997,6 +3003,13 @@ export class UltraFastMindMap {
       } catch {}
     }
 
+    // Ocultar botón '+' hijo de SimpleMindMap mientras se escribe
+    if ((node as any)._quickCreateChildBtn && typeof (node as any).removeQuickCreateChildBtn === 'function') {
+      try {
+        (node as any).removeQuickCreateChildBtn();
+      } catch {}
+    }
+
     // Activar edición in-place directamente en el mismo elemento sin duplicados ni desplazamientos
     customNodeEl.classList.add('is-editing');
     textRenderedEl.contentEditable = 'true';
@@ -3043,14 +3056,19 @@ export class UltraFastMindMap {
       );
 
       const neededW = optSize.width;
-      const neededH = optSize.height;
 
-      // Aplicar ancho y alto directamente al contenedor DOM del nodo
+      // Aplicar ancho y permitir que la altura fluya para leer el scrollHeight real del DOM
       customNodeEl.style.width = `${neededW}px`;
-      customNodeEl.style.height = `${neededH}px`;
       customNodeEl.style.maxWidth = '284px';
       customNodeEl.style.wordBreak = 'break-word';
       customNodeEl.style.overflowWrap = 'break-word';
+      customNodeEl.style.height = 'auto';
+
+      // Altura real renderizada en el DOM
+      const domH = Math.max(36, Math.ceil(customNodeEl.scrollHeight || (textRenderedEl.offsetHeight + 12)));
+      const neededH = Math.max(optSize.height, domH);
+
+      customNodeEl.style.height = `${neededH}px`;
 
       // Asignar al nodo para que el shape y el motor geométrico usen estas dimensiones exactas
       node.width = neededW;

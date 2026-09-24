@@ -690,8 +690,20 @@ g:has(.eureka-mindmap-custom-node.is-editing) .smm-expand-btn,
   color: #38bdf8 !important;
 }
 
-/* Ocultar botón duplicado simple-mind-map quick-create child (+) */
+/* Botón (+) de SimpleMindMap para agregar recuadro hijo */
 .smm-quick-create-child-btn {
+  cursor: pointer !important;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
+}
+
+.smm-quick-create-child-btn:hover {
+  transform: scale(1.18);
+}
+
+/* Ocultar mientras se está editando para no tapar el texto al escribir */
+.smm-node-container .is-editing ~ .smm-quick-create-child-btn,
+g:has(.eureka-mindmap-custom-node.is-editing) .smm-quick-create-child-btn,
+.smm-quick-create-child-btn.is-editing-hidden {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
