@@ -418,7 +418,8 @@ export class UltraFastMindMap {
   public globalInvisibleBoxes: boolean = false;
   private globalFontFamily: string = 'Inter, sans-serif';
   private nodeFillEnabled: boolean = false;
-  private measureContainer: HTMLDivElement | null = null;
+  private measureCanvas: HTMLCanvasElement | null = null;
+  private measureCtx: CanvasRenderingContext2D | null = null;
 
   constructor(container: HTMLElement, config: MindMapConfig = {}) {
     this.container = container;
@@ -1042,12 +1043,12 @@ export class UltraFastMindMap {
         div.style.textAlign = 'center';
         div.style.width = `${optimalSize.width}px`;
         div.style.height = `${optimalSize.height}px`;
-        div.style.maxWidth = '260px';
+        div.style.maxWidth = '284px';
         div.style.minWidth = '76px';
         div.style.minHeight = '36px';
         div.style.boxSizing = 'border-box';
         div.style.wordBreak = 'break-word';
-        div.style.overflowWrap = 'anywhere';
+        div.style.overflowWrap = 'break-word';
         div.style.whiteSpace = 'pre-wrap';
         div.style.padding = '6px 12px';
 
@@ -1107,7 +1108,7 @@ export class UltraFastMindMap {
         textEl.className = 'eureka-node-text-rendered';
         textEl.style.whiteSpace = 'pre-wrap';
         textEl.style.wordBreak = 'break-word';
-        textEl.style.overflowWrap = 'anywhere';
+        textEl.style.overflowWrap = 'break-word';
         textEl.style.width = '100%';
         textEl.style.minHeight = '1.3em';
         textEl.style.minWidth = '48px';
@@ -2829,8 +2830,8 @@ export class UltraFastMindMap {
 
   /**
    * Mide de manera determinista y matemática el tamaño óptimo (width x height) del recuadro
-   * para envolver exactamente el texto renderizado, eliminando espacios vacíos a la derecha
-   * y holguras excesivas en los costados al hacer saltos de línea.
+   * para envolver exactamente el texto renderizado, evitando tanto el colapso vertical temprano
+   * como los espacios vacíos sobrantes a los costados.
    */
   private measureOptimalNodeSize(
     text: string,
@@ -2842,96 +2843,96 @@ export class UltraFastMindMap {
     imageH: number = 0
   ): { width: number; height: number } {
     const minW = 76;
-    const maxW = 260;
-    const minH = 36;
+    const maxContentWidth = 260; // Ancho máximo de texto antes de envolver a la siguiente línea
     const paddingX = 24; // 12px izquierda + 12px derecha
+    const paddingY = 12; // 6px arriba + 6px abajo
+    const minH = 36;
+    const lineHeight = Math.round(fontSize * 1.4);
 
     const clean = (text || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
     if (!clean && !hasImage) {
       return { width: 110, height: minH }; // Espacio para el placeholder "Escribe aquí..."
     }
 
-    if (!this.measureContainer || !this.measureContainer.parentElement) {
-      this.measureContainer = document.createElement('div');
-      this.measureContainer.style.cssText = 'position:fixed;left:-99999px;top:-99999px;visibility:hidden;pointer-events:none;z-index:-9999;box-sizing:border-box;';
-      document.body.appendChild(this.measureContainer);
+    if (!this.measureCanvas) {
+      this.measureCanvas = document.createElement('canvas');
+      this.measureCtx = this.measureCanvas.getContext('2d');
     }
 
-    const testEl = document.createElement('div');
-    testEl.className = 'eureka-mindmap-custom-node';
-    testEl.style.cssText = `
-      position: absolute;
-      left: 0;
-      top: 0;
-      font-family: ${fontFamily};
-      font-size: ${fontSize}px;
-      font-weight: ${fontWeight};
-      line-height: 1.4;
-      padding: 6px 12px;
-      box-sizing: border-box;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-      text-align: center;
-      display: inline-block;
-      width: auto;
-      max-width: ${maxW}px;
-    `;
+    const ctx = this.measureCtx;
+    if (ctx) {
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+    }
 
-    const textSpan = document.createElement('span');
-    textSpan.style.cssText = 'display:inline;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;';
+    const measureTextW = (str: string): number => {
+      if (!ctx) return str.length * (fontSize * 0.58);
+      return ctx.measureText(str).width;
+    };
 
-    const textStr = (text === undefined || text === null) ? '' : String(text);
-    if (textStr.includes('class="katex"') || textStr.includes("<span class='katex'")) {
-      textSpan.innerHTML = textStr;
-    } else if (textStr.includes('\\') || textStr.includes('$')) {
-      try {
-        textSpan.innerHTML = katexService.parseAndRender(textStr);
-      } catch {
-        textSpan.innerText = clean;
+    const paragraphs = clean.split('\n');
+    const wrappedLines: string[] = [];
+
+    for (const para of paragraphs) {
+      if (!para.trim()) {
+        wrappedLines.push('');
+        continue;
       }
-    } else {
-      textSpan.innerText = clean;
-    }
 
-    testEl.appendChild(textSpan);
-    this.measureContainer.innerHTML = '';
-    this.measureContainer.appendChild(testEl);
+      // Si el párrafo completo cabe en maxContentWidth, se mantiene en 1 sola línea sin dividir
+      if (measureTextW(para) <= maxContentWidth) {
+        wrappedLines.push(para);
+        continue;
+      }
 
-    // Medir ancho real de cada una de las líneas renderizadas
-    let maxLineW = 0;
-    try {
-      const range = document.createRange();
-      range.selectNodeContents(textSpan);
-      const rects = range.getClientRects();
-      if (rects && rects.length > 0) {
-        for (let i = 0; i < rects.length; i++) {
-          if (rects[i].width > maxLineW) {
-            maxLineW = rects[i].width;
+      // Si excede maxContentWidth, separar por palabras respetando la gramática
+      const words = para.split(' ');
+      let currentLine = '';
+
+      for (const word of words) {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        if (measureTextW(testLine) <= maxContentWidth) {
+          currentLine = testLine;
+        } else {
+          if (currentLine) {
+            wrappedLines.push(currentLine);
+            currentLine = word;
+          } else {
+            // Palabra individual más larga que maxContentWidth: dividir por caracteres
+            let chunk = '';
+            for (const ch of word) {
+              if (measureTextW(chunk + ch) <= maxContentWidth) {
+                chunk += ch;
+              } else {
+                if (chunk) wrappedLines.push(chunk);
+                chunk = ch;
+              }
+            }
+            currentLine = chunk;
           }
         }
-      } else {
-        maxLineW = textSpan.getBoundingClientRect().width;
       }
-    } catch {
-      maxLineW = testEl.scrollWidth - paddingX;
+      if (currentLine) {
+        wrappedLines.push(currentLine);
+      }
     }
 
-    let optimalW = Math.max(minW, Math.min(maxW, Math.ceil(maxLineW + paddingX)));
+    let maxLineW = 0;
+    for (const line of wrappedLines) {
+      const w = measureTextW(line);
+      if (w > maxLineW) maxLineW = w;
+    }
+
+    let optimalW = Math.max(minW, Math.min(maxContentWidth + paddingX, Math.ceil(maxLineW + paddingX)));
     if (hasImage && imageW > 0) {
-      optimalW = Math.max(optimalW, Math.min(maxW, Math.ceil(imageW + paddingX)));
+      optimalW = Math.max(optimalW, Math.min(maxContentWidth + paddingX, Math.ceil(imageW + paddingX)));
     }
 
-    // Probar altura exacta con el ancho óptimo fijado
-    testEl.style.width = `${optimalW}px`;
-    testEl.style.maxWidth = `${optimalW}px`;
-
-    let optimalH = Math.max(minH, Math.ceil(testEl.offsetHeight));
+    const lineCount = Math.max(1, wrappedLines.length);
+    let optimalH = Math.max(minH, Math.ceil(lineCount * lineHeight + paddingY));
     if (hasImage && imageH > 0) {
       optimalH += Math.ceil(imageH + 6);
     }
 
-    this.measureContainer.innerHTML = '';
     return { width: optimalW, height: optimalH };
   }
 
@@ -3047,7 +3048,9 @@ export class UltraFastMindMap {
       // Aplicar ancho y alto directamente al contenedor DOM del nodo
       customNodeEl.style.width = `${neededW}px`;
       customNodeEl.style.height = `${neededH}px`;
-      customNodeEl.style.maxWidth = '260px';
+      customNodeEl.style.maxWidth = '284px';
+      customNodeEl.style.wordBreak = 'break-word';
+      customNodeEl.style.overflowWrap = 'break-word';
 
       // Asignar al nodo para que el shape y el motor geométrico usen estas dimensiones exactas
       node.width = neededW;
@@ -4294,10 +4297,8 @@ export class UltraFastMindMap {
       }
       this.mindMapInstance = null;
     }
-    if (this.measureContainer && this.measureContainer.parentElement) {
-      this.measureContainer.parentElement.removeChild(this.measureContainer);
-      this.measureContainer = null;
-    }
+    this.measureCanvas = null;
+    this.measureCtx = null;
     this.container.innerHTML = '';
   }
 }
