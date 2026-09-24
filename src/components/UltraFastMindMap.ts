@@ -420,6 +420,10 @@ export class UltraFastMindMap {
   private nodeFillEnabled: boolean = false;
   private measureCanvas: HTMLCanvasElement | null = null;
   private measureCtx: CanvasRenderingContext2D | null = null;
+  private hasInitialFitDone: boolean = false;
+  private hasUserInteractedWithView: boolean = false;
+  private savedViewState: { scale: number; x: number; y: number } | null = null;
+  private initialFitTimeout: number | null = null;
 
   constructor(container: HTMLElement, config: MindMapConfig = {}) {
     this.container = container;
@@ -912,6 +916,9 @@ export class UltraFastMindMap {
             if (meta.lineColor) savedLineColor = meta.lineColor;
             if (meta.globalFontSize) savedFontSize = Number(meta.globalFontSize);
             if (meta.globalFontColor) savedFontColor = meta.globalFontColor;
+            if (meta.viewState && typeof meta.viewState.scale === 'number') {
+              this.savedViewState = meta.viewState;
+            }
           } catch {}
         }
       }
@@ -961,6 +968,21 @@ export class UltraFastMindMap {
     this.mindMapInstance = new (MindMap as any)({
       el: canvasEl,
       data: mapData,
+      viewData: this.savedViewState ? {
+        state: {
+          scale: this.savedViewState.scale,
+          x: this.savedViewState.x,
+          y: this.savedViewState.y,
+          sx: this.savedViewState.x,
+          sy: this.savedViewState.y
+        },
+        transform: {
+          scaleX: this.savedViewState.scale,
+          scaleY: this.savedViewState.scale,
+          shear: 0,
+          rotate: 0
+        }
+      } : null,
       layout: this.currentLayout,
       theme: 'classic4',
       readonly: false,
@@ -1244,8 +1266,23 @@ export class UltraFastMindMap {
       };
     }
 
-    // Auto-ajuste de vista centrado inicial infalible al terminar el renderizado
-    let initialRenderAttempts = 0;
+    // Preservación estricta de la posición de la cámara (Zoom y Pan)
+    // El mapa NUNCA debe resetear la vista al editar texto, cambiar temas/colores o añadir hijos/hermanos.
+    const performInitialFitOnce = () => {
+      if (this.hasInitialFitDone || this.hasUserInteractedWithView || !this.mindMapInstance || this.isDestroyed || this.savedViewState) return;
+      this.hasInitialFitDone = true;
+      this.fitToScreenBounds();
+    };
+
+    this.mindMapInstance.on('view_data_change', () => {
+      this.hasUserInteractedWithView = true;
+      this.hasInitialFitDone = true;
+      if (this.initialFitTimeout) {
+        window.clearTimeout(this.initialFitTimeout);
+        this.initialFitTimeout = null;
+      }
+    });
+
     this.mindMapInstance.on('node_tree_render_end', () => {
       if (this.globalInvisibleBoxes && this.mindMapInstance?.renderer?.root) {
         let hasFixed = false;
@@ -1271,31 +1308,22 @@ export class UltraFastMindMap {
           this.mindMapInstance.render();
         }
       }
-      if (initialRenderAttempts < 4) {
-        initialRenderAttempts++;
+
+      // Solo si es la primera carga y no existe vista previa guardada, centrar una única vez
+      if (!this.hasInitialFitDone && !this.hasUserInteractedWithView && !this.savedViewState) {
         requestAnimationFrame(() => {
-          this.fitToScreenBounds();
+          performInitialFitOnce();
         });
       }
     });
 
-    setTimeout(() => {
-      if (this.mindMapInstance && !this.isDestroyed) {
-        this.fitToScreenBounds();
-      }
-    }, 80);
-
-    setTimeout(() => {
-      if (this.mindMapInstance && !this.isDestroyed) {
-        this.fitToScreenBounds();
-      }
-    }, 220);
-
-    setTimeout(() => {
-      if (this.mindMapInstance && !this.isDestroyed) {
-        this.fitToScreenBounds();
-      }
-    }, 450);
+    if (!this.savedViewState) {
+      this.initialFitTimeout = window.setTimeout(() => {
+        performInitialFitOnce();
+      }, 100);
+    } else {
+      this.hasInitialFitDone = true;
+    }
 
     this.initKeyboardAdaptiveHandler();
   }
@@ -1821,8 +1849,6 @@ export class UltraFastMindMap {
           this.triggerHaptic();
           this.saveSync();
           closeAllPopovers();
-          setTimeout(() => this.fitToScreenBounds(), 80);
-          setTimeout(() => this.fitToScreenBounds(), 250);
         }
       });
     });
@@ -2402,7 +2428,6 @@ export class UltraFastMindMap {
       });
       this.triggerHaptic();
       this.saveSync();
-      setTimeout(() => this.fitToScreenBounds(), 100);
     } catch (e) {
       console.warn('[UltraFastMindMap] Error aplicando tema:', e);
     }
@@ -2565,7 +2590,6 @@ export class UltraFastMindMap {
     try {
       this.mindMapInstance.execCommand('EXPAND_ALL');
       this.triggerHaptic();
-      setTimeout(() => this.fitToScreenBounds(), 120);
     } catch {
       // Fallback
     }
@@ -2576,7 +2600,6 @@ export class UltraFastMindMap {
     try {
       this.mindMapInstance.execCommand('UNEXPAND_ALL');
       this.triggerHaptic();
-      setTimeout(() => this.fitToScreenBounds(), 120);
     } catch {
       // Fallback
     }
@@ -3619,7 +3642,6 @@ export class UltraFastMindMap {
 
       this.updateNodeDropdownUI();
       this.scheduleDebouncedSave();
-      setTimeout(() => this.fitToScreenBounds(), 80);
       return;
     }
 
@@ -3673,7 +3695,6 @@ export class UltraFastMindMap {
 
       this.updateNodeDropdownUI();
       this.scheduleDebouncedSave();
-      setTimeout(() => this.fitToScreenBounds(), 80);
     };
 
     tempImg.onerror = () => {
@@ -3878,17 +3899,8 @@ export class UltraFastMindMap {
   }
 
   private initKeyboardAdaptiveHandler(): void {
-    try {
-      this.keyboardListenerHandle = Keyboard.addListener('keyboardWillShow', () => {
-        if (this.mindMapInstance && this.activeNode) {
-          setTimeout(() => {
-            this.fitToScreenBounds();
-          }, 80);
-        }
-      });
-    } catch {
-      // Ignorar en navegador estándar sin plugin nativo
-    }
+    // Intencionalmente inactivo: No alterar ni recentrar la cámara cuando el teclado se abre.
+    // La vista debe quedarse fija en donde el usuario la dejó.
   }
 
   /**
@@ -4381,6 +4393,7 @@ export class UltraFastMindMap {
         const metaLineColor = this.mindMapInstance.themeConfig?.lineColor;
         const metaFontSize = this.container.querySelector('#preview-global-font-size')?.textContent;
         const metaFontColor = (this.container.querySelector('#preview-global-font-color') as HTMLElement)?.style.background;
+        const currentViewState = this.mindMapInstance.view?.getTransformData?.()?.state;
 
         localStorage.setItem(`${this.config.storageKey}_meta`, JSON.stringify({
           layout: this.currentLayout,
@@ -4389,6 +4402,7 @@ export class UltraFastMindMap {
           lineColor: metaLineColor,
           globalFontSize: metaFontSize,
           globalFontColor: metaFontColor,
+          viewState: currentViewState ? { scale: currentViewState.scale, x: currentViewState.x, y: currentViewState.y } : this.savedViewState,
           updatedAt: Date.now()
         }));
       }
