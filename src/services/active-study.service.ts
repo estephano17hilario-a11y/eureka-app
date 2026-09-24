@@ -28,16 +28,19 @@ class ActiveStudyService {
     this.initAntiCheatTime();
     this.syncWithCloud();
 
-    // Directiva: Forzar persistencia inmediata ante suspensión, cierre o recarga de la app
+    // Directiva: Forzar persistencia inmediata ante suspensión, cierre, cambio de pestaña o recarga de la app
     if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', () => {
+      const persistState = () => {
         this.saveToStorage();
         this.syncCloudState();
-      });
+      };
+
+      window.addEventListener('beforeunload', persistState);
+      window.addEventListener('pagehide', persistState);
+      window.addEventListener('freeze', persistState);
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
-          this.saveToStorage();
-          this.syncCloudState();
+          persistState();
         }
       });
     }
@@ -293,7 +296,19 @@ class ActiveStudyService {
 
       // Sincronización a VPS debounced en segundo plano
       this.scheduleCloudSync();
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.name === 'QuotaExceededError' || e?.code === 22) {
+        try {
+          localStorage.removeItem('eureka_active_study_topics_v1_backup');
+          localStorage.removeItem('eureka_active_study_outlines_v1_backup');
+          localStorage.removeItem('eureka_active_study_mindmaps_v1_backup');
+          localStorage.removeItem('eureka_active_study_locks_v1_backup');
+          localStorage.setItem(this.getCoinsKey(), this.userCoins.toString());
+          localStorage.setItem(this.getTopicsKey(), JSON.stringify(Array.from(this.topics.values())));
+        } catch (e2) {
+          console.warn('[ActiveStudyService] Almacenamiento saturado tras depuración:', e2);
+        }
+      }
       console.error('[ActiveStudyService] Error saving storage:', e);
     }
   }

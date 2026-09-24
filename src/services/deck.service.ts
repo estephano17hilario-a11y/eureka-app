@@ -16,16 +16,18 @@ export class DeckService {
     this.syncWithCloud();
 
     if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', () => {
+      const persistState = () => {
         this.saveToStorage();
         eurekaBackend.syncDecks(this.decks);
         eurekaBackend.syncCards(this.cards);
-      });
+      };
+
+      window.addEventListener('beforeunload', persistState);
+      window.addEventListener('pagehide', persistState);
+      window.addEventListener('freeze', persistState);
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
-          this.saveToStorage();
-          eurekaBackend.syncDecks(this.decks);
-          eurekaBackend.syncCards(this.cards);
+          persistState();
         }
       });
     }
@@ -179,7 +181,17 @@ export class DeckService {
         eurekaBackend.syncDecks(this.decks);
         eurekaBackend.syncCards(this.cards);
       }, 250);
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.name === 'QuotaExceededError' || err?.code === 22) {
+        try {
+          localStorage.removeItem('eureka_decks_backup_latest');
+          localStorage.removeItem('eureka_cards_backup_latest');
+          localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
+          localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
+        } catch (e2) {
+          console.warn('[DECK SERVICE] Almacenamiento lleno incluso tras depuración:', e2);
+        }
+      }
       console.warn('Error guardando en almacenamiento:', err);
     }
   }
