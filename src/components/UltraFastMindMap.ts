@@ -973,8 +973,29 @@ export class UltraFastMindMap {
       enableAnimation: false,
       customLineType: 'straight',
       isLimitMindMapInCanvas: false,
-      fitPadding: 45,
       isShowCreateChildBtnIcon: true,
+      expandBtnSize: 22,
+      expandBtnStyle: {
+        color: '#ffffff',
+        fill: '#0284c7',
+        fontSize: 13,
+        strokeColor: '#0284c7'
+      },
+      quickCreateChildBtnIcon: {
+        icon: '',
+        style: {
+          color: '#ffffff'
+        }
+      },
+      customQuickCreateChildBtnClick: (node: any) => {
+        if (!node) return;
+        this.triggerHaptic();
+        node.active();
+        if (this.mindMapInstance?.renderer) {
+          this.mindMapInstance.renderer.activeNodeList = [node];
+        }
+        this.mindMapInstance?.execCommand('INSERT_CHILD_NODE', true, [node]);
+      },
 
       // LOCALIZACIÓN 100% ESPAÑOL (Supresión total de caracteres chinos)
       defaultInsertSecondLevelNodeText: 'Subconcepto',
@@ -1193,6 +1214,63 @@ export class UltraFastMindMap {
     this.mindMapInstance.on('data_change', () => {
       this.scheduleDebouncedSave();
     });
+
+    // Robustecer el botón (+) de SimpleMindMap para evitar parpadeo y permitir clics 100% estables
+    this.mindMapInstance.on('quick_create_btn_click', (node: any) => {
+      if (node) {
+        this.triggerHaptic();
+        node.active();
+        if (this.mindMapInstance?.renderer) {
+          this.mindMapInstance.renderer.activeNodeList = [node];
+        }
+      }
+    });
+
+    const rootNode = (this.mindMapInstance as any)?.renderer?.root;
+    if (rootNode) {
+      const nodeProto = Object.getPrototypeOf(rootNode);
+      if (nodeProto && typeof nodeProto.showQuickCreateChildBtn === 'function') {
+        const origShowQuickCreate = nodeProto.showQuickCreateChildBtn;
+        nodeProto.showQuickCreateChildBtn = function() {
+          if (this.isGeneralization || this.getChildrenLength() > 0) return;
+          origShowQuickCreate.call(this);
+          if (this._quickCreateChildBtn && !this._quickCreateChildBtn._hasHitBridge) {
+            this._quickCreateChildBtn._hasHitBridge = true;
+            try {
+              const expandBtnSize = this.mindMap?.opt?.expandBtnSize || 22;
+              const RectClass = this.getSvgObjects ? this.getSvgObjects().Rect : null;
+              if (RectClass) {
+                const hitBridge = new RectClass()
+                  .size(expandBtnSize + 28, expandBtnSize + 18)
+                  .x(-18)
+                  .y(-expandBtnSize / 2 - 9)
+                  .fill({ color: 'transparent' })
+                  .css({ cursor: 'pointer' });
+                this._quickCreateChildBtn.add(hitBridge);
+              }
+            } catch {}
+
+            this._quickCreateChildBtn.on('mousedown', (e: any) => {
+              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+            });
+            this._quickCreateChildBtn.on('pointerdown', (e: any) => {
+              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+            });
+            this._quickCreateChildBtn.on('touchstart', (e: any) => {
+              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+            });
+          }
+        };
+
+        nodeProto.hideQuickCreateChildBtn = function() {
+          if (this.isGeneralization) return;
+          const { isActive } = this.getData ? this.getData() : (this.nodeData?.data || {});
+          if (!isActive && !this._isMouseenter) {
+            this.removeQuickCreateChildBtn();
+          }
+        };
+      }
+    }
 
     // Interceptar el editor nativo de la librería para usar el editor multilínea directo
     if (this.mindMapInstance.textEdit) {
