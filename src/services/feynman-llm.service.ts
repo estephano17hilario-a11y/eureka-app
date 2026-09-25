@@ -230,6 +230,13 @@ export class FeynmanLlmService {
     return guide;
   }
 
+  public importGuideFromMarkdown(
+    rawMarkdown: string,
+    formFallback?: FeynmanDiagnosticForm
+  ): FeynmanStudyGuide {
+    return this.importMarkdownGuide(rawMarkdown, formFallback);
+  }
+
   /**
    * Genera la guía de estudio completa usando el LLM de Gemini si hay API key,
    * o el motor pedagógico determinista si no hay API key o si la llamada falla.
@@ -1316,15 +1323,75 @@ export default App;
   }
 
   /**
-   * Convierte una guía Feynman en un Cuaderno de Estudio Activo (Eureka Notebook)
-   * Desglosa cada nivel en Átomos de Aprendizaje individuales (ej. Átomo 1.1, Átomo 1.2, Átomo 1.3)
-   * con explicación intuitiva, mecanismos KaTeX y el simulador React + TSX en el átomo práctico de consolidación.
+   * Genera los bloques de estudio activo estructurados a partir de una guía Feynman completa:
+   * 1. 🗺️ Visión Holística & Hoja de Ruta Feynman (Problemática Global & Panorama, Estrategia Lógica, Puente al Nivel 1)
+   * 2. Para cada Nivel:
+   *    - 🎯 Propósito del Nivel (Problemática Concreta) & 💡 Axioma Central (Intuición Feynman)
+   *    - 🔬 Desglose Atómico de Subniveles (mecanismos, fórmulas KaTeX, casos límite y transiciones sinérgicas)
+   *    - 🌉 Puentes Conectores Inter-Nivel entre niveles (Problema Resuelto y Siguiente Obstáculo)
+   * 3. 🎓 Examen Final Evaluador (si aplica)
    */
-  public exportToActiveStudyTopic(guide: FeynmanStudyGuide): string {
+  public buildActiveStudyChunksFromGuide(guide: FeynmanStudyGuide): { title: string; content: string }[] {
     const chunksData: { title: string; content: string }[] = [];
 
-    guide.levels.forEach((lvl) => {
-      // Si el nivel tiene subniveles atómicos estructurados (ej. 1.1, 1.2, 1.3)
+    // 1. Visión Holística & Hoja de Ruta Feynman (Problemática Global & Panorama, Estrategia Lógica)
+    let roadmap = guide.holisticRoadmap;
+    if (!roadmap && guide.markdown) {
+      roadmap = feynmanPedagogyService.parseHolisticRoadmap(guide.markdown);
+    }
+
+    if (roadmap && (roadmap.problemOverview || roadmap.solutionStrategy || roadmap.bridgeToLevel1)) {
+      let roadmapContent = `## 🗺️ Visión Holística & Hoja de Ruta Feynman\n`;
+      roadmapContent += `### ${guide.topic}: Panorama General y Estrategia Lógica\n\n`;
+
+      if (roadmap.problemOverview) {
+        roadmapContent += `> 🎯 **Problemática Global & Panorama:**\n> ${roadmap.problemOverview.replace(/\n/g, '\n> ')}\n\n`;
+      }
+
+      if (roadmap.solutionStrategy) {
+        roadmapContent += `> 🧠 **Estrategia Lógica de Solución (Step-by-Step):**\n> ${roadmap.solutionStrategy.replace(/\n/g, '\n> ')}\n\n`;
+      }
+
+      if (roadmap.bridgeToLevel1) {
+        roadmapContent += `> 🌉 **Puente hacia el Nivel 1:**\n> ${roadmap.bridgeToLevel1.replace(/\n/g, '\n> ')}\n\n`;
+      }
+
+      roadmapContent += `\n---\n*Comienza a continuación el viaje formativo paso a paso desde los primeros principios.*`;
+
+      chunksData.push({
+        title: `🗺️ Hoja de Ruta: Problemática Global & Estrategia Lógica`,
+        content: roadmapContent.trim()
+      });
+    }
+
+    // 2. Iteración por Niveles
+    guide.levels.forEach((lvl, lvlIdx) => {
+      // 2.1 Bloque Introductorio del Nivel: Propósito del Nivel y Axioma Central (Intuición Feynman)
+      const cleanPurpose = (lvl.purpose || '').trim();
+      const cleanAxiom = (lvl.axiomIntuition || '').trim();
+
+      let levelIntroContent = `## # Nivel ${lvl.levelNumber}: ${lvl.title}\n`;
+      levelIntroContent += `*Paso Axiomático ${lvl.levelNumber} de ${guide.levelsCount}*\n\n`;
+
+      if (cleanPurpose) {
+        levelIntroContent += `### 🎯 Propósito del Nivel: ${cleanPurpose.toLowerCase().includes('problemática') ? cleanPurpose : `Problemática & Panorama: ${cleanPurpose}`}\n\n`;
+        levelIntroContent += `> ${cleanPurpose.replace(/\n/g, '\n> ')}\n\n`;
+      } else {
+        levelIntroContent += `### 🎯 Propósito del Nivel: Problemática & Panorama Concreto\n\n`;
+        levelIntroContent += `> Dominar la problemática fundamental de esta etapa formativa antes de entrar en los mecanismos atómicos operativos.\n\n`;
+      }
+
+      levelIntroContent += `### 💡 1. Axioma Central (Intuición Feynman)\n\n`;
+      levelIntroContent += `${cleanAxiom || `Fundamento primario irreducible de ${lvl.title} explicado mediante analogía lúcida cotidiana.`}\n\n`;
+
+      levelIntroContent += `\n---\n> 🧩 **Hoja de Ruta Inmediata del Nivel:**\n> A continuación nos adentraremos en el **Desglose Atómico** (${lvl.sublevels.length} principios y mecanismos irreducibles) para resolver de forma rigurosa la problemática planteada en este nivel.`;
+
+      chunksData.push({
+        title: `🎯 Nivel ${lvl.levelNumber}: Propósito & Axioma Central`,
+        content: levelIntroContent.trim()
+      });
+
+      // 2.2 Desglose Atómico: Subniveles del Nivel
       if (lvl.sublevels && lvl.sublevels.length > 0) {
         lvl.sublevels.forEach((sub, subIdx) => {
           const subNum = sub.sublevelNumber || `${lvl.levelNumber}.${subIdx + 1}`;
@@ -1355,7 +1422,11 @@ export default App;
             atomContent += `> ⚠️ **Condición Límite / Caso Extremo:** ${sub.boundaryCondition}\n\n`;
           }
 
-          // En el último subnivel del nivel (laboratorio de consolidación práctica), incluimos el simulador React + TSX
+          if (sub.synergicTransition && sub.synergicTransition.trim()) {
+            atomContent += `> 🔗 **Transición Sinérgica:** ${sub.synergicTransition}\n\n`;
+          }
+
+          // En el último subnivel del nivel, simulador React + TSX si existe
           if (isLastSublevel && lvl.typescriptCode && lvl.typescriptCode.trim()) {
             atomContent += `### ⚡ Laboratorio Interactivo en Vivo (React 18 + TSX)\n\`\`\`tsx\n${lvl.typescriptCode}\n\`\`\``;
           }
@@ -1366,7 +1437,6 @@ export default App;
           });
         });
       } else {
-        // Fallback si no vinieran subniveles separados
         let singleAtomContent = `### Nivel ${lvl.levelNumber}: ${lvl.title}\n\n${lvl.axiomIntuition}\n\n`;
         if (lvl.typescriptCode && lvl.typescriptCode.trim()) {
           singleAtomContent += `### ⚡ Laboratorio Interactivo en Vivo (React 18 + TSX)\n\`\`\`tsx\n${lvl.typescriptCode}\n\`\`\``;
@@ -1376,9 +1446,31 @@ export default App;
           content: singleAtomContent.trim()
         });
       }
+
+      // 2.3 Puente Conector Inter-Nivel (los puentes entre niveles)
+      const hasNextLevel = lvlIdx + 1 < guide.levels.length;
+      const nextLvl = hasNextLevel ? guide.levels[lvlIdx + 1] : null;
+      const solvedProblem = (lvl.causalNexus?.solvedProblem || '').trim();
+      const nextObstacle = (lvl.causalNexus?.nextObstacle || '').trim();
+
+      if (hasNextLevel && nextLvl && (solvedProblem || nextObstacle || lvl.levelNumber < guide.levelsCount)) {
+        let bridgeContent = `## 🌉 Puente Conector Inter-Nivel: Nivel ${lvl.levelNumber} ➔ Nivel ${nextLvl.levelNumber}\n`;
+        bridgeContent += `### Transición Causal: De "${lvl.title}" a "${nextLvl.title}"\n\n`;
+
+        bridgeContent += `> ✅ **Problema Resuelto en el Nivel ${lvl.levelNumber}:**\n> ${solvedProblem || `Consolidación axiomática de los principios y mecanismos de ${lvl.title}.`}\n\n`;
+
+        bridgeContent += `> ⚡ **Siguiente Obstáculo Cognitivo (Nivel ${nextLvl.levelNumber}):**\n> ${nextObstacle || `Dominar la siguiente frontera conceptual: ${nextLvl.title}.`}\n\n`;
+
+        bridgeContent += `> 🔗 **Nexo Lógico Inter-Nivel:**\n> Con el propósito y los átomos del Nivel ${lvl.levelNumber} asimilados, cruzamos este puente hacia el Nivel ${nextLvl.levelNumber} para continuar la reconstrucción paso a paso sin vacíos conceptuales.`;
+
+        chunksData.push({
+          title: `🌉 Nivel ${lvl.levelNumber} ➔ ${nextLvl.levelNumber}: Puente Conector Inter-Nivel`,
+          content: bridgeContent.trim()
+        });
+      }
     });
 
-    // Si tiene examen final, agregar el Mega-Simulador como bloque culminante de maestría
+    // 3. Examen Final (si aplica)
     if (guide.finalExam) {
       const finalContent = `### 🎓 ${guide.finalExam.title}\n\n${guide.finalExam.summary}\n\n### ⚡ Mega-Simulador Evaluador en React 18 + TSX (+1000 Líneas)\n\`\`\`tsx\n${guide.finalExam.masterReactCode}\n\`\`\``;
 
@@ -1388,13 +1480,26 @@ export default App;
       });
     }
 
+    return chunksData;
+  }
+
+  /**
+   * Convierte la guía Feynman en un Tema / Cuaderno de Estudio Activo (ActiveStudyTopic)
+   * Desglosa cada nivel en bloques completos: Visión Holística, Propósito y Axioma Central de cada nivel,
+   * Desglose Atómico con mecanismos y simuladores React, y Puentes Conectores entre niveles.
+   */
+  public exportToActiveStudyTopic(guide: FeynmanStudyGuide): string {
+    const chunksData = this.buildActiveStudyChunksFromGuide(guide);
+
     const topic = activeStudyService.createTopic(
       'global_study',
       `[Feynman] ${guide.topic}`,
       chunksData,
       {
-        description: `Ruta axiomática de ${guide.levelsCount} niveles con lectura atómica (${chunksData.length} átomos) y laboratorios interactivos React generada con el método Feynman.`,
-        subject: 'Informática & Programación'
+        description: `Ruta axiomática de ${guide.levelsCount} niveles con hoja de ruta, propósito, axiomas centrales, puentes entre niveles y laboratorios interactivos React generada con el método Feynman.`,
+        subject: guide.formData?.subject || 'Informática & Programación',
+        feynmanGuideId: guide.id,
+        rawMarkdown: guide.markdown
       }
     );
 

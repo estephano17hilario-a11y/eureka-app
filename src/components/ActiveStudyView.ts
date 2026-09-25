@@ -485,13 +485,44 @@ function renderCenteredAtomicReadingScreen(
 ): string {
   const isLevelCardsDone = mergedCards.length >= 3;
 
+  const isRoadmapChunk = chunk.title.includes('Visión Holística') || chunk.title.includes('Hoja de Ruta') || chunk.title.includes('Problemática Global');
+  const isPurposeAxiomChunk = chunk.title.includes('Propósito') || chunk.title.includes('Axioma Central');
+  const isBridgeChunk = chunk.title.includes('Puente Conector') || chunk.title.includes('Puente Inter-Nivel');
+  const isExamChunk = chunk.title.includes('Examen Final');
+
+  let chunkBadgeText = `🔬 Átomo ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
+  let chunkBadgeStyle = '';
+
+  if (isRoadmapChunk) {
+    chunkBadgeText = `🗺️ Hoja de Ruta Feynman • Bloque ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
+    chunkBadgeStyle = 'background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.4); color: #c084fc;';
+  } else if (isPurposeAxiomChunk) {
+    chunkBadgeText = `🎯 Propósito & Axioma Central • Bloque ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
+    chunkBadgeStyle = 'background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;';
+  } else if (isBridgeChunk) {
+    chunkBadgeText = `🌉 Puente Conector Inter-Nivel • Bloque ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
+    chunkBadgeStyle = 'background: rgba(52, 211, 153, 0.2); border-color: rgba(52, 211, 153, 0.4); color: #34d399;';
+  } else if (isExamChunk) {
+    chunkBadgeText = `🎓 Examen Final & Mega-Simulador • Bloque ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
+    chunkBadgeStyle = 'background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;';
+  }
+
+  let nextBtnText = topic.currentChunkIndex + 1 < topic.chunks.length ? 'Siguiente Bloque →' : 'Completar Lectura ➔';
+  if (isRoadmapChunk) {
+    nextBtnText = 'Ir al Nivel 1 (Propósito & Axioma) →';
+  } else if (isPurposeAxiomChunk) {
+    nextBtnText = 'Explorar Desglose Atómico →';
+  } else if (isBridgeChunk) {
+    nextBtnText = 'Cruzar Puente al Siguiente Nivel ➔';
+  }
+
   return `
     <div class="active-study-topic-workspace atomic-study-immersive-container" data-topic-id="${topic.id}">
       <div class="atomic-reading-card" style="animation: atomSlideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
-        <!-- Barra Superior del Átomo -->
+        <!-- Barra Superior del Bloque / Átomo -->
         <div class="atomic-card-top-meta">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <span class="atomic-tag-badge">🔬 Átomo ${topic.currentChunkIndex + 1} de ${topic.chunks.length}</span>
+            <span class="atomic-tag-badge" style="${chunkBadgeStyle}">${chunkBadgeText}</span>
             <button class="atomic-deck-link-chip btn-change-topic-deck" data-topic-id="${topic.id}" title="Toca para cambiar de baraja vinculada" style="border:none; cursor:pointer;">🎴 Baraja: ${escapeAttr(deckName)} ✎</button>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
@@ -504,7 +535,7 @@ function renderCenteredAtomicReadingScreen(
           </div>
         </div>
 
-        <!-- Título del Átomo de Información -->
+        <!-- Título del Bloque de Información -->
         <h2 class="atomic-chunk-headline">${escapeHtml(chunk.title)}</h2>
 
         <!-- Contenido Fuente Central con KaTeX, Fórmulas Científicas, Markdown y Simulador Interactivo en Vivo -->
@@ -517,7 +548,7 @@ function renderCenteredAtomicReadingScreen(
           <button class="btn-atomic-add-card" id="btn-atomic-add-card" title="Agregar flashcard vinculada a esta información">
             <span style="font-size:1.2rem;">➕</span>
             <span>Agregar Flashcard</span>
-            <span style="font-size:0.82rem; opacity:0.85;">(${chunkCards.length} en este átomo)</span>
+            <span style="font-size:0.82rem; opacity:0.85;">(${chunkCards.length} en este bloque)</span>
           </button>
 
           <button class="btn-atomic-continue" id="btn-atomic-continue-mindmap" title="Continuar al mapa mental de este tema">
@@ -526,10 +557,10 @@ function renderCenteredAtomicReadingScreen(
           </button>
         </div>
 
-        <!-- NAVEGACIÓN SECUENCIAL ELEGANTE ENTRE ÁTOMOS Y REQUISITO DE 3 FLASHCARDS POR NIVEL -->
+        <!-- NAVEGACIÓN SECUENCIAL ELEGANTE ENTRE BLOQUES Y REQUISITO DE 3 FLASHCARDS POR NIVEL -->
         <div class="feynman-atom-nav-bar">
           <button class="feynman-atom-nav-btn" id="btn-atomic-prev" ${topic.currentChunkIndex === 0 ? 'disabled' : ''}>
-            <span>← Átomo Anterior</span>
+            <span>← Bloque Anterior</span>
           </button>
 
           <div class="atomic-level-progress-pill" style="background:${isLevelCardsDone ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)'}; color:${isLevelCardsDone ? '#34d399' : '#fbbf24'}; border:1px solid ${isLevelCardsDone ? 'rgba(52,211,153,0.3)' : 'rgba(251,191,36,0.3)'};">
@@ -537,7 +568,7 @@ function renderCenteredAtomicReadingScreen(
           </div>
 
           <button class="feynman-atom-nav-btn" id="btn-atomic-next" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.35); color:#38bdf8;">
-            <span>${topic.currentChunkIndex + 1 < topic.chunks.length ? 'Siguiente Átomo →' : 'Completar Lectura ➔'}</span>
+            <span>${nextBtnText}</span>
           </button>
         </div>
       </div>
@@ -1856,25 +1887,54 @@ function openCreateNotebookModal(onCreated: (topicId: string) => void): void {
     const subject = subjectSelect?.value || 'General';
     const rawContent = contentInput?.value.trim() || '';
 
-    const paragraphs = rawContent ? rawContent.split(/\n\s*\n/).filter((p) => p.trim().length > 0) : [];
-    const chunksData =
-      paragraphs.length > 0
-        ? paragraphs.map((p, idx) => ({
-            title: `Bloque ${idx + 1}`,
-            content: p.trim()
-          }))
-        : [
-            {
-              title: 'Bloque 1: Contenido Principal',
-              content: description || `Notas principales de ${name}`
-            }
-          ];
+    let chunksData: { title: string; content: string }[] = [];
+    let detectedGuide: any = null;
+
+    if (
+      rawContent &&
+      (rawContent.includes('Nivel 1') ||
+        rawContent.includes('Problemática Global') ||
+        rawContent.includes('Propósito del Nivel') ||
+        rawContent.includes('Axioma Central'))
+    ) {
+      try {
+        detectedGuide = feynmanLlmService.importGuideFromMarkdown(rawContent, {
+          topic: name,
+          subject,
+          currentLevel: 1,
+          targetGoal: 'general'
+        });
+        if (detectedGuide && detectedGuide.levels && detectedGuide.levels.length > 0) {
+          chunksData = feynmanLlmService.buildActiveStudyChunksFromGuide(detectedGuide);
+        }
+      } catch (e) {
+        console.warn('Fallback al troceado estándar de párrafos:', e);
+      }
+    }
+
+    if (chunksData.length === 0) {
+      const paragraphs = rawContent ? rawContent.split(/\n\s*\n/).filter((p) => p.trim().length > 0) : [];
+      chunksData =
+        paragraphs.length > 0
+          ? paragraphs.map((p, idx) => ({
+              title: `Bloque ${idx + 1}`,
+              content: p.trim()
+            }))
+          : [
+              {
+                title: 'Bloque 1: Contenido Principal',
+                content: description || `Notas principales de ${name}`
+              }
+            ];
+    }
 
     const newTopic = activeStudyService.createTopic('', name, chunksData, {
       description,
       coverImage: chosenPhotoDataUrl,
       subject,
-      folderId: currentFolderId
+      folderId: currentFolderId,
+      feynmanGuideId: detectedGuide?.id,
+      rawMarkdown: rawContent
     });
 
     nativeService.triggerHaptics('medium');

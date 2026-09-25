@@ -64,6 +64,8 @@ export interface ActiveStudyTopic {
   chunks: StudyChunk[];
   currentChunkIndex: number;
   state: ActiveStudyState;
+  feynmanGuideId?: string; // ID de la guía Feynman asociada
+  rawMarkdown?: string;    // Texto o markdown original del cuaderno
   createdAt: number;
   updatedAt: number;
 }

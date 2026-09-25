@@ -1,6 +1,7 @@
 import type { OutlineNode, StudyChunk, TopicAccessLock, ActiveStudyTopic, ActiveStudyState } from '../types/active-study';
 import { deckService } from './deck.service';
 import { eurekaBackend } from './backend.service';
+import { feynmanLlmService } from './feynman-llm.service';
 import { Preferences } from '@capacitor/preferences';
 
 const BASE_TOPICS_STORAGE_KEY = 'eureka_active_study_topics_v1';
@@ -491,26 +492,33 @@ class ActiveStudyService {
   // ==========================================
 
   public getAllTopics(): ActiveStudyTopic[] {
-    return Array.from(this.topics.values()).sort((a, b) => b.updatedAt - a.updatedAt);
+    const list = Array.from(this.topics.values());
+    list.forEach((t) => this.ensureEnrichedFeynmanChunks(t));
+    return list.sort((a, b) => b.updatedAt - a.updatedAt);
   }
 
   public getTopicByDeck(deckId: string): ActiveStudyTopic | null {
     for (const t of this.topics.values()) {
-      if (t.deckId === deckId) return t;
+      if (t.deckId === deckId) {
+        this.ensureEnrichedFeynmanChunks(t);
+        return t;
+      }
     }
     return null;
   }
 
   public getTopicById(topicId: string): ActiveStudyTopic | null {
     const t = this.topics.get(topicId) || null;
-    if (t && t.chunks && t.chunks[0]) {
-      if (
-        t.title.includes('Física Nuclear') &&
-        (t.chunks[0].sourceContent.includes('PLACEHOLDER') ||
-          t.chunks[0].sourceContent.includes('EUREKA') ||
-          !t.chunks[0].sourceContent.includes('$\\ce{'))
-      ) {
-        t.chunks[0].sourceContent = `En física nuclear y química cuántica, cualquier nucleído se especifica de forma universal mediante la notación estándar $\\ce{^{A}_{Z}X}$, donde $A$ representa el número másico (suma de nucleones) y $Z$ el número atómico (protones). Por ejemplo, el Cesio-133 empleado internacionalmente en relojes atómicos para la calibración del segundo se expresa rigurosamente como $\\ce{^{133}_{55}Cs}$. 
+    if (t) {
+      this.ensureEnrichedFeynmanChunks(t);
+      if (t.chunks && t.chunks[0]) {
+        if (
+          t.title.includes('Física Nuclear') &&
+          (t.chunks[0].sourceContent.includes('PLACEHOLDER') ||
+            t.chunks[0].sourceContent.includes('EUREKA') ||
+            !t.chunks[0].sourceContent.includes('$\\ce{'))
+        ) {
+          t.chunks[0].sourceContent = `En física nuclear y química cuántica, cualquier nucleído se especifica de forma universal mediante la notación estándar $\\ce{^{A}_{Z}X}$, donde $A$ representa el número másico (suma de nucleones) y $Z$ el número atómico (protones). Por ejemplo, el Cesio-133 empleado internacionalmente en relojes atómicos para la calibración del segundo se expresa rigurosamente como $\\ce{^{133}_{55}Cs}$. 
 
 El defecto de masa nuclear $\\Delta m$ se calcula restando la masa del núcleo respecto a sus componentes libres:
 $$\\Delta m = Z m_p + (A - Z) m_n - M_{\\text{núcleo}}$$
@@ -518,10 +526,85 @@ $$\\Delta m = Z m_p + (A - Z) m_n - M_{\\text{núcleo}}$$
 Aplicando la equivalencia relativista de masa-energía de Einstein:
 $$\\Delta E = \\Delta m \\cdot c^2$$
 se obtiene la energía de enlace nuclear total.`;
-        this.saveToStorage();
+          this.saveToStorage();
+        }
       }
     }
     return t;
+  }
+
+  /**
+   * Garantiza que los cuadernos que provienen de una ruta Feynman incluyan
+   * la Problemática Global, Estrategia Lógica, Propósito del Nivel, Axioma Central y Puentes entre niveles.
+   */
+  public ensureEnrichedFeynmanChunks(topic: ActiveStudyTopic): void {
+    if (!topic || !topic.chunks || topic.chunks.length === 0) return;
+
+    const hasRoadmapOrPurpose = topic.chunks.some((c) =>
+      c.title.includes('Hoja de Ruta') ||
+      c.title.includes('Problemática Global') ||
+      c.title.includes('Propósito') ||
+      c.title.includes('Axioma Central') ||
+      c.title.includes('Puente Conector')
+    );
+
+    if (hasRoadmapOrPurpose) return;
+
+    let guide: any;
+    try {
+      if (topic.feynmanGuideId) {
+        guide = feynmanLlmService.getGuideById(topic.feynmanGuideId);
+      }
+
+      if (!guide) {
+        const cleanTitle = topic.title.replace(/^\[Feynman\]\s*/i, '').trim().toLowerCase();
+        const allGuides = feynmanLlmService.getSavedGuides();
+        guide = allGuides.find((g) => {
+          const gTitle = g.topic.trim().toLowerCase();
+          return gTitle === cleanTitle || cleanTitle.includes(gTitle) || gTitle.includes(cleanTitle);
+        });
+      }
+
+      if (!guide && topic.rawMarkdown && (topic.rawMarkdown.includes('Nivel 1') || topic.rawMarkdown.includes('Problemática Global') || topic.rawMarkdown.includes('Propósito del Nivel'))) {
+        guide = feynmanLlmService.importGuideFromMarkdown(topic.rawMarkdown, {
+          topic: topic.title.replace(/^\[Feynman\]\s*/i, '').trim(),
+          subject: topic.subject || 'Informática & Programación',
+          currentLevel: 1,
+          targetGoal: 'general'
+        });
+      }
+
+      if (guide && guide.levels && guide.levels.length > 0) {
+        const newChunksData = feynmanLlmService.buildActiveStudyChunksFromGuide(guide);
+        if (newChunksData.length > 0) {
+          const oldChunks = topic.chunks;
+          topic.chunks = newChunksData.map((c, idx) => {
+            const previousMatching = oldChunks.find((oc) => oc.title === c.title);
+            return {
+              id: previousMatching?.id || `chunk_${topic.id}_${idx}`,
+              topicId: topic.id,
+              orderIndex: idx,
+              title: c.title,
+              sourceContent: c.content,
+              isCompleted: previousMatching?.isCompleted || false
+            };
+          });
+
+          topic.feynmanGuideId = guide.id;
+          if (!topic.rawMarkdown && guide.markdown) {
+            topic.rawMarkdown = guide.markdown;
+          }
+
+          if (topic.currentChunkIndex >= topic.chunks.length) {
+            topic.currentChunkIndex = 0;
+          }
+
+          this.saveToStorage();
+        }
+      }
+    } catch (err) {
+      console.warn('[ActiveStudyService] Error enriqueciendo bloques Feynman:', err);
+    }
   }
 
   public deleteTopic(topicId: string): void {
@@ -546,6 +629,8 @@ se obtiene la energía de enlace nuclear total.`;
       isFolder?: boolean;
       folderId?: string | null;
       childTopicIds?: string[];
+      feynmanGuideId?: string;
+      rawMarkdown?: string;
     }
   ): ActiveStudyTopic {
     const topicId = 'topic_' + Math.random().toString(36).substring(2, 9);
@@ -577,6 +662,8 @@ se obtiene la energía de enlace nuclear total.`;
       chunks,
       currentChunkIndex: 0,
       state: 'READING_CHUNK',
+      feynmanGuideId: options?.feynmanGuideId,
+      rawMarkdown: options?.rawMarkdown,
       createdAt: now,
       updatedAt: now
     };
