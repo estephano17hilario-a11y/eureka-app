@@ -48,10 +48,14 @@ export class DialogService {
   }
 
   /**
-   * Modal hermoso para editar intervalos con Días, Horas y Minutos + Presets rápidos
+   * Modal hermoso y de alta precisión para editar intervalos con Días, Horas y Minutos + Presets rápidos
    */
   public showIntervalPicker(options: IntervalPickerOptions): void {
-    const totalInit = Math.max(1, options.initialMinutes || 4);
+    // Si no se proporciona o es menor a 1, el valor predeterminado por defecto es 1 día (1440 min)
+    const totalInit = options.initialMinutes !== undefined && options.initialMinutes > 0 
+      ? options.initialMinutes 
+      : 1440;
+    
     let initDays = Math.floor(totalInit / 1440);
     let remainingMinutes = totalInit % 1440;
     let initHours = Math.floor(remainingMinutes / 60);
@@ -60,64 +64,100 @@ export class DialogService {
     const modal = document.createElement('div');
     modal.className = 'apple-modal-overlay';
     modal.innerHTML = `
-      <div class="apple-modal-content apple-glass-panel" style="max-width:460px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-          <div>
-            <h3 style="font-size:1.3rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">
-              ${options.title || 'Modificar Intervalo'}
-            </h3>
-            ${options.subtitle ? `<p style="font-size:0.85rem; color:var(--f-text-secondary); margin-top:2px;">${options.subtitle}</p>` : ''}
+      <div class="apple-modal-content apple-glass-panel" style="max-width:480px; width:94%; padding:24px; animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1); border:1px solid rgba(255,255,255,0.12); box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+        
+        <!-- Header -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, rgba(56,189,248,0.25), rgba(99,102,241,0.25)); border:1px solid rgba(56,189,248,0.4); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:1.2rem;">
+              ⏱️
+            </div>
+            <div>
+              <h3 style="font-size:1.22rem; font-weight:800; color:#fff; letter-spacing:-0.02em; margin:0;">
+                ${options.title || 'Configurar Intervalo'}
+              </h3>
+              <p style="font-size:0.8rem; color:var(--f-text-secondary); margin:2px 0 0 0;">
+                ${options.subtitle || 'Define el tiempo exacto para este paso de aprendizaje'}
+              </p>
+            </div>
           </div>
-          <button id="btn-dialog-close-x" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.4rem; cursor:pointer; padding:4px;">✕</button>
+          <button id="btn-dialog-close-x" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:var(--f-text-secondary); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; cursor:pointer; transition:all 0.15s ease;">✕</button>
         </div>
 
-        <!-- 3 Inputs: Días, Horas, Minutos -->
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:16px;">
-          <div class="interval-input-group">
-            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); display:block; margin-bottom:6px;">Días</label>
-            <input type="number" id="picker-days" min="0" max="3650" value="${initDays}" class="cupertino-dialog-input" />
+        <!-- 3 Stepper Input Cards: Días, Horas, Minutos -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:14px;">
+          
+          <!-- Días -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:10px; text-align:center;">
+            <label style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">DÍAS</label>
+            <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+              <button type="button" class="btn-picker-step" id="btn-sub-days" style="width:26px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer;">-</button>
+              <input type="number" id="picker-days" min="0" max="3650" value="${initDays}" class="cupertino-dialog-input" style="width:52px; padding:6px 2px; font-size:1.1rem; font-weight:800;" />
+              <button type="button" class="btn-picker-step" id="btn-add-days" style="width:26px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer;">+</button>
+            </div>
           </div>
 
-          <div class="interval-input-group">
-            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); display:block; margin-bottom:6px;">Horas</label>
-            <input type="number" id="picker-hours" min="0" max="23" value="${initHours}" class="cupertino-dialog-input" />
+          <!-- Horas -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:10px; text-align:center;">
+            <label style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">HORAS</label>
+            <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+              <button type="button" class="btn-picker-step" id="btn-sub-hours" style="width:26px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer;">-</button>
+              <input type="number" id="picker-hours" min="0" max="23" value="${initHours}" class="cupertino-dialog-input" style="width:52px; padding:6px 2px; font-size:1.1rem; font-weight:800;" />
+              <button type="button" class="btn-picker-step" id="btn-add-hours" style="width:26px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer;">+</button>
+            </div>
           </div>
 
-          <div class="interval-input-group">
-            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); display:block; margin-bottom:6px;">Minutos</label>
-            <input type="number" id="picker-minutes" min="0" max="59" value="${initMins}" class="cupertino-dialog-input" />
+          <!-- Minutos -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:10px; text-align:center;">
+            <label style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">MINUTOS</label>
+            <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+              <button type="button" class="btn-picker-step" id="btn-sub-mins" style="width:26px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer;">-</button>
+              <input type="number" id="picker-minutes" min="0" max="59" value="${initMins}" class="cupertino-dialog-input" style="width:52px; padding:6px 2px; font-size:1.1rem; font-weight:800;" />
+              <button type="button" class="btn-picker-step" id="btn-add-mins" style="width:26px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer;">+</button>
+            </div>
           </div>
+
         </div>
 
-        <!-- Live Calculation Preview -->
-        <div id="picker-live-preview" style="background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:0.88rem; font-weight:700; color:var(--f-blue); text-align:center;">
-          ⏱️ Total calculado: ${this.formatReadableDuration(initDays, initHours, initMins)}
+        <!-- Live Calculation Banner -->
+        <div id="picker-live-preview" style="background:linear-gradient(135deg, rgba(56,189,248,0.12), rgba(99,102,241,0.12)); border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:10px 14px; margin-bottom:14px; font-size:0.92rem; font-weight:800; color:#38bdf8; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>⚡ Intervalo resultante: ${this.formatReadableDuration(initDays, initHours, initMins)}</span>
         </div>
 
         <!-- Quick Presets -->
-        <div style="margin-bottom:20px;">
-          <span style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:8px;">
-            Atajos rápidos:
-          </span>
+        <div style="margin-bottom:18px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <span style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em;">
+              Atajos Frecuentes
+            </span>
+            <span style="font-size:0.72rem; color:var(--f-text-secondary);">Toca para asignar</span>
+          </div>
+
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button class="preset-btn" data-days="0" data-hours="0" data-mins="4">4 min</button>
-            <button class="preset-btn" data-days="0" data-hours="0" data-mins="10">10 min</button>
-            <button class="preset-btn" data-days="0" data-hours="1" data-mins="0">1 hora</button>
-            <button class="preset-btn" data-days="1" data-hours="0" data-mins="0">1 día</button>
-            <button class="preset-btn" data-days="2" data-hours="0" data-mins="0">2 días</button>
-            <button class="preset-btn" data-days="5" data-hours="0" data-mins="0">5 días</button>
-            <button class="preset-btn" data-days="15" data-hours="0" data-mins="0">15 días</button>
-            <button class="preset-btn" data-days="30" data-hours="0" data-mins="0">1 mes</button>
-            <button class="preset-btn" data-days="600" data-hours="0" data-mins="0">600 días</button>
+            <button type="button" class="preset-btn" data-days="0" data-hours="0" data-mins="5">5 min</button>
+            <button type="button" class="preset-btn" data-days="0" data-hours="0" data-mins="10">10 min</button>
+            <button type="button" class="preset-btn" data-days="0" data-hours="0" data-mins="30">30 min</button>
+            <button type="button" class="preset-btn" data-days="0" data-hours="1" data-mins="0">1 hora</button>
+            <button type="button" class="preset-btn" data-days="0" data-hours="4" data-mins="0">4 horas</button>
+            <button type="button" class="preset-btn" data-days="1" data-hours="0" data-mins="0">1 día</button>
+            <button type="button" class="preset-btn" data-days="2" data-hours="0" data-mins="0">2 días</button>
+            <button type="button" class="preset-btn" data-days="3" data-hours="0" data-mins="0">3 días</button>
+            <button type="button" class="preset-btn" data-days="5" data-hours="0" data-mins="0">5 días</button>
+            <button type="button" class="preset-btn" data-days="7" data-hours="0" data-mins="0">7 días (1 sem)</button>
+            <button type="button" class="preset-btn" data-days="14" data-hours="0" data-mins="0">14 días</button>
+            <button type="button" class="preset-btn" data-days="30" data-hours="0" data-mins="0">30 días (1 mes)</button>
+            <button type="button" class="preset-btn" data-days="90" data-hours="0" data-mins="0">90 días</button>
+            <button type="button" class="preset-btn" data-days="180" data-hours="0" data-mins="0">180 días</button>
+            <button type="button" class="preset-btn" data-days="365" data-hours="0" data-mins="0">365 días (1 año)</button>
           </div>
         </div>
 
         <!-- Action Buttons -->
         <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
-          <button class="dialog-btn dialog-btn-cancel" id="btn-dialog-cancel">
+          <button class="dialog-btn dialog-btn-cancel" id="btn-dialog-cancel" style="padding:10px 16px; font-size:0.9rem;">
             Cancelar
           </button>
-          <button class="dialog-btn dialog-btn-primary" id="btn-dialog-save-interval">
+          <button class="dialog-btn dialog-btn-primary" id="btn-dialog-save-interval" style="padding:10px 20px; font-size:0.92rem; font-weight:800; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; box-shadow:0 4px 14px rgba(56,189,248,0.4);">
             Guardar Intervalo
           </button>
         </div>
@@ -136,11 +176,39 @@ export class DialogService {
       const h = Math.max(0, parseInt(inputHours.value, 10) || 0);
       const m = Math.max(0, parseInt(inputMins.value, 10) || 0);
       const total = d * 1440 + h * 60 + m;
-      previewEl.textContent = `⏱️ Total: ${this.formatReadableDuration(d, h, m)} (${total} minutos)`;
+      previewEl.innerHTML = `<span>⚡ Intervalo resultante: <strong>${this.formatReadableDuration(d, h, m)}</strong> (${total.toLocaleString()} minutos)</span>`;
     };
 
     [inputDays, inputHours, inputMins].forEach((inp) => {
       inp.addEventListener('input', updatePreview);
+    });
+
+    // Steppers
+    modal.querySelector('#btn-sub-days')?.addEventListener('click', () => {
+      inputDays.value = String(Math.max(0, (parseInt(inputDays.value, 10) || 0) - 1));
+      updatePreview();
+    });
+    modal.querySelector('#btn-add-days')?.addEventListener('click', () => {
+      inputDays.value = String((parseInt(inputDays.value, 10) || 0) + 1);
+      updatePreview();
+    });
+
+    modal.querySelector('#btn-sub-hours')?.addEventListener('click', () => {
+      inputHours.value = String(Math.max(0, (parseInt(inputHours.value, 10) || 0) - 1));
+      updatePreview();
+    });
+    modal.querySelector('#btn-add-hours')?.addEventListener('click', () => {
+      inputHours.value = String(Math.min(23, (parseInt(inputHours.value, 10) || 0) + 1));
+      updatePreview();
+    });
+
+    modal.querySelector('#btn-sub-mins')?.addEventListener('click', () => {
+      inputMins.value = String(Math.max(0, (parseInt(inputMins.value, 10) || 0) - 1));
+      updatePreview();
+    });
+    modal.querySelector('#btn-add-mins')?.addEventListener('click', () => {
+      inputMins.value = String(Math.min(59, (parseInt(inputMins.value, 10) || 0) + 1));
+      updatePreview();
     });
 
     modal.querySelectorAll<HTMLButtonElement>('.preset-btn').forEach((btn) => {

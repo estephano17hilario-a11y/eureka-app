@@ -725,33 +725,102 @@ export class DeckService {
     this.notify();
   }
 
-  public importBatchCards(deckId: string, rawText: string): number {
-    const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
-    let count = 0;
+  public parseBatchCards(rawText: string): Array<{ front: string; back: string; type: CardType }> {
+    if (!rawText || !rawText.trim()) return [];
+
+    const results: Array<{ front: string; back: string; type: CardType }> = [];
+    const text = rawText.trim();
+
+    // 1. Check if input has block Q&A format (e.g. P: ... R: ... or Pregunta: ... Respuesta: ... or Q: ... A: ...)
+    const isQAFormat = /(?:^|\n)(?:P|Q|Pregunta|Question|Front|Anverso)\s*:\s*/i.test(text);
+
+    if (isQAFormat) {
+      const blocks = text.split(/\n\s*\n+/);
+      for (const block of blocks) {
+        const qMatch = block.match(/(?:^|\n)(?:P|Q|Pregunta|Question|Front|Anverso)\s*:\s*([\s\S]*?)(?=(?:\n(?:R|A|Respuesta|Answer|Back|Reverso)\s*:\s*)|$)/i);
+        const aMatch = block.match(/(?:\n|^)(?:R|A|Respuesta|Answer|Back|Reverso)\s*:\s*([\s\S]*?)$/i);
+
+        if (qMatch && aMatch) {
+          const front = qMatch[1].trim();
+          const back = aMatch[1].trim();
+          if (front && back) {
+            const type: CardType = front.includes('$') || back.includes('$') ? 'latex' : 'standard';
+            results.push({ front, back, type });
+            continue;
+          }
+        }
+      }
+
+      if (results.length > 0) return results;
+    }
+
+    // 2. Line by line parsing with multiple delimiter support
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
 
     for (const line of lines) {
-      let parts: string[] = [];
-      if (line.includes(';')) parts = line.split(';');
-      else if (line.includes('\t')) parts = line.split('\t');
-      else if (line.includes(':::')) parts = line.split(':::');
-      else if (line.includes('|')) parts = line.split('|');
+      let front = '';
+      let back = '';
 
-      if (parts.length >= 2) {
-        const front = parts[0].trim();
-        const back = parts.slice(1).join(';').trim();
+      if (line.includes(':::')) {
+        const parts = line.split(':::');
+        front = parts[0].trim();
+        back = parts.slice(1).join(':::').trim();
+      } else if (line.includes('\t')) {
+        const parts = line.split('\t');
+        front = parts[0].trim();
+        back = parts.slice(1).join('\t').trim();
+      } else if (line.includes(';')) {
+        const parts = line.split(';');
+        front = parts[0].trim();
+        back = parts.slice(1).join(';').trim();
+      } else if (line.includes('|')) {
+        const parts = line.split('|');
+        front = parts[0].trim();
+        back = parts.slice(1).join('|').trim();
+      } else if (line.includes(' - ')) {
+        const parts = line.split(' - ');
+        front = parts[0].trim();
+        back = parts.slice(1).join(' - ').trim();
+      } else if (line.includes(' : ')) {
+        const parts = line.split(' : ');
+        front = parts[0].trim();
+        back = parts.slice(1).join(' : ').trim();
+      }
+
+      if (front && back) {
         const type: CardType = front.includes('$') || back.includes('$') ? 'latex' : 'standard';
-
-        this.createCard({
-          deckId,
-          type,
-          front,
-          back
-        });
-        count++;
+        results.push({ front, back, type });
       }
     }
 
-    return count;
+    // 3. Fallback: Double line breaks if no inline separators were found
+    if (results.length === 0) {
+      const blocks = text.split(/\n\s*\n+/).map((b) => b.trim()).filter(Boolean);
+      for (const b of blocks) {
+        const bLines = b.split('\n').map((l) => l.trim()).filter(Boolean);
+        if (bLines.length >= 2) {
+          const front = bLines[0];
+          const back = bLines.slice(1).join('\n');
+          const type: CardType = front.includes('$') || back.includes('$') ? 'latex' : 'standard';
+          results.push({ front, back, type });
+        }
+      }
+    }
+
+    return results;
+  }
+
+  public importBatchCards(deckId: string, rawText: string): number {
+    const cards = this.parseBatchCards(rawText);
+    for (const card of cards) {
+      this.createCard({
+        deckId,
+        type: card.type,
+        front: card.front,
+        back: card.back
+      });
+    }
+    return cards.length;
   }
 
   public updateCard(cardId: string, updates: Partial<Flashcard>): Flashcard | undefined {
