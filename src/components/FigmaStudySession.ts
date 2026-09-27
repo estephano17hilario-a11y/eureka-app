@@ -27,6 +27,7 @@ export class FigmaStudySession {
   private isPreviewMode: boolean = false;
   private isTypeAnswerMode: boolean = false;
   private isGameActive: boolean = false;
+  private isHandlingRating: boolean = false;
   private typedAnswer: string = '';
   private onExitCallback: () => void;
   private onEditCardCallback?: (cardId: string) => void;
@@ -152,7 +153,7 @@ export class FigmaStudySession {
               !this.isFlipped && !this.isTypeAnswerMode
                 ? `
               <div class="cupertino-card-hint-text">
-                Toca la tarjeta o presiona Espacio / 1,2,3,4 para voltear y calificar
+                Toca la tarjeta o presiona Espacio para voltear (o 1,2,3,4 para calificar)
               </div>
             `
                 : ''
@@ -176,45 +177,50 @@ export class FigmaStudySession {
               </button>
             </div>
           `
-              : !this.isFlipped
-              ? `
-            <!-- Control Bar Front: [⌨ Escribir respuesta] [Mostrar respuesta] -->
-            <div class="cupertino-front-controls-row">
-              <button class="cupertino-icon-square ${this.isTypeAnswerMode ? 'active-keyboard-mode' : ''}" id="btn-toggle-type-mode" title="Escribir la respuesta (Modo teclado)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="18" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
-              </button>
-
-              <button class="cupertino-btn-show-answer" id="btn-f-show-answer">
-                ${this.isTypeAnswerMode ? 'Comprobar respuesta' : 'Mostrar respuesta (Espacio)'}
-              </button>
-            </div>
-          `
               : `
-            <!-- Rating Bar Back: 4 Frosted Cupertino Buttons -->
-            <div class="cupertino-rating-row">
-              <button type="button" class="cupertino-rate-pill rate-again" id="btn-rate-again" data-rating="again" title="Presiona [1]">
-                <span class="c-rate-title">De nuevo</span>
-                <span class="c-rate-subtitle">${intervalProjections[0]?.displayTime || '4 min'}</span>
-                <span class="c-rate-key">[1]</span>
-              </button>
+            <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+              ${
+                !this.isFlipped
+                  ? `
+                <div class="cupertino-front-controls-row">
+                  <button class="cupertino-icon-square ${this.isTypeAnswerMode ? 'active-keyboard-mode' : ''}" id="btn-toggle-type-mode" title="Escribir la respuesta (Modo teclado)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="18" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
+                  </button>
 
-              <button type="button" class="cupertino-rate-pill rate-hard" id="btn-rate-hard" data-rating="hard" title="Presiona [2]">
-                <span class="c-rate-title">Difícil</span>
-                <span class="c-rate-subtitle">${intervalProjections[1]?.displayTime || '1 día'}</span>
-                <span class="c-rate-key">[2]</span>
-              </button>
+                  <button class="cupertino-btn-show-answer" id="btn-f-show-answer">
+                    ${this.isTypeAnswerMode ? 'Comprobar respuesta' : '👁️ Mostrar respuesta (Espacio)'}
+                  </button>
+                </div>
+              `
+                  : ''
+              }
 
-              <button type="button" class="cupertino-rate-pill rate-good" id="btn-rate-good" data-rating="good" title="Presiona [3 / Espacio]">
-                <span class="c-rate-title">Bien</span>
-                <span class="c-rate-subtitle">${intervalProjections[2]?.displayTime || '2 días'}</span>
-                <span class="c-rate-key">[3 / Espacio]</span>
-              </button>
+              <!-- 4 Frosted Cupertino Rating Pills -->
+              <div class="cupertino-rating-row">
+                <button type="button" class="cupertino-rate-pill rate-again" id="btn-rate-again" data-rating="again" title="Presiona [1]">
+                  <span class="c-rate-title">De nuevo</span>
+                  <span class="c-rate-subtitle">${intervalProjections[0]?.displayTime || '4 min'}</span>
+                  <span class="c-rate-key">[1]</span>
+                </button>
 
-              <button type="button" class="cupertino-rate-pill rate-easy" id="btn-rate-easy" data-rating="easy" title="Presiona [4]">
-                <span class="c-rate-title">Fácil</span>
-                <span class="c-rate-subtitle">${intervalProjections[3]?.displayTime || '5 días'}</span>
-                <span class="c-rate-key">[4]</span>
-              </button>
+                <button type="button" class="cupertino-rate-pill rate-hard" id="btn-rate-hard" data-rating="hard" title="Presiona [2]">
+                  <span class="c-rate-title">Difícil</span>
+                  <span class="c-rate-subtitle">${intervalProjections[1]?.displayTime || '1 día'}</span>
+                  <span class="c-rate-key">[2]</span>
+                </button>
+
+                <button type="button" class="cupertino-rate-pill rate-good" id="btn-rate-good" data-rating="good" title="Presiona [3 / Espacio]">
+                  <span class="c-rate-title">Bien</span>
+                  <span class="c-rate-subtitle">${intervalProjections[2]?.displayTime || '2 días'}</span>
+                  <span class="c-rate-key">[3 / Espacio]</span>
+                </button>
+
+                <button type="button" class="cupertino-rate-pill rate-easy" id="btn-rate-easy" data-rating="easy" title="Presiona [4]">
+                  <span class="c-rate-title">Fácil</span>
+                  <span class="c-rate-subtitle">${intervalProjections[3]?.displayTime || '5 días'}</span>
+                  <span class="c-rate-key">[4]</span>
+                </button>
+              </div>
             </div>
           `
           }
@@ -648,42 +654,22 @@ export class FigmaStudySession {
       ttsService.speak(text, currentCard.audioLang || this.deck.settings.ttsVoiceLang);
     });
 
-    // Rating buttons with robust click and touch handlers
-    let isHandlingRating = false;
-    const processRating = (rating: StudyRating) => {
-      if (isHandlingRating) return;
-      isHandlingRating = true;
-      try {
-        nativeService.triggerHaptics('light');
-      } catch {}
-      this.handleRating(rating, container);
-    };
-
-    const bindRatingButton = (el: HTMLElement | null, rating: StudyRating) => {
-      if (!el) return;
-      el.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        processRating(rating);
-      });
-      el.addEventListener('pointerup', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        processRating(rating);
-      });
-    };
-
-    bindRatingButton(document.getElementById('btn-rate-again'), 'again');
-    bindRatingButton(document.getElementById('btn-rate-hard'), 'hard');
-    bindRatingButton(document.getElementById('btn-rate-good'), 'good');
-    bindRatingButton(document.getElementById('btn-rate-easy'), 'easy');
-
-    container.querySelectorAll<HTMLButtonElement>('.cupertino-rate-pill').forEach((btn) => {
-      const rating = btn.dataset.rating as StudyRating;
-      if (rating) {
-        bindRatingButton(btn, rating);
+    // Rating buttons with clean, reliable onclick handlers
+    const bindRating = (id: string, rating: StudyRating) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.handleRating(rating, container);
+        };
       }
-    });
+    };
+
+    bindRating('btn-rate-again', 'again');
+    bindRating('btn-rate-hard', 'hard');
+    bindRating('btn-rate-good', 'good');
+    bindRating('btn-rate-easy', 'easy');
 
     // Keyboard controls (Atajos 1, 2, 3, 4, Espacio, Enter y Flechas)
     window.onkeydown = (e: KeyboardEvent) => {
@@ -733,82 +719,83 @@ export class FigmaStudySession {
       const isKey4 = e.key === '4' || e.code === 'Digit4' || e.code === 'Numpad4';
       const isSpaceOrEnter = e.code === 'Space' || e.key === ' ' || e.code === 'Enter' || e.key === 'Enter';
 
-      if (!this.isFlipped) {
-        if (isSpaceOrEnter) {
-          e.preventDefault();
+      if (isKey1) {
+        e.preventDefault();
+        this.handleRating('again', container);
+      } else if (isKey2) {
+        e.preventDefault();
+        this.handleRating('hard', container);
+      } else if (isKey3) {
+        e.preventDefault();
+        this.handleRating('good', container);
+      } else if (isKey4) {
+        e.preventDefault();
+        this.handleRating('easy', container);
+      } else if (isSpaceOrEnter) {
+        e.preventDefault();
+        if (!this.isFlipped) {
           triggerFlip();
-        } else if (isKey1) {
-          e.preventDefault();
-          processRating('again');
-        } else if (isKey2) {
-          e.preventDefault();
-          processRating('hard');
-        } else if (isKey3) {
-          e.preventDefault();
-          processRating('good');
-        } else if (isKey4) {
-          e.preventDefault();
-          processRating('easy');
-        }
-      } else {
-        if (isKey1) {
-          e.preventDefault();
-          processRating('again');
-        } else if (isKey2) {
-          e.preventDefault();
-          processRating('hard');
-        } else if (isKey3) {
-          e.preventDefault();
-          processRating('good');
-        } else if (isKey4) {
-          e.preventDefault();
-          processRating('easy');
-        } else if (isSpaceOrEnter) {
-          e.preventDefault();
-          processRating('good');
+        } else {
+          this.handleRating('good', container);
         }
       }
     };
   }
 
   private handleRating(rating: StudyRating, container: HTMLElement): void {
-    const currentCard = this.queue[this.currentCardIndex];
-    deckService.reviewCard(currentCard.id, rating);
+    if (this.isHandlingRating) return;
+    this.isHandlingRating = true;
 
-    this.sessionStats.totalReviewed++;
-    if (rating === 'again') {
-      this.sessionStats.againCount++;
-      if (!this.isSingleCardMode) {
-        this.queue.push(currentCard);
+    try {
+      try {
+        nativeService.triggerHaptics('light');
+      } catch {}
+
+      const currentCard = this.queue[this.currentCardIndex];
+      if (currentCard) {
+        deckService.reviewCard(currentCard.id, rating);
       }
-    } else if (rating === 'hard') {
-      this.sessionStats.hardCount++;
-    } else if (rating === 'good') {
-      this.sessionStats.goodCount++;
-    } else if (rating === 'easy') {
-      this.sessionStats.easyCount++;
-    }
 
-    this.currentCardIndex++;
-    this.isFlipped = false;
-    this.typedAnswer = '';
-
-    // Check if Neuro-Ergonomic Micro-Game break is enabled and interval reached
-    const interval = this.deck.settings.microGameInterval !== undefined ? this.deck.settings.microGameInterval : 5;
-    const isEnabled = this.deck.settings.enableMicroGames !== false;
-    const hasMoreCards = this.currentCardIndex < this.queue.length;
-
-    if (isEnabled && interval > 0 && this.sessionStats.totalReviewed > 0 && this.sessionStats.totalReviewed % interval === 0 && hasMoreCards) {
-      this.isGameActive = true;
-      openMicroGameModal({
-        streakCount: this.sessionStats.totalReviewed,
-        gameType: this.deck.settings.preferredMicroGame || 'all',
-        onContinue: () => {
-          this.isGameActive = false;
-          this.render(container);
+      this.sessionStats.totalReviewed++;
+      if (rating === 'again') {
+        this.sessionStats.againCount++;
+        if (!this.isSingleCardMode && currentCard) {
+          this.queue.push(currentCard);
         }
-      });
-      return;
+      } else if (rating === 'hard') {
+        this.sessionStats.hardCount++;
+      } else if (rating === 'good') {
+        this.sessionStats.goodCount++;
+      } else if (rating === 'easy') {
+        this.sessionStats.easyCount++;
+      }
+
+      this.currentCardIndex++;
+      this.isFlipped = false;
+      this.typedAnswer = '';
+
+      // Check if Neuro-Ergonomic Micro-Game break is enabled and interval reached
+      const interval = this.deck.settings.microGameInterval !== undefined ? this.deck.settings.microGameInterval : 5;
+      const isEnabled = this.deck.settings.enableMicroGames !== false;
+      const hasMoreCards = this.currentCardIndex < this.queue.length;
+
+      if (isEnabled && interval > 0 && this.sessionStats.totalReviewed > 0 && this.sessionStats.totalReviewed % interval === 0 && hasMoreCards) {
+        this.isGameActive = true;
+        openMicroGameModal({
+          streakCount: this.sessionStats.totalReviewed,
+          gameType: this.deck.settings.preferredMicroGame || 'all',
+          onContinue: () => {
+            this.isGameActive = false;
+            this.isHandlingRating = false;
+            this.render(container);
+          }
+        });
+        return;
+      }
+    } catch (err) {
+      console.error('Error during handleRating:', err);
+    } finally {
+      this.isHandlingRating = false;
     }
 
     this.render(container);
