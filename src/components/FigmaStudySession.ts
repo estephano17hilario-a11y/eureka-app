@@ -7,6 +7,7 @@ import { ttsService } from '../services/tts.service';
 import { dialogService } from '../services/dialog.service';
 import { openMicroGameModal } from './MicroGameModal';
 import { setupMathVirtualKeyboard, validateMathAnswer, evaluateDetailedMathAnswer } from '../services/math-engine.service';
+import { nativeService } from '../services/native.service';
 
 export interface FigmaStudyOptions {
   deckId: string;
@@ -45,10 +46,9 @@ export class FigmaStudySession {
     this.deck = deck;
     this.onExitCallback = options.onExit;
     this.onEditCardCallback = options.onEditCard;
-    this.isPreviewMode = !!options.isPreviewMode || !!options.specificCardId;
+    this.isPreviewMode = !!options.isPreviewMode;
 
     if (options.specificCardId) {
-      // Solicitud #2: Al dar clic a una flashcard específica en el mazo, cargar las tarjetas del mazo para poder rotar entre anteriores y siguientes
       const allCards = deckService.getCardsByDeck(options.deckId, true);
       const targetIdx = allCards.findIndex((c) => c.id === options.specificCardId);
       if (targetIdx !== -1) {
@@ -63,8 +63,10 @@ export class FigmaStudySession {
       const all = deckService.getCardsByDeck(options.deckId, true);
       this.queue = deck.settings.mixCards ? [...all].sort(() => Math.random() - 0.5) : [...all];
     } else {
-      // Filtrar estrictamente las tarjetas pendientes para hoy (dueDate <= Date.now())
-      const dueCards = deckService.getDueCardsByDeck(options.deckId, true);
+      let dueCards = deckService.getDueCardsByDeck(options.deckId, true);
+      if (dueCards.length === 0) {
+        dueCards = deckService.getCardsByDeck(options.deckId, true);
+      }
       this.queue = deck.settings.mixCards ? [...dueCards].sort(() => Math.random() - 0.5) : [...dueCards];
     }
   }
@@ -94,7 +96,7 @@ export class FigmaStudySession {
     container.innerHTML = `
       <div class="cupertino-study-container">
         
-        <!-- Header matching Reference Image 3 & 5 -->
+        <!-- Header -->
         <div class="cupertino-study-header">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
             <div style="display:flex; align-items:center; gap:12px; min-width:0;">
@@ -114,7 +116,7 @@ export class FigmaStudySession {
             </button>
           </div>
 
-          <!-- Progress track matching Image 3 (Pill 1/10 + Green Dot Track) -->
+          <!-- Progress track -->
           <div class="cupertino-progress-row">
             <div class="cupertino-progress-pill">${currentNum}/${totalCount}</div>
             <div class="cupertino-track-bar">
@@ -130,7 +132,7 @@ export class FigmaStudySession {
             ‹
           </button>
 
-          <div class="cupertino-flashcard-box" id="f-study-scene">
+          <div class="cupertino-flashcard-box" id="f-study-scene" style="cursor:pointer;">
             
             <!-- Top 3-dots icon for Card Actions / Editing -->
             <div class="cupertino-card-top-action">
@@ -150,7 +152,7 @@ export class FigmaStudySession {
               !this.isFlipped && !this.isTypeAnswerMode
                 ? `
               <div class="cupertino-card-hint-text">
-                Toca la tarjeta o presiona Espacio para voltear
+                Toca la tarjeta o presiona Espacio / 1,2,3,4 para voltear y calificar
               </div>
             `
                 : ''
@@ -162,12 +164,12 @@ export class FigmaStudySession {
           </button>
         </div>
 
-        <!-- Bottom Controls matching Image 3 & Image 5 -->
+        <!-- Bottom Controls -->
         <div class="cupertino-bottom-controls">
           ${
             this.isPreviewMode
               ? `
-            <!-- Modo Vista Previa: Sin modificadores ni calificaciones -->
+            <!-- Modo Vista Previa -->
             <div class="cupertino-front-controls-row" style="justify-content:center;">
               <button class="cupertino-btn-show-answer" id="btn-f-show-answer" style="max-width:320px; font-weight:800;">
                 ${!this.isFlipped ? '👁️ Voltear al Reverso' : '🔄 Voltear al Anverso'}
@@ -183,31 +185,35 @@ export class FigmaStudySession {
               </button>
 
               <button class="cupertino-btn-show-answer" id="btn-f-show-answer">
-                ${this.isTypeAnswerMode ? 'Comprobar respuesta' : 'Mostrar respuesta'}
+                ${this.isTypeAnswerMode ? 'Comprobar respuesta' : 'Mostrar respuesta (Espacio)'}
               </button>
             </div>
           `
               : `
-            <!-- Rating Bar Back (Image 5): 4 Frosted Cupertino Buttons -->
+            <!-- Rating Bar Back: 4 Frosted Cupertino Buttons -->
             <div class="cupertino-rating-row">
-              <button class="cupertino-rate-pill rate-again" data-rating="again" title="Presiona [1]">
+              <button type="button" class="cupertino-rate-pill rate-again" id="btn-rate-again" data-rating="again" title="Presiona [1]">
                 <span class="c-rate-title">De nuevo</span>
-                <span class="c-rate-subtitle">${intervalProjections[0].displayTime}</span>
+                <span class="c-rate-subtitle">${intervalProjections[0]?.displayTime || '4 min'}</span>
+                <span class="c-rate-key">[1]</span>
               </button>
 
-              <button class="cupertino-rate-pill rate-hard" data-rating="hard" title="Presiona [2]">
+              <button type="button" class="cupertino-rate-pill rate-hard" id="btn-rate-hard" data-rating="hard" title="Presiona [2]">
                 <span class="c-rate-title">Difícil</span>
-                <span class="c-rate-subtitle">${intervalProjections[1].displayTime}</span>
+                <span class="c-rate-subtitle">${intervalProjections[1]?.displayTime || '1 día'}</span>
+                <span class="c-rate-key">[2]</span>
               </button>
 
-              <button class="cupertino-rate-pill rate-good" data-rating="good" title="Presiona [3]">
+              <button type="button" class="cupertino-rate-pill rate-good" id="btn-rate-good" data-rating="good" title="Presiona [3 / Espacio]">
                 <span class="c-rate-title">Bien</span>
-                <span class="c-rate-subtitle">${intervalProjections[2].displayTime}</span>
+                <span class="c-rate-subtitle">${intervalProjections[2]?.displayTime || '2 días'}</span>
+                <span class="c-rate-key">[3 / Espacio]</span>
               </button>
 
-              <button class="cupertino-rate-pill rate-easy" data-rating="easy" title="Presiona [4]">
+              <button type="button" class="cupertino-rate-pill rate-easy" id="btn-rate-easy" data-rating="easy" title="Presiona [4]">
                 <span class="c-rate-title">Fácil</span>
-                <span class="c-rate-subtitle">${intervalProjections[3].displayTime}</span>
+                <span class="c-rate-subtitle">${intervalProjections[3]?.displayTime || '5 días'}</span>
+                <span class="c-rate-key">[4]</span>
               </button>
             </div>
           `
@@ -642,18 +648,46 @@ export class FigmaStudySession {
       ttsService.speak(text, currentCard.audioLang || this.deck.settings.ttsVoiceLang);
     });
 
-    // Rating buttons (Image 5)
-    container.querySelectorAll<HTMLButtonElement>('.cupertino-rate-pill').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+    // Rating buttons with robust click and touch handlers
+    let isHandlingRating = false;
+    const processRating = (rating: StudyRating) => {
+      if (isHandlingRating) return;
+      isHandlingRating = true;
+      try {
+        nativeService.triggerHaptics('light');
+      } catch {}
+      this.handleRating(rating, container);
+    };
+
+    const bindRatingButton = (el: HTMLElement | null, rating: StudyRating) => {
+      if (!el) return;
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        const rating = btn.dataset.rating as StudyRating;
-        if (rating) this.handleRating(rating, container);
+        processRating(rating);
       });
+      el.addEventListener('pointerup', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        processRating(rating);
+      });
+    };
+
+    bindRatingButton(document.getElementById('btn-rate-again'), 'again');
+    bindRatingButton(document.getElementById('btn-rate-hard'), 'hard');
+    bindRatingButton(document.getElementById('btn-rate-good'), 'good');
+    bindRatingButton(document.getElementById('btn-rate-easy'), 'easy');
+
+    container.querySelectorAll<HTMLButtonElement>('.cupertino-rate-pill').forEach((btn) => {
+      const rating = btn.dataset.rating as StudyRating;
+      if (rating) {
+        bindRatingButton(btn, rating);
+      }
     });
 
-    // Keyboard controls (Solicitud #6 y Solicitud #3 de juego bloqueado)
+    // Keyboard controls (Atajos 1, 2, 3, 4, Espacio, Enter y Flechas)
     window.onkeydown = (e: KeyboardEvent) => {
-      // Si el juego está activo o hay un modal abierto, bloquear completamente las teclas de fondo
+      // Si el microjuego está activo o hay un modal abierto, no procesar atajos de fondo
       if (
         this.isGameActive ||
         document.getElementById('modal-microgame-root') ||
@@ -664,7 +698,11 @@ export class FigmaStudySession {
       }
 
       const activeEl = document.activeElement;
-      const isInputActive = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+      const isInputActive =
+        activeEl &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          (activeEl.tagName === 'MATH-FIELD' && !this.isFlipped));
 
       // Flechas del teclado para navegar entre flashcards
       if (e.key === 'ArrowLeft') {
@@ -687,29 +725,47 @@ export class FigmaStudySession {
         }
       }
 
+      if (isInputActive) return;
+
+      const isKey1 = e.key === '1' || e.code === 'Digit1' || e.code === 'Numpad1';
+      const isKey2 = e.key === '2' || e.code === 'Digit2' || e.code === 'Numpad2';
+      const isKey3 = e.key === '3' || e.code === 'Digit3' || e.code === 'Numpad3';
+      const isKey4 = e.key === '4' || e.code === 'Digit4' || e.code === 'Numpad4';
+      const isSpaceOrEnter = e.code === 'Space' || e.key === ' ' || e.code === 'Enter' || e.key === 'Enter';
+
       if (!this.isFlipped) {
-        if (e.code === 'Space' || e.code === 'Enter') {
+        if (isSpaceOrEnter) {
           e.preventDefault();
           triggerFlip();
+        } else if (isKey1) {
+          e.preventDefault();
+          processRating('again');
+        } else if (isKey2) {
+          e.preventDefault();
+          processRating('hard');
+        } else if (isKey3) {
+          e.preventDefault();
+          processRating('good');
+        } else if (isKey4) {
+          e.preventDefault();
+          processRating('easy');
         }
       } else {
-        if (isInputActive) return;
-
-        if (e.key === '1' || e.code === 'Numpad1') {
+        if (isKey1) {
           e.preventDefault();
-          this.handleRating('again', container);
-        } else if (e.key === '2' || e.code === 'Numpad2') {
+          processRating('again');
+        } else if (isKey2) {
           e.preventDefault();
-          this.handleRating('hard', container);
-        } else if (e.key === '3' || e.code === 'Numpad3') {
+          processRating('hard');
+        } else if (isKey3) {
           e.preventDefault();
-          this.handleRating('good', container);
-        } else if (e.key === '4' || e.code === 'Numpad4') {
+          processRating('good');
+        } else if (isKey4) {
           e.preventDefault();
-          this.handleRating('easy', container);
-        } else if (e.code === 'Space' || e.code === 'Enter') {
+          processRating('easy');
+        } else if (isSpaceOrEnter) {
           e.preventDefault();
-          this.handleRating('good', container);
+          processRating('good');
         }
       }
     };

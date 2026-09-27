@@ -2802,14 +2802,29 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px 6px;
+  padding: 14px 6px;
   border-radius: 16px;
-  border: 1px solid;
+  border: 1.5px solid;
   cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  outline: none;
+}
+
+.cupertino-rate-pill:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.15);
+}
+
+.cupertino-rate-pill:active {
+  transform: scale(0.95);
+  filter: brightness(0.9);
 }
 
 .c-rate-title {
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 800;
   line-height: 1.2;
 }
@@ -2818,12 +2833,24 @@ html, body {
   font-size: 0.8rem;
   font-weight: 700;
   margin-top: 3px;
+  opacity: 0.9;
 }
 
-.rate-again { background: rgba(239, 68, 68, 0.14); border-color: rgba(239, 68, 68, 0.35); color: #f87171; }
-.rate-hard { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; }
-.rate-good { background: rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.35); color: #10b981; }
-.rate-easy { background: rgba(56, 189, 248, 0.14); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8; }
+.c-rate-key {
+  font-size: 0.68rem;
+  font-weight: 800;
+  margin-top: 4px;
+  opacity: 0.65;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.rate-again { background: rgba(239, 68, 68, 0.14); border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+.rate-hard { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24; }
+.rate-good { background: rgba(16, 185, 129, 0.16); border-color: rgba(16, 185, 129, 0.45); color: #10b981; }
+.rate-easy { background: rgba(56, 189, 248, 0.14); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; }
 
 /* Fullscreen iOS Views */
 .ios-fullscreen-view {
