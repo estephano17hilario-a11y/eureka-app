@@ -2748,6 +2748,34 @@ html, body {
   position: relative;
   display: inline-block;
   max-width: 100%;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.figma-drawn-mask.active-question-mask {
+  cursor: pointer !important;
+  user-select: none !important;
+  touch-action: manipulation !important;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease !important;
+  z-index: 10;
+}
+
+.figma-drawn-mask.active-question-mask:hover {
+  transform: scale(1.04);
+  filter: brightness(1.15);
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.95) !important;
+}
+
+.figma-drawn-mask.active-question-mask:active {
+  transform: scale(0.96);
+}
+
+.figma-drawn-mask.other-hidden-mask {
+  cursor: pointer !important;
+  user-select: none !important;
+  touch-action: manipulation !important;
+  z-index: 5;
 }
 
 .cupertino-bottom-controls {

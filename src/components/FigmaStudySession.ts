@@ -236,18 +236,21 @@ export class FigmaStudySession {
     let mediaHtml = '';
     if (card.type === 'image_occlusion' && card.occlusionImage) {
       const mode = card.occlusionMode || 'hide_one_reveal_one';
+      const masks = card.occlusionMasks || [];
+      const activeMaskId = card.activeMaskId || (masks.length > 0 ? masks[0].id : null);
+
       mediaHtml = `
         <div class="cupertino-occlusion-wrap">
-          <div class="cupertino-occlusion-img-box">
-            <img src="${card.occlusionImage}" alt="Oclusión" draggable="false" class="cupertino-responsive-img" />
-            ${(card.occlusionMasks || [])
+          <div class="cupertino-occlusion-img-box" id="study-occlusion-img-box" style="cursor:pointer;" title="Toca para mostrar respuesta">
+            <img src="${card.occlusionImage}" alt="Oclusión" draggable="false" class="cupertino-responsive-img study-occlusion-target-img" />
+            ${masks
               .map((m) => {
-                const isActive = m.id === card.activeMaskId;
+                const isActive = m.id === activeMaskId;
                 if (isActive) {
-                  return `<div class="figma-drawn-mask active-question-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#ef4444; border:2px solid #ffffff; font-size:1.1rem; font-weight:900; color:#fff; box-shadow:0 0 16px rgba(239,68,68,0.7);">?</div>`;
+                  return `<div class="figma-drawn-mask active-question-mask" data-mask-id="${m.id}" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#ef4444; border:2px solid #ffffff; font-size:1.15rem; font-weight:900; color:#fff; box-shadow:0 0 20px rgba(239,68,68,0.85); cursor:pointer;" title="Toca para revelar respuesta">?</div>`;
                 } else {
                   if (mode === 'hide_all_reveal_one') {
-                    return `<div class="figma-drawn-mask other-hidden-mask" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#18191f; border:1px solid #3f3f46;"></div>`;
+                    return `<div class="figma-drawn-mask other-hidden-mask" data-mask-id="${m.id}" style="left:${m.x}%; top:${m.y}%; width:${m.width}%; height:${m.height}%; background:#18191f; border:1px solid #3f3f46; cursor:pointer;" title="Toca para revelar respuesta"></div>`;
                   }
                   return '';
                 }
@@ -298,13 +301,16 @@ export class FigmaStudySession {
     let mediaHtml = '';
     if (card.type === 'image_occlusion' && card.occlusionImage) {
       const mode = card.occlusionMode || 'hide_one_reveal_one';
+      const masks = card.occlusionMasks || [];
+      const activeMaskId = card.activeMaskId || (masks.length > 0 ? masks[0].id : null);
+
       mediaHtml = `
         <div class="cupertino-occlusion-wrap">
           <div class="cupertino-occlusion-img-box">
             <img src="${card.occlusionImage}" alt="Oclusión Revelada" draggable="false" class="cupertino-responsive-img" />
-            ${(card.occlusionMasks || [])
+            ${masks
               .map((m) => {
-                const isActive = m.id === card.activeMaskId;
+                const isActive = m.id === activeMaskId;
                 if (isActive) {
                   // El recuadro objetivo simplemente se desocluya sin puntos ni recuadros superpuestos
                   return '';
@@ -611,11 +617,16 @@ export class FigmaStudySession {
       this.render(container);
     });
 
-    document.getElementById('btn-f-show-answer')?.addEventListener('click', triggerFlip);
+    document.getElementById('btn-f-show-answer')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerFlip();
+    });
+
     document.getElementById('f-study-scene')?.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       if (
         target.id === 'btn-card-more-action' ||
+        target.closest('#btn-card-more-action') ||
         target.tagName === 'INPUT' ||
         target.tagName === 'BUTTON'
       ) {
@@ -624,6 +635,14 @@ export class FigmaStudySession {
       if (!this.isTypeAnswerMode) {
         triggerFlip();
       }
+    });
+
+    // Manejador directo e instantáneo para clics en la imagen de oclusión o en cualquiera de sus máscaras
+    container.querySelectorAll('.figma-drawn-mask, #study-occlusion-img-box, .study-occlusion-target-img, .cupertino-occlusion-wrap').forEach((elem) => {
+      elem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerFlip();
+      });
     });
 
     // Solicitud #2: Flechas laterales para rotar entre flashcard y flashcards
