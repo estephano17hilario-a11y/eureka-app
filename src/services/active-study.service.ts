@@ -63,33 +63,13 @@ class ActiveStudyService {
       ? eurekaBackend.getUserId()
       : userId;
 
-    if (this.currentUserId === resolvedId && (this.topics.size > 0 || this.mindMaps.size > 0)) {
-      return;
-    }
-
-    const previousTopics = Array.from(this.topics.values());
-    const previousOutlines = new Map(this.outlineNodes);
-    const previousMindMaps = new Map(this.mindMaps);
-    const previousLocks = new Map(this.locks);
-
     this.currentUserId = resolvedId;
     this.topics.clear();
     this.outlineNodes.clear();
     this.locks.clear();
     this.mindMaps.clear();
-    this.userCoins = 150;
 
     await this.loadFromStorage();
-
-    // Migración automática si la cuenta nueva no tiene datos pero la sesión previa tenía cuadernos
-    if (this.topics.size === 0 && previousTopics.length > 0) {
-      previousTopics.forEach(t => this.topics.set(t.id, t));
-      previousOutlines.forEach((nodes, id) => this.outlineNodes.set(id, nodes));
-      previousMindMaps.forEach((mm, id) => this.mindMaps.set(id, mm));
-      previousLocks.forEach((lock, id) => this.locks.set(id, lock));
-      this.saveToStorage();
-    }
-
     await this.syncWithCloud();
   }
 

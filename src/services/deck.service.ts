@@ -47,25 +47,10 @@ export class DeckService {
       ? eurekaBackend.getUserId()
       : userId;
 
-    if (this.currentUserId === resolvedId && (this.decks.length > 0 || this.cards.length > 0)) {
-      return;
-    }
-
-    const previousDecks = [...this.decks];
-    const previousCards = [...this.cards];
-
     this.currentUserId = resolvedId;
     this.decks = [];
     this.cards = [];
     this.loadFromStorage();
-
-    // Si el usuario no tiene mazos guardados aún en su cuenta, pero había datos creados en la sesión previa, migrarlos
-    if (this.decks.length === 0 && previousDecks.length > 0) {
-      this.decks = previousDecks;
-      this.cards = previousCards;
-      this.saveToStorage();
-    }
-
     await this.syncWithCloud();
     this.notify();
   }

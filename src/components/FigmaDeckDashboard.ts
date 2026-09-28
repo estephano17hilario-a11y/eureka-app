@@ -235,38 +235,42 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
         <div>
           <h1 class="figma-dash-title">${deck.name}</h1>
           <p class="figma-dash-subtitle">
-            Algoritmo de aprendizaje: <strong id="btn-open-algo-settings" style="cursor:pointer; color:var(--f-blue); text-decoration:underline;">${algoLabel} ⓘ</strong>
+            Algoritmo: <strong id="btn-open-algo-settings" style="cursor:pointer; color:var(--f-blue); text-decoration:underline;">${algoLabel} ⓘ</strong>
           </p>
         </div>
       </div>
 
-      <!-- Hero Metric Box -->
+      <!-- Hero Metric Box (Compact On-Screen View) -->
       <div class="figma-hero-metric-box apple-glass-panel">
-        <div class="figma-hero-large-number">${dueCount}</div>
-        <div class="figma-hero-label">tarjetas para hoy</div>
-
-        <div class="figma-three-stats-row">
-          <div class="figma-stat-pill">
-            <div class="figma-stat-val-badge" style="color:#94a3b8;">
-              <span>+</span> <span>${newCount}</span>
-            </div>
-            <span class="figma-stat-name">No estudiadas</span>
+        <div class="figma-hero-main-group">
+          <div class="figma-hero-due-col">
+            <span class="figma-hero-large-number">${dueCount}</span>
+            <span class="figma-hero-label">para hoy</span>
           </div>
 
-          <div class="figma-stat-pill">
-            <div class="figma-stat-val-badge" style="color:#10b981;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>${learningCount}</span>
+          <div class="figma-three-stats-row">
+            <div class="figma-stat-pill" title="Tarjetas nuevas no estudiadas">
+              <div class="figma-stat-val-badge" style="color:#94a3b8;">
+                <span>+</span> <span>${newCount}</span>
+              </div>
+              <span class="figma-stat-name">Nuevas</span>
             </div>
-            <span class="figma-stat-name">En aprendizaje</span>
-          </div>
 
-          <div class="figma-stat-pill">
-            <div class="figma-stat-val-badge" style="color:#38bdf8;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-              <span>${masteredCount}</span>
+            <div class="figma-stat-pill" title="Tarjetas en fase de aprendizaje">
+              <div class="figma-stat-val-badge" style="color:#10b981;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>${learningCount}</span>
+              </div>
+              <span class="figma-stat-name">Repaso</span>
             </div>
-            <span class="figma-stat-name">Dominadas</span>
+
+            <div class="figma-stat-pill" title="Tarjetas consolidadas y dominadas">
+              <div class="figma-stat-val-badge" style="color:#38bdf8;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                <span>${masteredCount}</span>
+              </div>
+              <span class="figma-stat-name">Dominadas</span>
+            </div>
           </div>
         </div>
 

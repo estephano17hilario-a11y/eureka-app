@@ -1,13 +1,20 @@
 import type { Deck, Flashcard, StudyRating } from '../types/flashcard';
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 
 export const REMOTE_VPS_URL = ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
 
 const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
 
-// En la app nativa (Capacitor en Android/iOS), las peticiones deben viajar DIRECTAMENTE al servidor VPS.
-// En la web (Vercel o localhost de desarrollo con Vite proxy), las peticiones usan '' (relativo).
-export const API_BASE_URL = isNative ? REMOTE_VPS_URL : '';
+// En la app nativa (Capacitor en Android/iOS) o cuando se aloja en un dominio web externo, las peticiones viajan al servidor VPS.
+// En Vite proxy local o cuando se sirve directamente desde el VPS en el puerto HTTP, usan '' (relativo).
+const isViteProxyOrDirectVPS = typeof window !== 'undefined' && (
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1' ||
+  window.location.hostname === '89.117.73.97'
+);
+
+export const API_BASE_URL = isNative ? REMOTE_VPS_URL : (isViteProxyOrDirectVPS ? '' : REMOTE_VPS_URL);
 
 const AUTH_STORAGE_KEY = 'eureka_auth_session_v1';
 const LOCAL_USERS_KEY = 'eureka_local_registered_users_v1';
@@ -53,9 +60,13 @@ class EurekaBackendService {
     return EurekaBackendService.instance;
   }
 
-  private restoreSession(): void {
+  private async restoreSession(): Promise<void> {
     try {
-      const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+      let stored = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (!stored && typeof Preferences !== 'undefined') {
+        const pref = await Preferences.get({ key: AUTH_STORAGE_KEY }).catch(() => ({ value: null }));
+        if (pref.value) stored = pref.value;
+      }
       if (stored) {
         this.currentUser = JSON.parse(stored);
       }
@@ -89,11 +100,14 @@ class EurekaBackendService {
       return this.currentUser;
     }
 
-    // Detectar si hay una cuenta registrada activa en el VPS para conectar automáticamente este navegador
+    // Detectar si hay una cuenta registrada activa en el VPS para conectar automáticamente este dispositivo
     const primary = await this.fetchPrimaryAccount();
     if (primary) {
       this.currentUser = primary;
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(primary));
+      if (typeof Preferences !== 'undefined') {
+        Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(primary) }).catch(() => {});
+      }
       this.notifyAuthListeners();
       return primary;
     }
@@ -112,11 +126,11 @@ class EurekaBackendService {
         id: u.id,
         email: u.device_id || u.email || 'user@eureka.local',
         username: u.username || 'Estudiante',
-        avatarUrl: u.avatar_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username || 'User'}`,
+        avatarUrl: u.avatar_url || u.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username || 'User'}`,
         xp: u.xp || 0,
         level: u.level || 1,
-        streakDays: u.streak_days || 1,
-        createdAt: u.created_at || new Date().toISOString()
+        streakDays: u.streak_days || u.streakDays || 1,
+        createdAt: u.created_at || u.createdAt || new Date().toISOString()
       };
     } catch {
       return null;
@@ -133,11 +147,11 @@ class EurekaBackendService {
         id: u.id,
         email: u.email || u.device_id || '',
         username: u.username || 'Estudiante',
-        avatarUrl: u.avatar_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username || 'User'}`,
+        avatarUrl: u.avatar_url || u.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username || 'User'}`,
         xp: u.xp || 0,
         level: u.level || 1,
-        streakDays: u.streak_days || 1,
-        createdAt: u.updated_at || new Date().toISOString()
+        streakDays: u.streak_days || u.streakDays || 1,
+        createdAt: u.updated_at || u.created_at || new Date().toISOString()
       }));
     } catch {
       return [];
@@ -158,6 +172,7 @@ class EurekaBackendService {
   public selectAccount(user: AuthUser): void {
     this.currentUser = user;
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(user) }).catch(() => {});
     this.notifyAuthListeners();
   }
 
@@ -251,14 +266,17 @@ class EurekaBackendService {
             id: data.user.id,
             email: cleanEmail,
             username: data.user.username || cleanEmail.split('@')[0],
-            avatarUrl: data.user.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${data.user.username || 'User'}`,
+            avatarUrl: data.user.avatar_url || data.user.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${data.user.username || 'User'}`,
             xp: data.user.xp || 0,
             level: data.user.level || 1,
-            streakDays: data.user.streakDays || 1,
-            createdAt: data.user.createdAt || new Date().toISOString()
+            streakDays: data.user.streak_days || data.user.streakDays || 1,
+            createdAt: data.user.created_at || data.user.createdAt || new Date().toISOString()
           };
           this.currentUser = authUser;
           localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+          if (typeof Preferences !== 'undefined') {
+            Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
+          }
           this.saveUserLocally(cleanEmail, password, authUser);
           this.notifyAuthListeners();
           return { user: authUser };
