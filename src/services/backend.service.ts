@@ -1,20 +1,8 @@
 import type { Deck, Flashcard, StudyRating } from '../types/flashcard';
-import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
 
 export const REMOTE_VPS_URL = ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
-
-const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
-
-// En la app nativa (Capacitor en Android/iOS) o cuando se aloja en un dominio web externo, las peticiones viajan al servidor VPS.
-// En Vite proxy local o cuando se sirve directamente desde el VPS en el puerto HTTP, usan '' (relativo).
-const isViteProxyOrDirectVPS = typeof window !== 'undefined' && (
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '127.0.0.1' ||
-  window.location.hostname === '89.117.73.97'
-);
-
-export const API_BASE_URL = isNative ? REMOTE_VPS_URL : (isViteProxyOrDirectVPS ? '' : REMOTE_VPS_URL);
+export const API_BASE_URL = REMOTE_VPS_URL;
 
 const AUTH_STORAGE_KEY = 'eureka_auth_session_v1';
 const LOCAL_USERS_KEY = 'eureka_local_registered_users_v1';
@@ -38,6 +26,83 @@ export interface UserProfile {
   level: number;
   streakDays: number;
   lastStudyDate?: string;
+}
+
+/**
+ * Helper de fetch resiliente con timeout y fallback automático.
+ * Intenta primero la URL directa del VPS (con CORS habilitado),
+ * y si estamos en web con proxy relativo, hace fallback seguro.
+ */
+async function apiFetch<T = any>(
+  endpoint: string,
+  options: RequestInit = {},
+  timeoutMs: number = 8000
+): Promise<{ ok: boolean; status: number; data?: T; error?: string }> {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  const urlsToTry: string[] = [
+    `${REMOTE_VPS_URL}${cleanEndpoint}`
+  ];
+
+  // Si estamos en navegador y no estamos en la app nativa, añadir la ruta relativa como fallback
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    const relativeUrl = `${cleanEndpoint}`;
+    if (!urlsToTry.includes(relativeUrl)) {
+      urlsToTry.push(relativeUrl);
+    }
+  }
+
+  let lastError: string = 'No se pudo conectar con el servidor central de Eureka (89.117.73.97). Verifica tu conexión a internet.';
+  let lastStatus = 0;
+
+  for (const url of urlsToTry) {
+    let timeoutId: any = null;
+    try {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      const res = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        }
+      });
+
+      if (timeoutId) clearTimeout(timeoutId);
+
+      const contentType = res.headers.get('content-type') || '';
+
+      // Si la respuesta es JSON (formato de nuestra API de backend)
+      if (contentType.includes('application/json')) {
+        const json = await res.json().catch(() => null);
+        if (res.ok) {
+          return { ok: true, status: res.status, data: json as T };
+        } else {
+          return {
+            ok: false,
+            status: res.status,
+            data: json,
+            error: json?.error || json?.message || `Error del servidor (${res.status})`
+          };
+        }
+      }
+
+      // Si recibimos HTML o un status no-OK (ej. 404 de Vite preview), continuamos con el siguiente intento
+      lastStatus = res.status;
+      lastError = `Respuesta no esperada del servidor (${res.status})`;
+    } catch (err: any) {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        lastError = 'Tiempo de espera agotado al conectar con el servidor.';
+      } else {
+        lastError = err?.message || 'Error de conexión de red.';
+      }
+    }
+  }
+
+  return { ok: false, status: lastStatus, error: lastError };
 }
 
 /**
@@ -117,16 +182,14 @@ class EurekaBackendService {
 
   public async fetchPrimaryAccount(): Promise<AuthUser | null> {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/primary-account`).catch(() => null);
-      if (!res || !res.ok) return null;
-      const data = await res.json();
-      if (!data?.user) return null;
-      const u = data.user;
+      const res = await apiFetch<{ user?: any }>('/api/auth/primary-account');
+      if (!res.ok || !res.data?.user) return null;
+      const u = res.data.user;
       return {
         id: u.id,
         email: u.device_id || u.email || 'user@eureka.local',
         username: u.username || 'Estudiante',
-        avatarUrl: u.avatar_url || u.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username || 'User'}`,
+        avatarUrl: u.avatar_url || u.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(u.username || 'User')}`,
         xp: u.xp || 0,
         level: u.level || 1,
         streakDays: u.streak_days || u.streakDays || 1,
@@ -139,15 +202,13 @@ class EurekaBackendService {
 
   public async fetchAccounts(): Promise<AuthUser[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/accounts`).catch(() => null);
-      if (!res || !res.ok) return [];
-      const data = await res.json();
-      if (!Array.isArray(data?.accounts)) return [];
-      return data.accounts.map((u: any) => ({
+      const res = await apiFetch<{ accounts?: any[] }>('/api/auth/accounts');
+      if (!res.ok || !Array.isArray(res.data?.accounts)) return [];
+      return res.data.accounts.map((u: any) => ({
         id: u.id,
         email: u.email || u.device_id || '',
         username: u.username || 'Estudiante',
-        avatarUrl: u.avatar_url || u.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username || 'User'}`,
+        avatarUrl: u.avatar_url || u.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(u.username || 'User')}`,
         xp: u.xp || 0,
         level: u.level || 1,
         streakDays: u.streak_days || u.streakDays || 1,
@@ -161,9 +222,11 @@ class EurekaBackendService {
   public async fetchSyncVersion(): Promise<{ decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number } | null> {
     const activeUserId = this.getUserId();
     try {
-      const res = await fetch(`${API_BASE_URL}/api/sync/version?userId=${encodeURIComponent(activeUserId)}`).catch(() => null);
-      if (!res || !res.ok) return null;
-      return await res.json();
+      const res = await apiFetch<{ decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number }>(
+        `/api/sync/version?userId=${encodeURIComponent(activeUserId)}`
+      );
+      if (!res.ok || !res.data) return null;
+      return res.data;
     } catch {
       return null;
     }
@@ -172,7 +235,9 @@ class EurekaBackendService {
   public selectAccount(user: AuthUser): void {
     this.currentUser = user;
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(user) }).catch(() => {});
+    if (typeof Preferences !== 'undefined') {
+      Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(user) }).catch(() => {});
+    }
     this.notifyAuthListeners();
   }
 
@@ -191,53 +256,35 @@ class EurekaBackendService {
     const cleanUsername = username.trim() || cleanEmail.split('@')[0];
 
     try {
-      // 1. Intento de registro en la API del VPS
-      let res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      const res = await apiFetch<{ user?: any }>('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail, password, username: cleanUsername })
-      }).catch(() => null);
+      });
 
-      // Reintento directo con REMOTE_VPS_URL si falló por ruta relativa
-      if (!res && API_BASE_URL !== REMOTE_VPS_URL) {
-        res = await fetch(`${REMOTE_VPS_URL}/api/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: cleanEmail, password, username: cleanUsername })
-        }).catch(() => null);
-      }
+      if (res.ok && res.data?.user) {
+        const u = res.data.user;
+        const authUser: AuthUser = {
+          id: u.id,
+          email: u.device_id || u.email || cleanEmail,
+          username: u.username || cleanUsername,
+          avatarUrl: u.avatar_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(cleanUsername)}`,
+          xp: u.xp || 0,
+          level: u.level || 1,
+          streakDays: u.streak_days || 1,
+          createdAt: u.created_at || new Date().toISOString()
+        };
 
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data?.user) {
-          const authUser: AuthUser = {
-            id: data.user.id,
-            email: data.user.device_id || cleanEmail,
-            username: data.user.username || cleanUsername,
-            avatarUrl: data.user.avatar_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(cleanUsername)}`,
-            xp: data.user.xp || 0,
-            level: data.user.level || 1,
-            streakDays: data.user.streak_days || 1,
-            createdAt: data.user.created_at || new Date().toISOString()
-          };
-
-          this.saveUserLocally(cleanEmail, password, authUser);
-          this.currentUser = authUser;
-          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
-          if (typeof Preferences !== 'undefined') {
-            await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
-          }
-          this.notifyAuthListeners();
-          return { user: authUser };
+        this.saveUserLocally(cleanEmail, password, authUser);
+        this.currentUser = authUser;
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+        if (typeof Preferences !== 'undefined') {
+          await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
         }
+        this.notifyAuthListeners();
+        return { user: authUser };
       }
 
-      if (res && !res.ok) {
-        const errData = await res.json().catch(() => null);
-        return { error: errData?.error || 'No se pudo registrar la cuenta en el servidor.' };
-      }
-
-      return { error: 'No se pudo conectar con el servidor central de Eureka (89.117.73.97). Verifica tu conexión a internet.' };
+      return { error: res.error || 'No se pudo registrar la cuenta en el servidor central.' };
     } catch (err: any) {
       console.warn('[EUREKA VPS BACKEND] Error en signUp:', err);
       return { error: err?.message || 'Error de conexión con el servidor.' };
@@ -249,47 +296,34 @@ class EurekaBackendService {
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      // 1. Intento de login en API del VPS
-      let res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const res = await apiFetch<{ user?: any }>('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail, password })
-      }).catch(() => null);
+      });
 
-      // Reintento directo con REMOTE_VPS_URL si falló por ruta relativa
-      if (!res && API_BASE_URL !== REMOTE_VPS_URL) {
-        res = await fetch(`${REMOTE_VPS_URL}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: cleanEmail, password })
-        }).catch(() => null);
-      }
-
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data?.user) {
-          const authUser: AuthUser = {
-            id: data.user.id,
-            email: data.user.device_id || cleanEmail,
-            username: data.user.username || cleanEmail.split('@')[0],
-            avatarUrl: data.user.avatar_url || data.user.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(data.user.username || 'User')}`,
-            xp: data.user.xp || 0,
-            level: data.user.level || 1,
-            streakDays: data.user.streak_days || data.user.streakDays || 1,
-            createdAt: data.user.created_at || data.user.createdAt || new Date().toISOString()
-          };
-          this.currentUser = authUser;
-          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
-          if (typeof Preferences !== 'undefined') {
-            await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
-          }
-          this.saveUserLocally(cleanEmail, password, authUser);
-          this.notifyAuthListeners();
-          return { user: authUser };
+      if (res.ok && res.data?.user) {
+        const u = res.data.user;
+        const authUser: AuthUser = {
+          id: u.id,
+          email: u.device_id || u.email || cleanEmail,
+          username: u.username || cleanEmail.split('@')[0],
+          avatarUrl: u.avatar_url || u.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(u.username || 'User')}`,
+          xp: u.xp || 0,
+          level: u.level || 1,
+          streakDays: u.streak_days || u.streakDays || 1,
+          createdAt: u.created_at || u.createdAt || new Date().toISOString()
+        };
+        this.currentUser = authUser;
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+        if (typeof Preferences !== 'undefined') {
+          await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
         }
+        this.saveUserLocally(cleanEmail, password, authUser);
+        this.notifyAuthListeners();
+        return { user: authUser };
       }
 
-      // 2. Comprobación local de credenciales guardadas
+      // Comprobación local de credenciales guardadas si no hubo conexión con el servidor
       const localUser = this.checkLocalUser(cleanEmail, password);
       if (localUser) {
         this.currentUser = localUser;
@@ -301,12 +335,7 @@ class EurekaBackendService {
         return { user: localUser };
       }
 
-      if (res && !res.ok) {
-        const errData = await res.json().catch(() => null);
-        return { error: errData?.error || 'Usuario o contraseña incorrectos. Si no tienes cuenta, pulsa en Crear Cuenta.' };
-      }
-
-      return { error: 'No se pudo conectar con el servidor (89.117.73.97). Verifica tu conexión.' };
+      return { error: res.error || 'Usuario o contraseña incorrectos. Si no tienes cuenta, pulsa en Crear Cuenta.' };
     } catch (err: any) {
       console.warn('[EUREKA VPS BACKEND] Error en signIn:', err);
       const localUser = this.checkLocalUser(cleanEmail, password);
@@ -323,14 +352,18 @@ class EurekaBackendService {
   // --- CERRAR SESIÓN ---
   public async signOut(): Promise<void> {
     try {
-      await fetch(`${API_BASE_URL}/api/auth/logout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: this.currentUser?.id })
-      }).catch(() => {});
+      if (this.currentUser?.id) {
+        await apiFetch('/api/auth/logout', {
+          method: 'POST',
+          body: JSON.stringify({ userId: this.currentUser.id })
+        }).catch(() => {});
+      }
     } catch {}
     this.currentUser = null;
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    if (typeof Preferences !== 'undefined') {
+      Preferences.remove({ key: AUTH_STORAGE_KEY }).catch(() => {});
+    }
     this.notifyAuthListeners();
   }
 
@@ -341,7 +374,7 @@ class EurekaBackendService {
       id: guestId,
       email: 'guest@eureka.local',
       username: guestName,
-      avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${guestName}`,
+      avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(guestName)}`,
       xp: 0,
       level: 1,
       streakDays: 1,
@@ -349,6 +382,9 @@ class EurekaBackendService {
     };
     this.currentUser = guestUser;
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(guestUser));
+    if (typeof Preferences !== 'undefined') {
+      Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(guestUser) }).catch(() => {});
+    }
     this.notifyAuthListeners();
     return guestUser;
   }
@@ -391,11 +427,10 @@ class EurekaBackendService {
         updated_at: Number(d.updatedAt) || Date.now()
       }));
 
-      await fetch(`${API_BASE_URL}/api/decks/sync`, {
+      await apiFetch('/api/decks/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUserId, decks: payload })
-      }).catch(() => {});
+      });
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error syncDecks:', err);
     }
@@ -404,11 +439,10 @@ class EurekaBackendService {
   public async deleteDeckFromCloud(deckId: string): Promise<void> {
     const activeUserId = this.getUserId();
     try {
-      await fetch(`${API_BASE_URL}/api/decks/${encodeURIComponent(deckId)}`, {
+      await apiFetch(`/api/decks/${encodeURIComponent(deckId)}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUserId })
-      }).catch(() => {});
+      });
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error deleteDeckFromCloud:', err);
     }
@@ -418,11 +452,10 @@ class EurekaBackendService {
     const activeUserId = this.getUserId();
     if (!deckIds.length) return;
     try {
-      await fetch(`${API_BASE_URL}/api/decks/batch-delete`, {
+      await apiFetch('/api/decks/batch-delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUserId, deckIds })
-      }).catch(() => {});
+      });
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error deleteDecksFromCloud:', err);
     }
@@ -431,12 +464,10 @@ class EurekaBackendService {
   public async fetchDecks(): Promise<Deck[] | null> {
     const activeUserId = this.getUserId();
     try {
-      const res = await fetch(`${API_BASE_URL}/api/decks?userId=${encodeURIComponent(activeUserId)}`).catch(() => null);
-      if (!res || !res.ok) return null;
-      const data = await res.json();
-      if (!Array.isArray(data)) return null;
+      const res = await apiFetch<any[]>(`/api/decks?userId=${encodeURIComponent(activeUserId)}`);
+      if (!res.ok || !Array.isArray(res.data)) return null;
 
-      return data.map((d: any) => ({
+      return res.data.map((d: any) => ({
         id: d.id,
         parentId: d.parent_id,
         name: d.name,
@@ -490,11 +521,10 @@ class EurekaBackendService {
         updated_at: Number(c.updatedAt) || Date.now()
       }));
 
-      await fetch(`${API_BASE_URL}/api/cards/sync`, {
+      await apiFetch('/api/cards/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUserId, cards: payload })
-      }).catch(() => {});
+      });
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error syncCards:', err);
     }
@@ -503,11 +533,10 @@ class EurekaBackendService {
   public async deleteCardFromCloud(cardId: string): Promise<void> {
     const activeUserId = this.getUserId();
     try {
-      await fetch(`${API_BASE_URL}/api/cards/${encodeURIComponent(cardId)}`, {
+      await apiFetch(`/api/cards/${encodeURIComponent(cardId)}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUserId })
-      }).catch(() => {});
+      });
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error deleteCardFromCloud:', err);
     }
@@ -517,11 +546,10 @@ class EurekaBackendService {
     const activeUserId = this.getUserId();
     if (!cardIds.length) return;
     try {
-      await fetch(`${API_BASE_URL}/api/cards/batch-delete`, {
+      await apiFetch('/api/cards/batch-delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUserId, cardIds })
-      }).catch(() => {});
+      });
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error deleteCardsFromCloud:', err);
     }
@@ -530,12 +558,10 @@ class EurekaBackendService {
   public async fetchCards(): Promise<Flashcard[] | null> {
     const activeUserId = this.getUserId();
     try {
-      const res = await fetch(`${API_BASE_URL}/api/cards?userId=${encodeURIComponent(activeUserId)}`).catch(() => null);
-      if (!res || !res.ok) return null;
-      const data = await res.json();
-      if (!Array.isArray(data)) return null;
+      const res = await apiFetch<any[]>(`/api/cards?userId=${encodeURIComponent(activeUserId)}`);
+      if (!res.ok || !Array.isArray(res.data)) return null;
 
-      return data.map((c: any) => {
+      return res.data.map((c: any) => {
         let chunkId: string | undefined = undefined;
         let role: 'parent' | 'child' | undefined = undefined;
         if (c.group_role && c.group_role.startsWith('chunk:')) {
@@ -570,7 +596,7 @@ class EurekaBackendService {
           lapses: c.lapses,
           reps: c.reps,
           dueDate: Number(c.due_date),
-          lastReviewDate: c.last_review_date ? Number(c.last_review_date) : undefined,
+          lastReviewDate: c.lastReviewDate ? Number(c.lastReviewDate) : undefined,
           createdAt: Number(c.created_at),
           updatedAt: Number(c.updated_at)
         };
@@ -593,9 +619,8 @@ class EurekaBackendService {
   }): Promise<void> {
     const activeUserId = this.getUserId();
     try {
-      await fetch(`${API_BASE_URL}/api/study-logs`, {
+      await apiFetch('/api/study-logs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
           user_id: activeUserId,
@@ -605,7 +630,7 @@ class EurekaBackendService {
           review_duration_ms: entry.reviewDurationMs || 0,
           reviewed_at: entry.reviewedAt || Date.now()
         })
-      }).catch(() => {});
+      });
     } catch {}
   }
 
@@ -614,21 +639,19 @@ class EurekaBackendService {
     const activeUserId = this.getUserId();
     try {
       localStorage.setItem(`eureka_settings_user_${activeUserId}`, JSON.stringify(settings));
-      await fetch(`${API_BASE_URL}/api/settings`, {
+      await apiFetch('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUserId, settings, updatedAt: Date.now() })
-      }).catch(() => {});
+      });
     } catch {}
   }
 
   public async fetchUserSettings(): Promise<Record<string, any> | null> {
     const activeUserId = this.getUserId();
     try {
-      const res = await fetch(`${API_BASE_URL}/api/settings?userId=${encodeURIComponent(activeUserId)}`).catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data?.settings) return data.settings;
+      const res = await apiFetch<{ settings?: Record<string, any> }>(`/api/settings?userId=${encodeURIComponent(activeUserId)}`);
+      if (res.ok && res.data?.settings) {
+        return res.data.settings;
       }
       const local = localStorage.getItem(`eureka_settings_user_${activeUserId}`);
       return local ? JSON.parse(local) : null;
@@ -639,11 +662,10 @@ class EurekaBackendService {
 
   public async saveUserProfile(profile: UserProfile): Promise<void> {
     try {
-      await fetch(`${API_BASE_URL}/api/profile`, {
+      await apiFetch('/api/profile', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile)
-      }).catch(() => {});
+      });
     } catch {}
   }
 }
