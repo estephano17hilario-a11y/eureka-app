@@ -562,8 +562,22 @@ se obtiene la energía de enlace nuclear total.`;
       !c.sourceContent.includes('🧠')
     );
 
-    // Si ya tiene contexto y no está truncado, no requiere enriquecimiento
-    if (hasRoadmapOrPurpose && !isAtomTruncated) return;
+    const hasMultipleAtoms = topic.chunks.filter((c) => c.title.startsWith('Átomo')).length > 1;
+    const hasAtomTransitions = topic.chunks.some((c) => c.title.includes('Transición Sinérgica: Átomo'));
+    const needsTransitionSeparation = hasMultipleAtoms && !hasAtomTransitions;
+
+    const hasDuplicateMathFormalism = topic.chunks.some((c) =>
+      c.sourceContent.includes('📐 **Formalismo') &&
+      (c.sourceContent.includes('FORMALISMO MATEMÁTICO') || c.sourceContent.includes('Formalismo Matemático:'))
+    );
+
+    const hasEmbeddedTransitions = topic.chunks.some((c) =>
+      c.title.startsWith('Átomo') &&
+      (c.sourceContent.includes('Transición Sinérgica') || c.sourceContent.includes('Puente Sinérgico'))
+    );
+
+    // Si ya tiene contexto, no está truncado, tiene las transiciones separadas y no tiene formalismo repetido
+    if (hasRoadmapOrPurpose && !isAtomTruncated && !needsTransitionSeparation && !hasDuplicateMathFormalism && !hasEmbeddedTransitions) return;
 
     let guide: any;
     try {
@@ -656,12 +670,72 @@ se obtiene la energía de enlace nuclear total.`;
         }
       }
 
-      // Si no existe guía pero los átomos están truncados o falta contexto, reparar localmente
-      if (isAtomTruncated || !hasRoadmapOrPurpose) {
-        let changed = false;
+      // Reparación local si no hubo guía vinculada
+      let changed = false;
 
-        // 1. Reparar átomos individuales truncados
-        topic.chunks.forEach((chunk, cIdx) => {
+      // 1. Limpieza de formalismo matemático duplicado en todos los bloques
+      topic.chunks.forEach((chunk) => {
+        if (chunk.sourceContent && chunk.sourceContent.includes('Formalismo')) {
+          const cleaned = chunk.sourceContent.replace(
+            /(📐\s*\*\*Formalismo Matemático[^:]*:\*\*\s*\n+)(?:[-*•]\s*)?(?:\*\*|__)?(?:📐\s*)?(?:\(?\s*\[?\s*)?(?:FORMALISMO\s*MATEM[AÁ]TICO(?:\s*EUREKA)?|Formalismo(?:\s*Eureka)?|Ecuaci[oó]n(?:\s*[\/\-]?\s*Formalismo)?|F[oó]rmula)(?:\s*\]?\s*\)?)?(?:\*\*|__)?[:\s-]*/gi,
+            '$1'
+          );
+          if (cleaned !== chunk.sourceContent) {
+            chunk.sourceContent = cleaned;
+            changed = true;
+          }
+        }
+      });
+
+      // 2. Extraer transiciones embebidas y convertirlas en bloques independientes entre átomos
+      if (hasEmbeddedTransitions || needsTransitionSeparation) {
+        const separatedChunks: StudyChunk[] = [];
+        for (let i = 0; i < topic.chunks.length; i++) {
+          const currentChunk = topic.chunks[i];
+          if (currentChunk.title.startsWith('Átomo')) {
+            const transMatch = currentChunk.sourceContent.match(
+              /(?:^|\n)\s*(?:>\s*)?(?:-\s*)?(?:🔗\s*)?(?:\*\*|__)?(?:Transici[oó]n\s*Sin[eé]rgica|Puente\s*Sin[eé]rgico)[^\n:]*:\s*([^\n]+(?:\n(?!###|##|-\s*(?:\*\*|__)?)[^\n]+)*)/i
+            );
+            if (transMatch) {
+              const rawTrans = transMatch[1].trim().replace(/^[*_\s>]+|[*_\s>]+$/g, '');
+              currentChunk.sourceContent = currentChunk.sourceContent.replace(transMatch[0], '').trim();
+              separatedChunks.push(currentChunk);
+
+              const nextChunk = topic.chunks[i + 1];
+              if (nextChunk && nextChunk.title.startsWith('Átomo')) {
+                const curAtomMatch = currentChunk.title.match(/Átomo\s*([\d.]+)/i);
+                const nextAtomMatch = nextChunk.title.match(/Átomo\s*([\d.]+)/i);
+                const curNum = curAtomMatch ? curAtomMatch[1] : `${i + 1}`;
+                const nextNum = nextAtomMatch ? nextAtomMatch[1] : `${i + 2}`;
+
+                let transitionContent = `## 🔗 Transición Sinérgica: Átomo ${curNum} ➔ Átomo ${nextNum}\n`;
+                transitionContent += `### Continuidad Pedagógica Entre Principios\n\n`;
+                transitionContent += `> 🧩 **Nexo Lógico y Fluidez Mental:**\n> ${rawTrans.replace(/\n/g, '\n> ')}\n\n`;
+                transitionContent += `---\n*Toca **Continuar** para adentrarte en el Átomo ${nextNum}.*`;
+
+                separatedChunks.push({
+                  id: `chunk_${topic.id}_trans_${curNum}_${nextNum}`,
+                  topicId: topic.id,
+                  orderIndex: 0,
+                  title: `🔗 Transición Sinérgica: Átomo ${curNum} ➔ Átomo ${nextNum}`,
+                  sourceContent: transitionContent.trim(),
+                  isCompleted: false
+                });
+              }
+            } else {
+              separatedChunks.push(currentChunk);
+            }
+          } else {
+            separatedChunks.push(currentChunk);
+          }
+        }
+        topic.chunks = separatedChunks.map((c, idx) => ({ ...c, orderIndex: idx }));
+        changed = true;
+      }
+
+      // 3. Reparar átomos individuales truncados
+      if (isAtomTruncated || !hasRoadmapOrPurpose) {
+        topic.chunks.forEach((chunk) => {
           if (chunk.title.startsWith('Átomo') && chunk.sourceContent.includes('**Intuición / Principio Clave:**') && !chunk.sourceContent.includes('Idea Clave')) {
             const conceptMatch = chunk.title.match(/Átomo\s*[\d.]+[:\s.-]+([^\n]+)/i);
             const concept = conceptMatch ? conceptMatch[1].trim() : chunk.title;
@@ -672,11 +746,6 @@ se obtiene la energía de enlace nuclear total.`;
             repaired += `💡 **Intuición Feynman / Principio Clave:**\n${intuition}\n\n`;
             repaired += `🧠 **Idea Clave / Explicación Formal:**\nFundamento conceptual y mecanismo operativo esencial de ${concept}, estructurado rigurosamente para su aplicación directa en el dominio de estudio.\n\n`;
             repaired += `⚡ **Cadena Causal / Secuencia Operativa:**\nAl asimilar la lógica de ${concept}, se comprende cómo interactúan sus variables y principios base de forma lógica y acumulativa.\n\n`;
-
-            const nextChunk = topic.chunks[cIdx + 1];
-            if (nextChunk && nextChunk.title.startsWith('Átomo')) {
-              repaired += `> 🔗 **Transición Sinérgica hacia ${nextChunk.title}:**\n> Al dominar ${concept}, se sientan las bases directas para avanzar sin saltos conceptuales hacia el siguiente principio.\n\n`;
-            }
 
             chunk.sourceContent = repaired.trim();
             changed = true;

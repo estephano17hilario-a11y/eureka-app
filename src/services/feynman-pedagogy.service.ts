@@ -2298,7 +2298,8 @@ export function App() {
 
         const eurekaEqM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:\(?FORMALISMO\s*MATEM[AÁ]TICO\s*EUREKA\)?|Formalismo\s*Eureka|Ecuaci[oó]n\s*Eureka)(?:\*\*|__)?\s*[:\s*_\-]+\s*([^\n]+(?:\n(?!\s*-\s*(?:\*\*|__)?|>|###|##)[^\n]+)*)/i);
         if (eurekaEqM) {
-          const rawEq = eurekaEqM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '').trim();
+          let rawEq = eurekaEqM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '').trim();
+          rawEq = rawEq.replace(/^(?:[-*•]\s*)?(?:\*\*|__)?(?:📐\s*)?(?:\(?\s*\[?\s*)?(?:FORMALISMO\s*MATEM[AÁ]TICO(?:\s*EUREKA)?|Formalismo(?:\s*Eureka)?|Ecuaci[oó]n(?:\s*[\/\-]?\s*Formalismo)?|F[oó]rmula)(?:\s*\]?\s*\)?)?(?:\*\*|__)?[:\s-]*/i, '').trim();
           if (this.isValidMathString(rawEq)) {
             equation = rawEq;
             mathType = 'eureka';
@@ -2306,7 +2307,8 @@ export function App() {
         } else {
           const stdEqM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:\(?FORMALISMO\s*MATEM[AÁ]TICO\)?|Ecuaci[oó]n(?:\s*[\/\-]\s*Formalismo)?|Formalismo|F[oó]rmula)(?:\s*[\/\-]\s*Formalismo)?(?:\*\*|__)?\s*[:\s*_\-]+\s*([^\n]+(?:\n(?!\s*-\s*(?:\*\*|__)?|>|###|##)[^\n]+)*)/i);
           if (stdEqM) {
-            const rawEq = stdEqM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '').trim();
+            let rawEq = stdEqM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '').trim();
+            rawEq = rawEq.replace(/^(?:[-*•]\s*)?(?:\*\*|__)?(?:📐\s*)?(?:\(?\s*\[?\s*)?(?:FORMALISMO\s*MATEM[AÁ]TICO(?:\s*EUREKA)?|Formalismo(?:\s*Eureka)?|Ecuaci[oó]n(?:\s*[\/\-]?\s*Formalismo)?|F[oó]rmula)(?:\s*\]?\s*\)?)?(?:\*\*|__)?[:\s-]*/i, '').trim();
             if (this.isValidMathString(rawEq)) {
               equation = rawEq;
               mathType = 'standard';

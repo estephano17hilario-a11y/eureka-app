@@ -493,6 +493,7 @@ function renderCenteredAtomicReadingScreen(
   const isRoadmapChunk = chunk.title.includes('Visión Holística') || chunk.title.includes('Hoja de Ruta') || chunk.title.includes('Problemática Global');
   const isPurposeAxiomChunk = chunk.title.includes('Propósito') || chunk.title.includes('Axioma Central');
   const isBridgeChunk = chunk.title.includes('Puente Conector') || chunk.title.includes('Puente Inter-Nivel');
+  const isAtomTransitionChunk = chunk.title.includes('Transición Sinérgica: Átomo');
   const isExamChunk = chunk.title.includes('Examen Final');
 
   let chunkBadgeText = `🔬 ÁTOMO ${topic.currentChunkIndex + 1} DE ${topic.chunks.length}`;
@@ -505,7 +506,10 @@ function renderCenteredAtomicReadingScreen(
     chunkBadgeText = `🎯 PROPÓSITO & AXIOMA • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
     badgeClass = 'badge-purpose';
   } else if (isBridgeChunk) {
-    chunkBadgeText = `🌉 PUENTE CONECTOR • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
+    chunkBadgeText = `🌉 PUENTE INTER-NIVEL • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
+    badgeClass = 'badge-bridge';
+  } else if (isAtomTransitionChunk) {
+    chunkBadgeText = `🔗 TRANSICIÓN SINÉRGICA • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
     badgeClass = 'badge-bridge';
   } else if (isExamChunk) {
     chunkBadgeText = `🎓 EXAMEN FINAL • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
@@ -519,6 +523,8 @@ function renderCenteredAtomicReadingScreen(
     nextBtnText = 'Entrar al Desglose Atómico';
   } else if (isBridgeChunk) {
     nextBtnText = 'Cruzar al Siguiente Nivel';
+  } else if (isAtomTransitionChunk) {
+    nextBtnText = 'Continuar al Siguiente Átomo';
   }
 
   const progressPercent = Math.round(((topic.currentChunkIndex + 1) / topic.chunks.length) * 100);
@@ -566,15 +572,8 @@ function renderCenteredAtomicReadingScreen(
             </button>
           </div>
 
-          <!-- BOTÓN ABAJO DE CONTINUAR -->
+          <!-- BOTÓN ABAJO DE CONTINUAR (ÚNICO CTA PRINCIPAL) -->
           <div class="atomic-continue-action-row">
-            ${
-              topic.currentChunkIndex > 0
-                ? `<button class="btn-atomic-prev-discrete" id="btn-atomic-prev" title="Volver al bloque anterior">
-                    <span>← Anterior</span>
-                   </button>`
-                : ''
-            }
             <button class="btn-atomic-primary-continue" id="btn-atomic-next" title="Continuar al siguiente bloque de estudio">
               <span>${nextBtnText}</span>
               <span class="arrow-icon">➔</span>
@@ -1274,16 +1273,6 @@ export function bindActiveStudyDashboardEvents(
     onOpenMindMap?.(topic.id);
   });
 
-  // Navegación entre átomos con guardado inmediato y animación
-  container.querySelector('#btn-atomic-prev')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (topic.currentChunkIndex > 0) {
-      nativeService.triggerHaptics('light');
-      activeStudyService.setCurrentChunk(topic.id, topic.currentChunkIndex - 1);
-      onRefresh();
-    }
-  });
 
   container.querySelector('#btn-atomic-next')?.addEventListener('click', (e) => {
     e.preventDefault();

@@ -481,6 +481,12 @@ class EurekaFigmaApp {
       }
     }
 
+    if (this.currentTab === 'estudio' && isActivelyStudying()) {
+      this.appElement.innerHTML = bodyHtml;
+      this.bindEvents();
+      return;
+    }
+
     this.appElement.innerHTML = `
       <div class="figma-app-layout" id="main-layout-mount">
         ${showGlobalHeader ? renderFigmaHeader(this.currentTab) : ''}
@@ -494,7 +500,7 @@ class EurekaFigmaApp {
   }
 
   private bindEvents(): void {
-    const layout = document.getElementById('main-layout-mount');
+    const layout = document.getElementById('main-layout-mount') || this.appElement;
     if (!layout) return;
 
     // Limpiar temporizadores previos de la sección de estudio

@@ -1397,22 +1397,40 @@ export default App;
           const subNum = sub.sublevelNumber || `${lvl.levelNumber}.${subIdx + 1}`;
           const isLastSublevel = subIdx === lvl.sublevels.length - 1;
 
+          // 1. Limpieza de encabezados repetidos
+          const cleanIntuition = (sub.intuition || '')
+            .replace(/^(?:\*\*|__)?(?:💡\s*)?(?:Intuici[oó]n(?:\s*Feynman)?|Analog[ií]a)(?:\*\*|__)?\s*[:\s*_\-]+\s*/i, '')
+            .trim();
+
+          const cleanKeyIdea = (sub.keyIdea || '')
+            .replace(/^(?:\*\*|__)?(?:🧠\s*)?(?:Idea\s*Clave(?:\s*Formal)?|Explicaci[oó]n(?:\s*Formal)?|Definici[oó]n)(?:\*\*|__)?\s*[:\s*_\-]+\s*/i, '')
+            .trim();
+
+          const cleanMechanism = (sub.mechanism || '')
+            .replace(/^(?:\*\*|__)?(?:⚡\s*)?(?:Cadena\s*Causal|Secuencia\s*(?:Causal|Operativa)|Mecanismo(?:\s*(?:Causal|Operativo|F[ií]sico))?)(?:\*\*|__)?\s*[:\s*_\-]+\s*/i, '')
+            .trim();
+
+          let cleanEq = (sub.equation || '').trim();
+          cleanEq = cleanEq
+            .replace(/^(?:[-*•]\s*)?(?:\*\*|__)?(?:📐\s*)?(?:\(?\s*\[?\s*)?(?:FORMALISMO\s*MATEM[AÁ]TICO(?:\s*EUREKA)?|Formalismo(?:\s*Eureka)?|Ecuaci[oó]n(?:\s*[\/\-]?\s*Formalismo)?|F[oó]rmula)(?:\s*\]?\s*\)?)?(?:\*\*|__)?[:\s-]*/i, '')
+            .replace(/^(?:[-*•]\s*)?(?:\*\*|__)?\(?FORMALISMO[^\n:]+\)?(?:\*\*|__)?[:\s-]*/i, '')
+            .trim();
+
           let atomContent = `### ${sub.concept}\n\n`;
 
-          if (sub.intuition) {
-            atomContent += `💡 **Intuición Feynman / Principio Clave:**\n${sub.intuition}\n\n`;
+          if (cleanIntuition) {
+            atomContent += `💡 **Intuición Feynman / Principio Clave:**\n${cleanIntuition}\n\n`;
           }
 
-          if (sub.keyIdea) {
-            atomContent += `🧠 **Idea Clave / Explicación Formal:**\n${sub.keyIdea}\n\n`;
+          if (cleanKeyIdea) {
+            atomContent += `🧠 **Idea Clave / Explicación Formal:**\n${cleanKeyIdea}\n\n`;
           }
 
-          if (sub.mechanism) {
-            atomContent += `⚡ **Cadena Causal / Secuencia Operativa:**\n${sub.mechanism}\n\n`;
+          if (cleanMechanism) {
+            atomContent += `⚡ **Cadena Causal / Secuencia Operativa:**\n${cleanMechanism}\n\n`;
           }
 
-          if (sub.equation && sub.equation.trim()) {
-            const cleanEq = sub.equation.trim();
+          if (cleanEq) {
             atomContent += `📐 **Formalismo Matemático / Fórmulas:**\n`;
             if (cleanEq.startsWith('$$') || cleanEq.startsWith('$')) {
               atomContent += `${cleanEq}\n\n`;
@@ -1422,18 +1440,7 @@ export default App;
           }
 
           if (sub.boundaryCondition && sub.boundaryCondition.trim()) {
-            atomContent += `> ⚠️ **Condición Límite / Caso Extremo:**\n> ${sub.boundaryCondition}\n\n`;
-          }
-
-          // Transición Sinérgica / Puente entre índices (números: X.1 -> X.2)
-          const nextSub = subIdx + 1 < lvl.sublevels.length ? lvl.sublevels[subIdx + 1] : null;
-          const nextSubNum = nextSub ? (nextSub.sublevelNumber || `${lvl.levelNumber}.${subIdx + 2}`) : null;
-          const nextConcept = nextSub ? nextSub.concept : null;
-
-          if (sub.synergicTransition && sub.synergicTransition.trim()) {
-            atomContent += `> 🔗 **Transición Sinérgica hacia Átomo ${nextSubNum || ''}:**\n> ${sub.synergicTransition}\n\n`;
-          } else if (nextSubNum && nextConcept) {
-            atomContent += `> 🔗 **Transición Sinérgica hacia Átomo ${nextSubNum}:**\n> Al dominar **${sub.concept}**, se sientan las bases necesarias para abordar **${nextConcept}**, asegurando un aprendizaje continuo sin lagunas conceptuales.\n\n`;
+            atomContent += `> ⚠️ **Condición Límite / Caso Extremo:**\n> ${sub.boundaryCondition.trim()}\n\n`;
           }
 
           // En el último subnivel del nivel, simulador React + TSX si existe
@@ -1441,10 +1448,36 @@ export default App;
             atomContent += `### ⚡ Laboratorio Interactivo en Vivo (React 18 + TSX)\n\`\`\`tsx\n${lvl.typescriptCode}\n\`\`\``;
           }
 
+          // 1. Añadir el Átomo Puro
           chunksData.push({
             title: `Átomo ${subNum}: ${sub.concept}`,
             content: atomContent.trim()
           });
+
+          // 2. Si no es el último subnivel, crear el bloque INDEPENDIENTE de Transición Sinérgica
+          if (!isLastSublevel) {
+            const nextSub = lvl.sublevels[subIdx + 1];
+            const nextSubNum = nextSub?.sublevelNumber || `${lvl.levelNumber}.${subIdx + 2}`;
+            const nextConcept = nextSub?.concept || 'el siguiente principio';
+
+            let rawTransition = (sub.synergicTransition || '')
+              .replace(/^(?:>\s*)?(?:🔗\s*)?(?:\*\*|__)?(?:Transici[oó]n\s*Sin[eé]rgica|Puente\s*Sin[eé]rgico)[^:]*:\s*/i, '')
+              .trim();
+
+            if (!rawTransition) {
+              rawTransition = `Al dominar **${sub.concept}**, se consolida la base conceptual necesaria y se desbloquea naturalmente el razonamiento para abordar **${nextConcept}**, asegurando un aprendizaje continuo sin saltos conceptuales.`;
+            }
+
+            let transitionContent = `## 🔗 Transición Sinérgica: Átomo ${subNum} ➔ Átomo ${nextSubNum}\n`;
+            transitionContent += `### Puente Conceptual: De "${sub.concept}" a "${nextConcept}"\n\n`;
+            transitionContent += `> 🧩 **Nexo Lógico y Continuidad Pedagógica:**\n> ${rawTransition.replace(/\n/g, '\n> ')}\n\n`;
+            transitionContent += `---\n*Toca **Continuar** para adentrarte en el Átomo ${nextSubNum}: ${nextConcept}.*`;
+
+            chunksData.push({
+              title: `🔗 Transición Sinérgica: Átomo ${subNum} ➔ Átomo ${nextSubNum}`,
+              content: transitionContent.trim()
+            });
+          }
         });
       } else {
         let singleAtomContent = `### Nivel ${lvl.levelNumber}: ${lvl.title}\n\n${lvl.axiomIntuition}\n\n`;
