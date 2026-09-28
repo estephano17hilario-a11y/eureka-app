@@ -1,4 +1,4 @@
-import type { Deck, Flashcard, DeckStats, StudyRating, DeckSettings, CardType, OcclusionMask, OcclusionMode } from '../types/flashcard';
+import type { Deck, Flashcard, DeckStats, StudyRating, DeckSettings, CardType, OcclusionMask, OcclusionMode, BatchParseOptions } from '../types/flashcard';
 import { getInitialDemoDecks } from './demo-data';
 import { srsService } from './srs.service';
 import { eurekaBackend } from './backend.service';
@@ -725,66 +725,95 @@ export class DeckService {
     this.notify();
   }
 
-  public parseBatchCards(rawText: string): Array<{ front: string; back: string; type: CardType }> {
+  public parseBatchCards(rawText: string, options?: BatchParseOptions): Array<{ front: string; back: string; type: CardType }> {
     if (!rawText || !rawText.trim()) return [];
 
     const results: Array<{ front: string; back: string; type: CardType }> = [];
-    const text = rawText.trim();
+    const text = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
 
-    // 1. Check if input has block Q&A format (e.g. P: ... R: ... or Pregunta: ... Respuesta: ... or Q: ... A: ...)
-    const isQAFormat = /(?:^|\n)(?:P|Q|Pregunta|Question|Front|Anverso)\s*:\s*/i.test(text);
+    // 1. Extraer bloques de tarjetas según el separador entre tarjetas
+    let cardBlocks: string[] = [];
+    const cardSep = options?.cardSeparator;
 
-    if (isQAFormat) {
-      const blocks = text.split(/\n\s*\n+/);
-      for (const block of blocks) {
-        const qMatch = block.match(/(?:^|\n)(?:P|Q|Pregunta|Question|Front|Anverso)\s*:\s*([\s\S]*?)(?=(?:\n(?:R|A|Respuesta|Answer|Back|Reverso)\s*:\s*)|$)/i);
-        const aMatch = block.match(/(?:\n|^)(?:R|A|Respuesta|Answer|Back|Reverso)\s*:\s*([\s\S]*?)$/i);
+    if (cardSep && cardSep !== 'auto') {
+      if (cardSep === '\\n' || cardSep === '\n') {
+        cardBlocks = text.split('\n');
+      } else if (cardSep === '\\n\\n' || cardSep === '\n\n') {
+        cardBlocks = text.split(/\n\s*\n+/);
+      } else if (cardSep === '---') {
+        cardBlocks = text.split(/(?:\n|^)\s*--+\s*(?:\n|$)/);
+      } else {
+        cardBlocks = text.split(cardSep);
+      }
+    } else {
+      // Detección automática: formato Q&A por bloques o por líneas
+      const isQAFormat = /(?:^|\n)(?:P|Q|Pregunta|Question|Front|Anverso)\s*:\s*/i.test(text);
+      if (isQAFormat) {
+        const blocks = text.split(/\n\s*\n+/);
+        for (const block of blocks) {
+          const qMatch = block.match(/(?:^|\n)(?:P|Q|Pregunta|Question|Front|Anverso)\s*:\s*([\s\S]*?)(?=(?:\n(?:R|A|Respuesta|Answer|Back|Reverso)\s*:\s*)|$)/i);
+          const aMatch = block.match(/(?:\n|^)(?:R|A|Respuesta|Answer|Back|Reverso)\s*:\s*([\s\S]*?)$/i);
 
-        if (qMatch && aMatch) {
-          const front = qMatch[1].trim();
-          const back = aMatch[1].trim();
-          if (front && back) {
-            const type: CardType = front.includes('$') || back.includes('$') ? 'latex' : 'standard';
-            results.push({ front, back, type });
-            continue;
+          if (qMatch && aMatch) {
+            const front = qMatch[1].trim();
+            const back = aMatch[1].trim();
+            if (front && back) {
+              const type: CardType = front.includes('$') || back.includes('$') ? 'latex' : 'standard';
+              results.push({ front, back, type });
+              continue;
+            }
           }
         }
+        if (results.length > 0) return results;
       }
 
-      if (results.length > 0) return results;
+      cardBlocks = text.split('\n');
     }
 
-    // 2. Line by line parsing with multiple delimiter support
-    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+    // 2. Extraer Anverso (Front) y Reverso (Back) de cada bloque según el separador de lados
+    const sideSep = options?.sideSeparator;
+    const resolvedSideSep = sideSep === '\\t' ? '\t' : sideSep;
 
-    for (const line of lines) {
+    for (const rawBlock of cardBlocks) {
+      const block = rawBlock.trim();
+      if (!block) continue;
+
       let front = '';
       let back = '';
 
-      if (line.includes(':::')) {
-        const parts = line.split(':::');
-        front = parts[0].trim();
-        back = parts.slice(1).join(':::').trim();
-      } else if (line.includes('\t')) {
-        const parts = line.split('\t');
-        front = parts[0].trim();
-        back = parts.slice(1).join('\t').trim();
-      } else if (line.includes(';')) {
-        const parts = line.split(';');
-        front = parts[0].trim();
-        back = parts.slice(1).join(';').trim();
-      } else if (line.includes('|')) {
-        const parts = line.split('|');
-        front = parts[0].trim();
-        back = parts.slice(1).join('|').trim();
-      } else if (line.includes(' - ')) {
-        const parts = line.split(' - ');
-        front = parts[0].trim();
-        back = parts.slice(1).join(' - ').trim();
-      } else if (line.includes(' : ')) {
-        const parts = line.split(' : ');
-        front = parts[0].trim();
-        back = parts.slice(1).join(' : ').trim();
+      if (resolvedSideSep && resolvedSideSep !== 'auto') {
+        if (block.includes(resolvedSideSep)) {
+          const parts = block.split(resolvedSideSep);
+          front = parts[0].trim();
+          back = parts.slice(1).join(resolvedSideSep).trim();
+        }
+      } else {
+        // Detección inteligente automática con delimitadores comunes
+        if (block.includes(':::')) {
+          const parts = block.split(':::');
+          front = parts[0].trim();
+          back = parts.slice(1).join(':::').trim();
+        } else if (block.includes('\t')) {
+          const parts = block.split('\t');
+          front = parts[0].trim();
+          back = parts.slice(1).join('\t').trim();
+        } else if (block.includes(';')) {
+          const parts = block.split(';');
+          front = parts[0].trim();
+          back = parts.slice(1).join(';').trim();
+        } else if (block.includes('|')) {
+          const parts = block.split('|');
+          front = parts[0].trim();
+          back = parts.slice(1).join('|').trim();
+        } else if (block.includes(' - ')) {
+          const parts = block.split(' - ');
+          front = parts[0].trim();
+          back = parts.slice(1).join(' - ').trim();
+        } else if (block.includes(' : ')) {
+          const parts = block.split(' : ');
+          front = parts[0].trim();
+          back = parts.slice(1).join(' : ').trim();
+        }
       }
 
       if (front && back) {
@@ -793,8 +822,8 @@ export class DeckService {
       }
     }
 
-    // 3. Fallback: Double line breaks if no inline separators were found
-    if (results.length === 0) {
+    // 3. Fallback: Si no se detectaron tarjetas con auto, probar dividir por líneas dobles
+    if (results.length === 0 && (!cardSep || cardSep === 'auto')) {
       const blocks = text.split(/\n\s*\n+/).map((b) => b.trim()).filter(Boolean);
       for (const b of blocks) {
         const bLines = b.split('\n').map((l) => l.trim()).filter(Boolean);
@@ -810,8 +839,8 @@ export class DeckService {
     return results;
   }
 
-  public importBatchCards(deckId: string, rawText: string): number {
-    const cards = this.parseBatchCards(rawText);
+  public importBatchCards(deckId: string, rawText: string, options?: BatchParseOptions): number {
+    const cards = this.parseBatchCards(rawText, options);
     for (const card of cards) {
       this.createCard({
         deckId,

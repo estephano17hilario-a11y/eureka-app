@@ -153,7 +153,13 @@ export class FigmaStudySession {
               !this.isFlipped && !this.isTypeAnswerMode
                 ? `
               <div class="cupertino-card-hint-text">
-                Toca la tarjeta o presiona Espacio para voltear (o 1,2,3,4 para calificar)
+                Toca la tarjeta o presiona Espacio para ver respuesta
+              </div>
+            `
+                : this.isFlipped
+                ? `
+              <div class="cupertino-card-hint-text" style="color:var(--f-text-secondary); opacity:0.85;">
+                Presiona [1] De nuevo • [2] Difícil • [3 / Espacio] Bien • [4] Fácil
               </div>
             `
                 : ''
@@ -192,35 +198,35 @@ export class FigmaStudySession {
                   </button>
                 </div>
               `
-                  : ''
+                  : `
+                <!-- 4 Frosted Cupertino Rating Pills (Solo al ver respuesta) -->
+                <div class="cupertino-rating-row">
+                  <button type="button" class="cupertino-rate-pill rate-again" id="btn-rate-again" data-rating="again" title="Presiona [1]">
+                    <span class="c-rate-title">De nuevo</span>
+                    <span class="c-rate-subtitle">${intervalProjections[0]?.displayTime || '< 1 min'}</span>
+                    <span class="c-rate-key">[1]</span>
+                  </button>
+
+                  <button type="button" class="cupertino-rate-pill rate-hard" id="btn-rate-hard" data-rating="hard" title="Presiona [2]">
+                    <span class="c-rate-title">Difícil</span>
+                    <span class="c-rate-subtitle">${intervalProjections[1]?.displayTime || '2 min'}</span>
+                    <span class="c-rate-key">[2]</span>
+                  </button>
+
+                  <button type="button" class="cupertino-rate-pill rate-good" id="btn-rate-good" data-rating="good" title="Presiona [3 / Espacio]">
+                    <span class="c-rate-title">Bien</span>
+                    <span class="c-rate-subtitle">${intervalProjections[2]?.displayTime || '4 min'}</span>
+                    <span class="c-rate-key">[3 / Espacio]</span>
+                  </button>
+
+                  <button type="button" class="cupertino-rate-pill rate-easy" id="btn-rate-easy" data-rating="easy" title="Presiona [4]">
+                    <span class="c-rate-title">Fácil</span>
+                    <span class="c-rate-subtitle">${intervalProjections[3]?.displayTime || '14 min'}</span>
+                    <span class="c-rate-key">[4]</span>
+                  </button>
+                </div>
+              `
               }
-
-              <!-- 4 Frosted Cupertino Rating Pills -->
-              <div class="cupertino-rating-row">
-                <button type="button" class="cupertino-rate-pill rate-again" id="btn-rate-again" data-rating="again" title="Presiona [1]">
-                  <span class="c-rate-title">De nuevo</span>
-                  <span class="c-rate-subtitle">${intervalProjections[0]?.displayTime || '4 min'}</span>
-                  <span class="c-rate-key">[1]</span>
-                </button>
-
-                <button type="button" class="cupertino-rate-pill rate-hard" id="btn-rate-hard" data-rating="hard" title="Presiona [2]">
-                  <span class="c-rate-title">Difícil</span>
-                  <span class="c-rate-subtitle">${intervalProjections[1]?.displayTime || '1 día'}</span>
-                  <span class="c-rate-key">[2]</span>
-                </button>
-
-                <button type="button" class="cupertino-rate-pill rate-good" id="btn-rate-good" data-rating="good" title="Presiona [3 / Espacio]">
-                  <span class="c-rate-title">Bien</span>
-                  <span class="c-rate-subtitle">${intervalProjections[2]?.displayTime || '2 días'}</span>
-                  <span class="c-rate-key">[3 / Espacio]</span>
-                </button>
-
-                <button type="button" class="cupertino-rate-pill rate-easy" id="btn-rate-easy" data-rating="easy" title="Presiona [4]">
-                  <span class="c-rate-title">Fácil</span>
-                  <span class="c-rate-subtitle">${intervalProjections[3]?.displayTime || '5 días'}</span>
-                  <span class="c-rate-key">[4]</span>
-                </button>
-              </div>
             </div>
           `
           }
@@ -673,22 +679,24 @@ export class FigmaStudySession {
       ttsService.speak(text, currentCard.audioLang || this.deck.settings.ttsVoiceLang);
     });
 
-    // Rating buttons with clean, reliable onclick handlers
-    const bindRating = (id: string, rating: StudyRating) => {
-      const btn = document.getElementById(id);
-      if (btn) {
-        btn.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this.handleRating(rating, container);
-        };
-      }
-    };
+    // Rating buttons with clean, reliable onclick handlers (Solo activos al voltear)
+    if (this.isFlipped) {
+      const bindRating = (id: string, rating: StudyRating) => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.handleRating(rating, container);
+          };
+        }
+      };
 
-    bindRating('btn-rate-again', 'again');
-    bindRating('btn-rate-hard', 'hard');
-    bindRating('btn-rate-good', 'good');
-    bindRating('btn-rate-easy', 'easy');
+      bindRating('btn-rate-again', 'again');
+      bindRating('btn-rate-hard', 'hard');
+      bindRating('btn-rate-good', 'good');
+      bindRating('btn-rate-easy', 'easy');
+    }
 
     // Keyboard controls (Atajos 1, 2, 3, 4, Espacio, Enter y Flechas)
     window.onkeydown = (e: KeyboardEvent) => {
@@ -732,11 +740,21 @@ export class FigmaStudySession {
 
       if (isInputActive) return;
 
+      const isSpaceOrEnter = e.code === 'Space' || e.key === ' ' || e.code === 'Enter' || e.key === 'Enter';
+
+      // Si la tarjeta NO ha sido volteada, solo se permite voltear
+      if (!this.isFlipped) {
+        if (isSpaceOrEnter) {
+          e.preventDefault();
+          triggerFlip();
+        }
+        return;
+      }
+
       const isKey1 = e.key === '1' || e.code === 'Digit1' || e.code === 'Numpad1';
       const isKey2 = e.key === '2' || e.code === 'Digit2' || e.code === 'Numpad2';
       const isKey3 = e.key === '3' || e.code === 'Digit3' || e.code === 'Numpad3';
       const isKey4 = e.key === '4' || e.code === 'Digit4' || e.code === 'Numpad4';
-      const isSpaceOrEnter = e.code === 'Space' || e.key === ' ' || e.code === 'Enter' || e.key === 'Enter';
 
       if (isKey1) {
         e.preventDefault();
@@ -744,19 +762,12 @@ export class FigmaStudySession {
       } else if (isKey2) {
         e.preventDefault();
         this.handleRating('hard', container);
-      } else if (isKey3) {
+      } else if (isKey3 || isSpaceOrEnter) {
         e.preventDefault();
         this.handleRating('good', container);
       } else if (isKey4) {
         e.preventDefault();
         this.handleRating('easy', container);
-      } else if (isSpaceOrEnter) {
-        e.preventDefault();
-        if (!this.isFlipped) {
-          triggerFlip();
-        } else {
-          this.handleRating('good', container);
-        }
       }
     };
   }

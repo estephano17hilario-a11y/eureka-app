@@ -76,7 +76,7 @@ export class SrsService {
 
     switch (rating) {
       case 'again': {
-        // 🔴 Muy Difícil: Vuelve al paso 0 inmediatamente
+        // 🔴 Muy Difícil / De nuevo: Vuelve al paso 0 inmediatamente
         nextStep = 0;
         nextInterval = steps[0];
         nextEase = Math.max(1.30, nextEase - 0.20);
@@ -86,22 +86,46 @@ export class SrsService {
       }
 
       case 'hard': {
-        // 🟠 Difícil: Mantiene el escalón o avanza ligeramente (1.2x)
-        nextInterval = Math.round(nextInterval * (settings.hardIntervalMultiplier || 1.2));
+        // 🟠 Difícil: Debe ser SIEMPRE un intervalo menor que 'Bien' y mayor o igual que 'De nuevo'
+        const isLearningPhase = currentStep < steps.length - 1 && state !== 'review';
+        if (isLearningPhase) {
+          const againStep = steps[0];
+          const goodStep = steps[currentStep + 1];
+          if (currentStep === 0) {
+            // Entre Again y Good: promedio estricto asegurando < goodStep
+            const avg = Math.round((againStep + goodStep) / 2);
+            nextInterval = Math.max(againStep, Math.min(avg, Math.max(againStep, goodStep - 1)));
+          } else {
+            // Repetir el paso de aprendizaje actual
+            const currentStepVal = steps[currentStep];
+            nextInterval = Math.max(againStep, Math.min(currentStepVal, Math.max(againStep, goodStep - 1)));
+          }
+          nextStep = currentStep;
+          state = 'learning';
+        } else {
+          // Fase de repaso (review)
+          const base = card.intervalMinutes || steps[steps.length - 1];
+          const hardMultiplier = settings.hardIntervalMultiplier || 1.2;
+          const calculatedHard = Math.round(base * hardMultiplier);
+          const goodInterval = Math.round(base * nextEase);
+          nextInterval = Math.max(steps[0], Math.min(calculatedHard, Math.max(steps[0], goodInterval - 1)));
+          state = 'review';
+        }
         nextEase = Math.max(1.30, nextEase - 0.15);
-        state = 'learning';
         break;
       }
 
       case 'good': {
         // 🔵 Bien / Normal: Avanza estrictamente al siguiente escalón de la escalera de pasos
-        if (currentStep < steps.length - 1) {
+        const isLearningPhase = currentStep < steps.length - 1 && state !== 'review';
+        if (isLearningPhase) {
           nextStep = currentStep + 1;
           nextInterval = steps[nextStep];
           state = 'learning';
         } else {
           // Graduada (Mastered): Aplica factor de facilidad
-          nextInterval = Math.round(nextInterval * nextEase);
+          const base = card.intervalMinutes || steps[steps.length - 1];
+          nextInterval = Math.round(base * nextEase);
           state = 'review';
         }
         break;
@@ -109,12 +133,14 @@ export class SrsService {
 
       case 'easy': {
         // 🟢 Fácil: Salta un escalón y aplica el bono de facilidad
-        if (currentStep < steps.length - 2) {
+        const isLearningPhase = currentStep < steps.length - 2 && state !== 'review';
+        if (isLearningPhase) {
           nextStep = currentStep + 2;
           nextInterval = Math.round(steps[nextStep] * (settings.easyBonus || 1.35));
         } else {
           nextStep = steps.length - 1;
-          nextInterval = Math.round(nextInterval * nextEase * (settings.easyBonus || 1.35));
+          const base = card.intervalMinutes || steps[steps.length - 1];
+          nextInterval = Math.round(base * nextEase * (settings.easyBonus || 1.35));
         }
         nextEase = Math.min(3.50, nextEase + 0.15);
         state = 'review';
@@ -136,7 +162,7 @@ export class SrsService {
   }
 
   /**
-   * Proyecta los 4 tiempos que se mostrarán en los botones de calificación (Muy Difícil, Difícil, Bien, Fácil).
+   * Proyecta los 4 tiempos que se mostrarán en los botones de calificación (De nuevo, Difícil, Bien, Fácil).
    */
   public projectIntervals(card: Flashcard, settings: DeckSettings): IntervalProjection[] {
     const steps = settings.learningSteps && settings.learningSteps.length > 0
@@ -145,22 +171,54 @@ export class SrsService {
 
     const currentStep = card.stepIndex || 0;
     const now = Date.now();
+    const isLearning = currentStep < steps.length - 1 && card.state !== 'review';
 
-    // 1. Again
+    // 1. Again (De nuevo)
     const againMin = steps[0];
-    // 2. Hard
-    const hardMin = Math.round((card.intervalMinutes || steps[0]) * (settings.hardIntervalMultiplier || 1.2));
-    // 3. Good
-    const goodMin = currentStep < steps.length - 1 ? steps[currentStep + 1] : Math.round((card.intervalMinutes || steps[0]) * card.easeFactor);
-    // 4. Easy
-    const easyMin = currentStep < steps.length - 2
-      ? Math.round(steps[currentStep + 2] * (settings.easyBonus || 1.35))
-      : Math.round((card.intervalMinutes || steps[0]) * card.easeFactor * (settings.easyBonus || 1.35));
+
+    // 2. Good (Bien)
+    const goodMin = isLearning
+      ? steps[currentStep + 1]
+      : Math.round((card.intervalMinutes || steps[steps.length - 1]) * card.easeFactor);
+
+    // 3. Hard (Difícil): estrictamente againMin <= hardMin < goodMin
+    let hardMin: number;
+    if (isLearning) {
+      if (currentStep === 0) {
+        const avg = Math.round((againMin + goodMin) / 2);
+        hardMin = Math.max(againMin, Math.min(avg, Math.max(againMin, goodMin - 1)));
+      } else {
+        const currentStepVal = steps[currentStep];
+        hardMin = Math.max(againMin, Math.min(currentStepVal, Math.max(againMin, goodMin - 1)));
+      }
+    } else {
+      const base = card.intervalMinutes || steps[steps.length - 1];
+      const hardMultiplier = settings.hardIntervalMultiplier || 1.2;
+      const hardCalculated = Math.round(base * hardMultiplier);
+      hardMin = Math.max(againMin, Math.min(hardCalculated, Math.max(againMin, goodMin - 1)));
+    }
+
+    // 4. Easy (Fácil): estrictamente easyMin > goodMin
+    let easyMin: number;
+    if (isLearning) {
+      if (currentStep < steps.length - 2) {
+        easyMin = Math.round(steps[currentStep + 2] * (settings.easyBonus || 1.35));
+      } else {
+        const base = card.intervalMinutes || steps[steps.length - 1];
+        easyMin = Math.round(base * card.easeFactor * (settings.easyBonus || 1.35));
+      }
+    } else {
+      const base = card.intervalMinutes || steps[steps.length - 1];
+      easyMin = Math.round(base * card.easeFactor * (settings.easyBonus || 1.35));
+    }
+    if (easyMin <= goodMin) {
+      easyMin = goodMin + Math.max(1, Math.round(goodMin * 0.25));
+    }
 
     return [
       {
         rating: 'again',
-        label: 'Muy Difícil',
+        label: 'De nuevo',
         intervalMinutes: againMin,
         displayTime: `< ${this.formatMinutesToHuman(againMin)}`,
         nextDueDate: now + againMin * 60000

@@ -1,5 +1,6 @@
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
+import type { BatchParseOptions } from '../types/flashcard';
 
 export interface FigmaBatchImportOptions {
   deckId: string;
@@ -13,15 +14,9 @@ export function openFigmaBatchImportModal(options: FigmaBatchImportOptions): voi
 
   const allDecks = deckService.getAllDecks();
 
-  const exampleBatch = `¿Qué es el principio de Arquímedes?;Todo cuerpo sumergido experimenta un empuje vertical hacia arriba igual al peso del fluido desalojado: $$F_E = \\rho \\cdot g \\cdot V$$
-¿Qué es la Vena Cava Superior?;Gran vaso que transporta sangre desoxigenada desde la parte superior del cuerpo hacia la aurícula derecha del corazón.
-Identidad de Euler;$$e^{i\\pi} + 1 = 0$$ vincula las 5 constantes matemáticas fundamentales.
-Ley de Ohm;$$V = I \\cdot R$$ (El voltaje es directamente proporcional a la intensidad de corriente y la resistencia).
-Mitochondria Function;Produces ATP through cellular respiration, often called the powerhouse of the cell.`;
-
   const modalHtml = `
     <div class="modal-backdrop figma-modal-backdrop" id="modal-batch-import-root">
-      <div class="apple-glass-modal" style="max-width:680px; width:95%; max-height:92vh; display:flex; flex-direction:column; padding:0; overflow:hidden; border:1px solid rgba(255,255,255,0.14); box-shadow:0 28px 70px rgba(0,0,0,0.75);">
+      <div class="apple-glass-modal" style="max-width:720px; width:95%; max-height:92vh; display:flex; flex-direction:column; padding:0; overflow:hidden; border:1px solid rgba(255,255,255,0.14); box-shadow:0 28px 70px rgba(0,0,0,0.75);">
         
         <!-- Header -->
         <div class="figma-modal-header" style="padding:18px 24px; border-bottom:1px solid rgba(255,255,255,0.08); background:linear-gradient(180deg, rgba(255,255,255,0.04), transparent); display:flex; align-items:center; justify-content:space-between;">
@@ -45,7 +40,7 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
         <!-- Body -->
         <div class="modal-body" style="padding:20px 24px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;">
           
-          <!-- Target Deck Selector & Format Toolbar -->
+          <!-- Target Deck Selector & Quick Actions -->
           <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px;">
             <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:220px;">
               <label style="font-size:0.78rem; font-weight:700; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em;">Mazo destino:</label>
@@ -68,14 +63,73 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
             </div>
           </div>
 
-          <!-- Format Guide Pills -->
-          <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:8px 12px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-            <span style="font-size:0.72rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em;">Formatos aceptados:</span>
-            <span class="apple-badge-subpill" style="font-size:0.72rem; padding:2px 6px;">Pregunta ; Respuesta</span>
-            <span class="apple-badge-subpill" style="font-size:0.72rem; padding:2px 6px;">Pregunta [TAB] Respuesta</span>
-            <span class="apple-badge-subpill" style="font-size:0.72rem; padding:2px 6px;">Pregunta ::: Respuesta</span>
-            <span class="apple-badge-subpill" style="font-size:0.72rem; padding:2px 6px;">Pregunta | Respuesta</span>
-            <span class="apple-badge-subpill" style="font-size:0.72rem; padding:2px 6px;">P: ... R: ...</span>
+          <!-- Delimiter Selection Panel (Configuración de Separadores) -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:12px 16px; display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+              <span style="font-size:0.8rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:6px;">
+                <span>✂️</span> Configuración de Separadores
+              </span>
+              <span style="font-size:0.72rem; color:var(--f-text-secondary);">
+                Elige cómo dividir caras y tarjetas con opciones recomendadas o personalizadas
+              </span>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px;">
+              
+              <!-- 1. Separador entre Anverso y Reverso (Side Separator) -->
+              <div style="display:flex; flex-direction:column; gap:5px;">
+                <label style="font-size:0.75rem; font-weight:700; color:var(--f-text-secondary); display:flex; align-items:center; justify-content:space-between;">
+                  <span>Separador Anverso ⇄ Reverso</span>
+                  <span class="apple-badge-subpill" style="font-size:0.68rem; color:#38bdf8; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25);">Entre lados</span>
+                </label>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <select id="batch-side-separator" class="cupertino-dialog-input" style="padding:7px 10px; font-size:0.84rem; text-align:left; flex:1;">
+                    <option value=";" selected>; Punto y coma (Recomendado)</option>
+                    <option value="auto">⚡ Automático (Detección inteligente)</option>
+                    <option value="\\t">⇥ Tabulación [TAB] (Recomendado)</option>
+                    <option value=":::">::: Tres dos puntos (Recomendado)</option>
+                    <option value="|">| Barra vertical</option>
+                    <option value=",">, Coma</option>
+                    <option value=" - ">- Guion con espacios</option>
+                    <option value=" : ">: Dos puntos con espacios</option>
+                    <option value="custom">✏️ Personalizado...</option>
+                  </select>
+                  <input 
+                    type="text" 
+                    id="batch-side-custom" 
+                    placeholder="Separador" 
+                    class="cupertino-dialog-input hidden" 
+                    style="width:90px; padding:7px 8px; font-size:0.84rem;"
+                  />
+                </div>
+              </div>
+
+              <!-- 2. Separador entre Flashcards (Card Separator) -->
+              <div style="display:flex; flex-direction:column; gap:5px;">
+                <label style="font-size:0.75rem; font-weight:700; color:var(--f-text-secondary); display:flex; align-items:center; justify-content:space-between;">
+                  <span>Separador entre Flashcards</span>
+                  <span class="apple-badge-subpill" style="font-size:0.68rem; color:#10b981; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25);">Entre tarjetas</span>
+                </label>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <select id="batch-card-separator" class="cupertino-dialog-input" style="padding:7px 10px; font-size:0.84rem; text-align:left; flex:1;">
+                    <option value="\\n" selected>↵ Salto de línea (1 por línea) (Recomendado)</option>
+                    <option value="\\n\\n">↵↵ Línea vacía (Doble salto) (Recomendado)</option>
+                    <option value=";;;">;;; Tres puntos y coma</option>
+                    <option value="---">--- Tres guiones</option>
+                    <option value="|">| Barra vertical</option>
+                    <option value="custom">✏️ Personalizado...</option>
+                  </select>
+                  <input 
+                    type="text" 
+                    id="batch-card-custom" 
+                    placeholder="Separador" 
+                    class="cupertino-dialog-input hidden" 
+                    style="width:90px; padding:7px 8px; font-size:0.84rem;"
+                  />
+                </div>
+              </div>
+
+            </div>
           </div>
 
           <!-- UNLIMITED TEXTAREA CONTAINER -->
@@ -84,7 +138,7 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
               id="batch-raw-textarea" 
               class="figma-editor-textarea" 
               style="min-height:220px; max-height:420px; border-radius:14px; font-size:0.9rem; line-height:1.55; padding:16px; font-family:'Fira Code', 'SF Mono', Consolas, Menlo, monospace; background:rgba(0,0,0,0.35); border:1.5px solid rgba(255,255,255,0.12); color:#ffffff; resize:vertical; outline:none;"
-              placeholder="Pega aquí tus pares de Pregunta y Respuesta (sin límites de caracteres)&#10;Ejemplo:&#10;¿Qué es la fotosíntesis?;Proceso químico que convierte dióxido de carbono y agua en glucosa usando luz solar&#10;Teorema de Pitágoras;$$a^2 + b^2 = c^2$$"
+              placeholder="Pega aquí tus pares de Pregunta y Respuesta&#10;Ejemplo:&#10;¿Qué es la fotosíntesis?;Proceso químico que convierte dióxido de carbono y agua en glucosa usando luz solar&#10;Teorema de Pitágoras;$$a^2 + b^2 = c^2$$"
               spellcheck="false"
               autocomplete="off"
             ></textarea>
@@ -131,6 +185,11 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
 
   const textarea = document.getElementById('batch-raw-textarea') as HTMLTextAreaElement | null;
   const deckSelect = document.getElementById('batch-deck-select') as HTMLSelectElement | null;
+  const sideSelect = document.getElementById('batch-side-separator') as HTMLSelectElement | null;
+  const sideCustom = document.getElementById('batch-side-custom') as HTMLInputElement | null;
+  const cardSelect = document.getElementById('batch-card-separator') as HTMLSelectElement | null;
+  const cardCustom = document.getElementById('batch-card-custom') as HTMLInputElement | null;
+
   const statCards = document.getElementById('stat-cards-count');
   const statChars = document.getElementById('stat-chars-count');
   const statLines = document.getElementById('stat-lines-count');
@@ -141,10 +200,25 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
 
   let isPreviewOpen = false;
 
+  const getActiveSeparators = (): BatchParseOptions => {
+    let sideSeparator = sideSelect?.value || ';';
+    if (sideSeparator === 'custom') {
+      sideSeparator = sideCustom?.value.trim() || ';';
+    }
+
+    let cardSeparator = cardSelect?.value || '\\n';
+    if (cardSeparator === 'custom') {
+      cardSeparator = cardCustom?.value || '\\n';
+    }
+
+    return { sideSeparator, cardSeparator };
+  };
+
   const updateBatchMetrics = () => {
     if (!textarea) return;
     const raw = textarea.value;
-    const parsed = deckService.parseBatchCards(raw);
+    const seps = getActiveSeparators();
+    const parsed = deckService.parseBatchCards(raw, seps);
     const charCount = raw.length;
     const lineCount = raw ? raw.split('\n').length : 0;
 
@@ -176,7 +250,7 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
   const renderPreviewList = (parsed: Array<{ front: string; back: string; type: string }>) => {
     if (!previewList) return;
     if (parsed.length === 0) {
-      previewList.innerHTML = '<div style="font-size:0.8rem; color:var(--f-text-secondary); text-align:center;">No se detectaron tarjetas válidas todavía.</div>';
+      previewList.innerHTML = '<div style="font-size:0.8rem; color:var(--f-text-secondary); text-align:center;">No se detectaron tarjetas válidas todavía. Revisa los separadores elegidos arriba.</div>';
       return;
     }
 
@@ -188,6 +262,31 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
     `).join('') + (parsed.length > 100 ? `<div style="text-align:center; font-size:0.8rem; color:var(--f-blue); font-weight:700;">+ ${parsed.length - 100} tarjetas más...</div>` : '');
   };
 
+  // Separator controls event handling
+  sideSelect?.addEventListener('change', () => {
+    if (sideSelect.value === 'custom') {
+      sideCustom?.classList.remove('hidden');
+      sideCustom?.focus();
+    } else {
+      sideCustom?.classList.add('hidden');
+    }
+    updateBatchMetrics();
+  });
+
+  sideCustom?.addEventListener('input', updateBatchMetrics);
+
+  cardSelect?.addEventListener('change', () => {
+    if (cardSelect.value === 'custom') {
+      cardCustom?.classList.remove('hidden');
+      cardCustom?.focus();
+    } else {
+      cardCustom?.classList.add('hidden');
+    }
+    updateBatchMetrics();
+  });
+
+  cardCustom?.addEventListener('input', updateBatchMetrics);
+
   textarea?.addEventListener('input', updateBatchMetrics);
 
   // Toggle preview
@@ -197,7 +296,7 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
       if (isPreviewOpen) {
         previewDrawer.classList.remove('hidden');
         btnTogglePreview.textContent = '🙈 Ocultar';
-        const parsed = deckService.parseBatchCards(textarea?.value || '');
+        const parsed = deckService.parseBatchCards(textarea?.value || '', getActiveSeparators());
         renderPreviewList(parsed);
       } else {
         previewDrawer.classList.add('hidden');
@@ -224,10 +323,31 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
     }
   });
 
-  // Load example
+  // Load example dynamically based on currently chosen separators
   document.getElementById('btn-batch-example')?.addEventListener('click', () => {
     if (textarea) {
-      textarea.value = exampleBatch;
+      const seps = getActiveSeparators();
+      let s = seps.sideSeparator || ';';
+      if (s === '\\t') s = '\t';
+      if (s === 'auto') s = ';';
+
+      let c = '\n';
+      if (seps.cardSeparator === '\\n\\n') c = '\n\n';
+      else if (seps.cardSeparator === '---') c = '\n---\n';
+      else if (seps.cardSeparator === ';;;') c = ';;;\n';
+      else if (seps.cardSeparator && seps.cardSeparator !== '\\n' && seps.cardSeparator !== 'auto') {
+        c = seps.cardSeparator.includes('\n') ? seps.cardSeparator : ` ${seps.cardSeparator} `;
+      }
+
+      const exampleCards = [
+        `¿Qué es el principio de Arquímedes?${s}Todo cuerpo sumergido experimenta un empuje vertical hacia arriba igual al peso del fluido desalojado: $$F_E = \\rho \\cdot g \\cdot V$$`,
+        `¿Qué es la Vena Cava Superior?${s}Gran vaso que transporta sangre desoxigenada desde la parte superior del cuerpo hacia la aurícula derecha del corazón.`,
+        `Identidad de Euler${s}$$e^{i\\pi} + 1 = 0$$ vincula las 5 constantes matemáticas fundamentales.`,
+        `Ley de Ohm${s}$$V = I \\cdot R$$ (El voltaje es directamente proporcional a la corriente y resistencia).`,
+        `Función de la Mitocondria${s}Produce ATP a través de la respiración celular (central energética celular).`
+      ];
+
+      textarea.value = exampleCards.join(c);
       updateBatchMetrics();
     }
   });
@@ -244,7 +364,7 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
   btnConfirm?.addEventListener('click', () => {
     const raw = textarea?.value || '';
     const targetDeckId = deckSelect?.value || options.deckId;
-    const count = deckService.importBatchCards(targetDeckId, raw);
+    const count = deckService.importBatchCards(targetDeckId, raw, getActiveSeparators());
     document.getElementById('modal-batch-import-root')?.remove();
     options.onImported(count);
   });
@@ -257,4 +377,3 @@ Mitochondria Function;Produces ATP through cellular respiration, often called th
   document.getElementById('btn-close-batch-modal')?.addEventListener('click', close);
   document.getElementById('btn-cancel-batch')?.addEventListener('click', close);
 }
-

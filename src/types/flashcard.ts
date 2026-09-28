@@ -100,3 +100,9 @@ export interface IntervalProjection {
   displayTime: string;
   nextDueDate: number;
 }
+
+export interface BatchParseOptions {
+  sideSeparator?: string;
+  cardSeparator?: string;
+}
+
