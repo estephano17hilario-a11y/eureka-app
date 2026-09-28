@@ -26,6 +26,16 @@ export function openAuthModal(options: AuthModalOptions): void {
           <p style="font-size:0.88rem; color:var(--f-text-secondary); margin:0;">Flashcards & Repetición Espaciada Inteligente</p>
         </div>
 
+        <!-- Cuentas Detectadas en el Servidor (Acceso Rápido 1-Clic Cross-Device) -->
+        <div id="auth-server-accounts-section" style="display:none; margin-bottom:18px; padding:14px; border-radius:18px; background:rgba(56,189,248,0.07); border:1px solid rgba(56,189,248,0.25);">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <div style="font-size:0.75rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.04em;">
+              ⚡ Cuentas en este Servidor VPS (1-Clic)
+            </div>
+          </div>
+          <div id="auth-server-accounts-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+
         <!-- Segmented Tab Switcher -->
         <div style="display:flex; background:#14151b; border-radius:14px; padding:4px; border:1px solid var(--f-border); margin-bottom:20px;">
           <button type="button" id="tab-auth-login" class="apple-tab-pill active" style="flex:1; padding:9px; border-radius:10px; border:none; cursor:pointer; font-weight:800; font-size:0.9rem; text-align:center;">
@@ -57,13 +67,13 @@ export function openAuthModal(options: AuthModalOptions): void {
 
           <!-- Correo Electrónico -->
           <div style="display:flex; flex-direction:column; gap:6px;">
-            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em;">Correo Electrónico</label>
+            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em;">Correo o Nombre de Usuario</label>
             <input 
-              type="email" 
+              type="text" 
               id="input-auth-email" 
               class="cupertino-editor-card-box" 
               style="padding:13px 16px; border-radius:14px; font-size:0.95rem; color:#fff; background:#121319; border:1px solid var(--f-border); outline:none;" 
-              placeholder="tu@correo.com" 
+              placeholder="tu@correo.com o tu usuario" 
               required 
               autocomplete="email"
             />
@@ -94,14 +104,6 @@ export function openAuthModal(options: AuthModalOptions): void {
           </button>
 
         </form>
-
-        <!-- Cuentas Detectadas en el Servidor (Acceso Rápido 1-Clic) -->
-        <div id="auth-server-accounts-section" style="display:none; margin-bottom:18px;">
-          <div style="font-size:0.75rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">
-            Cuentas en este Servidor VPS
-          </div>
-          <div id="auth-server-accounts-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-        </div>
 
         <!-- Divisor -->
         <div style="display:flex; align-items:center; gap:12px; margin:20px 0 16px 0;">

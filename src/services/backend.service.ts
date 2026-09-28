@@ -198,33 +198,51 @@ class EurekaBackendService {
         body: JSON.stringify({ email: cleanEmail, password, username: cleanUsername })
       }).catch(() => null);
 
-      let userId: string | null = null;
       if (res && res.ok) {
         const data = await res.json();
-        userId = data?.user?.id;
+        if (data?.user) {
+          const authUser: AuthUser = {
+            id: data.user.id,
+            email: data.user.device_id || cleanEmail,
+            username: data.user.username || cleanUsername,
+            avatarUrl: data.user.avatar_url || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(cleanUsername)}`,
+            xp: data.user.xp || 0,
+            level: data.user.level || 1,
+            streakDays: data.user.streak_days || 1,
+            createdAt: data.user.created_at || new Date().toISOString()
+          };
+
+          this.saveUserLocally(cleanEmail, password, authUser);
+          this.currentUser = authUser;
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+          if (typeof Preferences !== 'undefined') {
+            await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
+          }
+          this.notifyAuthListeners();
+          return { user: authUser };
+        }
       }
 
-      if (!userId) {
-        userId = 'usr_' + btoa(cleanEmail).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16) + '_' + Date.now().toString(36);
-      }
-
+      // Fallback local si el servidor no responde
+      const fallbackId = 'usr_' + btoa(cleanEmail).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16) + '_' + Date.now().toString(36);
       const authUser: AuthUser = {
-        id: userId,
+        id: fallbackId,
         email: cleanEmail,
         username: cleanUsername,
-        avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${cleanUsername}`,
+        avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(cleanUsername)}`,
         xp: 0,
         level: 1,
         streakDays: 1,
         createdAt: new Date().toISOString()
       };
 
-      // Guardar localmente de forma resiliente
       this.saveUserLocally(cleanEmail, password, authUser);
       this.currentUser = authUser;
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+      if (typeof Preferences !== 'undefined') {
+        await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
+      }
       this.notifyAuthListeners();
-
       return { user: authUser };
     } catch (err: any) {
       console.warn('[EUREKA VPS BACKEND] Error en signUp, aplicando fallback local:', err);
@@ -233,7 +251,7 @@ class EurekaBackendService {
         id: fallbackId,
         email: cleanEmail,
         username: cleanUsername,
-        avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${cleanUsername}`,
+        avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(cleanUsername)}`,
         xp: 0,
         level: 1,
         streakDays: 1,
@@ -242,6 +260,9 @@ class EurekaBackendService {
       this.currentUser = authUser;
       this.saveUserLocally(cleanEmail, password, authUser);
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+      if (typeof Preferences !== 'undefined') {
+        await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
+      }
       this.notifyAuthListeners();
       return { user: authUser };
     }
@@ -264,9 +285,9 @@ class EurekaBackendService {
         if (data?.user) {
           const authUser: AuthUser = {
             id: data.user.id,
-            email: cleanEmail,
+            email: data.user.device_id || cleanEmail,
             username: data.user.username || cleanEmail.split('@')[0],
-            avatarUrl: data.user.avatar_url || data.user.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${data.user.username || 'User'}`,
+            avatarUrl: data.user.avatar_url || data.user.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(data.user.username || 'User')}`,
             xp: data.user.xp || 0,
             level: data.user.level || 1,
             streakDays: data.user.streak_days || data.user.streakDays || 1,
@@ -275,7 +296,7 @@ class EurekaBackendService {
           this.currentUser = authUser;
           localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
           if (typeof Preferences !== 'undefined') {
-            Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
+            await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
           }
           this.saveUserLocally(cleanEmail, password, authUser);
           this.notifyAuthListeners();
@@ -288,11 +309,14 @@ class EurekaBackendService {
       if (localUser) {
         this.currentUser = localUser;
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(localUser));
+        if (typeof Preferences !== 'undefined') {
+          await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(localUser) }).catch(() => {});
+        }
         this.notifyAuthListeners();
         return { user: localUser };
       }
 
-      return { error: 'Correo o contraseña incorrectos. Si no tienes cuenta, pulsa en Registrarse.' };
+      return { error: 'Correo o contraseña incorrectos. Si no tienes cuenta, pulsa en Crear Cuenta.' };
     } catch (err: any) {
       console.warn('[EUREKA VPS BACKEND] Error en signIn:', err);
       const localUser = this.checkLocalUser(cleanEmail, password);

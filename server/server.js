@@ -32,33 +32,42 @@ app.get('/health', async (req, res) => {
 // --- AUTENTICACIÓN / USUARIOS ---
 app.post('/api/auth/register', async (req, res) => {
   const { email, password: _password, username } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email requerido' });
+  const term = (email || username || '').toLowerCase().trim();
+  if (!term) return res.status(400).json({ error: 'Email o nombre requerido' });
 
-  const cleanEmail = email.toLowerCase().trim();
+  const cleanUsername = username?.trim() || (email ? email.split('@')[0] : term);
+  const cleanEmail = email?.toLowerCase().trim() || term;
+  const avatarUrl = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(cleanUsername)}`;
   const userId = 'usr_' + Buffer.from(cleanEmail).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
-  const cleanUsername = username || cleanEmail.split('@')[0];
-  const avatarUrl = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${cleanUsername}`;
 
   try {
+    // 1. Verificar si ya existe usuario con este email, username o id
+    const existing = await pool.query(
+      'SELECT * FROM eureka_users WHERE LOWER(device_id) = $1 OR LOWER(username) = $2 OR id = $3 LIMIT 1',
+      [cleanEmail, cleanUsername.toLowerCase(), userId]
+    );
+
+    if (existing.rows.length > 0) {
+      const user = existing.rows[0];
+      const updated = await pool.query(`
+        UPDATE eureka_users 
+        SET username = $1, avatar_url = $2, updated_at = NOW() 
+        WHERE id = $3 
+        RETURNING *;
+      `, [cleanUsername, avatarUrl, user.id]);
+      return res.json({ user: updated.rows[0] });
+    }
+
+    // 2. Insertar nuevo usuario
     const query = `
       INSERT INTO eureka_users (id, device_id, username, avatar_url, xp, level, streak_days, created_at, updated_at)
       VALUES ($1, $2, $3, $4, 0, 1, 1, NOW(), NOW())
-      ON CONFLICT (device_id) DO UPDATE SET
-        username = EXCLUDED.username,
-        avatar_url = EXCLUDED.avatar_url,
-        updated_at = NOW()
       RETURNING *;
     `;
     const result = await pool.query(query, [userId, cleanEmail, cleanUsername, avatarUrl]);
     res.json({ user: result.rows[0] });
   } catch (err) {
-    // Si hay conflicto de id pero ya existe el usuario por device_id
-    try {
-      const existing = await pool.query('SELECT * FROM eureka_users WHERE device_id = $1 LIMIT 1', [cleanEmail]);
-      if (existing.rows.length > 0) {
-        return res.json({ user: existing.rows[0] });
-      }
-    } catch {}
+    console.error('[API AUTH REGISTER ERROR]', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -78,7 +87,26 @@ app.get('/api/auth/primary-account', async (req, res) => {
 
 app.get('/api/auth/accounts', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, device_id as email, username, avatar_url, xp, level, streak_days, updated_at FROM eureka_users ORDER BY updated_at DESC');
+    const result = await pool.query(`
+      SELECT 
+        u.id, 
+        u.device_id as email, 
+        u.username, 
+        u.avatar_url, 
+        u.xp, 
+        u.level, 
+        u.streak_days, 
+        u.updated_at,
+        COALESCE(d.deck_count, 0)::int as deck_count
+      FROM eureka_users u
+      LEFT JOIN (
+        SELECT user_id, COUNT(*) as deck_count 
+        FROM eureka_decks 
+        WHERE is_archived = false 
+        GROUP BY user_id
+      ) d ON d.user_id = u.id
+      ORDER BY u.updated_at DESC;
+    `);
     res.json({ accounts: result.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -96,7 +124,9 @@ app.post('/api/auth/login', async (req, res) => {
       [term]
     );
     if (result.rows.length > 0) {
-      res.json({ user: result.rows[0] });
+      const user = result.rows[0];
+      await pool.query('UPDATE eureka_users SET updated_at = NOW() WHERE id = $1', [user.id]);
+      res.json({ user });
     } else {
       res.status(404).json({ error: 'Usuario no encontrado' });
     }

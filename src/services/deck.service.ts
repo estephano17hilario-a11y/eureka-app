@@ -316,6 +316,10 @@ export class DeckService {
     return this.decks.filter(d => !d.isArchived);
   }
 
+  public getAllCards(): Flashcard[] {
+    return this.cards;
+  }
+
   public getOnlyDecks(): Deck[] {
     return this.decks.filter(d => !d.isArchived && !this.isFolder(d));
   }
