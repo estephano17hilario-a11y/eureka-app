@@ -53,8 +53,8 @@ export class TouchGestureEngine {
   constructor(element: HTMLElement, options: TouchGestureOptions = {}) {
     this.element = element;
     this.options = {
-      minScale: options.minScale ?? 0.2,
-      maxScale: options.maxScale ?? 3.5,
+      minScale: options.minScale ?? 0.02,
+      maxScale: options.maxScale ?? 4.5,
       friction: options.friction ?? 0.94,
       velocityThreshold: options.velocityThreshold ?? 0.1,
       onTransform: options.onTransform ?? (() => {}),
@@ -127,12 +127,17 @@ export class TouchGestureEngine {
    */
   private handleTouchStart(e: TouchEvent): void {
     const target = e.target as Element | null;
-    if (target?.closest?.('.smm-quick-create-child-btn, .mm-node-add-sibling-btn, .mm-floating-pill-toolbar, .compact-trigger-pill, .mindmap-top-bar, .mindmap-dropdown-menu-panel, button, input, textarea, a')) {
-      return;
-    }
+    const isInteractive = Boolean(target?.closest?.(
+      '.mindmap-edit-overlay, .edit-sheet-panel, .smm-node, .eureka-mindmap-custom-node, .eureka-node-text-rendered, .smm-hover-node, .smm-quick-create-child-btn, .mm-node-add-sibling-btn, .mm-floating-pill-toolbar, .compact-trigger-pill, .mindmap-top-bar, .mindmap-dropdown-menu-panel, button, input, textarea, a, select, [contenteditable="true"]'
+    ));
 
-    // Síncronamente prevenir desplazamiento nativo o rebotes en WKWebView / Android WebView
-    e.preventDefault();
+    // Si es un toque multitáctil (2+ dedos para pinch zoom), prevenir zoom nativo del navegador
+    if (e.touches.length >= 2) {
+      e.preventDefault();
+    } else if (!isInteractive) {
+      // Solo prevenir en el fondo vacío del lienzo
+      e.preventDefault();
+    }
 
     this.cancelMomentum();
     const now = performance.now();
@@ -267,7 +272,10 @@ export class TouchGestureEngine {
    * Manejador de touchend: limpia toques y activa el momentum si hay velocidad residual.
    */
   private handleTouchEnd(e: TouchEvent): void {
-    e.preventDefault();
+    const isMultiTouch = e.touches.length > 0 || (e.changedTouches && e.changedTouches.length >= 2);
+    if (isMultiTouch) {
+      e.preventDefault();
+    }
 
     for (let i = 0; i < e.changedTouches.length; i++) {
       this.activeTouches.delete(e.changedTouches[i].identifier);

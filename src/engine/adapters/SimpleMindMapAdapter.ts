@@ -17,12 +17,13 @@ export interface MindMapAdapterConfig {
   enableCulling?: boolean;
   enableTouchEngine?: boolean;
   enablePillToolbar?: boolean;
+  onEditText?: (node: any) => void;
 }
 
 export class SimpleMindMapAdapter {
   private mindMap: any;
   private container: HTMLElement;
-  private config: Required<MindMapAdapterConfig>;
+  private config: MindMapAdapterConfig;
 
   // Submódulos del Paradigma MindMeister
   private touchEngine: TouchGestureEngine | null = null;
@@ -41,7 +42,8 @@ export class SimpleMindMapAdapter {
       enableRibbons: config.enableRibbons ?? true,
       enableCulling: config.enableCulling ?? true,
       enableTouchEngine: config.enableTouchEngine ?? true,
-      enablePillToolbar: config.enablePillToolbar ?? true
+      enablePillToolbar: config.enablePillToolbar ?? true,
+      onEditText: config.onEditText
     };
 
     this.init();
@@ -442,8 +444,8 @@ export class SimpleMindMapAdapter {
     const initialScale = view ? view.scale : 1;
 
     this.touchEngine = new TouchGestureEngine(this.container, {
-      minScale: 0.15,
-      maxScale: 3.5,
+      minScale: 0.02,
+      maxScale: 4.5,
       friction: 0.93,
       velocityThreshold: 0.08,
       onTransform: (state: GestureTransformState) => {
@@ -501,6 +503,13 @@ export class SimpleMindMapAdapter {
       },
       onAddPhoto: (node: any) => {
         this.promptAddPhoto(node);
+      },
+      onEditText: (node: any) => {
+        if (typeof this.config.onEditText === 'function') {
+          this.config.onEditText(node);
+        } else if (this.mindMap?.textEdit) {
+          this.mindMap.textEdit.show();
+        }
       }
     });
   }

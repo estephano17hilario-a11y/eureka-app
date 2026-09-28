@@ -14,6 +14,7 @@ export interface PillToolbarCallbacks {
   onColorChange?: (node: any, color: string) => void;
   onToggleFormat?: (node: any, format: 'bold' | 'italic') => void;
   onAddPhoto?: (node: any) => void;
+  onEditText?: (node: any) => void;
 }
 
 export const MINDMEISTER_SPECTRAL_PALETTE = [
@@ -82,6 +83,28 @@ export class FloatingPillToolbar {
    */
   private buildToolbarContent(): void {
     this.toolbarEl.innerHTML = '';
+
+    // 0. Botón Editar Texto
+    const editBtn = document.createElement('button');
+    editBtn.className = 'mm-pill-btn mm-pill-btn-edit';
+    editBtn.title = 'Editar texto del recuadro';
+    editBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h9"></path>
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+      </svg>
+      <span style="font-size: 11px; margin-left: 3px; font-weight: 700;">Editar</span>
+    `;
+    editBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (this.activeNode && this.callbacks.onEditText) {
+        this.callbacks.onEditText(this.activeNode);
+      }
+    };
+    this.toolbarEl.appendChild(editBtn);
+
+    // Divisor
+    this.addDivider();
 
     // 1. Botón de Paleta Cromática Heredable
     const colorBtn = document.createElement('button');

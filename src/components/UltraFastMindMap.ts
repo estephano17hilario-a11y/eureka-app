@@ -988,6 +988,9 @@ export class UltraFastMindMap {
       enableFreeDrag: true,
       isTouch: true,
       mousewheelAction: 'zoom',
+      scaleRatio: 0.1,
+      minScale: 0.02,
+      maxScale: 4.5,
       enableAnimation: false,
       customLineType: 'straight',
       isLimitMindMapInCanvas: false,
@@ -1183,7 +1186,11 @@ export class UltraFastMindMap {
       enableRibbons: true,
       enableCulling: true,
       enableTouchEngine: true,
-      enablePillToolbar: true
+      enablePillToolbar: true,
+      onEditText: (node) => {
+        this.activeNode = node;
+        this.openDirectTextEditor();
+      }
     });
 
     // Restaurar modo de fondo de lienzo (oscuro / claro) guardado
@@ -1252,8 +1259,20 @@ export class UltraFastMindMap {
       if (node) this.patchMindMapNodePrototype(node);
     });
 
+    let lastClickNode: any = null;
+    let lastClickTime = 0;
     this.mindMapInstance.on('node_click', (node: any) => {
-      if (node) this.patchMindMapNodePrototype(node);
+      if (node) {
+        this.patchMindMapNodePrototype(node);
+        const now = Date.now();
+        // Detección de doble toque táctil o clic rápido en el mismo nodo para abrir editor en móvil
+        if (lastClickNode === node && (now - lastClickTime < 450)) {
+          this.activeNode = node;
+          this.openDirectTextEditor();
+        }
+        lastClickNode = node;
+        lastClickTime = now;
+      }
     });
 
     this.patchMindMapNodePrototype();
@@ -1567,8 +1586,8 @@ export class UltraFastMindMap {
         const scaleY = availH / bbox.height;
         let optimalScale = Math.min(scaleX, scaleY);
 
-        // Limitar escala a rango ergonómico
-        optimalScale = Math.min(Math.max(optimalScale, 0.3), 1.35);
+        // Limitar escala a rango ergonómico permitiendo zoom out ultra amplio
+        optimalScale = Math.min(Math.max(optimalScale, 0.02), 1.35);
 
         // Traslación exacta requerida para situar el centro del árbol en el centro visual
         const transX = targetCenterX - bbox.cx * optimalScale;
@@ -2346,9 +2365,15 @@ export class UltraFastMindMap {
 
     const closeSheet = () => {
       sheet.style.display = 'none';
+      this.isEditingText = false;
       const fitFloatingBtn = root.querySelector('#btn-floating-fit') as HTMLElement | null;
       if (fitFloatingBtn) fitFloatingBtn.style.display = 'flex';
       Keyboard.hide().catch(() => {});
+      if (this.activeNode && this.mindmeisterAdapter) {
+        try {
+          (this.mindmeisterAdapter as any).updatePillPosition?.();
+        } catch {}
+      }
     };
 
     const saveAndCloseSheet = () => {
@@ -3165,6 +3190,53 @@ export class UltraFastMindMap {
     }
     if (currentText.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() === '') {
       currentText = '';
+    }
+
+    // En dispositivos móviles / pantallas táctiles, abrir el bottom sheet con textarea nativo
+    // para garantizar que el teclado virtual de Android/iOS se active de inmediato sin fallos de SVG
+    const isTouchOrMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 768;
+    if (isTouchOrMobile) {
+      const sheet = this.container.querySelector('#mindmap-edit-sheet') as HTMLElement | null;
+      const input = this.container.querySelector('#input-sheet-text') as HTMLTextAreaElement | null;
+      const previewBox = this.container.querySelector('#sheet-katex-preview') as HTMLElement | null;
+      const previewRendered = this.container.querySelector('#sheet-katex-preview-rendered') as HTMLElement | null;
+      const photoWrap = this.container.querySelector('#sheet-photo-preview-wrap') as HTMLElement | null;
+      const photoImg = this.container.querySelector('#sheet-photo-preview-img') as HTMLImageElement | null;
+      const fitFloatingBtn = this.container.querySelector('#btn-floating-fit') as HTMLElement | null;
+
+      if (sheet && input) {
+        this.isEditingText = true;
+        if (fitFloatingBtn) fitFloatingBtn.style.display = 'none';
+        sheet.style.display = 'flex';
+        input.value = currentText;
+
+        // Foto preview si el nodo tiene imagen adjunta
+        const nodePhoto = (node.getData ? node.getData('image') : node.nodeData?.data?.image) || (node.getData ? node.getData('imageUrl') : null);
+        if (photoWrap && photoImg) {
+          if (nodePhoto) {
+            photoImg.src = nodePhoto;
+            photoWrap.style.display = 'flex';
+          } else {
+            photoWrap.style.display = 'none';
+          }
+        }
+
+        // Live KaTeX preview
+        if (previewBox && previewRendered) {
+          if (currentText.includes('$') || currentText.includes('\\') || currentText.includes('^') || currentText.includes('_') || currentText.includes('{')) {
+            previewBox.style.display = 'block';
+            previewRendered.innerHTML = katexService.parseAndRender(currentText);
+          } else {
+            previewBox.style.display = 'none';
+          }
+        }
+
+        setTimeout(() => {
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }, 60);
+        return;
+      }
     }
 
     // 2. Obtener el elemento de texto renderizado en el nodo SVG
