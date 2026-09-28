@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import { KeyboardResize, KeyboardStyle } from '@capacitor/keyboard';
 
 const config: CapacitorConfig = {
   appId: 'com.eureka.app',
@@ -21,8 +22,8 @@ const config: CapacitorConfig = {
       backgroundColor: '#090d16'
     },
     Keyboard: {
-      resize: 'body',
-      style: 'DARK',
+      resize: KeyboardResize.Body,
+      style: KeyboardStyle.Dark,
       resizeOnFullScreen: true
     },
     CapacitorHttp: {
