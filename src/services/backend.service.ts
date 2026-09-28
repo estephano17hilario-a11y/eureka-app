@@ -192,11 +192,20 @@ class EurekaBackendService {
 
     try {
       // 1. Intento de registro en la API del VPS
-      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      let res = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail, password, username: cleanUsername })
       }).catch(() => null);
+
+      // Reintento directo con REMOTE_VPS_URL si falló por ruta relativa
+      if (!res && API_BASE_URL !== REMOTE_VPS_URL) {
+        res = await fetch(`${REMOTE_VPS_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail, password, username: cleanUsername })
+        }).catch(() => null);
+      }
 
       if (res && res.ok) {
         const data = await res.json();
@@ -223,48 +232,15 @@ class EurekaBackendService {
         }
       }
 
-      // Fallback local si el servidor no responde
-      const fallbackId = 'usr_' + btoa(cleanEmail).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16) + '_' + Date.now().toString(36);
-      const authUser: AuthUser = {
-        id: fallbackId,
-        email: cleanEmail,
-        username: cleanUsername,
-        avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(cleanUsername)}`,
-        xp: 0,
-        level: 1,
-        streakDays: 1,
-        createdAt: new Date().toISOString()
-      };
+      if (res && !res.ok) {
+        const errData = await res.json().catch(() => null);
+        return { error: errData?.error || 'No se pudo registrar la cuenta en el servidor.' };
+      }
 
-      this.saveUserLocally(cleanEmail, password, authUser);
-      this.currentUser = authUser;
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
-      if (typeof Preferences !== 'undefined') {
-        await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
-      }
-      this.notifyAuthListeners();
-      return { user: authUser };
+      return { error: 'No se pudo conectar con el servidor central de Eureka (89.117.73.97). Verifica tu conexión a internet.' };
     } catch (err: any) {
-      console.warn('[EUREKA VPS BACKEND] Error en signUp, aplicando fallback local:', err);
-      const fallbackId = 'usr_local_' + Date.now();
-      const authUser: AuthUser = {
-        id: fallbackId,
-        email: cleanEmail,
-        username: cleanUsername,
-        avatarUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(cleanUsername)}`,
-        xp: 0,
-        level: 1,
-        streakDays: 1,
-        createdAt: new Date().toISOString()
-      };
-      this.currentUser = authUser;
-      this.saveUserLocally(cleanEmail, password, authUser);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
-      if (typeof Preferences !== 'undefined') {
-        await Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(authUser) }).catch(() => {});
-      }
-      this.notifyAuthListeners();
-      return { user: authUser };
+      console.warn('[EUREKA VPS BACKEND] Error en signUp:', err);
+      return { error: err?.message || 'Error de conexión con el servidor.' };
     }
   }
 
@@ -274,11 +250,20 @@ class EurekaBackendService {
 
     try {
       // 1. Intento de login en API del VPS
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      let res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail, password })
       }).catch(() => null);
+
+      // Reintento directo con REMOTE_VPS_URL si falló por ruta relativa
+      if (!res && API_BASE_URL !== REMOTE_VPS_URL) {
+        res = await fetch(`${REMOTE_VPS_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail, password })
+        }).catch(() => null);
+      }
 
       if (res && res.ok) {
         const data = await res.json();
@@ -316,7 +301,12 @@ class EurekaBackendService {
         return { user: localUser };
       }
 
-      return { error: 'Correo o contraseña incorrectos. Si no tienes cuenta, pulsa en Crear Cuenta.' };
+      if (res && !res.ok) {
+        const errData = await res.json().catch(() => null);
+        return { error: errData?.error || 'Usuario o contraseña incorrectos. Si no tienes cuenta, pulsa en Crear Cuenta.' };
+      }
+
+      return { error: 'No se pudo conectar con el servidor (89.117.73.97). Verifica tu conexión.' };
     } catch (err: any) {
       console.warn('[EUREKA VPS BACKEND] Error en signIn:', err);
       const localUser = this.checkLocalUser(cleanEmail, password);

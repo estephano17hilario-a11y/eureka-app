@@ -24,11 +24,13 @@ const config: CapacitorConfig = {
       resize: 'body',
       style: 'DARK',
       resizeOnFullScreen: true
+    },
+    CapacitorHttp: {
+      enabled: true
     }
   },
   server: {
-    // Configura androidScheme para soporte nativo moderno
-    androidScheme: 'https',
+    androidScheme: 'http',
     cleartext: true
   }
 };
