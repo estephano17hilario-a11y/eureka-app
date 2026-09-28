@@ -369,10 +369,16 @@ class ActiveStudyService {
           const remoteMap = new Map<string, ActiveStudyTopic>();
           json.activeTopics.forEach((t: ActiveStudyTopic) => remoteMap.set(t.id, t));
 
-          // 1. Añadir o actualizar temas remotos
+          // 1. Añadir o actualizar temas remotos con protección de progreso
           json.activeTopics.forEach((t: ActiveStudyTopic) => {
             const local = this.topics.get(t.id);
-            if (!local || (t.updatedAt || 0) >= (local.updatedAt || 0)) {
+            if (!local) {
+              this.topics.set(t.id, t);
+              hasChanges = true;
+            } else if ((t.updatedAt || 0) > (local.updatedAt || 0)) {
+              // Si el tema remoto tiene un timestamp mayor, no retroceder el avance de lectura
+              const preservedIndex = Math.max(local.currentChunkIndex || 0, t.currentChunkIndex || 0);
+              t.currentChunkIndex = preservedIndex;
               this.topics.set(t.id, t);
               hasChanges = true;
             }
@@ -545,10 +551,19 @@ se obtiene la energía de enlace nuclear total.`;
       c.title.includes('Problemática Global') ||
       c.title.includes('Propósito') ||
       c.title.includes('Axioma Central') ||
-      c.title.includes('Puente Conector')
+      c.title.includes('Puente Conector') ||
+      c.title.includes('Puente Inter-Nivel')
     );
 
-    if (hasRoadmapOrPurpose) return;
+    const isAtomTruncated = topic.chunks.some((c) =>
+      c.title.startsWith('Átomo') &&
+      c.sourceContent.includes('**Intuición / Principio Clave:**') &&
+      !c.sourceContent.includes('**Idea Clave') &&
+      !c.sourceContent.includes('🧠')
+    );
+
+    // Si ya tiene contexto y no está truncado, no requiere enriquecimiento
+    if (hasRoadmapOrPurpose && !isAtomTruncated) return;
 
     let guide: any;
     try {
@@ -563,6 +578,20 @@ se obtiene la energía de enlace nuclear total.`;
           const gTitle = g.topic.trim().toLowerCase();
           return gTitle === cleanTitle || cleanTitle.includes(gTitle) || gTitle.includes(cleanTitle);
         });
+
+        // Búsqueda aproximada por coincidencia léxica de palabras
+        if (!guide && allGuides.length > 0) {
+          const titleWords = cleanTitle.split(/[\s,.:;_\-]+/).filter((w) => w.length >= 3);
+          guide = allGuides.find((g) => {
+            const gWords = g.topic.toLowerCase().split(/[\s,.:;_\-]+/).filter((w) => w.length >= 3);
+            return titleWords.some((tw) => gWords.some((gw) => gw.includes(tw) || tw.includes(gw)));
+          });
+        }
+
+        // Si solo hay una guía guardada y el cuaderno tiene múltiples átomos, vincularla
+        if (!guide && allGuides.length === 1 && topic.chunks.length > 5) {
+          guide = allGuides[0];
+        }
       }
 
       if (!guide && topic.rawMarkdown && (topic.rawMarkdown.includes('Nivel 1') || topic.rawMarkdown.includes('Problemática Global') || topic.rawMarkdown.includes('Propósito del Nivel'))) {
@@ -573,6 +602,22 @@ se obtiene la energía de enlace nuclear total.`;
           targetGoal: 'general'
         });
       }
+
+      // Si tenemos la guía con su markdown original, refrescar el desglose para aplicar los nuevos parsers
+      if (guide && guide.markdown) {
+        const refreshed = feynmanLlmService.importGuideFromMarkdown(guide.markdown, {
+          topic: guide.topic,
+          subject: guide.formData?.subject || topic.subject || 'Informática & Programación',
+          currentLevel: 1,
+          targetGoal: 'general'
+        });
+        if (refreshed && refreshed.levels && refreshed.levels.length > 0) {
+          guide = refreshed;
+        }
+      }
+
+      const previousActiveChunk = topic.chunks[topic.currentChunkIndex];
+      const previousActiveTitle = previousActiveChunk?.title;
 
       if (guide && guide.levels && guide.levels.length > 0) {
         const newChunksData = feynmanLlmService.buildActiveStudyChunksFromGuide(guide);
@@ -595,16 +640,107 @@ se obtiene la energía de enlace nuclear total.`;
             topic.rawMarkdown = guide.markdown;
           }
 
-          if (topic.currentChunkIndex >= topic.chunks.length) {
-            topic.currentChunkIndex = 0;
+          // Restaurar la posición exacta del usuario en el átomo correspondiente
+          if (previousActiveTitle) {
+            const newIndex = topic.chunks.findIndex((c) => c.title === previousActiveTitle);
+            if (newIndex !== -1) {
+              topic.currentChunkIndex = newIndex;
+            } else if (topic.currentChunkIndex >= topic.chunks.length) {
+              topic.currentChunkIndex = 0;
+            }
           }
 
+          topic.updatedAt = Date.now();
+          this.saveToStorage();
+          return;
+        }
+      }
+
+      // Si no existe guía pero los átomos están truncados o falta contexto, reparar localmente
+      if (isAtomTruncated || !hasRoadmapOrPurpose) {
+        let changed = false;
+
+        // 1. Reparar átomos individuales truncados
+        topic.chunks.forEach((chunk, cIdx) => {
+          if (chunk.title.startsWith('Átomo') && chunk.sourceContent.includes('**Intuición / Principio Clave:**') && !chunk.sourceContent.includes('Idea Clave')) {
+            const conceptMatch = chunk.title.match(/Átomo\s*[\d.]+[:\s.-]+([^\n]+)/i);
+            const concept = conceptMatch ? conceptMatch[1].trim() : chunk.title;
+            const intuitionMatch = chunk.sourceContent.match(/\*\*Intuición \/ Principio Clave:\*\*\s*([\s\S]*?)(?=(?:\n\n|\n[#*>]|$))/i);
+            const intuition = intuitionMatch ? intuitionMatch[1].trim() : 'Analogía de primeros principios.';
+
+            let repaired = `### ${concept}\n\n`;
+            repaired += `💡 **Intuición Feynman / Principio Clave:**\n${intuition}\n\n`;
+            repaired += `🧠 **Idea Clave / Explicación Formal:**\nFundamento conceptual y mecanismo operativo esencial de ${concept}, estructurado rigurosamente para su aplicación directa en el dominio de estudio.\n\n`;
+            repaired += `⚡ **Cadena Causal / Secuencia Operativa:**\nAl asimilar la lógica de ${concept}, se comprende cómo interactúan sus variables y principios base de forma lógica y acumulativa.\n\n`;
+
+            const nextChunk = topic.chunks[cIdx + 1];
+            if (nextChunk && nextChunk.title.startsWith('Átomo')) {
+              repaired += `> 🔗 **Transición Sinérgica hacia ${nextChunk.title}:**\n> Al dominar ${concept}, se sientan las bases directas para avanzar sin saltos conceptuales hacia el siguiente principio.\n\n`;
+            }
+
+            chunk.sourceContent = repaired.trim();
+            changed = true;
+          }
+        });
+
+        // 2. Si faltaba la Hoja de Ruta inicial, sintetizarla y anteponerla
+        if (!hasRoadmapOrPurpose) {
+          const firstAtom = topic.chunks.find((c) => c.title.startsWith('Átomo'));
+          const cleanTopicTitle = topic.title.replace(/^\[Feynman\]\s*/i, '');
+
+          const roadmapContent = `## 🗺️ Visión Holística & Hoja de Ruta Feynman\n### ${cleanTopicTitle}: Panorama General y Estrategia Lógica\n\n> 🎯 **Problemática Global & Panorama:**\n> Dominar los fundamentos integrales de ${cleanTopicTitle}, desglosando cada principio irreducible paso a paso mediante lectura atómica y rigor conceptual.\n\n> 🧠 **Estrategia Lógica de Solución (Step-by-Step):**\n> Progresión acumulativa sinérgica desde los primeros principios axiomáticos hasta los mecanismos avanzados de aplicación práctica.\n\n> 🌉 **Puente hacia el Nivel 1:**\n> Iniciamos de inmediato el primer ciclo axiomático para asimilar la base operativa esencial.\n\n---\n*Comienza a continuación el viaje formativo paso a paso.*`;
+
+          const level1Intro = `## # Nivel 1: Fundamentos Primarios\n*Paso Axiomático 1*\n\n### 🎯 Propósito del Nivel: Problemática & Panorama Concreto\n> Consolidar los conceptos y axiomas iniciales antes de adentrarse en los subniveles atómicos operativos.\n\n### 💡 1. Axioma Central (Intuición Feynman)\n${firstAtom ? firstAtom.title : cleanTopicTitle}: Base irreducible cotidiana.\n\n---\n> 🧩 **Hoja de Ruta Inmediata del Nivel:**\nA continuación nos adentraremos en el Desglose Atómico para resolver rigurosamente la problemática planteada.`;
+
+          const newChunks: StudyChunk[] = [
+            {
+              id: `chunk_${topic.id}_roadmap`,
+              topicId: topic.id,
+              orderIndex: 0,
+              title: `🗺️ Hoja de Ruta: Problemática Global & Estrategia Lógica`,
+              sourceContent: roadmapContent,
+              isCompleted: false
+            },
+            {
+              id: `chunk_${topic.id}_lvl1`,
+              topicId: topic.id,
+              orderIndex: 1,
+              title: `🎯 Nivel 1: Propósito & Axioma Central`,
+              sourceContent: level1Intro,
+              isCompleted: false
+            },
+            ...topic.chunks.map((c, i) => ({ ...c, orderIndex: i + 2 }))
+          ];
+
+          topic.chunks = newChunks;
+          if (previousActiveTitle) {
+            const newIndex = topic.chunks.findIndex((c) => c.title === previousActiveTitle);
+            if (newIndex !== -1) {
+              topic.currentChunkIndex = newIndex;
+            }
+          } else {
+            topic.currentChunkIndex = 0;
+          }
+          changed = true;
+        }
+
+        if (changed) {
+          topic.updatedAt = Date.now();
           this.saveToStorage();
         }
       }
     } catch (err) {
       console.warn('[ActiveStudyService] Error enriqueciendo bloques Feynman:', err);
     }
+  }
+
+  public setCurrentChunk(topicId: string, chunkIndex: number): void {
+    const topic = this.topics.get(topicId);
+    if (!topic || !topic.chunks || topic.chunks.length === 0) return;
+    const safeIndex = Math.max(0, Math.min(chunkIndex, topic.chunks.length - 1));
+    topic.currentChunkIndex = safeIndex;
+    topic.updatedAt = Date.now();
+    this.saveToStorage();
   }
 
   public deleteTopic(topicId: string): void {

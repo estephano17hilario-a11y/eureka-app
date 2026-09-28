@@ -27,7 +27,7 @@ import { FigmaStudySession } from './components/FigmaStudySession';
 import { dialogService } from './services/dialog.service';
 import { openFigmaBatchImportModal } from './components/FigmaBatchImportModal';
 import { openFigmaAiBuilderModal } from './components/FigmaAiBuilderModal';
-import { renderActiveStudyDashboard, bindActiveStudyDashboardEvents } from './components/ActiveStudyView';
+import { renderActiveStudyDashboard, bindActiveStudyDashboardEvents, isActivelyStudying } from './components/ActiveStudyView';
 import { UltraFastMindMap } from './components/UltraFastMindMap';
 import { activeStudyService } from './services/active-study.service';
 import { feynmanLlmService } from './services/feynman-llm.service';
@@ -123,7 +123,7 @@ class EurekaFigmaApp {
     // Al volver a enfocar la ventana o periódicamente cada 3.5 segundos, sincronizar con el servidor para reflejar cambios
     let isPolling = false;
     const pollRemoteSync = async () => {
-      if (isPolling || this.currentView === 'study') return;
+      if (isPolling || this.currentView === 'study' || isActivelyStudying()) return;
       isPolling = true;
       try {
         await Promise.all([
@@ -453,6 +453,9 @@ class EurekaFigmaApp {
       showGlobalHeader = false;
       bodyHtml = renderFigmaLearningPhaseView(subdeck);
     } else if (this.currentTab === 'estudio') {
+      if (isActivelyStudying()) {
+        showGlobalHeader = false;
+      }
       bodyHtml = renderActiveStudyDashboard(this.selectedStudyTopicId);
     } else if (this.currentTab === 'biblioteca') {
       bodyHtml = renderFigmaLibraryView();

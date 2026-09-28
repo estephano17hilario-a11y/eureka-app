@@ -2263,19 +2263,19 @@ export function App() {
         const concept = (sMatch[2] || `Concepto ${subId}`).replace(/^[[\]*_#\s]+|[[\]*_#\s]+$/g, '').trim();
         const subContent = sMatch[3] || '';
 
-        // 1. Intuición Feynman
+        // 1. Intuición Feynman (1-2 frases o párrafo corto)
         let intuition: string | undefined;
-        const intM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Intuici[oó]n(?:\s*Feynman)?|Analog[ií]a|Met[aá]fora)[:\s*_\s]+([^\n]+)/i);
+        const intM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Intuici[oó]n(?:\s*Feynman)?|Analog[ií]a|Met[aá]fora)(?:\*\*|__)?\s*[:\s*_\-]+\s*([^\n]+(?:\n(?!-\s*(?:\*\*|__)?(?:Idea|Definici|Explicaci|Principio|Cadena|Secuencia|Mecanismo|FORMALISMO|Ecuaci|F[oó]rmula|Condici|L[ií]mite|Frontera|Transici|Puente|>|###|##))[^\n]+)*)/i);
         if (intM) intuition = intM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
 
-        // 2. Idea Clave
+        // 2. Idea Clave / Explicación Formal / Segunda Explicación
         let keyIdea = '';
-        const ideaM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Idea\s*Clave(?:\s*Formal)?|Concepto\s*Clave|Principio\s*Formal|Definici[oó]n)[:\s*_\s]+([^\n]+)/i);
+        const ideaM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Idea\s*Clave(?:\s*Formal)?|Explicaci[oó]n(?:\s*Formal)?|Segunda\s*Explicaci[oó]n|Concepto\s*Clave|Principio(?:\s*Formal|\s*Clave|\s*Operativo|\s*Base)?|Definici[oó]n)(?:\*\*|__)?\s*[:\s*_\-]+\s*([^\n]+(?:\n(?!-\s*(?:\*\*|__)?(?:Cadena|Secuencia|Mecanismo|FORMALISMO|Ecuaci|F[oó]rmula|Condici|L[ií]mite|Frontera|Transici|Puente|>|###|##))[^\n]+)*)/i);
         if (ideaM) keyIdea = ideaM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
 
-        // 3. Cadena Causal (Opcional: solo si es necesario, muy fácil de entender y corta)
+        // 3. Cadena Causal / Secuencia Causal / Mecanismo Operativo
         let mechanism: string | undefined;
-        const mechM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Cadena\s*Causal|Mecanismo(?:\s*Causal)?|Causalidad|Explicaci[oó]n\s*Causal)[:\s*_\s]+([^\n]+(?:\n(?!-\s*(?:\*\*|__)?(?:Idea|Ecuaci|Condici|L[ií]mite|Intuici|Recurso|FORMALISMO))[^\n]+)*)/i);
+        const mechM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Cadena\s*Causal|Secuencia\s*Causal|Secuencia\s*Operativa|Mecanismo(?:\s*(?:Causal|Operativo|F[ií]sico))?|Causalidad|Explicaci[oó]n\s*Causal)(?:\*\*|__)?\s*[:\s*_\-]+\s*([^\n]+(?:\n(?!-\s*(?:\*\*|__)?(?:Idea|Explicaci|Definici|Ecuaci|F[oó]rmula|Condici|L[ií]mite|Frontera|Intuici|Recurso|FORMALISMO|Transici|Puente|>|###|##))[^\n]+)*)/i);
         if (mechM) {
           const rawMech = mechM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
           const lowerMech = rawMech.toLowerCase();
@@ -2296,7 +2296,7 @@ export function App() {
         let mathType: 'standard' | 'eureka' | undefined;
         let equation: string | undefined;
 
-        const eurekaEqM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:\(?FORMALISMO\s*MATEM[AÁ]TICO\s*EUREKA\)?|Formalismo\s*Eureka|Ecuaci[oó]n\s*Eureka)[:\s*_\s]+([^\n]+)/i);
+        const eurekaEqM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:\(?FORMALISMO\s*MATEM[AÁ]TICO\s*EUREKA\)?|Formalismo\s*Eureka|Ecuaci[oó]n\s*Eureka)(?:\*\*|__)?\s*[:\s*_\-]+\s*([^\n]+(?:\n(?!\s*-\s*(?:\*\*|__)?|>|###|##)[^\n]+)*)/i);
         if (eurekaEqM) {
           const rawEq = eurekaEqM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '').trim();
           if (this.isValidMathString(rawEq)) {
@@ -2304,7 +2304,7 @@ export function App() {
             mathType = 'eureka';
           }
         } else {
-          const stdEqM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:\(?FORMALISMO\s*MATEM[AÁ]TICO\)?|Ecuaci[oó]n(?:\s*[\/\-]\s*Formalismo)?|Formalismo|F[oó]rmula)(?:\s*[\/\-]\s*Formalismo)?[:\s*_\s]+([^\n]+)/i);
+          const stdEqM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:\(?FORMALISMO\s*MATEM[AÁ]TICO\)?|Ecuaci[oó]n(?:\s*[\/\-]\s*Formalismo)?|Formalismo|F[oó]rmula)(?:\s*[\/\-]\s*Formalismo)?(?:\*\*|__)?\s*[:\s*_\-]+\s*([^\n]+(?:\n(?!\s*-\s*(?:\*\*|__)?|>|###|##)[^\n]+)*)/i);
           if (stdEqM) {
             const rawEq = stdEqM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '').trim();
             if (this.isValidMathString(rawEq)) {
@@ -2314,16 +2314,40 @@ export function App() {
           }
         }
 
+        // Si no se detectó por encabezado, buscar bloques KaTeX directos $$ ... $$
+        if (!equation) {
+          const rawKatexMatch = subContent.match(/\$\$([\s\S]+?)\$\$/);
+          if (rawKatexMatch && this.isValidMathString(rawKatexMatch[1])) {
+            equation = rawKatexMatch[1].trim();
+            mathType = 'standard';
+          }
+        }
+
         // 5. Límite de Ruptura / Condición de Frontera (Opcional)
         let boundaryCondition: string | undefined;
-        const boundM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Condici[oó]n\s*de\s*Frontera(?:\s*[\/\-]\s*L[ií]mite(?:\s*de\s*Ruptura)?)?|L[ií]mite(?:\s*de\s*Ruptura)?|Caso\s*L[ií]mite|Frontera)[:\s*_\s]+([^\n]+)/i);
+        const boundM = subContent.match(/(?:-\s*)?(?:\*\*|__)?(?:Condici[oó]n\s*de\s*Frontera(?:\s*[\/\-]\s*L[ií]mite(?:\s*de\s*Ruptura)?)?|L[ií]mite(?:\s*de\s*Ruptura)?|Caso\s*L[ií]mite|Frontera)(?:\*\*|__)?\s*[:\s*_\-]+\s*([^\n]+(?:\n(?!-\s*(?:\*\*|__)?|>|###|##)[^\n]+)*)/i);
         if (boundM) boundaryCondition = boundM[1].trim().replace(/^[*_\s]+|[*_\s]+$/g, '');
 
-        // 6. Transición Sinérgica hacia el siguiente átomo
+        // 6. Transición Sinérgica hacia el siguiente átomo (Puente entre índices / números)
         let synergicTransition: string | undefined;
-        const synM = subContent.match(/(?:^|\n)(?:>\s*)?(?:-\s*)?(?:\*\*|__)?(?:🔗\s*)?(?:Transici[oó]n\s*Sin[eé]rgica(?:[^\n*:]*)?|Puente\s*Sin[eé]rgico)[:\s*_\s]+([^\n]+(?:\n(?!###|##|-\s*(?:\*\*|__)?(?:Intuici|Idea|Cadena|FORMALISMO|L[ií]mite))[^\n]+)*)/i);
+        const synM = subContent.match(/(?:^|\n)\s*(?:>\s*)?(?:-\s*)?(?:🔗\s*)?(?:\*\*|__)?(?:Transici[oó]n\s*Sin[eé]rgica|Puente\s*Sin[eé]rgico|Puente\s*hacia\s*Subnivel)(?:[^\n*:]*)?(?:\*\*|__)?\s*[:\s*_\-]+\s*([^\n]+(?:\n(?!###|##|-\s*(?:\*\*|__)?(?:Intuici|Idea|Cadena|Secuencia|Mecanismo|FORMALISMO|L[ií]mite))[^\n]+)*)/i);
         if (synM) {
           synergicTransition = synM[1].trim().replace(/^[*_\s>]+|[*_\s>]+$/g, '');
+        }
+
+        // Captura de contenido adicional si no hubo Idea Clave formal
+        if (!keyIdea) {
+          const cleanParagraphs = subContent
+            .replace(/(?:-\s*)?(?:\*\*|__)?(?:Intuici[oó]n|Analog[ií]a|Met[aá]fora)[\s\S]*?(?=(?:-\s*(?:\*\*|__)|>|###|##|$))/gi, '')
+            .replace(/(?:-\s*)?(?:\*\*|__)?(?:Cadena|Secuencia|Mecanismo)[\s\S]*?(?=(?:-\s*(?:\*\*|__)|>|###|##|$))/gi, '')
+            .replace(/(?:-\s*)?(?:\*\*|__)?(?:FORMALISMO|Ecuaci|F[oó]rmula)[\s\S]*?(?=(?:-\s*(?:\*\*|__)|>|###|##|$))/gi, '')
+            .replace(/(?:-\s*)?(?:\*\*|__)?(?:Condici|L[ií]mite|Frontera)[\s\S]*?(?=(?:-\s*(?:\*\*|__)|>|###|##|$))/gi, '')
+            .replace(/(?:^|\n)\s*(?:>\s*)?(?:-\s*)?(?:🔗\s*)?(?:\*\*|__)?(?:Transici|Puente)[\s\S]*?(?=(?:###|##|$))/gi, '')
+            .replace(/!\[[^\]]*\]\([^\)]+\)/g, '')
+            .trim();
+          if (cleanParagraphs.length > 10) {
+            keyIdea = cleanParagraphs;
+          }
         }
 
         let visualResourceUrl: string | undefined;
@@ -2334,7 +2358,7 @@ export function App() {
           sublevelNumber: subId,
           concept,
           intuition,
-          keyIdea: keyIdea || `Principio fundamental de ${concept}.`,
+          keyIdea: keyIdea || `Principio fundamental y mecanismo esencial de ${concept}.`,
           mechanism: mechanism || undefined,
           mathType,
           equation,

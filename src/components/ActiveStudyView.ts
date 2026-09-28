@@ -476,101 +476,111 @@ function renderSelectedTopicWorkspace(topic: ActiveStudyTopic, userCoins: number
 /**
  * MODO LECTURA ATÓMICA CENTRADA: Pone en el centro de la pantalla la información del átomo
  */
+/**
+ * MODO LECTURA ATÓMICA CENTRADA: Ultra Inmersivo a Pantalla Completa
+ * Muestra solo:
+ * 1. Fila de dos botones: [➕ Agregar Flashcard] y [🧠 Mapa]
+ * 2. Botón inferior de [Continuar ➔]
+ * Sin HUDs ni elementos distractores.
+ */
 function renderCenteredAtomicReadingScreen(
   topic: ActiveStudyTopic,
   chunk: StudyChunk,
   chunkCards: Flashcard[],
-  deckName: string,
-  mergedCards: Flashcard[]
+  _deckName: string,
+  _mergedCards: Flashcard[]
 ): string {
-  const isLevelCardsDone = mergedCards.length >= 3;
-
   const isRoadmapChunk = chunk.title.includes('Visión Holística') || chunk.title.includes('Hoja de Ruta') || chunk.title.includes('Problemática Global');
   const isPurposeAxiomChunk = chunk.title.includes('Propósito') || chunk.title.includes('Axioma Central');
   const isBridgeChunk = chunk.title.includes('Puente Conector') || chunk.title.includes('Puente Inter-Nivel');
   const isExamChunk = chunk.title.includes('Examen Final');
 
-  let chunkBadgeText = `🔬 Átomo ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
-  let chunkBadgeStyle = '';
+  let chunkBadgeText = `🔬 ÁTOMO ${topic.currentChunkIndex + 1} DE ${topic.chunks.length}`;
+  let badgeClass = 'badge-atom';
 
   if (isRoadmapChunk) {
-    chunkBadgeText = `🗺️ Hoja de Ruta Feynman • Bloque ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
-    chunkBadgeStyle = 'background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.4); color: #c084fc;';
+    chunkBadgeText = `🗺️ HOJA DE RUTA • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
+    badgeClass = 'badge-roadmap';
   } else if (isPurposeAxiomChunk) {
-    chunkBadgeText = `🎯 Propósito & Axioma Central • Bloque ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
-    chunkBadgeStyle = 'background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;';
+    chunkBadgeText = `🎯 PROPÓSITO & AXIOMA • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
+    badgeClass = 'badge-purpose';
   } else if (isBridgeChunk) {
-    chunkBadgeText = `🌉 Puente Conector Inter-Nivel • Bloque ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
-    chunkBadgeStyle = 'background: rgba(52, 211, 153, 0.2); border-color: rgba(52, 211, 153, 0.4); color: #34d399;';
+    chunkBadgeText = `🌉 PUENTE CONECTOR • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
+    badgeClass = 'badge-bridge';
   } else if (isExamChunk) {
-    chunkBadgeText = `🎓 Examen Final & Mega-Simulador • Bloque ${topic.currentChunkIndex + 1} de ${topic.chunks.length}`;
-    chunkBadgeStyle = 'background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;';
+    chunkBadgeText = `🎓 EXAMEN FINAL • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
+    badgeClass = 'badge-exam';
   }
 
-  let nextBtnText = topic.currentChunkIndex + 1 < topic.chunks.length ? 'Siguiente Bloque →' : 'Completar Lectura ➔';
+  let nextBtnText = topic.currentChunkIndex + 1 < topic.chunks.length ? 'Continuar' : 'Finalizar y Consolidar';
   if (isRoadmapChunk) {
-    nextBtnText = 'Ir al Nivel 1 (Propósito & Axioma) →';
+    nextBtnText = 'Ir al Nivel 1 (Propósito)';
   } else if (isPurposeAxiomChunk) {
-    nextBtnText = 'Explorar Desglose Atómico →';
+    nextBtnText = 'Entrar al Desglose Atómico';
   } else if (isBridgeChunk) {
-    nextBtnText = 'Cruzar Puente al Siguiente Nivel ➔';
+    nextBtnText = 'Cruzar al Siguiente Nivel';
   }
+
+  const progressPercent = Math.round(((topic.currentChunkIndex + 1) / topic.chunks.length) * 100);
 
   return `
     <div class="active-study-topic-workspace atomic-study-immersive-container" data-topic-id="${topic.id}">
-      <div class="atomic-reading-card" style="animation: atomSlideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
-        <!-- Barra Superior del Bloque / Átomo -->
-        <div class="atomic-card-top-meta">
-          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <span class="atomic-tag-badge" style="${chunkBadgeStyle}">${chunkBadgeText}</span>
-            <button class="atomic-deck-link-chip btn-change-topic-deck" data-topic-id="${topic.id}" title="Toca para cambiar de baraja vinculada" style="border:none; cursor:pointer;">🎴 Baraja: ${escapeAttr(deckName)} ✎</button>
+      <!-- Barra de Progreso Superior Immersiva -->
+      <div class="atomic-study-progress-bar" style="width: ${progressPercent}%;"></div>
+
+      <!-- Barra de Control Mínima Superior (Sin HUDs) -->
+      <header class="atomic-study-minimal-topbar">
+        <div class="atomic-study-badge ${badgeClass}">
+          <span>${chunkBadgeText}</span>
+        </div>
+        <div class="atomic-study-topbar-actions">
+          <button class="figma-icon-btn-ghost btn-toggle-orientation" title="Rotar pantalla" style="padding: 6px 10px; font-size: 0.95rem; border-radius: 8px;">
+            🔄📱
+          </button>
+          <button class="atomic-study-exit-btn" id="btn-exit-atomic-reading" title="Salir del estudio (se guarda tu avance)">
+            <span>✕ Salir</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Tarjeta Central de Lectura Atómica -->
+      <div class="atomic-reading-card-wrapper">
+        <article class="atomic-reading-card" style="animation: atomSlideFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+          <h2 class="atomic-chunk-headline">${escapeHtml(chunk.title)}</h2>
+
+          <div class="atomic-reading-content">
+            ${feynmanSandboxService.renderContentWithSandboxes(chunk.sourceContent, chunk.title)}
           </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <button class="figma-icon-btn-ghost btn-toggle-orientation" title="Rotar pantalla (Horizontal / Vertical)" style="padding: 6px 10px; font-size: 0.95rem; border-radius: 8px;">
-              🔄📱
+
+          <!-- SOLO DOS BOTONES: AGREGAR FLASHCARDS Y MAPA -->
+          <div class="atomic-dual-action-row">
+            <button class="btn-atomic-action-card" id="btn-atomic-add-card" title="Crear flashcard para este átomo">
+              <span class="btn-icon">➕</span>
+              <span class="btn-text">Agregar Flashcard</span>
+              <span class="btn-counter">(${chunkCards.length})</span>
             </button>
-            <button class="figma-btn-white-pill" id="btn-exit-atomic-reading" style="padding:6px 14px; font-size:0.8rem;">
-              ✕ Volver al Resumen
+
+            <button class="btn-atomic-action-map" id="btn-atomic-continue-mindmap" title="Ver esquema y mapa mental de este tema">
+              <span class="btn-icon">🧠</span>
+              <span class="btn-text">Mapa</span>
             </button>
           </div>
-        </div>
 
-        <!-- Título del Bloque de Información -->
-        <h2 class="atomic-chunk-headline">${escapeHtml(chunk.title)}</h2>
-
-        <!-- Contenido Fuente Central con KaTeX, Fórmulas Científicas, Markdown y Simulador Interactivo en Vivo -->
-        <div class="atomic-reading-content">
-          ${feynmanSandboxService.renderContentWithSandboxes(chunk.sourceContent, chunk.title)}
-        </div>
-
-        <!-- Barra Inferior de Acciones Focalizadas -->
-        <div class="atomic-action-dock-centered">
-          <button class="btn-atomic-add-card" id="btn-atomic-add-card" title="Agregar flashcard vinculada a esta información">
-            <span style="font-size:1.2rem;">➕</span>
-            <span>Agregar Flashcard</span>
-            <span style="font-size:0.82rem; opacity:0.85;">(${chunkCards.length} en este bloque)</span>
-          </button>
-
-          <button class="btn-atomic-continue" id="btn-atomic-continue-mindmap" title="Continuar al mapa mental de este tema">
-            <span>Continuar al Mapa Mental</span>
-            <span style="font-size:1.1rem;">➔</span>
-          </button>
-        </div>
-
-        <!-- NAVEGACIÓN SECUENCIAL ELEGANTE ENTRE BLOQUES Y REQUISITO DE 3 FLASHCARDS POR NIVEL -->
-        <div class="feynman-atom-nav-bar">
-          <button class="feynman-atom-nav-btn" id="btn-atomic-prev" ${topic.currentChunkIndex === 0 ? 'disabled' : ''}>
-            <span>← Bloque Anterior</span>
-          </button>
-
-          <div class="atomic-level-progress-pill" style="background:${isLevelCardsDone ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)'}; color:${isLevelCardsDone ? '#34d399' : '#fbbf24'}; border:1px solid ${isLevelCardsDone ? 'rgba(52,211,153,0.3)' : 'rgba(251,191,36,0.3)'};">
-            <span>${isLevelCardsDone ? '✅' : '⚡'} ${mergedCards.length}/3 flashcards mínimas del nivel</span>
+          <!-- BOTÓN ABAJO DE CONTINUAR -->
+          <div class="atomic-continue-action-row">
+            ${
+              topic.currentChunkIndex > 0
+                ? `<button class="btn-atomic-prev-discrete" id="btn-atomic-prev" title="Volver al bloque anterior">
+                    <span>← Anterior</span>
+                   </button>`
+                : ''
+            }
+            <button class="btn-atomic-primary-continue" id="btn-atomic-next" title="Continuar al siguiente bloque de estudio">
+              <span>${nextBtnText}</span>
+              <span class="arrow-icon">➔</span>
+            </button>
           </div>
-
-          <button class="feynman-atom-nav-btn" id="btn-atomic-next" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.35); color:#38bdf8;">
-            <span>${nextBtnText}</span>
-          </button>
-        </div>
+        </article>
       </div>
     </div>
   `;
@@ -1219,10 +1229,22 @@ export function bindActiveStudyDashboardEvents(
     onRefresh();
   });
 
-  container.querySelector('#btn-exit-atomic-reading')?.addEventListener('click', () => {
-    activeStudyingTopicId = null;
+  container.querySelector('#btn-exit-atomic-reading')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     nativeService.triggerHaptics('light');
-    onRefresh();
+    const chunkTitle = topic.chunks[topic.currentChunkIndex]?.title || `Átomo ${topic.currentChunkIndex + 1}`;
+    dialogService.showConfirm({
+      title: '¿Estás seguro de salir?',
+      message: `Tu avance se guardará exactamente en "${chunkTitle}" para que retomes el estudio donde te quedaste.`,
+      confirmText: 'Sí, salir',
+      cancelText: 'Seguir estudiando',
+      onConfirm: () => {
+        activeStudyService.setCurrentChunk(topic.id, topic.currentChunkIndex);
+        activeStudyingTopicId = null;
+        onRefresh();
+      }
+    });
   });
 
   const currentChunk = topic.chunks[topic.currentChunkIndex] || topic.chunks[0];
@@ -1252,21 +1274,23 @@ export function bindActiveStudyDashboardEvents(
     onOpenMindMap?.(topic.id);
   });
 
-  // Navegación entre átomos con animación y guardado de estado
-  container.querySelector('#btn-atomic-prev')?.addEventListener('click', () => {
+  // Navegación entre átomos con guardado inmediato y animación
+  container.querySelector('#btn-atomic-prev')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (topic.currentChunkIndex > 0) {
       nativeService.triggerHaptics('light');
-      topic.currentChunkIndex--;
-      activeStudyService.saveToStorage();
+      activeStudyService.setCurrentChunk(topic.id, topic.currentChunkIndex - 1);
       onRefresh();
     }
   });
 
-  container.querySelector('#btn-atomic-next')?.addEventListener('click', () => {
+  container.querySelector('#btn-atomic-next')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     nativeService.triggerHaptics('light');
     if (topic.currentChunkIndex + 1 < topic.chunks.length) {
-      topic.currentChunkIndex++;
-      activeStudyService.saveToStorage();
+      activeStudyService.setCurrentChunk(topic.id, topic.currentChunkIndex + 1);
       onRefresh();
     } else {
       activeStudyService.updateTopicState(topic.id, 'BUILDING_OUTLINE');
@@ -2555,6 +2579,10 @@ function escapeHtml(str: string): string {
 
 function escapeAttr(str: string): string {
   return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+export function isActivelyStudying(): boolean {
+  return activeStudyingTopicId !== null;
 }
 
 // Compatibilidad retroactiva

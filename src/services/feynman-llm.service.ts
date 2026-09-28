@@ -1400,17 +1400,20 @@ export default App;
           let atomContent = `### ${sub.concept}\n\n`;
 
           if (sub.intuition) {
-            atomContent += `**Intuición / Principio Clave:**\n${sub.intuition}\n\n`;
-          } else if (sub.keyIdea) {
-            atomContent += `**Idea Clave:**\n${sub.keyIdea}\n\n`;
+            atomContent += `💡 **Intuición Feynman / Principio Clave:**\n${sub.intuition}\n\n`;
+          }
+
+          if (sub.keyIdea) {
+            atomContent += `🧠 **Idea Clave / Explicación Formal:**\n${sub.keyIdea}\n\n`;
           }
 
           if (sub.mechanism) {
-            atomContent += `**Mecanismo Operativo / Físico:**\n${sub.mechanism}\n\n`;
+            atomContent += `⚡ **Cadena Causal / Secuencia Operativa:**\n${sub.mechanism}\n\n`;
           }
 
           if (sub.equation && sub.equation.trim()) {
             const cleanEq = sub.equation.trim();
+            atomContent += `📐 **Formalismo Matemático / Fórmulas:**\n`;
             if (cleanEq.startsWith('$$') || cleanEq.startsWith('$')) {
               atomContent += `${cleanEq}\n\n`;
             } else {
@@ -1419,11 +1422,18 @@ export default App;
           }
 
           if (sub.boundaryCondition && sub.boundaryCondition.trim()) {
-            atomContent += `> ⚠️ **Condición Límite / Caso Extremo:** ${sub.boundaryCondition}\n\n`;
+            atomContent += `> ⚠️ **Condición Límite / Caso Extremo:**\n> ${sub.boundaryCondition}\n\n`;
           }
 
+          // Transición Sinérgica / Puente entre índices (números: X.1 -> X.2)
+          const nextSub = subIdx + 1 < lvl.sublevels.length ? lvl.sublevels[subIdx + 1] : null;
+          const nextSubNum = nextSub ? (nextSub.sublevelNumber || `${lvl.levelNumber}.${subIdx + 2}`) : null;
+          const nextConcept = nextSub ? nextSub.concept : null;
+
           if (sub.synergicTransition && sub.synergicTransition.trim()) {
-            atomContent += `> 🔗 **Transición Sinérgica:** ${sub.synergicTransition}\n\n`;
+            atomContent += `> 🔗 **Transición Sinérgica hacia Átomo ${nextSubNum || ''}:**\n> ${sub.synergicTransition}\n\n`;
+          } else if (nextSubNum && nextConcept) {
+            atomContent += `> 🔗 **Transición Sinérgica hacia Átomo ${nextSubNum}:**\n> Al dominar **${sub.concept}**, se sientan las bases necesarias para abordar **${nextConcept}**, asegurando un aprendizaje continuo sin lagunas conceptuales.\n\n`;
           }
 
           // En el último subnivel del nivel, simulador React + TSX si existe

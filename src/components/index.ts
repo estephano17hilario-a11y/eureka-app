@@ -13,7 +13,8 @@ export {
   bindActiveStudyDashboardEvents,
   openCreateTopicModal,
   POPULAR_SUBJECTS,
-  getSubjectInfo
+  getSubjectInfo,
+  isActivelyStudying
 } from './ActiveStudyView';
 export { UltraFastMindMap } from './UltraFastMindMap';
 export { StudySession } from './StudySession';
