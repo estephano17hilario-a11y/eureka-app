@@ -122,12 +122,39 @@ class EurekaFigmaApp {
     this.render();
 
     // 2. Transmisión Automática entre Navegadores y Dispositivos:
-    // Al volver a enfocar la ventana o periódicamente cada 3.5 segundos, sincronizar con el servidor para reflejar cambios
+    // Sincronización inteligente con comprobación de versión de bajo peso cada 5 segundos y sincronización inmediata al enfocar
     let isPolling = false;
-    const pollRemoteSync = async () => {
+    let lastVersionState = { decks: 0, cards: 0, settings: 0 };
+
+    const pollRemoteSync = async (force: boolean = false) => {
       if (isPolling || this.currentView === 'study' || isActivelyStudying()) return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+
+      const user = eurekaBackend.getCurrentUser();
+      // Si no hay cuenta registrada iniciada (modo invitado offline), no saturar
+      if (!user || user.id.startsWith('guest_')) return;
+
       isPolling = true;
       try {
+        if (!force) {
+          const version = await eurekaBackend.fetchSyncVersion();
+          if (version) {
+            const hasNewDecks = version.decksUpdatedAt > lastVersionState.decks;
+            const hasNewCards = version.cardsUpdatedAt > lastVersionState.cards;
+            const hasNewSettings = version.settingsUpdatedAt > lastVersionState.settings;
+
+            if (!hasNewDecks && !hasNewCards && !hasNewSettings && lastVersionState.decks > 0) {
+              return; // Sin cambios en el servidor, no descargar datos innecesarios
+            }
+
+            lastVersionState = {
+              decks: version.decksUpdatedAt || 0,
+              cards: version.cardsUpdatedAt || 0,
+              settings: version.settingsUpdatedAt || 0
+            };
+          }
+        }
+
         await Promise.all([
           deckService.syncWithCloud(),
           activeStudyService.syncWithCloud()
@@ -140,16 +167,16 @@ class EurekaFigmaApp {
 
     if (typeof window !== 'undefined') {
       window.addEventListener('focus', () => {
-        pollRemoteSync();
+        pollRemoteSync(true);
       });
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          pollRemoteSync();
+          pollRemoteSync(true);
         }
       });
       setInterval(() => {
-        pollRemoteSync();
-      }, 3500);
+        pollRemoteSync(false);
+      }, 5000);
     }
   }
 

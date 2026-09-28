@@ -160,63 +160,10 @@ class EurekaBackendService {
   }
 
   public async ensureActiveAccount(): Promise<AuthUser | null> {
-    // Si el usuario ya está conectado a una cuenta real registrada (no guest)
-    if (this.currentUser && !this.currentUser.id.startsWith('guest_') && this.currentUser.id !== 'default') {
-      return this.currentUser;
+    if (!this.currentUser) {
+      await this.restoreSession();
     }
-
-    // Detectar si hay una cuenta registrada activa en el VPS para conectar automáticamente este dispositivo
-    const primary = await this.fetchPrimaryAccount();
-    if (primary) {
-      this.currentUser = primary;
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(primary));
-      if (typeof Preferences !== 'undefined') {
-        Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(primary) }).catch(() => {});
-      }
-      this.notifyAuthListeners();
-      return primary;
-    }
-
     return this.currentUser;
-  }
-
-  public async fetchPrimaryAccount(): Promise<AuthUser | null> {
-    try {
-      const res = await apiFetch<{ user?: any }>('/api/auth/primary-account');
-      if (!res.ok || !res.data?.user) return null;
-      const u = res.data.user;
-      return {
-        id: u.id,
-        email: u.device_id || u.email || 'user@eureka.local',
-        username: u.username || 'Estudiante',
-        avatarUrl: u.avatar_url || u.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(u.username || 'User')}`,
-        xp: u.xp || 0,
-        level: u.level || 1,
-        streakDays: u.streak_days || u.streakDays || 1,
-        createdAt: u.created_at || u.createdAt || new Date().toISOString()
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  public async fetchAccounts(): Promise<AuthUser[]> {
-    try {
-      const res = await apiFetch<{ accounts?: any[] }>('/api/auth/accounts');
-      if (!res.ok || !Array.isArray(res.data?.accounts)) return [];
-      return res.data.accounts.map((u: any) => ({
-        id: u.id,
-        email: u.email || u.device_id || '',
-        username: u.username || 'Estudiante',
-        avatarUrl: u.avatar_url || u.avatarUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(u.username || 'User')}`,
-        xp: u.xp || 0,
-        level: u.level || 1,
-        streakDays: u.streak_days || u.streakDays || 1,
-        createdAt: u.updated_at || u.created_at || new Date().toISOString()
-      }));
-    } catch {
-      return [];
-    }
   }
 
   public async fetchSyncVersion(): Promise<{ decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number } | null> {
@@ -230,15 +177,6 @@ class EurekaBackendService {
     } catch {
       return null;
     }
-  }
-
-  public selectAccount(user: AuthUser): void {
-    this.currentUser = user;
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    if (typeof Preferences !== 'undefined') {
-      Preferences.set({ key: AUTH_STORAGE_KEY, value: JSON.stringify(user) }).catch(() => {});
-    }
-    this.notifyAuthListeners();
   }
 
   private getOrCreateDeviceId(): string {

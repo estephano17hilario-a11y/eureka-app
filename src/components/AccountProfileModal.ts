@@ -24,7 +24,7 @@ export function openAccountProfileModal(options: AccountProfileModalOptions): vo
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size:1.2rem;">👤</span>
-            <h2 style="font-size:1.25rem; font-weight:900; color:#fff; margin:0;">Centro de Cuentas</h2>
+            <h2 style="font-size:1.25rem; font-weight:900; color:#fff; margin:0;">Perfil y Cuenta</h2>
           </div>
           <button type="button" id="btn-close-account-modal" class="figma-icon-btn-ghost" style="width:32px; height:32px; font-size:1.1rem; border-radius:50%;">✕</button>
         </div>
@@ -42,14 +42,14 @@ export function openAccountProfileModal(options: AccountProfileModalOptions): vo
                   ${currentUser?.username || 'Invitado (Local)'}
                 </h3>
                 <span style="font-size:0.7rem; font-weight:800; background:${isGuest ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.2)'}; color:${isGuest ? '#f59e0b' : '#10b981'}; border:1px solid ${isGuest ? 'rgba(245,158,11,0.4)' : 'rgba(16,185,129,0.4)'}; padding:2px 8px; border-radius:999px;">
-                  ${isGuest ? 'Modo Local' : '🟢 Sincronizado'}
+                  ${isGuest ? 'Modo Local' : '🟢 Sincronizado en la Nube'}
                 </span>
               </div>
               <div style="font-size:0.8rem; color:var(--f-text-secondary); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                ${isGuest ? 'Datos en este dispositivo' : (currentUser?.email || 'Cuenta Eureka')}
+                ${isGuest ? 'Datos guardados en este dispositivo' : (currentUser?.email || 'Cuenta Eureka')}
               </div>
               <div style="font-size:0.75rem; color:#38bdf8; margin-top:4px; font-weight:600;">
-                Base de Datos: Servidor VPS PostgreSQL
+                Servidor: Eureka VPS (89.117.73.97)
               </div>
             </div>
           </div>
@@ -71,23 +71,26 @@ export function openAccountProfileModal(options: AccountProfileModalOptions): vo
           </div>
         </div>
 
-        <!-- Conmutador Rápido de Cuentas (Cuentas Registradas en VPS) -->
-        <div style="margin-bottom:20px;">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-            <span style="font-size:0.8rem; font-weight:800; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em;">
-              Cuentas en este Servidor (Sincronización Universal)
-            </span>
-            <span id="account-loading-spinner" style="font-size:0.75rem; color:var(--f-blue);">Cargando... ⏳</span>
+        <!-- Estado de Sincronización y Acciones -->
+        <div style="margin-bottom:20px; padding:14px; border-radius:18px; background:rgba(255,255,255,0.03); border:1px solid var(--f-border);">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <span style="font-size:0.82rem; font-weight:800; color:#fff;">⚡ Sincronización en Tiempo Real</span>
+            <span id="sync-status-badge" style="font-size:0.72rem; font-weight:700; color:#10b981;">Activo</span>
           </div>
-
-          <div id="vps-accounts-list-container" style="display:flex; flex-direction:column; gap:8px; min-height:60px;">
-            <div style="text-align:center; padding:16px; color:var(--f-text-muted); font-size:0.85rem;">
-              Buscando cuentas en el servidor VPS...
-            </div>
-          </div>
+          <p style="font-size:0.78rem; color:var(--f-text-muted); margin:0 0 10px 0; line-height:1.4;">
+            Tus mazos, tarjetas, avances y mapas mentales se sincronizan automáticamente con tu cuenta en el servidor central.
+          </p>
+          <button 
+            type="button" 
+            id="btn-force-sync" 
+            class="apple-btn-outline-pill" 
+            style="width:100%; padding:9px; font-size:0.82rem; font-weight:700; justify-content:center; border-radius:12px;"
+          >
+            🔄 Forzar Sincronización Ahora
+          </button>
         </div>
 
-        <!-- Botones de Acción -->
+        <!-- Botones de Cuenta -->
         <div style="display:flex; flex-direction:column; gap:10px;">
           <button 
             type="button" 
@@ -95,7 +98,7 @@ export function openAccountProfileModal(options: AccountProfileModalOptions): vo
             class="figma-btn-blue-pill" 
             style="width:100%; padding:13px; font-size:0.95rem; font-weight:800; justify-content:center; border-radius:14px; box-shadow:0 6px 20px rgba(56,189,248,0.35);"
           >
-            ➕ Iniciar Sesión / Crear Nueva Cuenta
+            ${isGuest ? '🔐 Iniciar Sesión / Crear Cuenta' : '🔄 Cambiar de Cuenta'}
           </button>
 
           ${
@@ -121,8 +124,7 @@ export function openAccountProfileModal(options: AccountProfileModalOptions): vo
   document.body.insertAdjacentHTML('beforeend', modalHtml);
 
   const modalRoot = document.getElementById('modal-eureka-account-profile') as HTMLElement;
-  const accountsContainer = document.getElementById('vps-accounts-list-container') as HTMLElement;
-  const spinner = document.getElementById('account-loading-spinner') as HTMLElement;
+  const btnForceSync = document.getElementById('btn-force-sync') as HTMLElement;
 
   const closeModal = () => {
     modalRoot.remove();
@@ -130,6 +132,20 @@ export function openAccountProfileModal(options: AccountProfileModalOptions): vo
   };
 
   document.getElementById('btn-close-account-modal')?.addEventListener('click', closeModal);
+
+  // Sincronización manual en 1 clic
+  btnForceSync?.addEventListener('click', async () => {
+    btnForceSync.textContent = 'Sincronizando... ⏳';
+    try {
+      await deckService.syncWithCloud();
+      btnForceSync.textContent = '✓ ¡Sincronizado con éxito!';
+      setTimeout(() => {
+        if (btnForceSync) btnForceSync.textContent = '🔄 Forzar Sincronización Ahora';
+      }, 2000);
+    } catch {
+      btnForceSync.textContent = '⚠️ Error de sincronización';
+    }
+  });
 
   // Abrir modal de Login / Registro
   document.getElementById('btn-open-login-register')?.addEventListener('click', () => {
@@ -147,81 +163,5 @@ export function openAccountProfileModal(options: AccountProfileModalOptions): vo
     await eurekaBackend.signOut();
     modalRoot.remove();
     options.onAccountChanged(null);
-  });
-
-  // Cargar lista de cuentas desde el servidor VPS
-  eurekaBackend.fetchAccounts().then((accounts) => {
-    if (spinner) spinner.style.display = 'none';
-    if (!accountsContainer) return;
-
-    if (accounts.length === 0) {
-      accountsContainer.innerHTML = `
-        <div style="text-align:center; padding:14px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px dashed var(--f-border); color:var(--f-text-muted); font-size:0.82rem;">
-          No hay otras cuentas registradas aún. ¡Crea una para compartir datos con tu teléfono y la web!
-        </div>
-      `;
-      return;
-    }
-
-    accountsContainer.innerHTML = accounts.map((acc) => {
-      const isCurrent = currentUser?.id === acc.id || currentUser?.email === acc.email;
-      const deckCount = (acc as any).deck_count ?? 0;
-
-      return `
-        <div style="display:flex; align-items:center; justify-content:space-between; background:${isCurrent ? 'rgba(56,189,248,0.12)' : 'rgba(255,255,255,0.03)'}; border:1px solid ${isCurrent ? 'rgba(56,189,248,0.4)' : 'rgba(255,255,255,0.08)'}; padding:10px 14px; border-radius:14px; transition:all 0.15s;">
-          <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
-            <img src="${acc.avatarUrl}" style="width:36px; height:36px; border-radius:10px; background:#1e293b; flex-shrink:0;" />
-            <div style="min-width:0; flex:1;">
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-weight:800; color:#fff; font-size:0.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                  ${acc.username}
-                </span>
-                ${isCurrent ? '<span style="font-size:0.68rem; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.2); padding:1px 6px; border-radius:999px;">Activa</span>' : ''}
-              </div>
-              <div style="font-size:0.74rem; color:var(--f-text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                ${acc.email || 'Cuenta Eureka'} • ${deckCount} mazos
-              </div>
-            </div>
-          </div>
-
-          ${
-            isCurrent
-              ? `
-            <span style="color:#10b981; font-size:0.82rem; font-weight:800; padding:4px 8px;">
-              ✓ Conectado
-            </span>
-          `
-              : `
-            <button type="button" class="btn-quick-switch-account figma-btn-blue-pill" data-account-id="${acc.id}" style="padding:6px 14px; font-size:0.8rem; border-radius:10px; font-weight:700; flex-shrink:0;">
-              ⚡ Conectar
-            </button>
-          `
-          }
-        </div>
-      `;
-    }).join('');
-
-    // Eventos de conexión rápida
-    accountsContainer.querySelectorAll('.btn-quick-switch-account').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const id = (btn as HTMLElement).dataset.accountId;
-        const target = accounts.find((a) => a.id === id);
-        if (target) {
-          btn.textContent = 'Conectando...';
-          await eurekaBackend.selectAccount(target);
-          modalRoot.remove();
-          options.onAccountChanged(target);
-        }
-      });
-    });
-  }).catch(() => {
-    if (spinner) spinner.style.display = 'none';
-    if (accountsContainer) {
-      accountsContainer.innerHTML = `
-        <div style="text-align:center; padding:12px; color:var(--f-text-muted); font-size:0.82rem;">
-          No se pudieron cargar cuentas adicionales del servidor.
-        </div>
-      `;
-    }
   });
 }
