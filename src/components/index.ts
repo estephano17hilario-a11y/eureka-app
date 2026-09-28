@@ -40,6 +40,7 @@ export { UniversalSymbolSelectorDrawer } from './UniversalSymbolSelectorDrawer';
 
 // 5. Layout, Navegación, Ajustes & Autenticación
 export { renderFigmaHeader, type FigmaMainTab } from './FigmaHeader';
+export { renderEurekaBottomNav } from './EurekaBottomNav';
 export { renderFigmaAppSettingsView, bindFigmaAppSettingsViewEvents } from './FigmaAppSettingsView';
 export { renderFigmaAlgorithmSelectorView, bindFigmaAlgorithmSelectorViewEvents } from './FigmaAlgorithmSelectorView';
 export { renderFigmaLearningPhaseView, bindFigmaLearningPhaseViewEvents } from './FigmaLearningPhaseView';

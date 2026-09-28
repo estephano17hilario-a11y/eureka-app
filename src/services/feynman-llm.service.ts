@@ -357,11 +357,11 @@ export class FeynmanLlmService {
     const specificFocus = form.specificFocus?.trim() || 'fundamentos y aplicaciones avanzadas';
     const prev = form.previousKnowledge?.trim();
 
-    const levelBlueprints = this.buildTopicProgressionBlueprints(topic, levelsCount, form.currentLevel, specificFocus, prev);
+    const levelBlueprints = this.buildTopicProgressionBlueprints(topic, levelsCount, form.currentLevel, specificFocus, prev, form.subject);
 
     let doc = `# Visión Holística & Hoja de Ruta Feynman: ${topic}\n\n`;
     doc += `- **Problemática Global & Panorama:** Dominar ${topic} requiere desarticular sus componentes primarios y reconstruir paso a paso la cadena de causalidad sin recurrir a memorización ciega.\n`;
-    doc += `- **Estrategia Lógica de Solución (Step-by-Step):** A través de ${levelsCount} niveles de dificultad incremental, exploraremos los principios irreducibles, formalismos matemáticos exactos y simulaciones interactivas en vivo para consolidar un entendimiento intuitivo y técnico.\n`;
+    doc += `- **Estrategia Lógica de Solución (Step-by-Step):** A través de ${levelsCount} niveles de dificultad incremental, exploraremos los principios irreducibles, razonamiento intuitivo paso a paso y simulaciones interactivas en vivo para consolidar un entendimiento profundo y práctico.\n`;
     doc += `- **Puente hacia el Nivel 1:** Iniciamos el recorrido en el Nivel 1 estableciendo el axioma fundamental que actuará como base y trampolín cognitivo de toda la materia.\n\n---\n\n`;
 
     levelBlueprints.forEach((blueprint, index) => {
@@ -453,7 +453,8 @@ export class FeynmanLlmService {
     count: number,
     _currentLvl: number,
     focus: string,
-    _previous?: string
+    _previous?: string,
+    subject?: string
   ): Array<{
     title: string;
     axiom: string;
@@ -471,37 +472,69 @@ export class FeynmanLlmService {
     bottleneck?: string;
     examQuestions: FeynmanQuizQuestion[];
   }> {
-    const progressionNames = [
-      `Axioma Cero de ${topic}: El Estado Discreto Irreducible`,
-      `Partición Atómica: Identificación de Entidades y Simetrías`,
-      `El Primer Flujo: Dinámica de Interacción y Transmisión de Fuerza`,
-      `Estructura y Conservación: Invariantes y Leyes de Equilibrio`,
-      `Transformación de Fase: Mecanismo de Bifurcación y Respuesta`,
-      `El Cuello de Botella de la Escala: Límites de Rendimiento Asintótico`,
-      `Topología de Redes y Condiciones de Frontera en ${topic}`,
-      `Optimización Numérica y Minimización de Disipación Entrópica`,
-      `Aislamiento Modular y Abstracciones de Alto Orden`,
-      `Síntesis Holística: Orquestación Global de ${topic}`,
-      `Resiliencia Estocástica: Manejo de Ruido y Caos Determinista`,
-      `Concurrencia Axiomática y Paralelismo en ${focus}`,
-      `Telemetría de Primeros Principios y Métricas Tensoriales`,
-      `Verificación Formal de Invariantes y Contratos Lógicos`,
-      `Arquitectura de Tolerancia a Fallos y Autocuración Dinámica`,
-      `Protocolos de Comunicación y Consenso Invariante`,
-      `Minimización de Latencia y Compresión de Estados Críticos`,
-      `Inversión de Control y Desacoplamiento Ultra-Profundo`,
-      `Evaluación Probabilística y Convergencia de Lyapunov`,
-      `El Horizonte de Maestría: Síntesis No Conjetural del Estado del Arte`
-    ].slice(0, count);
+    const tLower = topic.toLowerCase();
+    const sLower = (subject || '').toLowerCase();
+    const isLogic = tLower.includes('conector') || tLower.includes('logic') || tLower.includes('proposic') || tLower.includes('boole') || tLower.includes('tabla de verdad');
+    const isMathPhysics = (sLower.includes('fisic') || sLower.includes('ingenier') || sLower.includes('matemat')) && !isLogic;
+
+    const progressionNames = isLogic
+      ? [
+          `Axioma Cero de ${topic}: Proposiciones Simples y Estados de Verdad (V / F)`,
+          `Conjunción Lógica (Y): Intersección Estricta de Condiciones`,
+          `Disyunción Inclusiva (O): Apertura de Alternativas`,
+          `Negación Lógica (NO): Inversión Directa del Valor de Verdad`,
+          `Condicional Material (Si... entonces): Causalidad e Hipótesis`,
+          `Bicondicional (Si y solo si): Equivalencia y Doble Condición`,
+          `Disyunción Exclusiva (XOR): Opciones Mutuamente Excluyentes`,
+          `Tablas de Verdad: Evaluación Sistemática y Exhaustiva`,
+          `Leyes de De Morgan: Transformación y Dualidad Lógica`,
+          `Tautologías, Contradicciones y Validez Argumentativa`,
+          `Formas Normales: Conjuntiva (FNC) y Disyuntiva (FND)`,
+          `Simplificación de Fórmulas y Álgebra Proposicional`,
+          `Inferencia Lógica: Reglas de Modus Ponens y Modus Tollens`,
+          `Compuertas Lógicas Digitales: Implementación Física de Conectores`,
+          `Sistemas Formales y Consistencia Proposicional`,
+          `Resolución Lógica y Algoritmos de Decisión`,
+          `Razonamiento Deductivo en la Toma de Decisiones`,
+          `Paradojas Lógicas y Fronteras de la Autorreferencia`,
+          `Transición hacia Lógica de Predicados y Cuantificadores`,
+          `Maestría Holística del Pensamiento Lógico Formal`
+        ].slice(0, count)
+      : [
+          `Axioma Cero de ${topic}: Fundamento Primario Irreducible`,
+          `Partición Atómica: Componentes Esenciales y Relaciones Base`,
+          `Dinámica de Interacción: Flujo Causal entre Elementos`,
+          `Estructura y Coherencia: Principios de Estabilidad y Balance`,
+          `Mecanismos de Transición: Causa, Reacción y Consecuencia`,
+          `Factores Críticos y Escala: Límites de Operación y Alcance`,
+          `Interconexión y Fronteras: Integración en Red en ${topic}`,
+          `Optimización y Eficiencia: Refinamiento de Procesos`,
+          `Aislamiento y Modularidad: Abstracciones Funcionales`,
+          `Síntesis Holística: Orquestación Global de ${topic}`,
+          `Resiliencia y Adaptabilidad: Manejo de Variabilidad`,
+          `Aplicación Integral en ${focus}`,
+          `Métricas y Verificación de Principios Rectores`,
+          `Validación y Criterios de Coherencia Sistemática`,
+          `Resolución de Fallos y Diagnóstico Estructurado`,
+          `Comunicación y Protocolos de Coordinación`,
+          `Minimización de Fricción y Eficiencia Operativa`,
+          `Desacoplamiento y Flexibilidad Arquitectónica`,
+          `Análisis Comparativo y Toma de Decisiones Informada`,
+          `El Horizonte de Maestría: Dominio Global del Estado del Arte`
+        ].slice(0, count);
 
     return progressionNames.map((name, i) => {
       const lvl = i + 1;
       const isFirst = lvl === 1;
 
       const title = name;
-      const axiom = isFirst
-        ? `Imagina ${topic} no como un dogma abstracto de definiciones aisladas, sino como un tablero físico de partículas en equilibrio dinámico. Todo en este dominio se reduce a un axioma primario irreducible: una entidad indivisible cuyo estado interno cambia única y exclusivamente cuando recibe un cuanto de energía o impulso exterior medible. Al igual que una molécula de agua permanece en reposo hasta que un fotón excita su enlace térmico, cualquier fenómeno en ${topic} se rige por esta conservación fundamental.`
-        : `Para comprender "${title}", visualiza un sistema de engranajes acoplados con retroalimentación continua: cada transición de estado en el nivel anterior altera la tensión de la red circundante. En este nivel axiomático no introducimos conjeturas: formalizamos la ley matemática exacta que describe cómo los subsistemas interactúan para producir una respuesta global emergente y verificable.`;
+      const axiom = isLogic
+        ? (isFirst
+            ? `Imagina los conectores lógicos como las vías de un tren o los cables de un circuito: una afirmación o proposición solo puede ser Verdadera ($1$) o Falsa ($0$), sin términos medios. Los conectores son las compuertas que combinan estas certezas para tomar decisiones infalibles sin ambigüedad ni complicaciones innecesarias.`
+            : `Al ascender a "${title}", observamos cómo la combinación de operadores elementales genera reglas compuestas de deducción: cada paso valida rigurosamente la coherencia del razonamiento antes de avanzar al siguiente átomo lógico.`)
+        : (isFirst
+            ? `Para comprender ${topic} desde sus primeros principios, partimos de su unidad más elemental y pura: un concepto irreducible que opera como cimiento de todo el campo. Ningún principio superior tiene sentido si no comprendemos con nitidez cristalina este primer punto de partida.`
+            : `En "${title}", construimos sobre lo asimilado en la etapa previa, articulando los mecanismos funcionales que permiten entender cómo los componentes de ${topic} colaboran de forma armónica y predecible.`);
 
       const sublevelCount = 6 + (i % 5); // 6 a 10 subniveles por nivel
       const sublevels: Array<{
@@ -514,75 +547,134 @@ export class FeynmanLlmService {
         imgUrl?: string;
       }> = [];
 
-      const atomicConcepts = [
-        {
-          title: `Estado Discreto y Cuantización Fundamental`,
-          idea: `El sistema solo habita configuraciones estables bien definidas, sin estados intermedios.`,
-          mechanism: `Un estímulo cruza el umbral crítico y el estado salta instantáneamente al siguiente nivel estable.`,
-          equation: `E_n = n \\hbar \\omega_0`,
-          intuition: `Como los peldaños de una escalera: solo puedes pararte firme en un escalón a la vez.`
-        },
-        {
-          title: `Conservación Local e Invarianza de Flujo`,
-          idea: `En cualquier nodo cerrado, todo lo que entra es idéntico a lo que sale más la acumulación.`,
-          mechanism: `El flujo entrante aumenta la presión local y los canales adyacentes evacúan el exceso.`,
-          equation: `\\sum I_{in} = \\sum I_{out}`,
-          intuition: `Una manguera de agua: si no tiene fugas, sale exactamente la misma cantidad que entra.`
-        },
-        {
-          title: `Acoplamiento y Saturación Sigmoidal`,
-          idea: `La respuesta crece con el estímulo pero se frena suavemente al alcanzar la capacidad máxima.`,
-          mechanism: `Al inicio la respuesta es rápida; al agotarse los recursos libres, la tasa de cambio decae a cero.`,
-          equation: `S(x) = \\frac{1}{1 + e^{-x}}`,
-          intuition: `Una esponja absorbiendo agua: al principio absorbe rápido, pero llena ya no admite más.`
-        },
-        {
-          title: `Gradiente Causal y Mínima Acción`,
-          idea: `El cambio siempre ocurre en la dirección que reduce más rápido la tensión acumulada.`,
-          mechanism: `La diferencia de potencial genera una fuerza que empuja al sistema hacia el equilibrio más cercano.`,
-          equation: `\\vec{F} = -\\nabla V`,
-          intuition: `Una pelota rodando en un tazón: rueda directamente hacia el fondo sin dar rodeos.`
-        },
-        {
-          title: `Amortiguamiento y Resonancia Natural`,
-          idea: `La fricción natural disipa oscilaciones caóticas y preserva solo el ritmo fundamental.`,
-          mechanism: `La resistencia interna frena los movimientos bruscos y estabiliza la trayectoria en reposo.`,
-          equation: `\\ddot{x} + 2\\zeta \\omega_0 \\dot{x} + \\omega_0^2 x = 0`,
-          intuition: `El freno de una puerta: evita que azote dejándola cerrar suavemente en su marco.`
-        },
-        {
-          title: `Estabilidad de Retorno y Atractor Central`,
-          idea: `Toda perturbación temporal desaparece y el sistema regresa a su estado base de equilibrio.`,
-          mechanism: `Al ser desplazado, surgen fuerzas restauradoras proporcionales a la distancia del centro.`,
-          equation: `\\dot{V}(x) < 0`,
-          intuition: `Un tentetieso o muñeco porfiado: lo empujas hacia cualquier lado y siempre vuelve a quedar de pie.`
-        },
-        {
-          title: `Propagación en Red y Efecto Dominó`,
-          idea: `El cambio de un elemento individual se transmite en cadena a sus vecinos conectados.`,
-          mechanism: `El nodo perturbado altera su frontera, activando a los nodos adyacentes en secuencia causal.`,
-          intuition: `Fichas de dominó alineadas: empujas la primera y la energía cae en cascada sobre las demás.`
-        },
-        {
-          title: `Umbral de Bifurcación y Cambio de Régimen`,
-          idea: `Al superar un valor crítico, el sistema reorganiza su estructura en un nuevo patrón ordenado.`,
-          mechanism: `La acumulación de energía desestabiliza el patrón previo y fuerza una nueva simetría.`,
-          boundaryCondition: `Aplica únicamente cuando el gradiente térmico o de carga sobrepasa el umbral de ruptura.`,
-          intuition: `El agua al hervir: pasa de líquido calmo a burbujas dinámicas al cruzar 100°C.`
-        },
-        {
-          title: `Realimentación Negativa y Auto-Regulación`,
-          idea: `El resultado final frena a su propia causa para mantener el sistema dentro de límites seguros.`,
-          mechanism: `Un exceso de salida envía una señal inhibidora a la entrada reduciendo la producción.`,
-          intuition: `El termostato de un refrigerador: se apaga solo en cuanto alcanza la temperatura ideal.`
-        },
-        {
-          title: `Sincronización Coherente de Fase`,
-          idea: `Múltiples subsistemas independientes ajustan sus ritmos hasta operar en perfecta armonía.`,
-          mechanism: `Poco a poco, las pequeñas influencias mutuas cancelan los desfases y unifican el ciclo.`,
-          intuition: `Un grupo de aplausos en un teatro: tras unos segundos de desorden, todos aplauden al unísono.`
-        }
-      ];
+      const atomicConcepts: Array<{
+        title: string;
+        idea: string;
+        mechanism: string;
+        equation?: string;
+        boundaryCondition?: string;
+        intuition: string;
+      }> = isLogic
+        ? [
+            {
+              title: `Proposición Atómica y Bivalencia`,
+              idea: `Un enunciado declarativo claro que solo puede ser Verdadero o Falso, sin ambigüedades.`,
+              mechanism: `Se evalúa el enunciado frente a la realidad: si se cumple es Verdadero, de lo contrario Falso.`,
+              equation: `p \\in \\{V, F\\}`,
+              intuition: `Un interruptor de luz: o la lámpara está encendida o está apagada, no existe estado intermedio.`
+            },
+            {
+              title: `Conjunción (Conector "Y")`,
+              idea: `Es verdadera única y exclusivamente cuando todas sus proposiciones son simultáneamente verdaderas.`,
+              mechanism: `Ambas premisas deben cumplirse a la vez; con que una sola falle, toda la conjunción resulta falsa.`,
+              equation: `p \\land q`,
+              intuition: `Una puerta con dos candados: necesitas ambas llaves puestas para poder abrirla.`
+            },
+            {
+              title: `Disyunción Inclusiva (Conector "O")`,
+              idea: `Es verdadera si al menos una de las proposiciones es verdadera (incluyendo el caso de que ambas lo sean).`,
+              mechanism: `Basta con que una sola vía esté activa para que la verdad fluya a través de la expresión.`,
+              equation: `p \\lor q`,
+              intuition: `Dos caminos distintos que llevan a tu casa: con que al menos uno esté despejado, puedes llegar.`
+            },
+            {
+              title: `Negación (Conector "NO")`,
+              idea: `Invierte con exactitud el valor de verdad de la proposición original.`,
+              mechanism: `Transforma la verdad en falsedad y la falsedad en verdad de manera unívoca.`,
+              equation: `\\neg p`,
+              intuition: `Un espejo inversor: lo que entra blanco sale negro, y lo que entra negro sale blanco.`
+            },
+            {
+              title: `Condicional Material (Si... entonces)`,
+              idea: `Expresa un compromiso condicional: solo es falso si se cumple la condición pero se incumple la promesa.`,
+              mechanism: `Si el antecedente es verdadero, el consecuente debe cumplirse obligatoriamente para preservar la verdad.`,
+              equation: `p \\rightarrow q \\equiv \\neg p \\lor q`,
+              intuition: `La promesa "Si apruebas el examen, te invito a cenar". Solo rompes la promesa si apruebas y no te invitan.`
+            },
+            {
+              title: `Bicondicional (Si y solo si)`,
+              idea: `Verdadero únicamente cuando ambas proposiciones comparten exactamente el mismo valor de verdad.`,
+              mechanism: `Exige equivalencia mutua: ambas proposiciones deben ser verdaderas o ambas falsas al mismo tiempo.`,
+              equation: `p \\leftrightarrow q`,
+              intuition: `Dos niños en un balancín en equilibrio: están en el mismo nivel o ninguno está contento.`
+            },
+            {
+              title: `Disyunción Exclusiva (XOR)`,
+              idea: `Es verdadera cuando exactamente una de las dos proposiciones es verdadera, pero nunca ambas.`,
+              mechanism: `La presencia de una opción excluye forzosamente la presencia de la otra.`,
+              equation: `p \\oplus q`,
+              intuition: `El menú del día: "Sopa o Ensalada", donde solo puedes escoger una de las dos opciones.`
+            },
+            {
+              title: `Evaluación Mediante Tabla de Verdad`,
+              idea: `Comprobación sistemática de todas las combinaciones posibles de entradas para una fórmula lógica.`,
+              mechanism: `Permite comprobar de forma exhaustiva si una proposición compuesta es siempre verdadera, contingente o contradictoria.`,
+              equation: `2^n \\text{ filas evaluadas}`,
+              intuition: `Revisar metódicamente una lista de verificación paso a paso hasta no dejar ningún caso al azar.`
+            }
+          ]
+        : isMathPhysics
+        ? [
+            {
+              title: `Estado Base e Invarianza`,
+              idea: `El sistema permanece en su configuración de equilibrio hasta que un estímulo exterior actúa sobre él.`,
+              mechanism: `Las fuerzas internas se compensan exactamente manteniendo la magnitud conservada.`,
+              equation: `\\sum \\vec{F} = 0`,
+              intuition: `Un libro reposando sobre una mesa: la mesa sostiene exactamente el peso del libro.`
+            },
+            {
+              title: `Conservación de Flujo Local`,
+              idea: `Todo lo que ingresa a un nodo delimitado equivale a lo que sale más la tasa de acumulación.`,
+              mechanism: `El flujo entrante redistribuye energía a través de los canales adyacentes.`,
+              equation: `\\sum I_{in} = \\sum I_{out}`,
+              intuition: `Una tubería de agua sin fugas: la misma agua que entra es la que sale por el otro extremo.`
+            },
+            {
+              title: `Tasa de Cambio y Respuesta Proporcional`,
+              idea: `La magnitud de la respuesta del sistema es proporcional al impulso recibido.`,
+              mechanism: `Un gradiente genera una aceleración directa en la dirección del cambio.`,
+              equation: `F = m \\cdot a`,
+              intuition: `Empujar un carrito de compras: entre más fuerza aplicas, más rápido acelera.`
+            },
+            {
+              title: `Amortiguamiento y Estabilización`,
+              idea: `La disipación interna reduce gradualmente las perturbaciones hasta restaurar la calma.`,
+              mechanism: `La resistencia natural absorbe el exceso de energía y estabiliza el sistema.`,
+              equation: undefined,
+              intuition: `El amortiguador de una puerta que impide que azote fuertemente al cerrarse.`
+            }
+          ]
+        : [
+            // Dominio cualitativo / humanidades / general: CERO FÓRMULAS FORZADAS
+            {
+              title: `Fundamento Elemental y Propósito Esencial`,
+              idea: `El principio primario irreducible que define la naturaleza y razón de ser de este concepto.`,
+              mechanism: `Al establecerse esta premisa, se genera el marco conceptual indispensable para entender todo lo que sigue.`,
+              equation: undefined,
+              intuition: `Como los cimientos de un edificio: no se ven a simple vista, pero sostienen toda la estructura.`
+            },
+            {
+              title: `Relación Causal e Interacción Directa`,
+              idea: `Cómo un elemento influye sobre los demás transformando su estado o comportamiento.`,
+              mechanism: `Una acción concreta desencadena una serie de respuestas orgánicas en los componentes adyacentes.`,
+              equation: undefined,
+              intuition: `Una fila de libros de pie: empujar el primero inclina y mueve secuencialmente a los demás.`
+            },
+            {
+              title: `Criterio de Coherencia y Consistencia`,
+              idea: `Las reglas internas que garantizan que el sistema funcione sin contradicciones ni fricción.`,
+              mechanism: `Cada parte debe alinearse con el propósito común para mantener el funcionamiento continuo.`,
+              equation: undefined,
+              intuition: `Los integrantes de una orquesta tocando al mismo compás guiados por la misma partitura.`
+            },
+            {
+              title: `Límite Operativo y Margen de Validez`,
+              idea: `Las condiciones concretas bajo las cuales este principio se mantiene firme y dónde deja de aplicar.`,
+              mechanism: `Cuando las circunstancias externas superan el umbral previsto, el principio debe adaptarse.`,
+              equation: undefined,
+              intuition: `Un paraguas que funciona perfecto contra la lluvia suave, pero no resiste un huracán de viento.`
+            }
+          ];
 
       for (let s = 0; s < sublevelCount; s++) {
         const c = atomicConcepts[s % atomicConcepts.length];

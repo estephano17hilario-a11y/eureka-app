@@ -1,19 +1,13 @@
 import type { Deck, Flashcard, StudyRating } from '../types/flashcard';
+import { Capacitor } from '@capacitor/core';
 
-const isBrowser = typeof window !== 'undefined';
-const isVercelOrWeb = isBrowser && (
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '127.0.0.1' ||
-  window.location.hostname.endsWith('.localhost') ||
-  window.location.hostname.endsWith('.vercel.app') ||
-  window.location.protocol === 'https:'
-);
+export const REMOTE_VPS_URL = ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
 
-// En navegador (localhost o Vercel) usa la ruta relativa '' (enrutada por el proxy de Vite o Vercel rewrites)
-// Esto evita bloqueos de Brave Shields, adblockers, CORS o errores de contenido mixto HTTPS/HTTP
-export const API_BASE_URL = isVercelOrWeb
-  ? ''
-  : ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
+const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+
+// En la app nativa (Capacitor en Android/iOS), las peticiones deben viajar DIRECTAMENTE al servidor VPS.
+// En la web (Vercel o localhost de desarrollo con Vite proxy), las peticiones usan '' (relativo).
+export const API_BASE_URL = isNative ? REMOTE_VPS_URL : '';
 
 const AUTH_STORAGE_KEY = 'eureka_auth_session_v1';
 const LOCAL_USERS_KEY = 'eureka_local_registered_users_v1';

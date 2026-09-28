@@ -293,64 +293,108 @@ html, body {
   transform: scale(1.06);
 }
 
-/* Unified Top Navigation for Mobile (Dashboard arriba igual que en computadora) */
-.figma-top-nav-mobile {
-  display: none;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 4px 2px 12px 2px;
-  margin-top: -4px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid var(--f-border);
-  position: relative;
-  z-index: 20;
-}
-
-.figma-top-nav-mobile::-webkit-scrollbar {
+/* ==========================================================================
+   EUREKA MOBILE BOTTOM NAVIGATION (FROSTED GLASS MODERN DOCK)
+   ========================================================================== */
+.eureka-mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: rgba(9, 13, 22, 0.92);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 14px max(10px, env(safe-area-inset-bottom, 10px)) 14px;
+  box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.55), 0 -1px 0 rgba(255, 255, 255, 0.05);
   display: none;
 }
 
-.figma-top-nav-mobile .figma-nav-tab-btn {
-  display: inline-flex;
+.eureka-bottom-nav-inner {
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  padding: 8px 16px;
-  border-radius: var(--f-radius-full, 999px);
-  background: var(--f-surface-subtle, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--f-border, rgba(255, 255, 255, 0.1));
-  color: var(--f-text-secondary, #94a3b8);
-  font-size: 0.85rem;
-  font-weight: 700;
+  justify-content: space-around;
+  gap: 4px;
+}
+
+.eureka-bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  padding: 6px 4px;
+  color: var(--f-text-muted, #94a3b8);
   cursor: pointer;
+  border-radius: 14px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
-.figma-top-nav-mobile .figma-nav-tab-btn:hover {
-  background: rgba(255, 255, 255, 0.09);
+.eureka-nav-icon-wrap {
+  width: 42px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.eureka-bottom-nav-item svg {
+  stroke: currentColor;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.eureka-nav-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.eureka-bottom-nav-item:hover {
   color: #ffffff;
 }
 
-.figma-top-nav-mobile .figma-nav-tab-btn.active {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(59, 130, 246, 0.28));
-  border-color: rgba(56, 189, 248, 0.6);
+.eureka-bottom-nav-item.active {
+  color: #38bdf8;
+}
+
+.eureka-bottom-nav-item.active .eureka-nav-icon-wrap {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(59, 130, 246, 0.18));
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.32);
+  transform: translateY(-1px);
+}
+
+.eureka-bottom-nav-item.active .eureka-nav-label {
   color: #38bdf8;
   font-weight: 800;
-  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.22);
 }
 
-.figma-top-nav-mobile .figma-nav-tab-btn:active {
-  transform: scale(0.96);
+.eureka-bottom-nav-item:active {
+  transform: scale(0.92);
 }
 
-/* Obsoleted Mobile Bottom Navigation Bar (reemplazado por navegación superior unificada) */
-.mobile-bottom-nav {
-  display: none !important;
+@media screen and (max-width: 860px) {
+  .eureka-mobile-bottom-nav {
+    display: block !important;
+  }
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: flex !important;
+  }
+  .figma-app-layout {
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 10px));
+  }
 }
 
 /* ==========================================================================
@@ -5489,34 +5533,95 @@ math-field.cupertino-mathfield-input:focus-within {
   color: #38bdf8;
 }
 
-/* Botón Flotante Ergonómico de Centrado a Límites */
+/* Botón Flotante Ergonómico de Centrado a Límites (Azul, compacto, circular, esquina inferior derecha) */
 .mindmap-floating-fit-btn {
   position: absolute;
-  bottom: 84px;
-  right: 20px;
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  right: calc(22px + env(safe-area-inset-right, 0px));
   z-index: 120;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(56, 189, 248, 0.9));
+  justify-content: center;
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
   color: #07080d;
-  font-size: 0.85rem;
-  font-weight: 800;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 999px;
-  padding: 10px 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.45), 0 0 12px rgba(56, 189, 248, 0.3);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.5), 0 0 16px rgba(56, 189, 248, 0.4);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mindmap-floating-fit-btn svg {
+  stroke: #07080d;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mindmap-floating-fit-btn:hover {
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 12px 30px rgba(14, 165, 233, 0.65), 0 0 20px rgba(56, 189, 248, 0.5);
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 12px 30px rgba(2, 132, 199, 0.65), 0 0 24px rgba(56, 189, 248, 0.6);
 }
 
 .mindmap-floating-fit-btn:active {
-  transform: translateY(1px) scale(0.96);
+  transform: translateY(1px) scale(0.92);
+}
+
+/* iOS / Figma Toggle Switch */
+.figma-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 30px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.figma-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.figma-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 999px;
+}
+
+.figma-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.figma-toggle-switch input:checked + .figma-toggle-slider {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.figma-toggle-switch input:checked + .figma-toggle-slider:before {
+  transform: translateX(22px);
+  background-color: #ffffff;
 }
 
 /* Efecto de Flash/Highlight al Calzar Límites */

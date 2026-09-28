@@ -6,16 +6,66 @@ import { Preferences } from '@capacitor/preferences';
 import { SplashScreen } from '@capacitor/splash-screen';
 import type { DeviceStatus } from '../types';
 
+export type VibrationIntensity = 'light' | 'medium' | 'heavy';
+
 export class NativeService {
   private static instance: NativeService;
+  private vibrationEnabled: boolean = true;
+  private vibrationIntensity: VibrationIntensity = 'medium';
+  private notificationsEnabled: boolean = false;
+  private notificationTime: string = '20:00';
+  private isLandscape: boolean = false;
 
-  private constructor() {}
+  private constructor() {
+    this.restoreSettings();
+  }
 
   public static getInstance(): NativeService {
     if (!NativeService.instance) {
       NativeService.instance = new NativeService();
     }
     return NativeService.instance;
+  }
+
+  private async restoreSettings(): Promise<void> {
+    try {
+      const vibStored = localStorage.getItem('eureka_setting_vibration_enabled');
+      if (vibStored !== null) {
+        this.vibrationEnabled = vibStored === 'true';
+      }
+
+      const intensityStored = localStorage.getItem('eureka_setting_vibration_intensity') as VibrationIntensity;
+      if (intensityStored && ['light', 'medium', 'heavy'].includes(intensityStored)) {
+        this.vibrationIntensity = intensityStored;
+      }
+
+      const notifStored = localStorage.getItem('eureka_setting_notifications_enabled');
+      if (notifStored !== null) {
+        this.notificationsEnabled = notifStored === 'true';
+      }
+
+      const timeStored = localStorage.getItem('eureka_setting_notification_time');
+      if (timeStored) {
+        this.notificationTime = timeStored;
+      }
+
+      // Sincronización nativa con Preferences de Capacitor
+      const [prefVib, prefInt, prefNotif, prefTime] = await Promise.all([
+        Preferences.get({ key: 'eureka_setting_vibration_enabled' }).catch(() => ({ value: null })),
+        Preferences.get({ key: 'eureka_setting_vibration_intensity' }).catch(() => ({ value: null })),
+        Preferences.get({ key: 'eureka_setting_notifications_enabled' }).catch(() => ({ value: null })),
+        Preferences.get({ key: 'eureka_setting_notification_time' }).catch(() => ({ value: null }))
+      ]);
+
+      if (prefVib.value !== null) this.vibrationEnabled = prefVib.value === 'true';
+      if (prefInt.value && ['light', 'medium', 'heavy'].includes(prefInt.value as any)) {
+        this.vibrationIntensity = prefInt.value as VibrationIntensity;
+      }
+      if (prefNotif.value !== null) this.notificationsEnabled = prefNotif.value === 'true';
+      if (prefTime.value) this.notificationTime = prefTime.value;
+    } catch {
+      // Usar valores por defecto en fallback
+    }
   }
 
   /**
@@ -66,33 +116,132 @@ export class NativeService {
         platform,
         isNative,
         model: isNative ? 'Dispositivo Nativo' : 'Navegador Web',
-        osVersion: navigator.userAgent.includes('Windows') ? 'Windows' : 'Web Engine'
+        osVersion: typeof navigator !== 'undefined' && navigator.userAgent.includes('Windows') ? 'Windows' : 'Web Engine'
       };
     }
   }
 
+  // --- GESTIÓN DE VIBRACIÓN & RESPUESTA HÁPTICA ---
+
+  public getVibrationEnabled(): boolean {
+    return this.vibrationEnabled;
+  }
+
+  public setVibrationEnabled(enabled: boolean): void {
+    this.vibrationEnabled = enabled;
+    localStorage.setItem('eureka_setting_vibration_enabled', enabled ? 'true' : 'false');
+    Preferences.set({ key: 'eureka_setting_vibration_enabled', value: enabled ? 'true' : 'false' }).catch(() => {});
+    if (enabled) {
+      this.triggerHaptics('light');
+    }
+  }
+
+  public getVibrationIntensity(): VibrationIntensity {
+    return this.vibrationIntensity;
+  }
+
+  public setVibrationIntensity(intensity: VibrationIntensity): void {
+    this.vibrationIntensity = intensity;
+    localStorage.setItem('eureka_setting_vibration_intensity', intensity);
+    Preferences.set({ key: 'eureka_setting_vibration_intensity', value: intensity }).catch(() => {});
+    if (this.vibrationEnabled) {
+      this.triggerHaptics(intensity);
+    }
+  }
+
   /**
-   * Dispara una vibración háptica con soporte para dispositivos móviles y web.
+   * Dispara una vibración háptica calibrada a la intensidad y preferencia del usuario.
    */
   public async triggerHaptics(style: 'light' | 'medium' | 'heavy' | 'success' = 'medium'): Promise<void> {
+    if (!this.vibrationEnabled) return;
+
+    // Calibrar estilo según la intensidad global configurada
+    let effectiveStyle = style;
+    if (style !== 'success') {
+      if (this.vibrationIntensity === 'light') {
+        effectiveStyle = 'light';
+      } else if (this.vibrationIntensity === 'heavy') {
+        effectiveStyle = style === 'light' ? 'medium' : 'heavy';
+      }
+    }
+
     try {
-      if (style === 'success') {
+      if (effectiveStyle === 'success') {
         await Haptics.notification({ type: NotificationType.Success });
       } else {
         const impactStyle =
-          style === 'light'
+          effectiveStyle === 'light'
             ? ImpactStyle.Light
-            : style === 'heavy'
+            : effectiveStyle === 'heavy'
             ? ImpactStyle.Heavy
             : ImpactStyle.Medium;
         await Haptics.impact({ style: impactStyle });
       }
     } catch {
       // Fallback web: navigator.vibrate si está disponible
-      if ('vibrate' in navigator) {
-        navigator.vibrate(style === 'heavy' ? 40 : 20);
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        const duration = effectiveStyle === 'heavy' ? 45 : effectiveStyle === 'light' ? 12 : 25;
+        navigator.vibrate(duration);
       }
     }
+  }
+
+  // --- GESTIÓN DE NOTIFICACIONES Y RECORDATORIOS DE ESTUDIO ---
+
+  public getNotificationsEnabled(): boolean {
+    return this.notificationsEnabled;
+  }
+
+  public async setNotificationsEnabled(enabled: boolean): Promise<boolean> {
+    if (enabled) {
+      const granted = await this.requestNotificationPermission();
+      if (!granted) {
+        this.notificationsEnabled = false;
+        localStorage.setItem('eureka_setting_notifications_enabled', 'false');
+        Preferences.set({ key: 'eureka_setting_notifications_enabled', value: 'false' }).catch(() => {});
+        return false;
+      }
+    }
+    this.notificationsEnabled = enabled;
+    localStorage.setItem('eureka_setting_notifications_enabled', enabled ? 'true' : 'false');
+    Preferences.set({ key: 'eureka_setting_notifications_enabled', value: enabled ? 'true' : 'false' }).catch(() => {});
+    return true;
+  }
+
+  public getNotificationTime(): string {
+    return this.notificationTime;
+  }
+
+  public setNotificationTime(time: string): void {
+    this.notificationTime = time;
+    localStorage.setItem('eureka_setting_notification_time', time);
+    Preferences.set({ key: 'eureka_setting_notification_time', value: time }).catch(() => {});
+  }
+
+  public async requestNotificationPermission(): Promise<boolean> {
+    try {
+      if (typeof Notification !== 'undefined') {
+        const perm = await Notification.requestPermission();
+        return perm === 'granted';
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Envía una notificación local de prueba o recordatorio
+   */
+  public async scheduleTestNotification(): Promise<void> {
+    try {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        new Notification('🌟 Eureka - ¡Hora de Repasar!', {
+          body: 'Tienes tarjetas pendientes para consolidar en tu memoria a largo plazo.',
+          icon: '/favicon.ico'
+        });
+      }
+    } catch {}
   }
 
   /**
@@ -110,12 +259,8 @@ export class NativeService {
     return result.value;
   }
 
-  private isLandscape: boolean = false;
-
   /**
    * Alterna la orientación de la pantalla entre horizontal (Landscape) y vertical (Portrait)
-   * de forma nativa en Android y navegadores móviles con soporte W3C Screen Orientation,
-   * aplicando sincronización por clase CSS en documentElement.
    */
   public async toggleScreenOrientation(): Promise<boolean> {
     this.isLandscape = !this.isLandscape;

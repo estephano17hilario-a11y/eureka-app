@@ -807,13 +807,12 @@ export class UltraFastMindMap {
         <!-- 2. Lienzo SVG Acelerado por GPU (100vw / 100vh) -->
         <div id="mindmap-render-canvas" class="mindmap-canvas-container"></div>
 
-        <!-- Botón Flotante Ergonómico de Centrado Inmediato -->
-        <button class="mindmap-floating-fit-btn" id="btn-floating-fit" title="Centrar y ajustar límites de pantalla (Espacio / F)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Botón Flotante Ergonómico de Centrado Inmediato (Azul, compacto, sin texto, esquina inferior derecha) -->
+        <button class="mindmap-floating-fit-btn" id="btn-floating-fit" title="Centrar y encajar mapa mental (Espacio / F)" aria-label="Centrar mapa mental">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          <span>Centrar Vista</span>
         </button>
 
         <!-- 4. Overlay de Edición Directa Multilínea (Con saltos de reglón por Enter) -->
@@ -1267,16 +1266,15 @@ export class UltraFastMindMap {
     }
 
     // Preservación estricta de la posición de la cámara (Zoom y Pan)
-    // El mapa NUNCA debe resetear la vista al editar texto, cambiar temas/colores o añadir hijos/hermanos.
+    // Centrado automático garantizado por defecto al entrar al mapa mental
     const performInitialFitOnce = () => {
-      if (this.hasInitialFitDone || this.hasUserInteractedWithView || !this.mindMapInstance || this.isDestroyed || this.savedViewState) return;
+      if (this.hasInitialFitDone || this.hasUserInteractedWithView || !this.mindMapInstance || this.isDestroyed) return;
       this.hasInitialFitDone = true;
       this.fitToScreenBounds();
     };
 
     this.mindMapInstance.on('view_data_change', () => {
       this.hasUserInteractedWithView = true;
-      this.hasInitialFitDone = true;
       if (this.initialFitTimeout) {
         window.clearTimeout(this.initialFitTimeout);
         this.initialFitTimeout = null;
@@ -1309,21 +1307,17 @@ export class UltraFastMindMap {
         }
       }
 
-      // Solo si es la primera carga y no existe vista previa guardada, centrar una única vez
-      if (!this.hasInitialFitDone && !this.hasUserInteractedWithView && !this.savedViewState) {
+      // Centrado automático en la primera carga al renderizar el árbol
+      if (!this.hasInitialFitDone) {
         requestAnimationFrame(() => {
           performInitialFitOnce();
         });
       }
     });
 
-    if (!this.savedViewState) {
-      this.initialFitTimeout = window.setTimeout(() => {
-        performInitialFitOnce();
-      }, 100);
-    } else {
-      this.hasInitialFitDone = true;
-    }
+    this.initialFitTimeout = window.setTimeout(() => {
+      performInitialFitOnce();
+    }, 120);
 
     this.initKeyboardAdaptiveHandler();
   }

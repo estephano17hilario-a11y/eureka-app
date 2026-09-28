@@ -13,6 +13,7 @@ import { themeService } from './services/theme.service';
 import { eurekaBackend, type AuthUser } from './services/backend.service';
 import { openAuthModal } from './components/AuthModal';
 import { renderFigmaHeader, type FigmaMainTab } from './components/FigmaHeader';
+import { renderEurekaBottomNav } from './components/EurekaBottomNav';
 import { renderFigmaDeckList, bindFigmaDeckListEvents } from './components/FigmaDeckList';
 import { renderFigmaSubdeckList, bindFigmaSubdeckEvents } from './components/FigmaSubdeckList';
 import { renderFigmaDeckDashboard, bindFigmaDashboardEvents } from './components/FigmaDeckDashboard';
@@ -490,9 +491,10 @@ class EurekaFigmaApp {
     this.appElement.innerHTML = `
       <div class="figma-app-layout" id="main-layout-mount">
         ${showGlobalHeader ? renderFigmaHeader(this.currentTab) : ''}
-        <main>
+        <main class="figma-main-content">
           ${bodyHtml}
         </main>
+        ${showGlobalHeader ? renderEurekaBottomNav(this.currentTab) : ''}
       </div>
     `;
 
@@ -510,7 +512,7 @@ class EurekaFigmaApp {
     }
 
     // Header tabs & Mobile Bottom Nav items
-    layout.querySelectorAll<HTMLButtonElement>('.figma-nav-tab-btn, .mobile-nav-item').forEach((btn) => {
+    layout.querySelectorAll<HTMLButtonElement>('.figma-nav-tab-btn, .eureka-bottom-nav-item, .mobile-nav-item').forEach((btn) => {
       btn.addEventListener('click', () => {
         const tab = btn.dataset.tab as FigmaMainTab;
         if (tab && tab !== this.currentTab) {

@@ -70,25 +70,6 @@ export function renderFigmaHeader(activeTab: FigmaMainTab = 'flashcards'): strin
           </button>
         </div>
       </div>
-
-      <!-- Barra de Pestañas Superior Móvil (Dashboard en la parte SUPERIOR en celular y PC por igual) -->
-      <nav class="figma-top-nav-mobile mobile-only" aria-label="Navegación principal">
-        <button class="figma-nav-tab-btn ${isFlashcards ? 'active' : ''}" data-tab="flashcards">
-          <span>🎴 Flashcards</span>
-        </button>
-
-        <button class="figma-nav-tab-btn ${activeTab === 'estudio' ? 'active' : ''}" data-tab="estudio">
-          <span>🧠 Estudio</span>
-        </button>
-
-        <button class="figma-nav-tab-btn ${activeTab === 'biblioteca' ? 'active' : ''}" data-tab="biblioteca">
-          <span>📚 Biblioteca</span>
-        </button>
-
-        <button class="figma-nav-tab-btn ${activeTab === 'ajustes' ? 'active' : ''}" data-tab="ajustes">
-          <span>🎨 Estilo</span>
-        </button>
-      </nav>
     </header>
   `;
 }

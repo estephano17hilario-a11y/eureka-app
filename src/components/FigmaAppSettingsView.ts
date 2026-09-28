@@ -1,4 +1,5 @@
 import { themeService, type AppCustomizationTheme, type BgThemeType } from '../services/theme.service';
+import { nativeService, type VibrationIntensity } from '../services/native.service';
 
 export interface FigmaAppSettingsViewCallbacks {
   onBack: () => void;
@@ -7,6 +8,10 @@ export interface FigmaAppSettingsViewCallbacks {
 
 export function renderFigmaAppSettingsView(): string {
   const t = themeService.getTheme();
+  const vibrationEnabled = nativeService.getVibrationEnabled();
+  const vibrationIntensity = nativeService.getVibrationIntensity();
+  const notificationsEnabled = nativeService.getNotificationsEnabled();
+  const notificationTime = nativeService.getNotificationTime();
 
   return `
     <div class="ios-fullscreen-view">
@@ -16,18 +21,87 @@ export function renderFigmaAppSettingsView(): string {
         <button class="ios-back-btn" id="btn-app-settings-back">
           <span class="ios-back-chevron">‹</span> Volver
         </button>
-        <h1 class="ios-nav-title">Personalización & Estilo</h1>
+        <h1 class="ios-nav-title">Ajustes & Personalización</h1>
         <div style="width:60px;"></div>
       </div>
 
-      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:20px; padding-bottom:40px;">
+      <div class="ios-content-scroll" style="display:flex; flex-direction:column; gap:22px; padding-bottom:60px;">
         
         <div>
-          <h2 style="font-size:1.8rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Atmósfera & Estilo Visual</h2>
-          <p style="font-size:0.92rem; color:var(--f-text-secondary); margin-top:4px;">Diseño moderno futurista con gradientes y mallas cromáticas</p>
+          <h2 style="font-size:1.8rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Ajustes de la Aplicación</h2>
+          <p style="font-size:0.92rem; color:var(--f-text-secondary); margin-top:4px;">Control de vibración, notificaciones y atmósfera visual</p>
         </div>
 
-        <!-- 1. Atmósferas y Fondos Futuristas -->
+        <!-- 1. VIBRACIÓN Y RESPUESTA HÁPTICA -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <div>
+              <div style="font-size:1.1rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                <span>📳</span> Respuesta Háptica & Vibración
+              </div>
+              <div style="font-size:0.85rem; color:var(--f-text-secondary); margin-top:2px;">
+                Vibración al tocar botones, voltear tarjetas y navegar
+              </div>
+            </div>
+            
+            <label class="figma-toggle-switch">
+              <input type="checkbox" id="toggle-vibration" ${vibrationEnabled ? 'checked' : ''} />
+              <span class="figma-toggle-slider"></span>
+            </label>
+          </div>
+
+          <div id="vibration-intensity-section" style="display: ${vibrationEnabled ? 'flex' : 'none'}; flex-direction:column; gap:12px; border-top:1px solid rgba(255,255,255,0.08); padding-top:16px;">
+            <div style="font-size:0.9rem; font-weight:700; color:#e2e8f0;">Intensidad de la Vibración:</div>
+            
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+              <button class="apple-btn-outline-pill ${vibrationIntensity === 'light' ? 'active-pill' : ''}" data-vib-intensity="light" style="padding:12px 8px; font-weight:800; text-align:center;">
+                📳 Suave
+              </button>
+              <button class="apple-btn-outline-pill ${vibrationIntensity === 'medium' ? 'active-pill' : ''}" data-vib-intensity="medium" style="padding:12px 8px; font-weight:800; text-align:center;">
+                ⚡ Media
+              </button>
+              <button class="apple-btn-outline-pill ${vibrationIntensity === 'heavy' ? 'active-pill' : ''}" data-vib-intensity="heavy" style="padding:12px 8px; font-weight:800; text-align:center;">
+                💥 Fuerte
+              </button>
+            </div>
+
+            <button class="figma-btn-ghost" id="btn-test-vibration" style="align-self:flex-start; margin-top:4px; font-size:0.85rem; padding:8px 16px; border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:999px;">
+              ✨ Probar Vibración Ahora
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. NOTIFICACIONES Y RECORDATORIOS DIARIOS -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <div>
+              <div style="font-size:1.1rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                <span>🔔</span> Notificaciones & Recordatorios
+              </div>
+              <div style="font-size:0.85rem; color:var(--f-text-secondary); margin-top:2px;">
+                Recordatorios inteligentes para mantener tus rachas diarias
+              </div>
+            </div>
+            
+            <label class="figma-toggle-switch">
+              <input type="checkbox" id="toggle-notifications" ${notificationsEnabled ? 'checked' : ''} />
+              <span class="figma-toggle-slider"></span>
+            </label>
+          </div>
+
+          <div id="notifications-config-section" style="display: ${notificationsEnabled ? 'flex' : 'none'}; flex-direction:column; gap:12px; border-top:1px solid rgba(255,255,255,0.08); padding-top:16px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+              <span style="font-size:0.9rem; font-weight:700; color:#e2e8f0;">Hora preferida del recordatorio:</span>
+              <input type="time" id="input-notification-time" value="${notificationTime}" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#fff; padding:6px 12px; border-radius:10px; font-weight:700; font-size:1rem; outline:none;" />
+            </div>
+
+            <button class="figma-btn-ghost" id="btn-test-notification" style="align-self:flex-start; margin-top:4px; font-size:0.85rem; padding:8px 16px; border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:999px;">
+              🔔 Enviar Recordatorio de Prueba
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Atmósferas y Fondos Futuristas -->
         <div class="apple-card-grouped" style="padding:22px;">
           <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
             Atmósfera y Fondo de la App
@@ -88,7 +162,7 @@ export function renderFigmaAppSettingsView(): string {
           </div>
         </div>
 
-        <!-- 2. Color de Acento -->
+        <!-- 4. Color de Acento -->
         <div class="apple-card-grouped" style="padding:22px;">
           <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
             Color de Acento de Botones y Resaltados
@@ -104,7 +178,7 @@ export function renderFigmaAppSettingsView(): string {
           </div>
         </div>
 
-        <!-- 3. Formas y Bordes de las Tarjetas -->
+        <!-- 5. Formas y Bordes de las Tarjetas -->
         <div class="apple-card-grouped" style="padding:22px;">
           <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
             Formas y Bordes de las Flashcards
@@ -123,7 +197,7 @@ export function renderFigmaAppSettingsView(): string {
           </div>
         </div>
 
-        <!-- 4. Escala Táctil de Botones Grandes -->
+        <!-- 6. Escala Táctil de Botones Grandes -->
         <div class="apple-card-grouped" style="padding:22px;">
           <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
             Tamaño de Botones y Ergonomía Táctil
@@ -150,6 +224,63 @@ export function bindFigmaAppSettingsViewEvents(
   callbacks: FigmaAppSettingsViewCallbacks
 ): void {
   container.querySelector('#btn-app-settings-back')?.addEventListener('click', () => callbacks.onBack());
+
+  // Vibration toggle
+  const toggleVib = container.querySelector<HTMLInputElement>('#toggle-vibration');
+  const vibSection = container.querySelector<HTMLElement>('#vibration-intensity-section');
+  toggleVib?.addEventListener('change', () => {
+    const isChecked = toggleVib.checked;
+    nativeService.setVibrationEnabled(isChecked);
+    if (vibSection) {
+      vibSection.style.display = isChecked ? 'flex' : 'none';
+    }
+  });
+
+  // Vibration intensity buttons
+  container.querySelectorAll<HTMLButtonElement>('button[data-vib-intensity]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const intensity = btn.dataset.vibIntensity as VibrationIntensity;
+      if (intensity) {
+        nativeService.setVibrationIntensity(intensity);
+        container.querySelectorAll('button[data-vib-intensity]').forEach((b) => b.classList.remove('active-pill'));
+        btn.classList.add('active-pill');
+      }
+    });
+  });
+
+  // Test vibration button
+  container.querySelector('#btn-test-vibration')?.addEventListener('click', () => {
+    nativeService.triggerHaptics('heavy');
+  });
+
+  // Notifications toggle
+  const toggleNotif = container.querySelector<HTMLInputElement>('#toggle-notifications');
+  const notifSection = container.querySelector<HTMLElement>('#notifications-config-section');
+  toggleNotif?.addEventListener('change', async () => {
+    const isChecked = toggleNotif.checked;
+    const ok = await nativeService.setNotificationsEnabled(isChecked);
+    if (!ok && isChecked) {
+      toggleNotif.checked = false;
+      alert('Debes conceder permisos de notificación en el sistema.');
+    }
+    if (notifSection) {
+      notifSection.style.display = toggleNotif.checked ? 'flex' : 'none';
+    }
+  });
+
+  // Notification time input
+  const inputTime = container.querySelector<HTMLInputElement>('#input-notification-time');
+  inputTime?.addEventListener('change', () => {
+    if (inputTime.value) {
+      nativeService.setNotificationTime(inputTime.value);
+    }
+  });
+
+  // Test notification button
+  container.querySelector('#btn-test-notification')?.addEventListener('click', async () => {
+    await nativeService.scheduleTestNotification();
+    nativeService.triggerHaptics('success');
+  });
 
   // Accent circles
   container.querySelectorAll<HTMLButtonElement>('.theme-color-circle').forEach((btn) => {

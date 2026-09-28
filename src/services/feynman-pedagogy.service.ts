@@ -55,7 +55,7 @@ export class FeynmanPedagogyService {
         name: 'Matemáticas',
         domain: 'Estructuras matemáticas formales, axiomas, teoremas, análisis riguroso y álgebra.',
         terminologyRule: 'Usa demostraciones lógicas, axiomas, teoremas, transformaciones invariantes y estructuras abstractas. Cero analogías vagas sin rigor conceptual.',
-        mathRule: 'OBLIGATORIO: Utiliza fórmulas matemáticas en KaTeX ($...$). Si es una fórmula/teorema establecido del mundo matemático, titula: "- (FORMALISMO MATEMÁTICO): $...$". Si es un modelo pedagógico abstracto o mnemotécnico simplificado creado para la explicación, titula: "- (FORMALISMO MATEMÁTICO EUREKA): $...$".',
+        mathRule: '🚨 CALIBRACIÓN POR NIVEL: Analiza críticamente el nivel del tema (ej. si el tema es "conectores lógicos", es lógica proposicional elemental: NUNCA utilices teoría de modelos, cálculo de secuentes, álgebras abstractas de Boole ni formalismo arcano). EN LA MEDIDA DE LO POSIBLE, EVITA EL FORMALISMO MATEMÁTICO. Solo si el concepto requiere estrictamente una fórmula o notación estándar y elemental para comprenderse, titula: "- (FORMALISMO MATEMÁTICO): $...$". 🚨 PROHIBIDO TOTALMENTE INVENTAR FÓRMULAS O PSEUDO-ECUACIONES. Si la explicación se comprende con la intuición y la definición, OMITE por completo la línea de formalismo.',
         simulatorRule: 'Graficador interactivo de funciones 2D/3D, visualizador de transformaciones matriciales, resolvedor numérico interactivo o geometría dinámica en Canvas 2D (+400 a +500 líneas reales en React 18 + TSX).'
       };
     }
@@ -66,7 +66,7 @@ export class FeynmanPedagogyService {
         name: 'Física',
         domain: 'Leyes físicas de la naturaleza, dinámicas de partículas, campos, energía y relatividad/cuántica.',
         terminologyRule: 'Fuerzas, conservación del momento y energía, potenciales, funciones de onda, entropía y marcos de referencia inerciales.',
-        mathRule: 'OBLIGATORIO: Utiliza ecuaciones físicas en KaTeX ($...$). Si es una ley/ecuación real establecida (ej: Newton, Maxwell, Einstein, Schrödinger), titula: "- (FORMALISMO MATEMÁTICO): $...$". Si es un modelo intuitivo o ley simplificada didáctica, titula: "- (FORMALISMO MATEMÁTICO EUREKA): $...$".',
+        mathRule: 'Calibra al nivel del tema y del estudiante. EN LA MEDIDA DE LO POSIBLE, OMITE EL FORMALISMO MATEMÁTICO. Solo si el concepto requiere de forma indispensable una ley física real y consagrada (ej: F = m \\cdot a), titula: "- (FORMALISMO MATEMÁTICO): $...$". 🚨 PROHIBIDO INVENTAR FÓRMULAS. Si la intuición y el mecanismo bastan, OMITE la línea de formalismo.',
         simulatorRule: 'Motor de física en tiempo real (integración numérica RK4/Verlet, partículas 2D interactivas, campos vectoriales oscilantes, colisiones elásticas, osciloscopios) en Canvas 2D (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -77,7 +77,7 @@ export class FeynmanPedagogyService {
         name: 'Química',
         domain: 'Estructura atómica, enlaces moleculares, cinética química, termodinámica y síntesis.',
         terminologyRule: 'Estequiometría, orbitales moleculares, entalpía, energía libre de Gibbs, equilibrio químico, pH y cinéticas de reacción.',
-        mathRule: 'Utiliza ecuaciones químicas y fórmulas termodinámicas en KaTeX ($...$). Si es una ecuación estándar real, titula: "- (FORMALISMO MATEMÁTICO): $...$". Si es un modelo de tasa conceptual simplificado, titula: "- (FORMALISMO MATEMÁTICO EUREKA): $...$". Si el subnivel es puramente estructural o descriptivo, omite la línea.',
+        mathRule: 'Calibra al nivel del tema. Solo si se trata de ecuaciones estequiométricas o termodinámicas reales, estándar y necesarias, titula: "- (FORMALISMO MATEMÁTICO): $...$". En la medida de lo posible, OMITE el formalismo. 🚨 PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Simulador de cinética de reacciones en tiempo real, balance de equilibrio dinámico, visualizador de enlaces moleculares en Canvas o titulador ácido-base interactivo (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -88,7 +88,7 @@ export class FeynmanPedagogyService {
         name: 'Biología',
         domain: 'Sistemas vivos, biología celular y molecular, genética, ecología y evolución.',
         terminologyRule: 'Mecanismos celulares, transcripción genética, homeostasis, vías metabólicas, selección natural y cascadas enzimáticas.',
-        mathRule: 'Si el concepto incluye cinéticas cuantitativas (Michaelis-Menten, Lotka-Volterra, Hardy-Weinberg), titula: "- (FORMALISMO MATEMÁTICO): $...$". Si es una relación de proporciones didáctica, titula: "- (FORMALISMO MATEMÁTICO EUREKA): $...$". Si es un proceso biológico cualitativo o anatómico, OMITE la línea de formalismo matemático por completo.',
+        mathRule: 'Solo si el concepto es intrínsecamente cuantitativo con una ley biológica real y consagrada (Michaelis-Menten, Hardy-Weinberg), titula: "- (FORMALISMO MATEMÁTICO): $...$". Para todo proceso biológico cualitativo o descriptivo, OMITE la línea de formalismo por completo. 🚨 PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Simulador dinámico de ecosistema presa-depredador, cruzamientos genéticos interactivos, cascada de señalización celular o motor de mutación evolutiva (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -99,7 +99,7 @@ export class FeynmanPedagogyService {
         name: 'Medicina & Anatomía',
         domain: 'Ciencias médicas, fisiopatología, clínica, diagnóstico, farmacología y anatomía humana.',
         terminologyRule: 'Fisiopatología causal, etiología, diagnóstico diferencial, farmacocinética, parámetros hemodinámicos y mecanismos de acción celular.',
-        mathRule: 'Si se trata de fórmulas clínicas reales (clearance renal, gasto cardíaco, Henderson-Hasselbalch, dosificación), titula: "- (FORMALISMO MATEMÁTICO): $...$". Para procesos patológicos o anatómicos cualitativos, 🚨 PROHIBIDO FORZAR MATEMÁTICAS: OMITE la línea de formalismo matemático por completo.',
+        mathRule: 'Solo si se trata de fórmulas clínicas reales y consagradas (clearance renal, Henderson-Hasselbalch) aplicables al nivel, titula: "- (FORMALISMO MATEMÁTICO): $...$". 🚨 PROHIBIDO FORZAR MATEMÁTICAS O INVENTAR FÓRMULAS: OMITE la línea de formalismo por completo en procesos clínicos cualitativos o anatómicos.',
         simulatorRule: 'Simulador de paciente clínico y monitor de signos vitales interactivo, motor de toma de decisiones diagnósticas con feedback causal, o explorador de capas anatómicas/farmacológicas (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -121,7 +121,7 @@ export class FeynmanPedagogyService {
         name: 'Geografía',
         domain: 'Geografía física, climatología, geomorfología, geografía humana y demografía.',
         terminologyRule: 'Dinámica de placas tectónicas, gradientes térmicos, patrones de circulación atmosférica, transición demográfica y cuencas hidrográficas.',
-        mathRule: 'Solo si aplica a modelos de gradiente térmico, Coriolis o pirámides demográficas, titula: "- (FORMALISMO MATEMÁTICO): $...$". En conceptos geomorfológicos y descriptivos, OMITE la línea de formalismo matemático.',
+        mathRule: 'Solo si aplica estrictamente a una ley o gradiente real y establecido, titula: "- (FORMALISMO MATEMÁTICO): $...$". En conceptos geomorfológicos y descriptivos, OMITE la línea de formalismo matemático. 🚨 PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Simulador interactivo de placas tectónicas/climatología en Canvas 2D, visualizador de perfiles topográficos o modelo interactivo de transición demográfica (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -132,7 +132,7 @@ export class FeynmanPedagogyService {
         name: 'Filosofía',
         domain: 'Epistemología, ética, ontología, lógica formal, filosofía política y fenomenología.',
         terminologyRule: 'Silogismos, dialéctica, premisas y conclusiones, experimentos mentales, dilemas éticos, imperativos y marcos ontológicos.',
-        mathRule: 'Si se trata de lógica formal/simbólica (\\forall, \\exists, \\rightarrow, \\land), titula: "- (FORMALISMO MATEMÁTICO): $...$". Para filosofía ética, metafísica y política, OMITE la línea de formalismo matemático por completo.',
+        mathRule: '🚨 CALIBRACIÓN ESTRICTA AL NIVEL: Si el tema es introductorio (ej: conectores lógicos, tablas de verdad simples, silogismos básicos), NO utilices formalismos arcanos de postgrado, cálculo de secuentes ni semántica hiper-densa. Usa únicamente la notación elemental más directa (ej. $p \\land q$, $p \\rightarrow q$). EN LA MEDIDA DE LO POSIBLE EVITA EL FORMALISMO SI LA IDEA QUEDA CLARA. Para filosofía ética, metafísica y política, OMITE la línea de formalismo por completo. 🚨 PROHIBIDO TOTALMENTE INVENTAR FÓRMULAS.',
         simulatorRule: 'Simulador de experimentos mentales éticos (Dilema del tranvía con variables dinámicas de deontología vs utilitarismo), analizador dialéctico interactivo de argumentos o árbol de proposiciones lógicas (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -143,7 +143,7 @@ export class FeynmanPedagogyService {
         name: 'Literatura & Lengua',
         domain: 'Análisis literario, estructuras narrativas, retórica, semiótica y teoría del lenguaje.',
         terminologyRule: 'Arco narrativo, tropos y figuras retóricas, matrices semióticas, cadencia estilística, evolución de personajes y subtexto.',
-        mathRule: '🚨 PROHIBIDO FORZAR MATEMÁTICAS. OMITE POR COMPLETO la línea de formalismo matemático en todos los subniveles.',
+        mathRule: '🚨 PROHIBIDO FORZAR MATEMÁTICAS O INVENTAR FÓRMULAS. OMITE POR COMPLETO la línea de formalismo matemático en todos los subniveles.',
         simulatorRule: 'Constructor interactivo del viaje del héroe y arco dramático, detector/entrenador de figuras retóricas con feedback en vivo, o visualizador de métrica y estructura poética (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -165,7 +165,7 @@ export class FeynmanPedagogyService {
         name: 'Informática & Programación',
         domain: 'Ciencias de la computación, arquitectura de software, algoritmos, concurrencia y sistemas distribuidos.',
         terminologyRule: 'Complejidad algorítmica O(n), máquinas de estados finitos, invariantes de bucle, árboles de sintaxis abstracta (AST), modelos de memoria y concurrencia.',
-        mathRule: 'Utiliza complejidades O(...), expresiones booleanas o relaciones de recurrencia en KaTeX. Si es una complejidad o teorema estándar, titula: "- (FORMALISMO MATEMÁTICO): $...$". Si es un modelo pedagógico de coste o latencia, titula: "- (FORMALISMO MATEMÁTICO EUREKA): $...$".',
+        mathRule: 'Calibra al nivel del tema. Solo si el concepto requiere indispensablemente una notación estándar real (complejidad $O(...)$ elemental o álgebra booleana estándar), titula: "- (FORMALISMO MATEMÁTICO): $...$". EN LA MEDIDA DE LO POSIBLE, OMITE EL FORMALISMO si se explica con lógica clara o código. 🚨 PROHIBIDO INVENTAR FÓRMULAS O PSEUDO-MATEMÁTICAS.',
         simulatorRule: 'Visualizador interactivo de algoritmos (grafos, ordenación, árboles binarios), inspector de memoria y punteros, o simulador de flujo de paquetes en redes en Canvas 2D (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -187,7 +187,7 @@ export class FeynmanPedagogyService {
         name: 'Economía & Finanzas',
         domain: 'Microeconomía, macroeconomía, finanzas cuantitativas, econometría y teoría de juegos.',
         terminologyRule: 'Curvas de oferta y demanda, equilibrios de Nash, elasticidad, costes y utilidades marginales, tipos de interés, primas de riesgo y valor actual neto.',
-        mathRule: 'Utiliza fórmulas económicas y financieras en KaTeX ($...$). Si es una fórmula estándar real (ej. Black-Scholes, elasticidad, VAN, Cobb-Douglas), titula: "- (FORMALISMO MATEMÁTICO): $...$". Si es un modelo didáctico simplificado, titula: "- (FORMALISMO MATEMÁTICO EUREKA): $...$".',
+        mathRule: 'Calibra al nivel del tema y del estudiante. Solo si se trata de fórmulas reales y consagradas (ej. elasticidad, VAN) indispensables para el concepto, titula: "- (FORMALISMO MATEMÁTICO): $...$". En la medida de lo posible, prioriza la intuición y OMITE el formalismo. 🚨 PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Sandbox dinámico de curvas de oferta y demanda con inyección de shocks en tiempo real, simulador de carteras de inversión con riesgo/retorno, o modelo macroeconómico de inflación (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -198,7 +198,7 @@ export class FeynmanPedagogyService {
         name: 'Psicología & Ciencias Cognitivas',
         domain: 'Psicología cognitiva, conductual, neurociencias, sesgos cognitivos y psicopatología.',
         terminologyRule: 'Sesgos cognitivos, disonancia cognitiva, condicionamiento operante/clásico, función ejecutiva, esquemas mentales y regulación emocional.',
-        mathRule: 'Si se refiere a leyes psicofísicas (Weber-Fechner) o psicometría, titula: "- (FORMALISMO MATEMÁTICO): $...$". En procesos cognitivos o conductuales cualitativos, OMITE la línea de formalismo matemático.',
+        mathRule: 'Solo si se refiere a leyes psicofísicas reales consagradas (ej: Weber-Fechner), titula: "- (FORMALISMO MATEMÁTICO): $...$". En procesos cognitivos o conductuales cualitativos, OMITE la línea de formalismo. 🚨 PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Laboratorio interactivo de experimentos cognitivos (Efecto Stroop, memoria de trabajo, detección de sesgos con métricas de tiempo de reacción), o simulador de cadenas conductuales (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -209,7 +209,7 @@ export class FeynmanPedagogyService {
         name: 'Arte & Diseño',
         domain: 'Artes visuales, diseño UI/UX, teoría del color, composición y tipografía.',
         terminologyRule: 'Proporción áurea, armonías cromáticas, jerarquía visual, espacio negativo, contraste de luminosidad y pesos visuales.',
-        mathRule: 'Solo si aplica a la proporción áurea (\\phi) o relaciones de contraste, titula: "- (FORMALISMO MATEMÁTICO): $...$". De lo contrario, OMITE la línea de formalismo matemático.',
+        mathRule: 'Solo si aplica a la proporción áurea (\\phi) real o cálculos de contraste WCAG, titula: "- (FORMALISMO MATEMÁTICO): $...$". De lo contrario, OMITE la línea de formalismo matemático. 🚨 PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Generador interactivo de paletas y armonías de color con medidor de contraste WCAG, tester interactivo de composiciones con rejilla áurea, o canvas de experimentación tipográfica (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -220,7 +220,7 @@ export class FeynmanPedagogyService {
         name: 'Música & Teoría Musical',
         domain: 'Armonía, contrapunto, acústica, ritmo, composición y psicoacústica.',
         terminologyRule: 'Progresiones armónicas, círculo de quintas, intervalos consonantes/disonantes, polirritmias, resonancia armónica y sobretonos.',
-        mathRule: 'Utiliza fórmulas acústicas en KaTeX ($f_n = f_0 \\cdot 2^{n/12}$). Si es una ley acústica real, titula: "- (FORMALISMO MATEMÁTICO): $...$". Si es un modelo mnemotécnico de intervalos, titula: "- (FORMALISMO MATEMÁTICO EUREKA): $...$".',
+        mathRule: 'Solo si aplica indispensablemente a una relación acústica real (ej. frecuencias), titula: "- (FORMALISMO MATEMÁTICO): $...$". En la medida de lo posible, OMITE el formalismo. 🚨 PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Sintetizador interactivo con Web Audio API y visualizador osciloscopio en tiempo real, constructor de acordes en el círculo de quintas interactivo, o secuenciador rítmico polifónico (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -231,7 +231,7 @@ export class FeynmanPedagogyService {
         name: 'Ciencias Sociales & Sociología',
         domain: 'Sociología, antropología, movimientos sociales, estratificación y análisis de redes sociales.',
         terminologyRule: 'Estratificación social, funcionalismo estructural, hegemonía cultural, redes de afinidad, instituciones y capital social.',
-        mathRule: '🚨 CERO FÓRMULAS FORZADAS. A menos que sea demografía estadística formal, OMITE la línea de formalismo matemático.',
+        mathRule: '🚨 CERO FÓRMULAS FORZADAS. A menos que sea demografía estadística formal real, OMITE la línea de formalismo matemático. PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Simulador de difusión de opiniones en redes sociales con agentes interactivos, modelo de segregación o mapa interactivo de dinámica poblacional (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -242,7 +242,7 @@ export class FeynmanPedagogyService {
         name: 'Ingeniería',
         domain: 'Ingeniería mecánica, eléctrica, civil, química, robótica y sistemas de control.',
         terminologyRule: 'Esfuerzos y deformaciones, funciones de transferencia, lazos de control PID, termodinámica de fluidos, diagramas de Bode e impedancia.',
-        mathRule: 'OBLIGATORIO: Utiliza fórmulas de ingeniería en KaTeX ($...$). Si es una ecuación estándar, titula: "- (FORMALISMO MATEMÁTICO): $...$". Si es un modelo pedagógico abreviado, titula: "- (FORMALISMO MATEMÁTICO EUREKA): $...$".',
+        mathRule: 'Calibra al nivel del tema. Solo si el concepto requiere estrictamente una ecuación real y estándar de ingeniería, titula: "- (FORMALISMO MATEMÁTICO): $...$". EN LA MEDIDA DE LO POSIBLE, OMITE EL FORMALISMO si la comprensión funcional basta. 🚨 PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Simulador de esfuerzos estructurales en puentes/vigas en Canvas 2D, sintonizador interactivo de bucle PID con gráficas de respuesta en el tiempo, o simulador de circuitos RLC (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -253,7 +253,7 @@ export class FeynmanPedagogyService {
         name: 'Ciencias Políticas',
         domain: 'Sistemas electorales, teoría política, relaciones internacionales y gobernanza pública.',
         terminologyRule: 'Sistemas de votación, cuotas electorales, equilibrios de poder, ciclos de políticas públicas y disuasión estratégica.',
-        mathRule: 'Si es un método electoral matemático (D\'Hondt, Hare, Borda), titula: "- (FORMALISMO MATEMÁTICO): $...$". En teoría política o relaciones internacionales cualitativas, OMITE la línea de formalismo matemático.',
+        mathRule: 'Solo si es un método electoral matemático real consagrado (D\'Hondt, Hare), titula: "- (FORMALISMO MATEMÁTICO): $...$". De lo contrario, OMITE la línea de formalismo matemático. 🚨 PROHIBIDO INVENTAR FÓRMULAS.',
         simulatorRule: 'Simulador comparativo de sistemas electorales y escaños con cálculo en vivo, juego de negociación de crisis geopolítica o constructor de coaliciones parlamentarias (+400 a +500 líneas en React 18 + TSX).'
       };
     }
@@ -264,7 +264,7 @@ export class FeynmanPedagogyService {
       name: 'General / Primeros Principios',
       domain: 'Descomposición fundamental de primeros principios adaptada a la naturaleza específica del tema.',
       terminologyRule: 'Vocabulario analítico preciso propio del tema, sin forzar jerga física ajena si el tema no lo es.',
-      mathRule: 'Incluye formalismo matemático únicamente si el tema es intrínsecamente cuantitativo (titulando "- (FORMALISMO MATEMÁTICO):" o "- (FORMALISMO MATEMÁTICO EUREKA):"). Si el tema es cualitativo o social, OMITE la línea de formalismo matemático por completo.',
+      mathRule: '🚨 EN LA MEDIDA DE LO POSIBLE, NO PONGAS FORMALISMO MATEMÁTICO. Solo inclúyelo si el tema es intrínsecamente cuantitativo, la fórmula es 100% REAL y universalmente reconocida, y está estrictamente calibrada al nivel del estudiante y del tema (titulando "- (FORMALISMO MATEMÁTICO): $...$"). 🚨 TERMINANTEMENTE PROHIBIDO INVENTAR FÓRMULAS. Si el concepto se entiende cualitativamente, OMITE la línea por completo.',
       simulatorRule: 'Simulador interactivo visual y lúdico específico para este tema en Canvas 2D / React 18 (+400 a +500 líneas reales).'
     };
   }
@@ -401,19 +401,37 @@ ${
 }
 
 ================================================================================
-🚨 DIRECTRICES ESPECÍFICAS PARA EL DOMINIO "${subjectProfile.name.toUpperCase()}" 🚨
+🚨 DIRECTRICES DEL DOMINIO "${subjectProfile.name.toUpperCase()}" Y CALIBRACIÓN DEL FORMALISMO MATEMÁTICO 🚨
 ================================================================================
 1. MARCO CONCEPTUAL Y VOCABULARIO:
    - ${subjectProfile.terminologyRule}
-   - Prohibido imponer terminología física a temas de humanidades, historia, literatura o leyes. Habla con el lenguaje natural y formal de ${subjectProfile.name}.
+   - Prohibido imponer terminología física o ajena a temas de humanidades, historia, literatura, leyes o ciencias sociales. Habla con el lenguaje natural y formal de ${subjectProfile.name}.
 
-2. REGLA DEL FORMALISMO MATEMÁTICO:
+2. CALIBRACIÓN RIGUROSA DEL FORMALISMO MATEMÁTICO AL NIVEL REAL DEL TEMA:
+   - 🧠 ANÁLISIS CRÍTICO DEL NIVEL: Antes de generar cualquier subnivel o formalismo, la IA DEBE analizar la profundidad intrínseca del tema ("${topic}") y el nivel del estudiante (Nivel actual: ${form.currentLevel}/5 • Objetivo: ${goalTitle}).
+   - 🚨 PROHIBICIÓN DE FORMALISMO HIPER-RIGUROSO O DESPROPORCIONADO:
+     * Si el tema es introductorio, elemental o fundacional (ejemplo directo: "conectores lógicos", tablas de verdad básicas, lógica proposicional elemental, aritmética, nociones básicas de cualquier disciplina): ESTÁ TERMINANTEMENTE PROHIBIDO utilizar formalismos hiper-rigurosos de postgrado, teoría de modelos abstracta, cálculo de secuentes, álgebras de Heyting, o notaciones arcanas/densas que abrumen y hagan que el estudiante no aprenda nada. Para temas como "conectores lógicos", la notación simbólica (si acaso se incluye) DEBE limitarse a la expresión elemental más limpia, directa y universal (ej: $p \\land q$, $p \\lor q$, $p \\rightarrow q$), comprensible al instante por cualquiera.
+     * En los niveles iniciales de la ruta (especialmente Nivel 1 y Nivel 2), el estudiante necesita construir INTUICIÓN y entendimiento conceptual. NO lo asustes ni lo bloquees con muros de ecuaciones.
+     * El formalismo debe servir ÚNICAMENTE para clarificar, NUNCA para alardear rigor pedante o academicismo forzado que arruine el aprendizaje.
+
+3. 🚨 EN LA MEDIDA DE LO POSIBLE, NO PONGAS FORMALISMO MATEMÁTICO (OMISIÓN PREFERENTE):
+   - El formalismo matemático NO ES OBLIGATORIO en ningún subnivel.
+   - En la gran mayoría de subniveles, la combinación de "Intuición Feynman" + "Idea Clave" es más que suficiente para una asimilación lúcida y profunda.
+   - Si el concepto se entiende con la explicación conceptual o lógica: OMITE LA LÍNEA DE FORMALISMO MATEMÁTICO POR COMPLETO.
+   - Solo incluye formalismo matemático cuando el concepto sea estricta e intrínsecamente matemático o físico cuantitativo, y la ecuación sea indispensable para la comprensión integral. En cualquier otro caso, LA REGLA POR DEFECTO ES OMITIR.
+
+4. ⛔ PROHIBICIÓN ABSOLUTA Y TAXATIVA DE FÓRMULAS INVENTADAS O PSEUDO-MATEMÁTICAS:
+   - 🚨 ESTÁ TERMINANTEMENTE PROHIBIDO INVENTAR FÓRMULAS, CREAR ECUACIONES FICTICIAS O CONSTRUIR "MODELOS MATEMÁTICOS PEDAGÓGICOS" ARTIFICIALES.
+   - Toda fórmula que se incluya DEBE SER UNA FÓRMULA REAL, ESTÁNDAR Y CONSAGRADA en la literatura científica o académica universal. Si no existe una fórmula estándar real para el concepto atómico, ESTÁ ESTRICTAMENTE PROHIBIDO INVENTARLA: DEBES OMITIR LA LÍNEA.
+   - Cero fórmulas inventadas. Cero símbolos matemáticos forzados en temas cualitativos, sociales, históricos o descriptivos.
+
+5. REGLA ESPECÍFICA DEL ÁREA:
    - ${subjectProfile.mathRule}
-   - Si se incluye una fórmula real establecida del mundo académico/científico/económico: titula exactamente "**- (FORMALISMO MATEMÁTICO):** $...$".
-   - Si se incluye una fórmula inventada o modelo pedagógico mnemotécnico simplificado para Eureka: titula exactamente "**- (FORMALISMO MATEMÁTICO EUREKA):** $...$".
-   - 🚨 SI LA MATERIA NO ES MATEMÁTICA (Historia, Derecho, Literatura, Filosofía, Idiomas, etc.): ESTÁ TOTALMENTE PROHIBIDO INVENTAR FÓRMULAS. DEBES OMITIR LA LÍNEA DE FORMALISMO MATEMÁTICO POR COMPLETO EN CADA SUBNIVEL.
+   - Si y solo si una fórmula es 100% REAL, estándar y está perfectamente adaptada al nivel del tema, titula exactamente:
+     "**- (FORMALISMO MATEMÁTICO):** $...$"
+   - Si no aplica, no es necesaria, o no existe una fórmula real estándar: OMITE LA LÍNEA POR COMPLETO.
 
-3. SIMULADORES INTERACTIVOS ADAPTADOS (+400 A +500 LÍNEAS):
+6. SIMULADORES INTERACTIVOS ADAPTADOS (+400 A +500 LÍNEAS):
    - ${subjectProfile.simulatorRule}
 
 ================================================================================
@@ -426,7 +444,7 @@ Cada subnivel debe organizarse en este orden exacto:
    - 🚨 PROHIBIDO AISLAR INFORMACIÓN CON JERGA INCOMPRENSIBLE.
    - Si el concepto involucra un proceso dinámico causa-efecto concreto, explica de forma MUY FÁCIL DE ENTENDER Y CORTA el "por qué y cómo ocurre" (en 1-2 frases fluidas: ej. "Al ocurrir A, se produce B debido a C, dando lugar a D").
    - Si el concepto es puramente definitorio, clasificatorio o no involucra un mecanismo activo de causa-efecto, OMITE ESTA LÍNEA POR COMPLETO.
-4. **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** Fórmula en KaTeX ($...$). Solo si la materia o concepto lo requiere formalmente. Si es cualitativo, OMITE ESTA LÍNEA.
+4. **(FORMALISMO MATEMÁTICO):** Fórmula en KaTeX ($...$). Solo si el concepto lo requiere formalmente de forma indispensable, es una fórmula 100% REAL y consagrada, y se adapta al nivel del tema (ej. simple $p \\land q$ para conectores lógicos; cero jerga doctoral). 🚨 EN LA MEDIDA DE LO POSIBLE, OMITE ESTA LÍNEA (la omisión es la regla por defecto si la intuición e idea clave bastan). TERMINANTEMENTE PROHIBIDO INVENTAR FÓRMULAS O PSEUDO-MATEMÁTICAS.
 5. **Límite de Ruptura / Condición de Frontera (SOLO SI ES SUMAMENTE NECESARIO):** Caso límite crítico o frontera donde el principio se quiebra. Si no es sumamente necesario, OMITE ESTA LÍNEA POR COMPLETO.
 
 ================================================================================
@@ -480,7 +498,7 @@ ESTRUCTURA MARKDOWN OBLIGATORIA
 - **Intuición Feynman:** [Micro-analogía cotidiana ultra-simple, directa y sin jerga, en 1-2 frases].
 - **Idea Clave:** [Definición formal precisa y concisa en 1 sola frase contundente].
 - **Cadena Causal:** [Mecanismo causa-efecto muy fácil de entender y corto; omitir si el concepto es puramente definitorio].
-- **(FORMALISMO MATEMÁTICO)** o **(FORMALISMO MATEMÁTICO EUREKA):** $[Fórmula KaTeX solo si aplica; de lo contrario omitir]$
+- **(FORMALISMO MATEMÁTICO):** $[Fórmula KaTeX REAL y elemental solo si es estrictamente indispensable y adecuada al nivel del tema; de lo contrario OMITIR esta línea por completo]$
 - **Límite de Ruptura / Condición de Frontera:** [Solo si es sumamente necesario; si no, omitir]
 
 > 🔗 **Transición Sinérgica hacia Subnivel 1.2:** [Mensaje de cómo el átomo visto anteriormente sienta las bases y nos conduce naturalmente al siguiente átomo, siguiendo el propósito del nivel].
@@ -646,7 +664,7 @@ ${
    - 1º) **Intuición Feynman:** Micro-analogía cotidiana ultra-simple, amigable y gráfica (estilo Richard Feynman puro en 1-2 frases).
    - 2º) **Idea Clave:** Definición formal rigurosa y precisa en 1 sola frase sin relleno.
    - 3º) **Cadena Causal (SOLO SI ES NECESARIO):** Ubicada después de la Idea Clave. Si hay un proceso causa-efecto concreto, explícalo de forma MUY FÁCIL DE ENTENDER Y CORTA (1-2 frases fluidas). Si es puramente definitorio, OMITE ESTA LÍNEA.
-   - 4º) **(FORMALISMO MATEMÁTICO):** Fórmula en KaTeX solo si aplica; si es cualitativo, omitir.
+   - 4º) **(FORMALISMO MATEMÁTICO):** Fórmula en KaTeX calibrada al nivel exacto del tema SOLO SI ES ESTRICTAMENTE INDISPENSABLE Y 100% REAL. EN LA MEDIDA DE LO POSIBLE, OMITE ESTA LÍNEA (la omisión es la opción preferente). 🚨 TERMINANTEMENTE PROHIBIDO UTILIZAR FORMALISMOS HIPER-RIGUROSOS QUE DIFICULTEN EL APRENDIZAJE O INVENTAR FÓRMULAS PSEUDOCIENTÍFICAS.
    - 5º) **Límite de Ruptura:** Estrictamente opcional, solo si es sumamente necesario; si no, omitir.
 
 5. 🎮 CÓDIGO REACT 18 + TSX: MÍNIMO +400 A +500 LÍNEAS REALES EN CADA NIVEL (100% INTERACTIVO, LÚDICO Y CERO ABURRIDO):
@@ -691,6 +709,10 @@ ${userPrompt}
     ? 'Conocedor Adentrado (15 Niveles): Desde los fundamentos hasta aplicaciones prácticas intermedias-avanzadas.'
     : 'Conocedor Especializado (20 Niveles): Máximo rigor hasta la frontera y casos límite del estado del arte.'
 }
+- 📐 CALIBRACIÓN DEL FORMALISMO MATEMÁTICO Y CERO FÓRMULAS INVENTADAS:
+  * Analiza el nivel real e intrínseco de "${form.topic.trim()}". Si es básico o introductorio (ej: conectores lógicos, nociones iniciales), ESTÁ TERMINANTEMENTE PROHIBIDO usar formalismo hiper-riguroso, cálculo de secuentes, álgebras abstractas o notación de postgrado que impida aprender.
+  * EN LA MEDIDA DE LO POSIBLE NO PONGAS FORMALISMO MATEMÁTICO: Omitir la línea debe ser la opción preferente en la gran mayoría de subniveles siempre que la intuición y la idea clave basten.
+  * Si y solo si es indispensable, incluye una fórmula 100% REAL, estándar y elemental. TERMINANTEMENTE PROHIBIDO INVENTAR FÓRMULAS O PSEUDO-MATEMÁTICAS.
 - VERACIDAD Y ESTADO DEL ARTE: Máximo respaldo factual, precisión conceptual y conocimiento actualizado.
 - HOJA DE RUTA HOLÍSTICA: Arranca obligatoriamente con "# Visión Holística & Hoja de Ruta Feynman: ${form.topic.trim()}" planteando el panorama general y la estrategia lógica de solución.
 - PROPÓSITO DEL NIVEL COMO PRIMERA INSTANCIA: En cada nivel (# Nivel X: [Título]), antes de Axioma Central y antes de X.1, incluye "## Propósito del Nivel: [Problemática & Panorama]", profundamente correlacionado con los subniveles y muy explicativo (especialmente en el Nivel 1).
