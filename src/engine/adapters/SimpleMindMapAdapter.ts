@@ -10,6 +10,7 @@ import { AdaptiveSplineEngine, Point2D } from '../geometry/AdaptiveSplineEngine'
 import { TouchGestureEngine, GestureTransformState } from '../gestures/TouchGestureEngine';
 import { SpatialQuadTree } from '../spatial/SpatialQuadTree';
 import { FloatingPillToolbar, MINDMEISTER_SPECTRAL_PALETTE } from '../../ui/components/FloatingPillToolbar';
+import { dialogService } from '../../services/dialog.service';
 
 export interface MindMapAdapterConfig {
   container: HTMLElement;
@@ -490,10 +491,25 @@ export class SimpleMindMapAdapter {
           this.mindMap.execCommand('INSERT_NODE');
         }
       },
-      onDeleteNode: () => {
-        if (this.mindMap && typeof this.mindMap.execCommand === 'function') {
-          this.mindMap.execCommand('REMOVE_NODE');
-        }
+      onDeleteNode: (node: any) => {
+        const target = node || this.activeNode;
+        if (!target || target.isRoot) return;
+
+        dialogService.showConfirm({
+          title: '¿Estás seguro?',
+          message: '¿Deseas eliminar este recuadro y todas sus ramas secundarias?',
+          confirmText: 'Sí, eliminar',
+          cancelText: 'Cancelar',
+          isDanger: true,
+          onConfirm: () => {
+            if (this.mindMap && typeof this.mindMap.execCommand === 'function') {
+              this.mindMap.execCommand('REMOVE_NODE', [target]);
+            }
+            if (this.pillToolbar) {
+              this.pillToolbar.hide();
+            }
+          }
+        });
       },
       onColorChange: (node: any, color: string) => {
         this.applyColorToSubtree(node, color);

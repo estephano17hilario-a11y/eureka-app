@@ -788,6 +788,7 @@ export class UltraFastMindMap {
               <button type="button" class="compact-trigger-pill" id="btn-open-katex-from-node-menu" title="Fórmula KaTeX">📐</button>
               <button type="button" class="compact-trigger-pill" id="btn-upload-node-photo" title="Adjuntar foto">📷</button>
               <button type="button" class="compact-trigger-pill danger" id="btn-remove-node-photo" style="display:none;" title="Eliminar foto">🗑️</button>
+              <button type="button" class="compact-trigger-pill danger" id="btn-delete-node-action" title="Eliminar recuadro">🗑️ <span style="font-size:10px; font-weight:700; margin-left:2px;">Borrar</span></button>
             </div>
           </div>
 
@@ -1674,15 +1675,24 @@ export class UltraFastMindMap {
       return;
     }
 
-    // Atajo Supr / Backspace: Eliminar nodo
+    // Atajo Supr / Backspace: Eliminar nodo con modal de confirmación
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       const target = this.activeNode || this.mindMapInstance.renderer?.activeNodeList?.[0];
-      if (target) {
-        this.mindMapInstance.execCommand('REMOVE_NODE', [target]);
-        this.activeNode = null;
-        this.updateNodeDropdownUI();
-        this.triggerHaptic();
+      if (target && !target.isRoot) {
+        dialogService.showConfirm({
+          title: '¿Estás seguro?',
+          message: '¿Deseas eliminar este recuadro y todas sus ramas conectadas?',
+          confirmText: 'Sí, eliminar',
+          cancelText: 'Cancelar',
+          isDanger: true,
+          onConfirm: () => {
+            this.mindMapInstance.execCommand('REMOVE_NODE', [target]);
+            this.activeNode = null;
+            this.updateNodeDropdownUI();
+            this.triggerHaptic();
+          }
+        });
       }
       return;
     }
@@ -2222,6 +2232,27 @@ export class UltraFastMindMap {
       this.setNodePhoto(null);
       const photoPreviewWrap = root.querySelector('#sheet-photo-preview-wrap') as HTMLElement | null;
       if (photoPreviewWrap) photoPreviewWrap.style.display = 'none';
+    });
+
+    // Botón de eliminar recuadro desde el menú de la barra superior
+    root.querySelector('#btn-delete-node-action')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const target = this.activeNode || this.mindMapInstance.renderer?.activeNodeList?.[0];
+      if (!target || target.isRoot) return;
+
+      dialogService.showConfirm({
+        title: '¿Estás seguro?',
+        message: '¿Deseas eliminar este recuadro y todas sus ramas conectadas?',
+        confirmText: 'Sí, eliminar',
+        cancelText: 'Cancelar',
+        isDanger: true,
+        onConfirm: () => {
+          this.mindMapInstance.execCommand('REMOVE_NODE', [target]);
+          this.activeNode = null;
+          this.updateNodeDropdownUI();
+          this.triggerHaptic();
+        }
+      });
     });
 
     // Botón para abrir el editor directo multilínea desde el menú de recuadro
@@ -3587,6 +3618,11 @@ export class UltraFastMindMap {
       const hasPhoto = Boolean(this.activeNode.getData ? this.activeNode.getData('image') : (this.activeNode.nodeData?.data?.image || this.activeNode.getData?.('imageUrl')));
       if (btnRemovePhoto) {
         btnRemovePhoto.style.display = hasPhoto ? 'inline-flex' : 'none';
+      }
+
+      const btnDeleteNode = this.container.querySelector('#btn-delete-node-action') as HTMLElement | null;
+      if (btnDeleteNode) {
+        btnDeleteNode.style.display = (this.activeNode && !this.activeNode.isRoot) ? 'inline-flex' : 'none';
       }
 
       // Tamaño de fuente: solo número

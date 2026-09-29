@@ -130,6 +130,15 @@
   color: var(--mm-pill-accent);
 }
 
+.mm-pill-btn-delete {
+  color: #fb7185;
+}
+
+.mm-pill-btn-delete:hover {
+  background-color: rgba(244, 63, 94, 0.18) !important;
+  color: #f43f5e !important;
+}
+
 .mm-pill-btn svg {
   width: 16px;
   height: 16px;
