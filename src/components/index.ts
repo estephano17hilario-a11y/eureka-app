@@ -16,7 +16,7 @@ export {
   getSubjectInfo,
   isActivelyStudying
 } from './ActiveStudyView';
-export { UltraFastMindMap } from './UltraFastMindMap';
+export { MindMapStudio } from '../mindmap/MindMapStudio';
 export { StudySession } from './StudySession';
 export { FigmaStudySession } from './FigmaStudySession';
 

@@ -258,13 +258,21 @@ class ActiveStudyService {
         mindMapsObj[topicId] = data;
       });
       const mindMapsJson = JSON.stringify(mindMapsObj);
-      localStorage.setItem(mindMapsKey, mindMapsJson);
+      // Los mapas mentales con fotos pueden ser pesados: su copia completa vive en IndexedDB (MindMapStore).
+      // Aquí solo se espeja si es pequeña, para no agotar la cuota de localStorage ni frenar cada guardado.
+      const mindMapsFitInLocal = mindMapsJson.length < 300000;
+      if (mindMapsFitInLocal) {
+        localStorage.setItem(mindMapsKey, mindMapsJson);
+      } else {
+        localStorage.removeItem(mindMapsKey);
+        localStorage.removeItem('eureka_active_study_mindmaps_v1_backup');
+      }
 
       // Respaldo global persistente
       if (this.topics.size > 0) {
         localStorage.setItem('eureka_active_study_topics_v1_backup', topicsJson);
         localStorage.setItem('eureka_active_study_outlines_v1_backup', outlinesJson);
-        localStorage.setItem('eureka_active_study_mindmaps_v1_backup', mindMapsJson);
+        if (mindMapsFitInLocal) localStorage.setItem('eureka_active_study_mindmaps_v1_backup', mindMapsJson);
         localStorage.setItem('eureka_active_study_locks_v1_backup', locksJson);
       }
 
@@ -273,7 +281,9 @@ class ActiveStudyService {
       Preferences.set({ key: topicsKey, value: topicsJson }).catch(() => {});
       Preferences.set({ key: outlinesKey, value: outlinesJson }).catch(() => {});
       Preferences.set({ key: locksKey, value: locksJson }).catch(() => {});
-      Preferences.set({ key: mindMapsKey, value: mindMapsJson }).catch(() => {});
+      if (mindMapsFitInLocal) {
+        Preferences.set({ key: mindMapsKey, value: mindMapsJson }).catch(() => {});
+      }
 
       // Sincronización a VPS debounced en segundo plano
       this.scheduleCloudSync();
@@ -294,13 +304,13 @@ class ActiveStudyService {
     }
   }
 
-  private scheduleCloudSync(): void {
+  private scheduleCloudSync(delay: number = 300): void {
     if (this.cloudSyncTimer) {
       clearTimeout(this.cloudSyncTimer);
     }
     this.cloudSyncTimer = setTimeout(() => {
       this.syncCloudState();
-    }, 300);
+    }, delay);
   }
 
   private async syncCloudState(): Promise<void> {
@@ -417,7 +427,34 @@ class ActiveStudyService {
   public saveMindMapState(topicId: string, mapData: any): void {
     if (!topicId || !mapData) return;
     this.mindMaps.set(topicId, mapData);
-    this.saveToStorage();
+    this.persistMindMapsOnly();
+    // Sincronización en la nube diferida: un mapa se edita muchas veces seguidas
+    this.scheduleCloudSync(4000);
+  }
+
+  /** Persiste solo los mapas mentales (sin reescribir cuadernos, esquemas y bloqueos). */
+  private persistMindMapsOnly(): void {
+    try {
+      const key = this.getMindMapsKey();
+      const obj: Record<string, any> = {};
+      this.mindMaps.forEach((data, topicId) => {
+        obj[topicId] = data;
+      });
+      const json = JSON.stringify(obj);
+      if (json.length < 300000) {
+        localStorage.setItem(key, json);
+        Preferences.set({ key, value: json }).catch(() => {});
+      } else {
+        localStorage.removeItem(key);
+      }
+    } catch {
+      /* IndexedDB (MindMapStore) conserva la copia completa */
+    }
+  }
+
+  public getMindMapUpdatedAt(topicId: string): number {
+    const d = this.mindMaps.get(topicId);
+    return (d && typeof d.updatedAt === 'number' && d.updatedAt) || 0;
   }
 
   public getMindMapState(topicId: string): any {

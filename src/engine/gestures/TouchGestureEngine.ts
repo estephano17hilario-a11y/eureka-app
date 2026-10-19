@@ -20,7 +20,12 @@ export interface TouchGestureOptions {
   onTransform?: (state: GestureTransformState) => void;
   onGestureStart?: () => void;
   onGestureEnd?: () => void;
+  /** Elementos sobre los que un toque NO debe cancelarse (para que sigan funcionando los taps) */
+  interactiveSelector?: string;
 }
+
+const DEFAULT_INTERACTIVE_SELECTOR =
+  '.mindmap-edit-overlay, .edit-sheet-panel, .smm-node, .eureka-mindmap-custom-node, .eureka-node-text-rendered, .smm-hover-node, .smm-quick-create-child-btn, .mm-node-add-sibling-btn, .mm-floating-pill-toolbar, .compact-trigger-pill, .mindmap-top-bar, .mindmap-dropdown-menu-panel, button, input, textarea, a, select, [contenteditable="true"]';
 
 export class TouchGestureEngine {
   private element: HTMLElement;
@@ -59,7 +64,8 @@ export class TouchGestureEngine {
       velocityThreshold: options.velocityThreshold ?? 0.1,
       onTransform: options.onTransform ?? (() => {}),
       onGestureStart: options.onGestureStart ?? (() => {}),
-      onGestureEnd: options.onGestureEnd ?? (() => {})
+      onGestureEnd: options.onGestureEnd ?? (() => {}),
+      interactiveSelector: options.interactiveSelector ?? DEFAULT_INTERACTIVE_SELECTOR
     };
 
     // Configuración obligatoria del contenedor para anular elásticos del navegador
@@ -127,9 +133,7 @@ export class TouchGestureEngine {
    */
   private handleTouchStart(e: TouchEvent): void {
     const target = e.target as Element | null;
-    const isInteractive = Boolean(target?.closest?.(
-      '.mindmap-edit-overlay, .edit-sheet-panel, .smm-node, .eureka-mindmap-custom-node, .eureka-node-text-rendered, .smm-hover-node, .smm-quick-create-child-btn, .mm-node-add-sibling-btn, .mm-floating-pill-toolbar, .compact-trigger-pill, .mindmap-top-bar, .mindmap-dropdown-menu-panel, button, input, textarea, a, select, [contenteditable="true"]'
-    ));
+    const isInteractive = Boolean(target?.closest?.(this.options.interactiveSelector));
 
     // Si es un toque multitáctil (2+ dedos para pinch zoom), prevenir zoom nativo del navegador
     if (e.touches.length >= 2) {

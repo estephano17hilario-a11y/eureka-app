@@ -42,7 +42,8 @@ import {
   openCreateStudyFolder
 } from './components/ActiveStudyView';
 import { openCreateHub, type CreateHubChoice, type CreateHubContext } from './components/CreateHubSheet';
-import { UltraFastMindMap } from './components/UltraFastMindMap';
+import { MindMapStudio } from './mindmap/MindMapStudio';
+import { treeFromOutline } from './mindmap/templates';
 import { activeStudyService } from './services/active-study.service';
 import { feynmanLlmService } from './services/feynman-llm.service';
 import { openFeynmanDiagnosticModal } from './components/FeynmanDiagnosticModal';
@@ -69,7 +70,7 @@ class EurekaFigmaApp {
   private editingCardId: string | null = null;
   private appElement: HTMLElement;
   private activeStudySession: FigmaStudySession | null = null;
-  private activeMindMapInstance: UltraFastMindMap | null = null;
+  private activeMindMapInstance: MindMapStudio | null = null;
   private cleanupActiveStudyEvents: (() => void) | null = null;
   private returnToStudyOnCardEditorClose: boolean = false;
   private activeStudyChunkIdForNewCards: string | null = null;
@@ -347,30 +348,15 @@ class EurekaFigmaApp {
     }
 
     let initialData: any = undefined;
-    let topicTitle = 'Mapa Mental Táctil';
+    let topicTitle = 'Mapa mental';
 
     if (resolvedTopicId) {
-      const savedMap = activeStudyService.getMindMapState(resolvedTopicId);
-      if (savedMap && (savedMap.root || savedMap.data)) {
-        initialData = savedMap;
-      }
-
       const topic = activeStudyService.getTopicById(resolvedTopicId);
       if (topic) {
         topicTitle = topic.title;
-        if (!initialData) {
-          const roots = activeStudyService.getOutlineTree(resolvedTopicId);
-          if (roots.length > 0) {
-            const mapNode = (n: any): any => ({
-              data: { text: n.text, id: n.id },
-              children: n.children && n.children.length > 0 ? n.children.map(mapNode) : []
-            });
-            initialData = {
-              data: { text: topic.title },
-              children: roots.map(mapNode)
-            };
-          }
-        }
+        // El mapa guardado lo carga el propio editor; aquí solo se prepara el punto de partida (esquema del cuaderno)
+        const roots = activeStudyService.getOutlineTree(resolvedTopicId);
+        if (roots.length > 0) initialData = treeFromOutline(topic.title, roots);
       }
     }
 
@@ -383,7 +369,7 @@ class EurekaFigmaApp {
     mount.id = 'eureka-mindmap-fullscreen-mount';
     document.body.appendChild(mount);
 
-    this.activeMindMapInstance = new UltraFastMindMap(mount, {
+    this.activeMindMapInstance = new MindMapStudio(mount, {
       topicId: resolvedTopicId,
       topicTitle,
       initialData,
