@@ -128,7 +128,7 @@ function renderFolderItem(topic: ActiveStudyTopic): string {
   const emoji = topic.emoji || '📁';
   const bg = topic.color
     ? `linear-gradient(160deg, ${escapeAttr(topic.color)}, ${escapeAttr(topic.color)})`
-    : 'linear-gradient(160deg, #ecd08a, #c99a45)';
+    : 'var(--folder-bg)';
   const searchBlob = `${topic.title} carpeta ${topic.description || ''}`.toLowerCase();
 
   return `
@@ -187,20 +187,18 @@ export function renderActiveStudyDashboard(_selectedTopicId?: string): string {
   const headerHtml = `
     <div class="nbv-head">
       <div>
-        <div class="nbv-kicker">${currentFolder ? 'Carpeta' : 'Mi espacio de estudio'}</div>
         <h1 class="nbv-title">${currentFolder ? escapeHtml(currentFolder.title) : 'Mis cuadernos'}</h1>
         <p class="nbv-sub">${
           currentFolder
             ? escapeHtml(currentFolder.description || 'Cuadernos organizados dentro de esta carpeta.')
             : visibleTopics.length > 0
-            ? 'Toca un cuaderno para abrirlo y seguir donde lo dejaste.'
-            : 'Tu escritorio está listo. Crea tu primer cuaderno y empieza a estudiar.'
+            ? `${visibleTopics.length} ${visibleTopics.length === 1 ? 'cuaderno' : 'cuadernos'} · toca uno para seguir donde lo dejaste`
+            : 'Crea tu primer cuaderno para empezar a estudiar.'
         }</p>
       </div>
       <div class="nbv-actions">
         <button class="nbv-btn soft btn-toggle-orientation" title="Rotar pantalla (horizontal / vertical)" aria-label="Rotar pantalla" style="padding:12px 14px;">🔄</button>
         <button class="nbv-btn ai" id="btn-open-feynman-diagnostic"><span>🔬</span><span>Ruta Feynman IA</span></button>
-        <button class="nbv-btn gold" id="btn-open-create-hub"><span style="font-size:1.1rem; line-height:1;">＋</span><span>Nuevo</span></button>
       </div>
     </div>
   `;
@@ -213,11 +211,20 @@ export function renderActiveStudyDashboard(_selectedTopicId?: string): string {
        </div>`
     : '';
 
+  const orphanGuides = savedFeynmanGuides.filter(
+    (g) =>
+      !allTopics.some(
+        (t) =>
+          t.feynmanGuideId === g.id ||
+          (!t.isFolder && displayTitleOf(t).trim().toLowerCase() === g.topic.trim().toLowerCase())
+      )
+  );
+
   const routesHtml =
-    savedFeynmanGuides.length > 0 && !currentFolder
+    orphanGuides.length > 0 && !currentFolder
       ? `<div class="nbv-routes">
-           <span class="nbv-routes-label">Rutas Feynman</span>
-           ${savedFeynmanGuides
+           <span class="nbv-routes-label">Rutas sin cuaderno</span>
+           ${orphanGuides
              .map(
                (g) => `<button class="nbv-route btn-open-saved-feynman" data-guide-id="${g.id}" type="button">
                  <span>🔬 ${escapeHtml(g.topic)}</span><small>${g.levelsCount}L</small>
@@ -312,11 +319,11 @@ function renderSelectedTopicWorkspace(topic: ActiveStudyTopic, userCoins: number
   const currentChunkCards = mergedCards.filter((c) => c.chunkId === currentChunk.id);
 
   if (state === 'TOPIC_CONSOLIDATED') {
-    return renderBenchDesk(topic, renderConsolidatedScreen(topic, userCoins, mergedCards), '🧠 Tema consolidado', 'green');
+    return renderBenchDesk(topic, renderConsolidatedScreen(topic, userCoins, mergedCards), '🧠 Consolidación', 'green');
   }
 
   if (state === 'BUILDING_OUTLINE') {
-    return renderBenchDesk(topic, renderOutlineBuildingScreen(topic, currentChunk, currentChunkCards), '🌳 Esquema de memoria', 'purple');
+    return renderBenchDesk(topic, renderOutlineBuildingScreen(topic, currentChunk, currentChunkCards), '🌳 Esquema ciego', 'purple');
   }
 
   const linkedDeck = topic.deckId ? deckService.getDeckById(topic.deckId) : null;
@@ -345,6 +352,102 @@ function renderBenchDesk(topic: ActiveStudyTopic, innerHtml: string, chipText: s
 }
 
 /**
+ * Normaliza un texto para comparar títulos sin ruido (emojis, números, palabras de rotulado)
+ */
+function normalizeForCompare(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/átomo|atomo|subnivel|nivel|paso|bloque|página|pagina/g, ' ')
+    .replace(/[^\p{L}]+/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+/**
+ * Quita del contenido el primer encabezado cuando solo repite el título de la página
+ * (p. ej. "### Subnivel 1.1: X" bajo el título "X"), y limpia "## # Nivel" → "## Nivel".
+ */
+function stripRepeatedHeading(content: string, pageTitle: string): string {
+  let text = content.replace(/^(\s*#{1,6})\s+#\s+/, '$1 ');
+  const lines = text.split('\n');
+  const firstIdx = lines.findIndex((l) => l.trim().length > 0);
+  if (firstIdx === -1) return text;
+
+  const m = lines[firstIdx].match(/^\s*#{1,6}\s+(.*)$/);
+  if (!m) return text;
+
+  const head = normalizeForCompare(m[1]);
+  const title = normalizeForCompare(pageTitle);
+  if (!head || !title) return text;
+
+  const same = head === title || (head.length >= 6 && title.includes(head)) || (title.length >= 6 && head.includes(title));
+  if (!same) return text;
+
+  lines.splice(firstIdx, 1);
+  // Quitar la línea en blanco que quedó al inicio
+  while (lines.length && lines[0].trim() === '') lines.shift();
+  return lines.join('\n');
+}
+
+interface PageParts {
+  chipText: string;
+  chipClass: string;
+  title: string; // vacío = no mostrar título (páginas genéricas)
+  content: string;
+}
+
+/**
+ * Descompone el título del bloque en "chip" (tipo de página), título legible y contenido sin repeticiones.
+ * Así cada dato aparece una sola vez: tipo arriba, título en la hoja, posición en el rótulo.
+ */
+function buildPageParts(chunk: StudyChunk): PageParts {
+  const raw = chunk.title;
+  let chipText = '📄 Apuntes';
+  let chipClass = '';
+  let title = raw;
+
+  const atom = raw.match(/^Átomo\s*([\d.]+)\s*[:.-]\s*(?:Subnivel\s*[\d.]+\s*[:.-]\s*)?(.*)$/i);
+
+  if (atom) {
+    chipText = `🔬 Átomo ${atom[1]}`;
+    title = atom[2].trim() || raw;
+  } else if (raw.includes('Visión Holística') || raw.includes('Hoja de Ruta') || raw.includes('Problemática Global')) {
+    chipText = '🗺️ Hoja de ruta';
+    chipClass = 'purple';
+    title = raw.replace(/^[^\p{L}\p{N}]+/u, '').replace(/^Hoja de Ruta:\s*/i, '');
+  } else if (raw.includes('Propósito') || raw.includes('Axioma Central')) {
+    const lvl = raw.match(/Nivel\s*(\d+)/i);
+    chipText = lvl ? `🎯 Nivel ${lvl[1]}` : '🎯 Propósito';
+    title = raw.replace(/^[^\p{L}\p{N}]+/u, '').replace(/^Nivel\s*\d+:\s*/i, '');
+  } else if (raw.includes('Puente Conector') || raw.includes('Puente Inter-Nivel')) {
+    chipText = '🌉 Puente';
+    chipClass = 'green';
+    title = raw.replace(/^[^\p{L}\p{N}]+/u, '').replace(/:?\s*Puente Conector Inter-Nivel/i, '').trim() || 'Del nivel anterior al siguiente';
+  } else if (raw.includes('Transición Sinérgica')) {
+    chipText = '🔗 Transición';
+    chipClass = 'green';
+    title = raw.replace(/^[^\p{L}\p{N}]+/u, '').replace(/^Transición Sinérgica:\s*/i, '');
+  } else if (raw.includes('Examen Final')) {
+    chipText = '🎓 Examen final';
+    chipClass = 'gold';
+    title = raw.replace(/^[^\p{L}\p{N}]+/u, '').replace(/^Examen Final:\s*/i, '');
+  } else if (/^(Página|Pagina|Bloque)\s*\d+\s*[:.-]?\s*(.*)$/i.test(raw)) {
+    // Título genérico ("Página 1"): la hoja ya dice "Página N de M", no se repite
+    const generic = raw.match(/^(?:Página|Pagina|Bloque)\s*\d+\s*[:.-]?\s*(.*)$/i);
+    title = (generic?.[1] || '').trim();
+  }
+
+  let content = stripRepeatedHeading(chunk.sourceContent, title || raw);
+
+  // La fórmula aparece primero como viñeta "(FORMALISMO MATEMÁTICO)" y otra vez en su bloque 📐: se muestra una sola vez
+  if (/📐\s*\*\*Formalismo/i.test(content)) {
+    content = content.replace(/^\s*[-*•]\s*\*\*\(?FORMALISMO\s*MATEM[AÁ]TICO(?:\s*EUREKA)?\)?:?\*\*:?.*\n?/gim, '');
+  }
+
+  return { chipText, chipClass, title, content };
+}
+
+/**
  * MODO LECTURA: una hoja de cuaderno con renglones, margen y espiral, bajo la luz de tu lámpara.
  * Solo lo esencial: leer, agregar flashcard, ver mapa y pasar de página.
  */
@@ -355,31 +458,12 @@ function renderCenteredAtomicReadingScreen(
   _deckName: string,
   _mergedCards: Flashcard[]
 ): string {
+  const parts = buildPageParts(chunk);
+
   const isRoadmapChunk = chunk.title.includes('Visión Holística') || chunk.title.includes('Hoja de Ruta') || chunk.title.includes('Problemática Global');
   const isPurposeAxiomChunk = chunk.title.includes('Propósito') || chunk.title.includes('Axioma Central');
   const isBridgeChunk = chunk.title.includes('Puente Conector') || chunk.title.includes('Puente Inter-Nivel');
   const isAtomTransitionChunk = chunk.title.includes('Transición Sinérgica: Átomo');
-  const isExamChunk = chunk.title.includes('Examen Final');
-
-  const position = `${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
-  let chipText = topic.feynmanGuideId ? `🔬 Átomo ${position}` : `📄 Página ${position}`;
-  let chipClass = '';
-
-  if (isRoadmapChunk) {
-    chipText = `🗺️ Hoja de ruta ${position}`;
-    chipClass = 'purple';
-  } else if (isPurposeAxiomChunk) {
-    chipText = `🎯 Propósito y axioma ${position}`;
-  } else if (isBridgeChunk) {
-    chipText = `🌉 Puente ${position}`;
-    chipClass = 'green';
-  } else if (isAtomTransitionChunk) {
-    chipText = `🔗 Transición ${position}`;
-    chipClass = 'green';
-  } else if (isExamChunk) {
-    chipText = `🎓 Examen final ${position}`;
-    chipClass = 'gold';
-  }
 
   const isLast = topic.currentChunkIndex + 1 >= topic.chunks.length;
   let nextBtnText = isLast ? 'Terminar y armar mi esquema' : 'Pasar de página';
@@ -401,8 +485,6 @@ function renderCenteredAtomicReadingScreen(
     )
     .join('');
 
-  const displayTitle = chunk.title;
-
   return `
     <div class="pg-desk" data-topic-id="${topic.id}">
       <div class="pg-progress" style="width: ${progressPercent}%;"></div>
@@ -410,7 +492,7 @@ function renderCenteredAtomicReadingScreen(
       <header class="pg-bar">
         <div class="pg-bar-left">
           <button class="pg-exit" id="btn-exit-atomic-reading" type="button" title="Salir (se guarda tu avance)">✕ Salir</button>
-          <span class="pg-chip ${chipClass}">${chipText}</span>
+          <span class="pg-chip ${parts.chipClass}">${parts.chipText}</span>
           <span class="pg-notebook-name">${escapeHtml(displayTitleOf(topic))}</span>
         </div>
         <div class="pg-bar-right">
@@ -425,10 +507,10 @@ function renderCenteredAtomicReadingScreen(
           <div class="pg-ribbon"></div>
 
           <div class="pg-kicker">Página ${topic.currentChunkIndex + 1} de ${topic.chunks.length}</div>
-          <h2 class="pg-title">${escapeHtml(displayTitle)}</h2>
+          ${parts.title ? `<h2 class="pg-title">${escapeHtml(parts.title)}</h2>` : '<div style="height:10px;"></div>'}
 
           <div class="pg-content">
-            ${feynmanSandboxService.renderContentWithSandboxes(chunk.sourceContent, chunk.title)}
+            ${feynmanSandboxService.renderContentWithSandboxes(parts.content, parts.title || chunk.title)}
           </div>
 
           <div class="pg-tools">
@@ -442,7 +524,6 @@ function renderCenteredAtomicReadingScreen(
           </div>
 
           <div class="pg-foot">
-            <span class="pg-number">pág. ${topic.currentChunkIndex + 1}</span>
             <button class="pg-next" id="btn-atomic-next" type="button">
               <span>${nextBtnText}</span>
               <span class="arrow">➔</span>
@@ -453,7 +534,6 @@ function renderCenteredAtomicReadingScreen(
     </div>
   `;
 }
-
 
 /**
  * FASE 2: Constructor del Esquema Ciego (Outliner Jerárquico Táctil con SortableJS)

@@ -1,0 +1,1528 @@
+/* ==========================================================================
+   EUREKA — SUPERFICIES POR AMBIENTE
+   Aquí cada ambiente cambia los OBJETOS de estudio, no solo el fondo:
+     1) la hoja de lectura (papel, encuadernación, tipografía)
+     2) las tapas de los cuadernos y las carpetas
+     3) las fichas de los mazos y el panel de cada mazo
+     4) la tarjeta de flashcard cuando estudias
+   ========================================================================== */
+
+:root {
+  --fiber: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --ring-metal: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='36' viewBox='0 0 28 36'%3E%3Cellipse cx='14' cy='26' rx='5.5' ry='4.2' fill='%23120c07' opacity='.65'/%3E%3Crect x='11.5' y='2' width='5' height='27' rx='2.5' fill='%23b8bec8'/%3E%3Crect x='12.4' y='3' width='1.6' height='25' rx='.8' fill='%23ffffff' opacity='.75'/%3E%3Crect x='15' y='3' width='1' height='25' rx='.5' fill='%23000' opacity='.25'/%3E%3C/svg%3E");
+  --ring-office: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='36' viewBox='0 0 24 36'%3E%3Cellipse cx='12' cy='26' rx='5' ry='4' fill='%230b1220' opacity='.55'/%3E%3Crect x='9.5' y='3' width='5' height='26' rx='2.5' fill='%23475569'/%3E%3Crect x='10.4' y='4' width='1.6' height='24' rx='.8' fill='%23ffffff' opacity='.5'/%3E%3C/svg%3E");
+  --ring-twine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='36' viewBox='0 0 28 36'%3E%3Cellipse cx='14' cy='26' rx='5' ry='4' fill='%23120c07' opacity='.7'/%3E%3Cpath d='M7 4 Q14 32 21 4' fill='none' stroke='%23d8b377' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M7 4 Q14 32 21 4' fill='none' stroke='%23a98550' stroke-width='1' stroke-dasharray='2 3' stroke-linecap='round'/%3E%3C/svg%3E");
+  --wave-red: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='6' viewBox='0 0 120 6'%3E%3Cpath d='M2 3 Q 15 0 30 3 T 60 3 T 90 3 T 118 3' fill='none' stroke='%23d94d4d' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;
+  --wave-cyan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='6' viewBox='0 0 120 6'%3E%3Cpath d='M0 3 H40 L46 1 H74 L80 3 H120' fill='none' stroke='%2322d3ee' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;
+  --wave-line: linear-gradient(90deg, currentColor, transparent) no-repeat;
+}
+
+/* ==========================================================================
+   1. HOJA DE LECTURA — valores base (papel crema clásico)
+   ========================================================================== */
+body {
+  --paper-a: #fbf4e2;
+  --paper-b: #f3e8cd;
+  --paper-line: rgba(70, 110, 170, 0.22);
+  --paper-margin: rgba(214, 69, 69, 0.45);
+  --paper-ink: #2a2f3d;
+  --paper-strong: #11151f;
+  --paper-soft: #5c6475;
+  --paper-accent: #1d5fa8;
+  --paper-code-bg: rgba(30, 41, 59, 0.08);
+  --paper-code-ink: #b4234b;
+  --paper-block-bg: rgba(29, 95, 168, 0.06);
+  --paper-block-border: rgba(29, 95, 168, 0.22);
+  --paper-shadow: rgba(0, 0, 0, 0.55);
+
+  --paper-title-font: var(--f-font-hand);
+  --paper-body-font: var(--f-font-serif);
+  --paper-title-color: var(--ink-pen);
+  --paper-title-size: 2.35rem;
+  --paper-title-weight: 700;
+  --paper-title-spacing: 0;
+  --paper-title-transform: none;
+  --paper-h3: #b4361f;
+  --paper-hl: rgba(255, 213, 79, 0.55);
+
+  --paper-radius: 6px 14px 14px 6px;
+  --paper-pad-left: 84px;
+  --paper-margin-x: 66px;
+  --paper-lines: repeating-linear-gradient(180deg, transparent 0 31px, var(--paper-line) 31px 32px) 0 40px;
+  --paper-grain: var(--grain);
+  --paper-grain-op: 0.22;
+  --paper-grain-blend: multiply;
+  --paper-box-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.5) inset,
+    0 30px 60px -12px var(--paper-shadow),
+    0 0 90px rgba(var(--lamp), 0.12),
+    6px 6px 0 -1px var(--paper-b),
+    9px 9px 0 -2px rgba(0, 0, 0, 0.2);
+  --paper-underline: var(--wave-red);
+
+  --paper-btn: linear-gradient(135deg, #1d5fa8, #2c7be5);
+  --paper-btn-ink: #fff;
+  --paper-btn-shadow: rgba(29, 95, 168, 0.55);
+  --paper-tool-bg: rgba(255, 255, 255, 0.45);
+  --paper-tool-hover: rgba(255, 213, 79, 0.35);
+  --paper-tool-border-style: dashed;
+  --paper-ribbon: linear-gradient(180deg, #e11d48, #9f1239);
+
+  --paper-binding: var(--ring-metal) repeat-x;
+  --spiral-top: -16px;
+  --spiral-left: 28px;
+  --spiral-right: 28px;
+  --spiral-bottom: auto;
+  --spiral-h: 36px;
+  --spiral-w: auto;
+  --spiral-filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.45));
+  --spiral-radius: 0;
+
+  /* Tarjeta de flashcard (ficha) */
+  --card-lines:
+    linear-gradient(180deg, transparent 58px, rgba(214, 69, 69, 0.5) 58px 60px, transparent 60px),
+    repeating-linear-gradient(180deg, transparent 0 29px, var(--paper-line) 29px 30px) 0 60px;
+  --card-font: var(--f-font-hand);
+  --card-size: 2.1rem;
+  --card-ans-size: 1.8rem;
+  --card-weight: 700;
+  --card-radius: 10px;
+  --card-border: rgba(120, 90, 40, 0.35);
+  --card-shadow: 0 24px 50px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+
+  /* Fichas de mazos / paneles */
+  --row-bg: linear-gradient(180deg, #fbf4e2, #f2e7cb);
+  --row-hover: #fffaf0;
+  --row-ink: #2a2f3d;
+  --row-sub: #6b6f7b;
+  --row-border: rgba(120, 90, 40, 0.35);
+  --row-radius: 8px;
+  --row-shadow: 0 6px 14px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  --row-accent: #d64545;
+  --row-pill-bg: rgba(0, 0, 0, 0.06);
+  --row-title-font: inherit;
+  --row-title-size: 1.12rem;
+  --row-title-weight: 800;
+  --row-title-transform: none;
+  --row-gap: 10px;
+
+  /* Carpeta */
+  --folder-bg: linear-gradient(160deg, #ecd08a, #c99a45);
+  --folder-tab: #dcbb6a;
+  --folder-ink: #3a2a0c;
+}
+
+/* Papel nocturno (elección manual) o nativo de ambientes con pantalla */
+body.paper-night.paper-night {
+  --paper-a: #1d2027;
+  --paper-b: #171a20;
+  --paper-line: rgba(255, 255, 255, 0.06);
+  --paper-margin: rgba(244, 63, 94, 0.35);
+  --paper-ink: #dfe3ec;
+  --paper-strong: #ffffff;
+  --paper-soft: #98a1b3;
+  --paper-accent: #7dd3fc;
+  --paper-code-bg: rgba(255, 255, 255, 0.08);
+  --paper-code-ink: #fda4af;
+  --paper-block-bg: rgba(56, 189, 248, 0.07);
+  --paper-block-border: rgba(56, 189, 248, 0.2);
+  --paper-shadow: rgba(0, 0, 0, 0.7);
+  --paper-title-color: #8ec9ff;
+  --paper-h3: #fdba74;
+  --paper-hl: rgba(var(--warm-rgb), 0.35);
+  --paper-grain-blend: screen;
+  --paper-grain-op: 0.07;
+  --paper-box-shadow:
+    0 30px 60px -12px rgba(0, 0, 0, 0.7),
+    0 0 90px rgba(var(--lamp), 0.07),
+    6px 6px 0 -1px #14161b,
+    9px 9px 0 -2px rgba(0, 0, 0, 0.35);
+  --paper-tool-bg: rgba(255, 255, 255, 0.05);
+  --paper-tool-hover: rgba(var(--warm-rgb), 0.2);
+  --paper-btn: var(--warm-grad);
+  --paper-btn-ink: var(--warm-ink);
+  --paper-btn-shadow: rgba(var(--warm-rgb), 0.5);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-shadow: 0 24px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  --card-lines:
+    linear-gradient(180deg, transparent 58px, rgba(244, 63, 94, 0.35) 58px 60px, transparent 60px),
+    repeating-linear-gradient(180deg, transparent 0 29px, var(--paper-line) 29px 30px) 0 60px;
+}
+
+
+body.paper-classic.paper-classic {
+  --paper-a: #fbf4e2;
+  --paper-b: #f3e8cd;
+  --paper-line: rgba(70, 110, 170, 0.22);
+  --paper-margin: rgba(214, 69, 69, 0.45);
+  --paper-ink: #2a2f3d;
+  --paper-strong: #11151f;
+  --paper-soft: #5c6475;
+  --paper-accent: #1d5fa8;
+  --paper-code-bg: rgba(30, 41, 59, 0.08);
+  --paper-code-ink: #b4234b;
+  --paper-block-bg: rgba(29, 95, 168, 0.06);
+  --paper-block-border: rgba(29, 95, 168, 0.22);
+  --paper-shadow: rgba(0, 0, 0, 0.55);
+
+  --paper-title-font: var(--f-font-hand);
+  --paper-body-font: var(--f-font-serif);
+  --paper-title-color: var(--ink-pen);
+  --paper-title-size: 2.35rem;
+  --paper-title-weight: 700;
+  --paper-title-spacing: 0;
+  --paper-title-transform: none;
+  --paper-h3: #b4361f;
+  --paper-hl: rgba(255, 213, 79, 0.55);
+
+  --paper-radius: 6px 14px 14px 6px;
+  --paper-pad-left: 84px;
+  --paper-margin-x: 66px;
+  --paper-lines: repeating-linear-gradient(180deg, transparent 0 31px, var(--paper-line) 31px 32px) 0 40px;
+  --paper-grain: var(--grain);
+  --paper-grain-op: 0.22;
+  --paper-grain-blend: multiply;
+  --paper-box-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.5) inset,
+    0 30px 60px -12px var(--paper-shadow),
+    0 0 90px rgba(var(--lamp), 0.12),
+    6px 6px 0 -1px var(--paper-b),
+    9px 9px 0 -2px rgba(0, 0, 0, 0.2);
+  --paper-underline: var(--wave-red);
+
+  --paper-btn: linear-gradient(135deg, #1d5fa8, #2c7be5);
+  --paper-btn-ink: #fff;
+  --paper-btn-shadow: rgba(29, 95, 168, 0.55);
+  --paper-tool-bg: rgba(255, 255, 255, 0.45);
+  --paper-tool-hover: rgba(255, 213, 79, 0.35);
+  --paper-tool-border-style: dashed;
+  --paper-ribbon: linear-gradient(180deg, #e11d48, #9f1239);
+
+  --paper-binding: var(--ring-metal) repeat-x;
+  --spiral-top: -16px;
+  --spiral-left: 28px;
+  --spiral-right: 28px;
+  --spiral-bottom: auto;
+  --spiral-h: 36px;
+  --spiral-w: auto;
+  --spiral-filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.45));
+  --spiral-radius: 0;
+
+  /* Tarjeta de flashcard (ficha) */
+  --card-lines:
+    linear-gradient(180deg, transparent 58px, rgba(214, 69, 69, 0.5) 58px 60px, transparent 60px),
+    repeating-linear-gradient(180deg, transparent 0 29px, var(--paper-line) 29px 30px) 0 60px;
+  --card-font: var(--f-font-hand);
+  --card-size: 2.1rem;
+  --card-ans-size: 1.8rem;
+  --card-weight: 700;
+  --card-radius: 10px;
+  --card-border: rgba(120, 90, 40, 0.35);
+  --card-shadow: 0 24px 50px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+
+  /* Fichas de mazos / paneles */
+}
+
+/* ---- Cabaña: papel kraft atado con cordel ---- */
+body.theme-cabin {
+  --paper-a: #dcbf92;
+  --paper-b: #c9a56e;
+  --paper-line: rgba(90, 55, 20, 0.2);
+  --paper-margin: rgba(150, 55, 25, 0.4);
+  --paper-ink: #2d1b0c;
+  --paper-strong: #170b02;
+  --paper-soft: #6d4c2b;
+  --paper-accent: #8a3a12;
+  --paper-code-bg: rgba(60, 30, 10, 0.12);
+  --paper-code-ink: #9f1f3a;
+  --paper-block-bg: rgba(120, 60, 20, 0.1);
+  --paper-block-border: rgba(120, 60, 20, 0.3);
+  --paper-title-color: #5a2e0c;
+  --paper-h3: #9a3412;
+  --paper-hl: rgba(255, 170, 60, 0.45);
+  --paper-radius: 3px 8px 8px 3px;
+  --paper-grain: var(--fiber);
+  --paper-grain-op: 0.55;
+  --paper-box-shadow:
+    inset 0 0 50px rgba(90, 55, 20, 0.28),
+    0 30px 60px -12px rgba(0, 0, 0, 0.65),
+    0 0 90px rgba(var(--lamp), 0.16);
+  --paper-btn: linear-gradient(135deg, #b45309, #7c2d12);
+  --paper-btn-ink: #fff4e0;
+  --paper-btn-shadow: rgba(124, 45, 18, 0.6);
+  --paper-tool-bg: rgba(255, 240, 215, 0.35);
+  --paper-tool-hover: rgba(255, 200, 120, 0.45);
+  --paper-ribbon: linear-gradient(180deg, #15803d, #14532d);
+  --paper-binding: var(--ring-twine) repeat-x;
+  --card-lines:
+    linear-gradient(180deg, transparent 58px, rgba(150, 55, 25, 0.5) 58px 60px, transparent 60px),
+    repeating-linear-gradient(180deg, transparent 0 29px, var(--paper-line) 29px 30px) 0 60px;
+  --card-border: rgba(90, 55, 20, 0.55);
+  --row-bg: linear-gradient(180deg, #dcbf92, #c9a56e);
+  --row-hover: #e6cc9f;
+  --row-ink: #2d1b0c;
+  --row-sub: #6d4c2b;
+  --row-border: rgba(90, 55, 20, 0.55);
+  --row-radius: 4px;
+  --row-accent: #9a3412;
+  --folder-bg: linear-gradient(160deg, #8a9a5b, #5f6f3a);
+  --folder-tab: #75864a;
+  --folder-ink: #1d2410;
+}
+
+/* ---- Biblioteca: pergamino con costura dorada ---- */
+body.theme-library {
+  --paper-a: #efe2bd;
+  --paper-b: #dcc994;
+  --paper-line: rgba(110, 80, 30, 0.16);
+  --paper-margin: rgba(130, 40, 30, 0.35);
+  --paper-ink: #33281a;
+  --paper-strong: #1c140a;
+  --paper-soft: #6b5a3e;
+  --paper-accent: #7f1d1d;
+  --paper-code-bg: rgba(60, 40, 10, 0.1);
+  --paper-code-ink: #8a1c2b;
+  --paper-block-bg: rgba(127, 29, 29, 0.06);
+  --paper-block-border: rgba(127, 29, 29, 0.24);
+  --paper-title-font: 'Cormorant Garamond', Georgia, serif;
+  --paper-title-size: 2.8rem;
+  --paper-title-color: #6b1d1d;
+  --paper-h3: #8a5a14;
+  --paper-hl: rgba(190, 150, 50, 0.4);
+  --paper-radius: 3px 6px 6px 3px;
+  --paper-grain-op: 0.3;
+  --paper-box-shadow:
+    inset 0 0 70px rgba(120, 80, 20, 0.3),
+    0 30px 60px -12px rgba(0, 0, 0, 0.65),
+    0 0 90px rgba(var(--lamp), 0.18);
+  --paper-btn: linear-gradient(135deg, #8c2b2b, #5e1616);
+  --paper-btn-ink: #f6e3b4;
+  --paper-btn-shadow: rgba(94, 22, 22, 0.6);
+  --paper-tool-bg: rgba(255, 245, 215, 0.4);
+  --paper-ribbon: linear-gradient(180deg, #9f1239, #5f0a22);
+  --paper-binding: repeating-linear-gradient(180deg, #c9a24a 0 9px, transparent 9px 18px);
+  --spiral-top: 0;
+  --spiral-bottom: 0;
+  --spiral-left: 16px;
+  --spiral-right: auto;
+  --spiral-w: 5px;
+  --spiral-h: auto;
+  --spiral-filter: none;
+  --card-lines:
+    linear-gradient(180deg, transparent 58px, rgba(130, 40, 30, 0.45) 58px 60px, transparent 60px),
+    repeating-linear-gradient(180deg, transparent 0 29px, var(--paper-line) 29px 30px) 0 60px;
+  --card-font: 'Cormorant Garamond', Georgia, serif;
+  --card-size: 2.2rem;
+  --card-ans-size: 1.8rem;
+  --card-radius: 4px;
+  --card-border: rgba(184, 137, 47, 0.8);
+  --row-bg: linear-gradient(180deg, #efe2bd, #dcc994);
+  --row-hover: #f6ebca;
+  --row-ink: #33281a;
+  --row-sub: #6b5a3e;
+  --row-border: rgba(184, 137, 47, 0.8);
+  --row-radius: 3px;
+  --row-accent: #7f1d1d;
+  --row-title-font: 'Cormorant Garamond', Georgia, serif;
+  --row-title-size: 1.4rem;
+  --row-title-weight: 700;
+  --folder-bg: linear-gradient(160deg, #7a2a24, #4d1a16);
+  --folder-tab: #5f2019;
+  --folder-ink: #f0d58c;
+}
+
+/* ---- Oficina: hoja blanca cuadriculada con anillas ---- */
+body.theme-office {
+  --paper-a: #ffffff;
+  --paper-b: #f4f6fa;
+  --paper-line: rgba(37, 99, 235, 0.14);
+  --paper-margin: transparent;
+  --paper-ink: #1f2937;
+  --paper-strong: #0b1220;
+  --paper-soft: #64748b;
+  --paper-accent: #2563eb;
+  --paper-code-bg: rgba(15, 23, 42, 0.07);
+  --paper-code-ink: #be123c;
+  --paper-block-bg: rgba(37, 99, 235, 0.06);
+  --paper-block-border: rgba(37, 99, 235, 0.22);
+  --paper-title-font: 'Inter', system-ui, sans-serif;
+  --paper-body-font: 'Inter', system-ui, sans-serif;
+  --paper-title-size: 1.95rem;
+  --paper-title-weight: 800;
+  --paper-title-spacing: -0.03em;
+  --paper-title-color: #0f172a;
+  --paper-h3: #2563eb;
+  --paper-hl: rgba(250, 204, 21, 0.45);
+  --paper-radius: 8px;
+  --paper-pad-left: 56px;
+  --paper-margin-x: -10px;
+  --paper-lines:
+    repeating-linear-gradient(180deg, transparent 0 31px, var(--paper-line) 31px 32px) 0 40px,
+    repeating-linear-gradient(90deg, transparent 0 31px, var(--paper-line) 31px 32px) 0 0;
+  --paper-grain-op: 0.05;
+  --paper-box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  --paper-underline: var(--wave-line);
+  --paper-btn: var(--warm-grad);
+  --paper-btn-ink: var(--warm-ink);
+  --paper-btn-shadow: rgba(var(--warm-rgb), 0.5);
+  --paper-tool-bg: rgba(37, 99, 235, 0.06);
+  --paper-tool-hover: rgba(37, 99, 235, 0.14);
+  --paper-tool-border-style: solid;
+  --paper-ribbon: linear-gradient(180deg, #2563eb, #1e40af);
+  --paper-binding: var(--ring-office) repeat-x;
+  --card-lines:
+    repeating-linear-gradient(180deg, transparent 0 29px, var(--paper-line) 29px 30px),
+    repeating-linear-gradient(90deg, transparent 0 29px, var(--paper-line) 29px 30px);
+  --card-font: 'Inter', system-ui, sans-serif;
+  --card-size: 1.55rem;
+  --card-ans-size: 1.3rem;
+  --card-weight: 800;
+  --card-radius: 14px;
+  --card-border: rgba(203, 213, 225, 0.9);
+  --row-bg: linear-gradient(180deg, #ffffff, #f4f6fa);
+  --row-hover: #ffffff;
+  --row-ink: #0f172a;
+  --row-sub: #64748b;
+  --row-border: rgba(203, 213, 225, 0.9);
+  --row-radius: 12px;
+  --row-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  --row-accent: #2563eb;
+  --row-title-weight: 800;
+  --folder-bg: linear-gradient(160deg, #94a3b8, #64748b);
+  --folder-tab: #7c8ba1;
+  --folder-ink: #0b1220;
+}
+
+/* ---- Moderno: lienzo limpio con una línea de acento ---- */
+body.theme-modern_black {
+  --paper-a: #fafafa;
+  --paper-b: #f1f3f6;
+  --paper-line: rgba(15, 23, 42, 0.05);
+  --paper-margin: transparent;
+  --paper-ink: #1e293b;
+  --paper-strong: #020617;
+  --paper-soft: #64748b;
+  --paper-accent: var(--f-accent);
+  --paper-code-bg: rgba(15, 23, 42, 0.07);
+  --paper-code-ink: #be123c;
+  --paper-block-bg: rgba(15, 23, 42, 0.04);
+  --paper-block-border: rgba(15, 23, 42, 0.14);
+  --paper-title-font: 'Inter', system-ui, sans-serif;
+  --paper-body-font: 'Inter', system-ui, sans-serif;
+  --paper-title-size: 1.95rem;
+  --paper-title-weight: 800;
+  --paper-title-spacing: -0.035em;
+  --paper-title-color: #0f172a;
+  --paper-h3: var(--f-accent);
+  --paper-hl: rgba(var(--f-accent-rgb, 56, 189, 248), 0.25);
+  --paper-radius: 12px;
+  --paper-pad-left: 48px;
+  --paper-margin-x: -10px;
+  --paper-lines: linear-gradient(transparent, transparent);
+  --paper-grain-op: 0;
+  --paper-box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.55);
+  --paper-underline: var(--wave-line);
+  --paper-btn: var(--warm-grad);
+  --paper-btn-ink: var(--warm-ink);
+  --paper-btn-shadow: rgba(var(--warm-rgb), 0.5);
+  --paper-tool-bg: rgba(15, 23, 42, 0.04);
+  --paper-tool-hover: rgba(15, 23, 42, 0.09);
+  --paper-tool-border-style: solid;
+  --paper-ribbon: var(--warm-grad);
+  --paper-binding: var(--warm-grad);
+  --spiral-top: 0;
+  --spiral-left: 0;
+  --spiral-right: 0;
+  --spiral-h: 6px;
+  --spiral-filter: none;
+  --spiral-radius: 12px 12px 0 0;
+  --card-lines: linear-gradient(transparent, transparent);
+  --card-font: 'Inter', system-ui, sans-serif;
+  --card-size: 1.6rem;
+  --card-ans-size: 1.3rem;
+  --card-weight: 800;
+  --card-radius: 18px;
+  --card-border: rgba(255, 255, 255, 0.6);
+  --row-bg: rgba(255, 255, 255, 0.045);
+  --row-hover: rgba(255, 255, 255, 0.09);
+  --row-ink: #f8fafc;
+  --row-sub: #8b95a5;
+  --row-border: rgba(255, 255, 255, 0.09);
+  --row-radius: 16px;
+  --row-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --row-accent: var(--f-accent);
+  --row-pill-bg: rgba(255, 255, 255, 0.06);
+  --row-title-weight: 800;
+  --folder-bg: linear-gradient(160deg, #4b5563, #1f2937);
+  --folder-tab: #374151;
+  --folder-ink: #f8fafc;
+}
+
+/* ---- Zen: washi con hilo rojo ---- */
+body.theme-zen_garden {
+  --paper-a: #f6f1e3;
+  --paper-b: #ebe4d0;
+  --paper-line: transparent;
+  --paper-margin: rgba(192, 57, 43, 0.5);
+  --paper-ink: #2b2f27;
+  --paper-strong: #0f130d;
+  --paper-soft: #6b7062;
+  --paper-accent: #8a3b2e;
+  --paper-code-bg: rgba(0, 0, 0, 0.06);
+  --paper-code-ink: #8a3b2e;
+  --paper-block-bg: rgba(143, 181, 115, 0.12);
+  --paper-block-border: rgba(94, 138, 71, 0.35);
+  --paper-title-font: 'Shippori Mincho', Georgia, serif;
+  --paper-body-font: 'Shippori Mincho', Georgia, serif;
+  --paper-title-size: 2.1rem;
+  --paper-title-spacing: 0.02em;
+  --paper-title-color: #1f2a1c;
+  --paper-h3: #8a3b2e;
+  --paper-hl: rgba(192, 57, 43, 0.18);
+  --paper-radius: 2px;
+  --paper-pad-left: 72px;
+  --paper-margin-x: 54px;
+  --paper-lines: linear-gradient(transparent, transparent);
+  --paper-grain: var(--fiber);
+  --paper-grain-op: 0.3;
+  --paper-box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(120, 110, 80, 0.15);
+  --paper-underline: var(--wave-line);
+  --paper-btn: linear-gradient(135deg, #8fb573, #5e8a47);
+  --paper-btn-ink: #0c1608;
+  --paper-btn-shadow: rgba(94, 138, 71, 0.5);
+  --paper-tool-bg: rgba(143, 181, 115, 0.12);
+  --paper-tool-hover: rgba(143, 181, 115, 0.26);
+  --paper-tool-border-style: solid;
+  --paper-ribbon: linear-gradient(180deg, #c0392b, #8e2b20);
+  --paper-binding: repeating-linear-gradient(180deg, #c0392b 0 14px, transparent 14px 26px);
+  --spiral-top: 0;
+  --spiral-bottom: 0;
+  --spiral-left: 24px;
+  --spiral-right: auto;
+  --spiral-w: 3px;
+  --spiral-h: auto;
+  --spiral-filter: none;
+  --card-lines: linear-gradient(transparent, transparent);
+  --card-font: 'Shippori Mincho', Georgia, serif;
+  --card-size: 1.9rem;
+  --card-ans-size: 1.5rem;
+  --card-radius: 3px;
+  --card-border: rgba(0, 0, 0, 0.18);
+  --row-bg: linear-gradient(180deg, #f6f1e3, #ebe4d0);
+  --row-hover: #fbf7ec;
+  --row-ink: #2b2f27;
+  --row-sub: #6b7062;
+  --row-border: rgba(0, 0, 0, 0.16);
+  --row-radius: 2px;
+  --row-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+  --row-accent: #c0392b;
+  --row-title-font: 'Shippori Mincho', Georgia, serif;
+  --row-title-size: 1.2rem;
+  --folder-bg: linear-gradient(160deg, #9fbf86, #6b8f55);
+  --folder-tab: #86a86d;
+  --folder-ink: #14210e;
+}
+
+/* ---- Futurista: pantalla HUD ---- */
+body.theme-cyber_grid {
+  --paper-a: #0a1326;
+  --paper-b: #070d1c;
+  --paper-line: rgba(34, 211, 238, 0.09);
+  --paper-margin: rgba(34, 211, 238, 0.4);
+  --paper-ink: #cfeaf5;
+  --paper-strong: #ffffff;
+  --paper-soft: #7fa3b8;
+  --paper-accent: #67e8f9;
+  --paper-code-bg: rgba(34, 211, 238, 0.1);
+  --paper-code-ink: #f0abfc;
+  --paper-block-bg: rgba(34, 211, 238, 0.07);
+  --paper-block-border: rgba(34, 211, 238, 0.3);
+  --paper-title-font: 'Orbitron', 'Segoe UI', sans-serif;
+  --paper-body-font: 'Inter', system-ui, sans-serif;
+  --paper-title-size: 1.6rem;
+  --paper-title-weight: 800;
+  --paper-title-spacing: 0.05em;
+  --paper-title-transform: uppercase;
+  --paper-title-color: #67e8f9;
+  --paper-h3: #c084fc;
+  --paper-hl: rgba(168, 85, 247, 0.35);
+  --paper-radius: 4px;
+  --paper-lines:
+    repeating-linear-gradient(180deg, transparent 0 31px, var(--paper-line) 31px 32px) 0 40px,
+    repeating-linear-gradient(90deg, transparent 0 31px, var(--paper-line) 31px 32px) 0 0;
+  --paper-grain-op: 0;
+  --paper-box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.55),
+    0 0 44px rgba(34, 211, 238, 0.28),
+    inset 0 0 70px rgba(34, 211, 238, 0.07),
+    0 30px 60px -12px rgba(0, 0, 0, 0.8);
+  --paper-underline: var(--wave-cyan);
+  --paper-btn: var(--warm-grad);
+  --paper-btn-ink: var(--warm-ink);
+  --paper-btn-shadow: rgba(34, 211, 238, 0.55);
+  --paper-tool-bg: rgba(34, 211, 238, 0.06);
+  --paper-tool-hover: rgba(34, 211, 238, 0.16);
+  --paper-tool-border-style: solid;
+  --paper-ribbon: linear-gradient(180deg, #22d3ee, #a855f7);
+  --paper-binding:
+    linear-gradient(#67e8f9, #67e8f9) top left / 24px 2px no-repeat,
+    linear-gradient(#67e8f9, #67e8f9) top left / 2px 24px no-repeat,
+    linear-gradient(#67e8f9, #67e8f9) top right / 24px 2px no-repeat,
+    linear-gradient(#67e8f9, #67e8f9) top right / 2px 24px no-repeat,
+    linear-gradient(#67e8f9, #67e8f9) bottom left / 24px 2px no-repeat,
+    linear-gradient(#67e8f9, #67e8f9) bottom left / 2px 24px no-repeat,
+    linear-gradient(#67e8f9, #67e8f9) bottom right / 24px 2px no-repeat,
+    linear-gradient(#67e8f9, #67e8f9) bottom right / 2px 24px no-repeat;
+  --spiral-top: -3px;
+  --spiral-left: -3px;
+  --spiral-right: -3px;
+  --spiral-bottom: -3px;
+  --spiral-h: auto;
+  --spiral-filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.9));
+  --card-lines:
+    repeating-linear-gradient(180deg, transparent 0 29px, var(--paper-line) 29px 30px),
+    repeating-linear-gradient(90deg, transparent 0 29px, var(--paper-line) 29px 30px);
+  --card-font: 'Inter', system-ui, sans-serif;
+  --card-size: 1.5rem;
+  --card-ans-size: 1.25rem;
+  --card-weight: 700;
+  --card-radius: 6px;
+  --card-border: rgba(34, 211, 238, 0.6);
+  --card-shadow: 0 0 34px rgba(34, 211, 238, 0.3), inset 0 0 50px rgba(34, 211, 238, 0.07), 0 24px 50px rgba(0, 0, 0, 0.6);
+  --row-bg: linear-gradient(180deg, rgba(10, 19, 38, 0.9), rgba(7, 13, 28, 0.92));
+  --row-hover: rgba(14, 30, 58, 0.95);
+  --row-ink: #e8fbff;
+  --row-sub: #7e9db3;
+  --row-border: rgba(34, 211, 238, 0.4);
+  --row-radius: 4px;
+  --row-shadow: 0 0 18px rgba(34, 211, 238, 0.18), inset 0 0 24px rgba(34, 211, 238, 0.05);
+  --row-accent: #22d3ee;
+  --row-pill-bg: rgba(34, 211, 238, 0.08);
+  --row-title-font: 'Orbitron', 'Segoe UI', sans-serif;
+  --row-title-size: 0.95rem;
+  --row-title-transform: uppercase;
+  --folder-bg: linear-gradient(160deg, #0e7490, #0b3a52);
+  --folder-tab: #0b5d73;
+  --folder-ink: #e8fbff;
+}
+
+/* ---- Espacio: monitor con marco metálico ---- */
+body.theme-space_station {
+  --paper-a: #10132b;
+  --paper-b: #0b0e22;
+  --paper-line: rgba(147, 197, 253, 0.07);
+  --paper-margin: rgba(129, 140, 248, 0.38);
+  --paper-ink: #dfe5ff;
+  --paper-strong: #ffffff;
+  --paper-soft: #8f98c8;
+  --paper-accent: #a5b4fc;
+  --paper-code-bg: rgba(129, 140, 248, 0.14);
+  --paper-code-ink: #fda4af;
+  --paper-block-bg: rgba(129, 140, 248, 0.08);
+  --paper-block-border: rgba(129, 140, 248, 0.3);
+  --paper-title-font: 'Space Grotesk', 'Inter', sans-serif;
+  --paper-body-font: 'Inter', system-ui, sans-serif;
+  --paper-title-size: 1.95rem;
+  --paper-title-spacing: -0.02em;
+  --paper-title-color: #c4b5fd;
+  --paper-h3: #7dd3fc;
+  --paper-hl: rgba(99, 102, 241, 0.4);
+  --paper-radius: 14px;
+  --paper-grain-op: 0;
+  --paper-box-shadow:
+    0 0 0 3px #aeb7c8,
+    0 0 0 6px #5d6882,
+    inset 0 0 80px rgba(99, 102, 241, 0.1),
+    0 30px 60px -12px rgba(0, 0, 0, 0.85);
+  --paper-underline: var(--wave-line);
+  --paper-btn: var(--warm-grad);
+  --paper-btn-ink: var(--warm-ink);
+  --paper-btn-shadow: rgba(99, 102, 241, 0.55);
+  --paper-tool-bg: rgba(129, 140, 248, 0.07);
+  --paper-tool-hover: rgba(129, 140, 248, 0.18);
+  --paper-tool-border-style: solid;
+  --paper-ribbon: linear-gradient(180deg, #fbbf24, #b45309);
+  --paper-binding:
+    radial-gradient(circle, #eef2fb 0 2.5px, #5d6882 3.5px, transparent 4.5px) 12px 12px / 16px 16px no-repeat,
+    radial-gradient(circle, #eef2fb 0 2.5px, #5d6882 3.5px, transparent 4.5px) calc(100% - 12px) 12px / 16px 16px no-repeat,
+    radial-gradient(circle, #eef2fb 0 2.5px, #5d6882 3.5px, transparent 4.5px) 12px calc(100% - 12px) / 16px 16px no-repeat,
+    radial-gradient(circle, #eef2fb 0 2.5px, #5d6882 3.5px, transparent 4.5px) calc(100% - 12px) calc(100% - 12px) / 16px 16px no-repeat;
+  --spiral-top: 0;
+  --spiral-left: 0;
+  --spiral-right: 0;
+  --spiral-bottom: 0;
+  --spiral-h: auto;
+  --spiral-filter: none;
+  --card-lines: linear-gradient(transparent, transparent);
+  --card-font: 'Space Grotesk', 'Inter', sans-serif;
+  --card-size: 1.55rem;
+  --card-ans-size: 1.3rem;
+  --card-weight: 700;
+  --card-radius: 14px;
+  --card-border: #aeb7c8;
+  --card-shadow: 0 0 0 3px #5d6882, inset 0 0 60px rgba(99, 102, 241, 0.12), 0 24px 50px rgba(0, 0, 0, 0.7);
+  --row-bg: linear-gradient(180deg, #1a1f40, #10132b);
+  --row-hover: #222850;
+  --row-ink: #eef2ff;
+  --row-sub: #8f98c8;
+  --row-border: rgba(174, 183, 200, 0.55);
+  --row-radius: 10px;
+  --row-shadow: inset 0 0 0 1px rgba(93, 104, 130, 0.7), 0 8px 18px rgba(0, 0, 0, 0.45);
+  --row-accent: #6366f1;
+  --row-pill-bg: rgba(129, 140, 248, 0.1);
+  --row-title-font: 'Space Grotesk', 'Inter', sans-serif;
+  --row-title-size: 1.1rem;
+  --folder-bg: linear-gradient(160deg, #8d97ab, #5d6882);
+  --folder-tab: #7a869c;
+  --folder-ink: #0f1430;
+}
+
+/* ---- Fondos abstractos: cristal ---- */
+body.theme-holo_cyber,
+body.theme-emerald_vision,
+body.theme-digital_blue,
+body.theme-sunset_magenta {
+  --paper-title-font: 'Inter', system-ui, sans-serif;
+  --paper-title-size: 1.95rem;
+  --paper-title-weight: 800;
+  --paper-title-spacing: -0.03em;
+  --paper-title-color: #0f172a;
+  --paper-a: #fafafa;
+  --paper-b: #eef1f6;
+  --paper-line: rgba(15, 23, 42, 0.06);
+  --paper-margin: transparent;
+  --paper-radius: 14px;
+  --paper-pad-left: 48px;
+  --paper-margin-x: -10px;
+  --paper-lines: linear-gradient(transparent, transparent);
+  --paper-body-font: 'Inter', system-ui, sans-serif;
+  --paper-underline: var(--wave-line);
+  --paper-btn: var(--warm-grad);
+  --paper-btn-ink: var(--warm-ink);
+  --paper-btn-shadow: rgba(var(--warm-rgb), 0.5);
+  --paper-binding: var(--warm-grad);
+  --spiral-top: 0;
+  --spiral-left: 0;
+  --spiral-right: 0;
+  --spiral-h: 6px;
+  --spiral-filter: none;
+  --spiral-radius: 14px 14px 0 0;
+  --paper-ribbon: var(--warm-grad);
+  --paper-box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.55);
+  --paper-grain-op: 0;
+  --card-lines: linear-gradient(transparent, transparent);
+  --card-font: 'Inter', system-ui, sans-serif;
+  --card-size: 1.6rem;
+  --card-ans-size: 1.3rem;
+  --card-weight: 800;
+  --card-radius: 20px;
+  --row-bg: rgba(255, 255, 255, 0.07);
+  --row-hover: rgba(255, 255, 255, 0.12);
+  --row-ink: #f8fafc;
+  --row-sub: #94a3b8;
+  --row-border: rgba(255, 255, 255, 0.14);
+  --row-radius: 16px;
+  --row-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --row-accent: var(--warm-b);
+  --row-pill-bg: rgba(255, 255, 255, 0.08);
+  --row-title-weight: 800;
+  --folder-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08));
+  --folder-tab: rgba(255, 255, 255, 0.18);
+  --folder-ink: #f8fafc;
+}
+
+/* Títulos especiales de la hoja */
+body.paper-auto.theme-library .pg-title {
+  font-style: italic;
+}
+
+body.paper-auto.theme-cyber_grid .pg-title {
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.7);
+}
+
+body.paper-auto.theme-cyber_grid .pg-content,
+body.paper-auto.theme-space_station .pg-content,
+body.paper-auto.theme-office .pg-content,
+body.paper-auto.theme-modern_black .pg-content {
+  font-size: 0.98rem;
+}
+
+body.paper-auto.theme-office .pg-title::after,
+body.paper-auto.theme-modern_black .pg-title::after,
+body.paper-auto.theme-space_station .pg-title::after {
+  height: 4px;
+  width: 64px;
+  border-radius: 4px;
+  background: var(--warm-grad);
+  opacity: 1;
+}
+
+body.paper-auto.theme-cyber_grid .pg-title::after {
+  width: 140px;
+  background: var(--wave-cyan);
+}
+
+body.paper-auto.theme-zen_garden .pg-title::after {
+  width: 2px;
+  height: 36px;
+  margin-top: 10px;
+  background: #c0392b;
+}
+
+@media (max-width: 640px) {
+  .pg-title {
+    font-size: calc(var(--paper-title-size) * 0.8);
+  }
+}
+
+/* ==========================================================================
+   2. TAPAS DE LOS CUADERNOS Y CARPETAS
+   (cada ambiente es un material distinto)
+   ========================================================================== */
+
+/* ---- Cabaña: cartón kraft con cordel ---- */
+body.theme-cabin .nb-cover {
+  border-radius: 2px 6px 6px 2px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3), inset -2px 0 5px rgba(0, 0, 0, 0.3), inset 0 -8px 18px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-cabin .nb-cover::before {
+  background: var(--fiber);
+  opacity: 0.8;
+  mix-blend-mode: multiply;
+}
+
+body.theme-cabin .nb-spine {
+  width: 14px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.08));
+}
+
+body.theme-cabin .nb-spine::after {
+  left: 6px;
+  border-left: 2px dotted rgba(255, 240, 210, 0.6);
+}
+
+body.theme-cabin .nb-band {
+  right: 26px;
+  width: 4px;
+  background: repeating-linear-gradient(180deg, #d8b377 0 3px, #a98550 3px 6px);
+  box-shadow: none;
+}
+
+body.theme-cabin .nb-label {
+  background: linear-gradient(180deg, #ecd3a4, #d9bc88);
+  color: #3a200c;
+  border-radius: 3px 3px 10px 10px;
+  padding-top: 20px;
+  transform: rotate(0.6deg);
+}
+
+body.theme-cabin .nb-label::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: #2b170a;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7), 0 0 0 2px #c9a56e;
+}
+
+body.theme-cabin .nb-label-title {
+  color: #4a260c;
+}
+
+/* ---- Biblioteca: cuero con filete dorado ---- */
+body.theme-library .nb-cover {
+  border-radius: 3px 8px 8px 3px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 8px transparent,
+    inset 0 0 0 9px rgba(214, 178, 90, 0.8),
+    inset -3px 0 6px rgba(0, 0, 0, 0.35),
+    inset 0 -10px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-library .nb-cover::before {
+  opacity: 0.85;
+}
+
+body.theme-library .nb-spine {
+  width: 24px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 46px, rgba(214, 178, 90, 0.85) 46px 48px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.12) 70%, rgba(255, 255, 255, 0.12));
+}
+
+body.theme-library .nb-spine::after,
+body.theme-library .nb-band {
+  display: none;
+}
+
+body.theme-library .nb-cover {
+  padding-left: 36px;
+}
+
+body.theme-library .nb-label {
+  background: linear-gradient(180deg, #2a120f, #1a0b09);
+  color: #e9cf8a;
+  border-radius: 2px;
+  transform: none;
+  box-shadow: inset 0 0 0 3px #1a0b09, inset 0 0 0 4px rgba(214, 178, 90, 0.7), 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-library .nb-label-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 1.35rem;
+  color: #f0d58c;
+}
+
+body.theme-library .nb-label-subject {
+  color: rgba(233, 207, 138, 0.7);
+}
+
+/* ---- Oficina: tapa plástica mate con anillas ---- */
+body.theme-office .nb-cover {
+  border-radius: 5px 9px 9px 5px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 -8px 16px rgba(0, 0, 0, 0.18);
+}
+
+body.theme-office .nb-cover::before {
+  opacity: 0.12;
+}
+
+body.theme-office .nb-spine {
+  width: 26px;
+  background:
+    radial-gradient(circle at 13px 50%, #0b0f16 0 3.5px, transparent 4.5px) 0 0 / 26px 24px repeat-y,
+    linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent);
+  border-right: none;
+}
+
+body.theme-office .nb-spine::after {
+  left: -3px;
+  right: auto;
+  width: 20px;
+  top: 0;
+  bottom: 0;
+  border: none;
+  background: radial-gradient(ellipse 9px 3px at 10px 50%, #e5e7eb 0 70%, transparent 74%) 0 0 / 20px 24px repeat-y;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+}
+
+body.theme-office .nb-band {
+  display: none;
+}
+
+body.theme-office .nb-cover {
+  padding-left: 40px;
+}
+
+body.theme-office .nb-label {
+  background: #f8fafc;
+  color: #0f172a;
+  border-radius: 3px;
+  transform: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+}
+
+body.theme-office .nb-label-title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+body.theme-office .nb-label-emoji {
+  font-size: 1rem;
+}
+
+body.theme-office .nb-label-subject {
+  color: #64748b;
+}
+
+/* ---- Moderno: tapa lisa, título directo ---- */
+body.theme-modern_black .nb-cover {
+  border-radius: 6px 12px 12px 6px;
+  align-items: flex-start;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 -10px 24px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-modern_black .nb-cover::before {
+  opacity: 0.1;
+}
+
+body.theme-modern_black .nb-spine {
+  width: 10px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+body.theme-modern_black .nb-spine::after,
+body.theme-modern_black .nb-band {
+  display: none;
+}
+
+body.theme-modern_black .nb-label {
+  background: none;
+  box-shadow: none;
+  color: #fff;
+  text-align: left;
+  padding: 10px 0 0;
+  transform: none;
+}
+
+body.theme-modern_black .nb-label-emoji {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+body.theme-modern_black .nb-label-title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.08rem;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+body.theme-modern_black .nb-label-subject {
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.08em;
+}
+
+body.theme-modern_black .nb-cover-foot .nb-progress i {
+  background: var(--warm-grad);
+}
+
+/* ---- Zen: washi con encuadernación japonesa ---- */
+body.theme-zen_garden .nb-cover {
+  border-radius: 2px 4px 4px 2px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 -8px 18px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-zen_garden .nb-cover::before {
+  background: var(--fiber);
+  opacity: 0.55;
+  mix-blend-mode: soft-light;
+}
+
+body.theme-zen_garden .nb-spine {
+  width: 20px;
+  background: rgba(0, 0, 0, 0.18);
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+body.theme-zen_garden .nb-spine::after {
+  left: 10px;
+  border-left: 2px dashed #e85d4a;
+}
+
+body.theme-zen_garden .nb-band {
+  display: none;
+}
+
+body.theme-zen_garden .nb-cover {
+  align-items: flex-end;
+  padding: 18px 14px 36px 32px;
+}
+
+body.theme-zen_garden .nb-label {
+  width: 46%;
+  min-height: 62%;
+  margin: 0;
+  padding: 14px 6px 22px;
+  background: #f6f0e0;
+  color: #1d2a1a;
+  border-radius: 1px;
+  transform: none;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+}
+
+body.theme-zen_garden .nb-label-emoji {
+  display: none;
+}
+
+body.theme-zen_garden .nb-label-title,
+body.theme-zen_garden .nb-label-subject {
+  writing-mode: vertical-rl;
+  display: block;
+  -webkit-line-clamp: unset;
+  max-height: 9.5em;
+  overflow: hidden;
+}
+
+body.theme-zen_garden .nb-label-title {
+  font-family: 'Shippori Mincho', Georgia, serif;
+  font-size: 1.1rem;
+  color: #1d2a1a;
+  line-height: 1.3;
+}
+
+body.theme-zen_garden .nb-label-subject {
+  margin: 0;
+  font-size: 0.55rem;
+  color: #6b7062;
+}
+
+body.theme-zen_garden .nb-label::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  margin-left: -5px;
+  background: #c0392b;
+  border-radius: 2px;
+}
+
+/* ---- Futurista: tableta de cristal con borde de neón ---- */
+body.theme-cyber_grid .nb-cover {
+  background: linear-gradient(180deg, rgba(5, 10, 24, 0.8), rgba(5, 10, 24, 0.92)), var(--nb-bg);
+  border-radius: 4px 8px 8px 4px;
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.75), 0 0 20px rgba(34, 211, 238, 0.35), inset 0 0 36px rgba(34, 211, 238, 0.12);
+}
+
+body.theme-cyber_grid .nb-cover::before {
+  background: repeating-linear-gradient(180deg, rgba(34, 211, 238, 0.07) 0 1px, transparent 1px 4px);
+  mix-blend-mode: normal;
+  opacity: 1;
+}
+
+body.theme-cyber_grid .nb-cover::after {
+  background: linear-gradient(112deg, rgba(103, 232, 249, 0.18) 0%, transparent 38%);
+}
+
+body.theme-cyber_grid .nb-spine {
+  width: 6px;
+  background: var(--warm-grad);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.9);
+  border: none;
+}
+
+body.theme-cyber_grid .nb-spine::after {
+  display: none;
+}
+
+body.theme-cyber_grid .nb-band {
+  right: 18px;
+  width: 2px;
+  background: #67e8f9;
+  box-shadow: 0 0 10px #22d3ee;
+}
+
+body.theme-cyber_grid .nb-pages {
+  background: rgba(34, 211, 238, 0.28);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+}
+
+body.theme-cyber_grid .nb-label {
+  background: rgba(6, 14, 30, 0.78);
+  color: #67e8f9;
+  border-radius: 2px;
+  transform: none;
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.7), 0 0 14px rgba(34, 211, 238, 0.3);
+}
+
+body.theme-cyber_grid .nb-label-title {
+  font-family: 'Orbitron', 'Segoe UI', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #e8fbff;
+}
+
+body.theme-cyber_grid .nb-label-subject {
+  color: #22d3ee;
+}
+
+body.theme-cyber_grid .nb-progress i {
+  background: var(--warm-grad);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
+}
+
+/* ---- Espacio: panel de metal con remaches y franja de peligro ---- */
+body.theme-space_station .nb-cover {
+  border-radius: 6px 10px 10px 6px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25), inset 0 0 0 4px rgba(0, 0, 0, 0.35), inset -3px 0 6px rgba(0, 0, 0, 0.35);
+}
+
+body.theme-space_station .nb-cover::before {
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+  opacity: 1;
+}
+
+body.theme-space_station .nb-cover::after {
+  background:
+    radial-gradient(circle, #eef2fb 0 1.5px, rgba(0, 0, 0, 0.5) 2.5px, transparent 3.5px) 26px 8px / 12px 12px no-repeat,
+    radial-gradient(circle, #eef2fb 0 1.5px, rgba(0, 0, 0, 0.5) 2.5px, transparent 3.5px) calc(100% - 8px) calc(100% - 8px) / 12px 12px no-repeat,
+    linear-gradient(112deg, rgba(255, 255, 255, 0.22) 0%, transparent 40%, rgba(0, 0, 0, 0.3) 100%);
+}
+
+body.theme-space_station .nb-spine {
+  width: 14px;
+  background: repeating-linear-gradient(45deg, #fbbf24 0 6px, #111827 6px 12px);
+  border-right: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+body.theme-space_station .nb-spine::after,
+body.theme-space_station .nb-band {
+  display: none;
+}
+
+body.theme-space_station .nb-label {
+  background: #e8edf7;
+  color: #111a33;
+  border: 2px solid #111a33;
+  border-radius: 6px;
+  transform: none;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+
+body.theme-space_station .nb-label-title {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  color: #111a33;
+}
+
+body.theme-space_station .nb-label-subject {
+  color: #4a5578;
+}
+
+/* ---- Carpetas: material de cada ambiente ---- */
+.nbf-title {
+  color: var(--folder-ink);
+}
+
+.nbf-count {
+  color: var(--folder-ink);
+  opacity: 0.75;
+}
+
+.nbf-tab {
+  background: var(--folder-tab);
+}
+
+body.theme-cyber_grid .nbf-body {
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.8), 0 0 18px rgba(34, 211, 238, 0.35);
+}
+
+body.theme-cyber_grid .nbf-title,
+body.theme-office .nbf-title,
+body.theme-space_station .nbf-title,
+body.theme-modern_black .nbf-title {
+  font-family: var(--f-font-display);
+  font-size: 1.05rem;
+  letter-spacing: var(--display-spacing);
+}
+
+body.theme-library .nbf-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 1.5rem;
+}
+
+body.theme-zen_garden .nbf-title {
+  font-family: 'Shippori Mincho', Georgia, serif;
+  font-size: 1.2rem;
+}
+
+/* ==========================================================================
+   3. MAZOS: fichas y panel de cada mazo
+   ========================================================================== */
+.figma-card-container.apple-glass-panel {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--row-gap);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.figma-deck-row {
+  position: relative;
+  background: var(--row-bg);
+  border: 1px solid var(--row-border) !important;
+  border-radius: var(--row-radius) !important;
+  box-shadow: var(--row-shadow);
+  padding: 16px 20px 16px 24px;
+  overflow: hidden;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.figma-deck-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--row-accent);
+}
+
+.figma-deck-row:hover {
+  background: var(--row-hover);
+  transform: translateY(-2px);
+}
+
+.figma-deck-row:last-child {
+  border-bottom: 1px solid var(--row-border) !important;
+}
+
+.figma-deck-title {
+  color: var(--row-ink) !important;
+  font-family: var(--row-title-font);
+  font-size: var(--row-title-size) !important;
+  font-weight: var(--row-title-weight);
+  text-transform: var(--row-title-transform);
+  letter-spacing: 0.01em;
+}
+
+.figma-deck-subtext,
+.figma-chevron {
+  color: var(--row-sub) !important;
+}
+
+/* Panel de un mazo (resumen, estadísticas y botón de estudiar) */
+.figma-hero-metric-box {
+  background: var(--row-bg) !important;
+  border: 1px solid var(--row-border) !important;
+  border-radius: var(--row-radius) !important;
+  box-shadow: var(--row-shadow) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.figma-hero-metric-box::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--row-accent);
+}
+
+.figma-hero-large-number {
+  color: var(--row-ink) !important;
+  font-family: var(--row-title-font);
+}
+
+.figma-hero-label,
+.figma-stat-name {
+  color: var(--row-sub) !important;
+}
+
+.figma-stat-pill {
+  background: var(--row-pill-bg) !important;
+  border-color: var(--row-border) !important;
+}
+
+.figma-dash-title {
+  color: var(--txt-hi) !important;
+  font-family: var(--f-font-display);
+  font-size: calc(var(--display-size-sm) * 0.78);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-spacing);
+}
+
+.figma-dash-subtitle {
+  color: var(--txt-soft) !important;
+}
+
+.figma-btn-study-large {
+  background: var(--warm-grad) !important;
+  color: var(--warm-ink) !important;
+  box-shadow: 0 6px 18px rgba(var(--warm-rgb), 0.4) !important;
+}
+
+/* Tarjetas dentro de un mazo (lista de flashcards) */
+.figma-card-item {
+  background: var(--row-bg) !important;
+  border: 1px solid var(--row-border) !important;
+  border-radius: var(--row-radius) !important;
+  box-shadow: var(--row-shadow) !important;
+  position: relative;
+}
+
+.figma-card-title-bold {
+  color: var(--row-ink) !important;
+}
+
+.figma-card-desc-preview,
+.btn-card-item-dots {
+  color: var(--row-sub) !important;
+}
+
+/* ==========================================================================
+   4. ESTUDIO DE FLASHCARDS: la tarjeta es una ficha de cada ambiente
+   ========================================================================== */
+.cupertino-flashcard-box {
+  background:
+    var(--card-lines),
+    linear-gradient(180deg, var(--paper-a), var(--paper-b)) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: var(--card-radius) !important;
+  box-shadow: var(--card-shadow) !important;
+  color: var(--paper-ink);
+  overflow-x: hidden;
+}
+
+.cupertino-flashcard-box .cupertino-card-main-title {
+  color: var(--paper-strong) !important;
+  font-family: var(--card-font);
+  font-size: var(--card-size);
+  font-weight: var(--card-weight);
+  line-height: 1.3;
+}
+
+.cupertino-flashcard-box .cupertino-card-answer-text {
+  color: var(--paper-ink) !important;
+  font-family: var(--card-font);
+  font-size: var(--card-ans-size);
+  line-height: 1.4;
+}
+
+.cupertino-flashcard-box .cupertino-card-divider {
+  background: var(--paper-block-border) !important;
+}
+
+.cupertino-flashcard-box .cupertino-card-hint-text,
+.cupertino-flashcard-box .cupertino-btn-card-menu {
+  color: var(--paper-soft) !important;
+}
+
+.cupertino-flashcard-box .katex,
+.cupertino-flashcard-box .katex * {
+  color: var(--paper-strong);
+}
+
+.cupertino-flashcard-box .katex-block-container {
+  background: var(--paper-block-bg);
+  border: 1px dashed var(--paper-block-border);
+  box-shadow: none;
+}
+
+.cupertino-flashcard-box .apple-code-inline {
+  background: var(--paper-code-bg);
+  color: var(--paper-code-ink);
+  border-color: transparent;
+}
+
+.cupertino-flashcard-box strong {
+  color: var(--paper-strong) !important;
+}
+
+.cupertino-flashcard-box em {
+  color: var(--paper-soft) !important;
+}
+
+.cupertino-btn-show-answer {
+  background: var(--warm-grad) !important;
+  color: var(--warm-ink) !important;
+  box-shadow: 0 8px 22px rgba(var(--warm-rgb), 0.4) !important;
+}
+
+.cupertino-progress-pill {
+  background: rgba(var(--sheet-rgb), 0.92) !important;
+  color: var(--txt-hi) !important;
+  border-color: rgba(var(--lamp), 0.25) !important;
+}
+
+.cupertino-track-bar {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+.cupertino-track-fill {
+  background: var(--warm-grad) !important;
+}
+
+.cupertino-track-thumb {
+  background: var(--warm-a) !important;
+  box-shadow: 0 0 12px rgba(var(--warm-rgb), 0.9) !important;
+}
+
+.cupertino-icon-square {
+  background: rgba(var(--sheet-rgb), 0.92) !important;
+  border-color: rgba(var(--lamp), 0.25) !important;
+}
+
+/* Flashcard con esquinas de HUD / remaches según el ambiente */
+body.theme-cyber_grid .cupertino-flashcard-box::before,
+body.theme-space_station .cupertino-flashcard-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--paper-binding);
+}
+
+body.theme-library .cupertino-flashcard-box {
+  outline: 1px solid rgba(184, 137, 47, 0.55);
+  outline-offset: -9px;
+}
+
+body.theme-zen_garden .cupertino-flashcard-box {
+  border-left: 6px solid #c0392b !important;
+}
+
+body.theme-cabin .cupertino-flashcard-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--fiber);
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+}
+
+body.theme-office .cupertino-flashcard-box,
+body.theme-modern_black .cupertino-flashcard-box {
+  border-top: 5px solid var(--warm-b) !important;
+}
+
+/* ==========================================================================
+   5. AJUSTES FINOS
+   ========================================================================== */
+/* Texto interno de las fichas (pistas con colores en línea) siempre legible sobre el material del ambiente */
+.figma-card-item .figma-card-desc-preview,
+.figma-card-item .figma-card-desc-preview * {
+  color: var(--row-sub) !important;
+}
+
+.figma-card-item .figma-card-desc-preview strong,
+.figma-card-item .figma-card-desc-preview b {
+  color: var(--row-ink) !important;
+}
+
+/* El aviso "Toca la tarjeta…" no debe pisar el texto de la pregunta */
+.cupertino-flashcard-box {
+  padding-bottom: 44px !important;
+}
+
+/* Zen: etiqueta vertical más ajustada al lomo */
+body.theme-zen_garden .nb-label {
+  width: 50%;
+  padding: 14px 4px 22px;
+}
+
+body.theme-zen_garden .nb-label-title {
+  font-size: 0.95rem;
+  max-height: 8em;
+}

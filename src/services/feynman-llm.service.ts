@@ -1650,7 +1650,7 @@ export default App;
    */
   public exportToFlashcardDeck(guide: FeynmanStudyGuide): string {
     const newDeck = deckService.createDeck({
-      name: `Ruta Feynman: ${guide.topic}`,
+      name: guide.topic,
       description: `Mazo de ${guide.levelsCount} niveles axiomáticos y principios de ${guide.topic}`,
       icon: 'brain',
       color: '#38bdf8'

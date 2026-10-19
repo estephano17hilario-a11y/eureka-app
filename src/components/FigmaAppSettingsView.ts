@@ -6,6 +6,50 @@ export interface FigmaAppSettingsViewCallbacks {
   onThemeChanged: () => void;
 }
 
+interface EnvironmentCard {
+  id: BgThemeType;
+  title: string;
+  desc: string;
+  preview: string;
+  badge: string;
+  badgeStyle?: string;
+}
+
+const STUDY_ENVIRONMENTS: EnvironmentCard[] = [
+  { id: 'desk_wood', title: 'Escritorio de madera', desc: 'Nogal oscuro y la luz cálida de tu lámpara', preview: 'preview-desk-wood', badge: 'Escritorio', badgeStyle: 'background:#f59e0b; color:#1c1204;' },
+  { id: 'cabin', title: 'Cabaña de madera', desc: 'Paredes de troncos y el resplandor de la chimenea', preview: 'preview-cabin', badge: 'Cabaña', badgeStyle: 'background:#ea580c; color:#fff;' },
+  { id: 'library', title: 'Biblioteca clásica', desc: 'Empapelado verde, latón y estantes de caoba', preview: 'preview-library', badge: 'Clásico', badgeStyle: 'background:#b8892f; color:#1a1405;' },
+  { id: 'office', title: 'Oficina', desc: 'Luz LED fría, persianas y estantería blanca', preview: 'preview-office', badge: 'Oficina', badgeStyle: 'background:#3b82f6; color:#fff;' },
+  { id: 'modern_black', title: 'Moderno', desc: 'Grafito minimalista que usa tu color de acento', preview: 'preview-modern-black', badge: 'Minimal' },
+  { id: 'zen_garden', title: 'Zen', desc: 'Shoji, luna y bambú: calma para concentrarte', preview: 'preview-zen', badge: 'Zen', badgeStyle: 'background:#8fb573; color:#0c1608;' },
+  { id: 'cyber_grid', title: 'Futurista', desc: 'Cuadrícula de neón sobre un horizonte digital', preview: 'preview-cyber', badge: 'Neón', badgeStyle: 'background:#22d3ee; color:#03101a;' },
+  { id: 'space_station', title: 'Estación espacial', desc: 'Estrellas, nebulosa y el borde de un planeta', preview: 'preview-space', badge: 'Espacio', badgeStyle: 'background:#6366f1; color:#fff;' }
+];
+
+const ABSTRACT_BACKGROUNDS: EnvironmentCard[] = [
+  { id: 'holo_cyber', title: 'Holo Prism', desc: 'Degradado holográfico iridiscente', preview: 'preview-holo-cyber', badge: 'Holo', badgeStyle: 'background:#ec4899; color:#fff;' },
+  { id: 'digital_blue', title: 'Azul digital', desc: 'Aura azul eléctrico y cian profundo', preview: 'preview-digital-blue', badge: 'Digital', badgeStyle: 'background:#38bdf8;' },
+  { id: 'emerald_vision', title: 'Esmeralda', desc: 'Anillo de luz verde esmeralda', preview: 'preview-emerald-vision', badge: 'Vision', badgeStyle: 'background:#10b981;' },
+  { id: 'sunset_magenta', title: 'Atardecer', desc: 'Violeta, púrpura y magenta resplandeciente', preview: 'preview-sunset-magenta', badge: 'Sunset', badgeStyle: 'background:#a855f7; color:#fff;' }
+];
+
+function renderEnvironmentCards(cards: EnvironmentCard[], current: BgThemeType): string {
+  return cards
+    .map(
+      (c) => `
+        <div class="theme-preset-card ${current === c.id ? 'selected' : ''}" data-bg="${c.id}">
+          <div class="theme-preview-box ${c.preview}">
+            <span class="theme-badge-glow" ${c.badgeStyle ? `style="${c.badgeStyle}"` : ''}>${c.badge}</span>
+          </div>
+          <div class="theme-card-info">
+            <div class="theme-card-title">${c.title}</div>
+            <div class="theme-card-desc">${c.desc}</div>
+          </div>
+        </div>`
+    )
+    .join('');
+}
+
 export function renderFigmaAppSettingsView(): string {
   const t = themeService.getTheme();
   const vibrationEnabled = nativeService.getVibrationEnabled();
@@ -101,74 +145,23 @@ export function renderFigmaAppSettingsView(): string {
           </div>
         </div>
 
-        <!-- 3. Atmósferas y Fondos Futuristas -->
+        <!-- 3. Ambientes de estudio -->
         <div class="apple-card-grouped" style="padding:22px;">
-          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:16px;">
-            Atmósfera y Fondo de la App
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:4px;">
+            Ambiente de estudio
+          </div>
+          <div style="font-size:0.85rem; color:var(--f-text-secondary); margin-bottom:18px;">
+            Elige dónde quieres estudiar: cambia el fondo, la luz, la estantería y los botones
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
-            
-            <div class="theme-preset-card ${t.bgTheme === 'desk_wood' ? 'selected' : ''}" data-bg="desk_wood">
-              <div class="theme-preview-box preview-desk-wood">
-                <span class="theme-badge-glow" style="background:#f59e0b; color:#1c1204;">Escritorio</span>
-              </div>
-              <div class="theme-card-info">
-                <div class="theme-card-title">Escritorio de Estudio</div>
-                <div class="theme-card-desc">Madera oscura con la luz cálida de tu lámpara. Ideal para sentirte en tu espacio de trabajo</div>
-              </div>
-            </div>
+          <div class="theme-group-title">Ambientes inmersivos</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:14px; margin-bottom:22px;">
+            ${renderEnvironmentCards(STUDY_ENVIRONMENTS, t.bgTheme)}
+          </div>
 
-            <div class="theme-preset-card ${t.bgTheme === 'modern_black' ? 'selected' : ''}" data-bg="modern_black">
-              <div class="theme-preview-box preview-modern-black">
-                <span class="theme-badge-glow">Clásico</span>
-              </div>
-              <div class="theme-card-info">
-                <div class="theme-card-title">Modern Lead Black</div>
-                <div class="theme-card-desc">Plomo oscuro elegante y sutil, estilo Noji/AnkiPro nativo</div>
-              </div>
-            </div>
-
-            <div class="theme-preset-card ${t.bgTheme === 'holo_cyber' ? 'selected' : ''}" data-bg="holo_cyber">
-              <div class="theme-preview-box preview-holo-cyber">
-                <span class="theme-badge-glow" style="background:#ec4899;">Holo 3D</span>
-              </div>
-              <div class="theme-card-info">
-                <div class="theme-card-title">Holo Prism Chrome</div>
-                <div class="theme-card-desc">Efecto holográfico iridiscente con mallas de color</div>
-              </div>
-            </div>
-
-            <div class="theme-preset-card ${t.bgTheme === 'digital_blue' ? 'selected' : ''}" data-bg="digital_blue">
-              <div class="theme-preview-box preview-digital-blue">
-                <span class="theme-badge-glow" style="background:#38bdf8;">Digital</span>
-              </div>
-              <div class="theme-card-info">
-                <div class="theme-card-title">Digital Technology</div>
-                <div class="theme-card-desc">Aura azul eléctrico y cian futurista profundo</div>
-              </div>
-            </div>
-
-            <div class="theme-preset-card ${t.bgTheme === 'emerald_vision' ? 'selected' : ''}" data-bg="emerald_vision">
-              <div class="theme-preview-box preview-emerald-vision">
-                <span class="theme-badge-glow" style="background:#10b981;">Vision</span>
-              </div>
-              <div class="theme-card-info">
-                <div class="theme-card-title">Vision Emerald</div>
-                <div class="theme-card-desc">Anillo de luz verde neón y esmeralda cósmico</div>
-              </div>
-            </div>
-
-            <div class="theme-preset-card ${t.bgTheme === 'sunset_magenta' ? 'selected' : ''}" data-bg="sunset_magenta">
-              <div class="theme-preview-box preview-sunset-magenta">
-                <span class="theme-badge-glow" style="background:#a855f7;">Unlocking</span>
-              </div>
-              <div class="theme-card-info">
-                <div class="theme-card-title">Sunset Magenta</div>
-                <div class="theme-card-desc">Gradiente violeta, púrpura y magenta resplandeciente</div>
-              </div>
-            </div>
-
+          <div class="theme-group-title">Fondos abstractos</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:14px;">
+            ${renderEnvironmentCards(ABSTRACT_BACKGROUNDS, t.bgTheme)}
           </div>
         </div>
 
@@ -182,10 +175,15 @@ export function renderFigmaAppSettingsView(): string {
           </div>
 
           <div class="paper-preview">
-            <div class="paper-card ${t.paperStyle !== 'night' ? 'selected' : ''}" data-paper="cream">
+            <div class="paper-card ${t.paperStyle === 'auto' || !t.paperStyle ? 'selected' : ''}" data-paper="auto">
+              <div class="sheet cream" style="background:linear-gradient(135deg,#fbf4e2 0 40%,#d9b88a 40% 60%,#1d2027 60%);"></div>
+              <b>Según el ambiente</b>
+              <span class="d">Cada ambiente trae su propio papel: kraft, pergamino, blanco, pantalla…</span>
+            </div>
+            <div class="paper-card ${t.paperStyle === 'classic' ? 'selected' : ''}" data-paper="classic">
               <div class="sheet cream"></div>
-              <b>Papel crema</b>
-              <span class="d">Renglones azules y margen rojo, como un cuaderno de verdad</span>
+              <b>Papel crema clásico</b>
+              <span class="d">Renglones azules y margen rojo en todos los ambientes</span>
             </div>
             <div class="paper-card ${t.paperStyle === 'night' ? 'selected' : ''}" data-paper="night">
               <div class="sheet night"></div>

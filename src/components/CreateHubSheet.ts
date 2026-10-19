@@ -65,9 +65,6 @@ export function openCreateHub(options: CreateHubOptions): void {
     : [TILES.notebook, TILES.import, TILES.deck, TILES.folder];
 
   const featuredBadge = isDecks ? 'Rápido' : 'Recomendado';
-  const featuredStyle = isDecks
-    ? 'border-color: rgba(255,208,138,0.5); background: radial-gradient(120% 140% at 0% 0%, rgba(255,186,98,0.22), transparent 60%), linear-gradient(135deg, rgba(120,70,20,0.5), rgba(60,35,12,0.5));'
-    : '';
 
   const root = document.createElement('div');
   root.id = 'create-hub-root';
@@ -84,8 +81,8 @@ export function openCreateHub(options: CreateHubOptions): void {
         <button class="ch-close" id="ch-close" aria-label="Cerrar">✕</button>
       </div>
 
-      <button class="ch-feature" data-choice="${featured.id}" style="${featuredStyle}">
-        <div class="ch-feature-icon" ${isDecks ? 'style="background:linear-gradient(135deg,#ffd08a,#f59e0b);"' : ''}>${featured.icon}</div>
+      <button class="ch-feature ${isDecks ? 'warm' : ''}" data-choice="${featured.id}">
+        <div class="ch-feature-icon">${featured.icon}</div>
         <div>
           <div class="ch-feature-title">${featured.title} <span class="ch-badge">${featuredBadge}</span></div>
           <div class="ch-feature-desc">${featured.desc}</div>

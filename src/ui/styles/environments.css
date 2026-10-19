@@ -1,0 +1,568 @@
+/* ==========================================================================
+   EUREKA — AMBIENTES DE ESTUDIO
+   Cada ambiente cambia a la vez: el fondo, la luz, el material de la estantería,
+   el color de los botones principales, las hojas flotantes y la tipografía de títulos.
+   Todo se controla con las variables de abajo (se aplican con body.theme-<ambiente>).
+   ========================================================================== */
+
+/* ---------- Valores base (Escritorio de madera) ---------- */
+:root {
+  --lamp: 255, 186, 98;
+  --warm-a: #ffd08a;
+  --warm-b: #f59e0b;
+  --warm-rgb: 245, 158, 11;
+  --warm-grad: linear-gradient(135deg, #ffd08a, #f59e0b);
+  --warm-ink: #1c1204;
+
+  --sheet-a: #241811;
+  --sheet-b: #17100a;
+  --sheet-rgb: 36, 24, 17;
+  --nav-bg: rgba(24, 15, 9, 0.92);
+
+  --txt-hi: #fff3df;
+  --txt-mid: #d9c9b4;
+  --txt-soft: #b9a48c;
+
+  --shelf-bg:
+    repeating-linear-gradient(92deg, rgba(0, 0, 0, 0.14) 0 2px, transparent 2px 11px),
+    linear-gradient(180deg, #6a4526 0%, #54351b 40%, #3f2713 100%);
+  --shelf-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.55),
+    inset 0 2px 0 rgba(255, 220, 170, 0.28),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.35);
+  --shelf-ink: rgba(255, 226, 184, 0.9);
+  --shelf-ink-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+
+  --f-font-display: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  --display-size: 2.6rem;
+  --display-size-sm: 2.3rem;
+  --display-weight: 700;
+  --display-spacing: 0;
+}
+
+/* El título de cada vista usa la tipografía del ambiente */
+.nbv-title {
+  font-size: var(--display-size);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-spacing);
+}
+
+.figma-view-title {
+  font-size: var(--display-size-sm);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-spacing);
+}
+
+@media (max-width: 640px) {
+  .nbv-title {
+    font-size: calc(var(--display-size) * 0.82);
+  }
+}
+
+/* Luz de la lámpara sobre la hoja en modo lectura (en cualquier ambiente) */
+.pg-desk::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 62% 52% at 50% 36%, rgba(var(--lamp), 0.2) 0%, transparent 70%);
+}
+
+.pg-bench {
+  position: relative;
+  z-index: 1;
+}
+
+/* Botón principal de acción (dorado en madera, color de acento en los demás) */
+.figma-avatar-circle {
+  background: var(--warm-grad) !important;
+  color: var(--warm-ink) !important;
+}
+
+.ch-feature.warm {
+  border-color: rgba(var(--warm-rgb), 0.5);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(var(--lamp), 0.22), transparent 60%),
+    linear-gradient(135deg, rgba(var(--sheet-rgb), 0.9), rgba(var(--sheet-rgb), 0.6));
+  box-shadow: 0 10px 30px rgba(var(--warm-rgb), 0.18);
+}
+
+.ch-feature.warm .ch-feature-icon {
+  background: var(--warm-grad);
+}
+
+/* ==========================================================================
+   1. CABAÑA DE MADERA — paredes de troncos, fuego de chimenea y luna en la ventana
+   ========================================================================== */
+body.theme-cabin {
+  --lamp: 255, 140, 60;
+  --warm-a: #ffb36b;
+  --warm-b: #ea580c;
+  --warm-rgb: 234, 88, 12;
+  --warm-grad: linear-gradient(135deg, #ffb36b, #ea580c);
+  --warm-ink: #220c02;
+  --sheet-a: #2b1a10;
+  --sheet-b: #1b100a;
+  --sheet-rgb: 43, 26, 16;
+  --nav-bg: rgba(30, 17, 9, 0.92);
+  --txt-hi: #fff1e0;
+  --txt-mid: #e3cdb4;
+  --txt-soft: #c2a688;
+  --shelf-bg:
+    repeating-linear-gradient(92deg, rgba(0, 0, 0, 0.1) 0 2px, transparent 2px 13px),
+    linear-gradient(180deg, #c18b54 0%, #a16d3b 45%, #6e4524 100%);
+  --shelf-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.55),
+    inset 0 2px 0 rgba(255, 238, 205, 0.5),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+  --shelf-ink: #3a200c;
+  --shelf-ink-shadow: 0 1px 0 rgba(255, 230, 190, 0.4);
+}
+
+body.theme-cabin::before {
+  background-color: #2a1709;
+  background-image:
+    radial-gradient(ellipse 46% 34% at 6% 100%, rgba(255, 120, 40, 0.3), transparent 70%),
+    radial-gradient(ellipse 30% 38% at 94% 10%, rgba(165, 190, 255, 0.15), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 3px, transparent 3px 15px),
+    repeating-linear-gradient(180deg, #5d391f 0px, #4a2c17 16px, #35200f 52px, #1e1008 68px);
+}
+
+body.theme-cabin::after {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, transparent 40%, rgba(0, 0, 0, 0.6) 100%),
+    var(--grain);
+  background-size: auto, 180px 180px;
+  opacity: 0.5;
+}
+
+/* ==========================================================================
+   2. BIBLIOTECA CLÁSICA — empapelado verde, lámpara de latón y estantes de caoba
+   ========================================================================== */
+body.theme-library {
+  --lamp: 235, 200, 110;
+  --warm-a: #f0d58c;
+  --warm-b: #b8892f;
+  --warm-rgb: 184, 137, 47;
+  --warm-grad: linear-gradient(135deg, #f0d58c, #b8892f);
+  --warm-ink: #1a1405;
+  --sheet-a: #14241c;
+  --sheet-b: #0c1712;
+  --sheet-rgb: 20, 36, 28;
+  --nav-bg: rgba(11, 23, 18, 0.93);
+  --txt-hi: #f6f1de;
+  --txt-mid: #d3dccd;
+  --txt-soft: #9fb5a8;
+  --shelf-bg:
+    repeating-linear-gradient(92deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 12px),
+    linear-gradient(180deg, #74332a 0%, #54251f 45%, #33150f 100%);
+  --shelf-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(235, 200, 110, 0.6),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.45);
+  --shelf-ink: rgba(240, 213, 140, 0.95);
+  --shelf-ink-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7);
+  --f-font-display: 'Cormorant Garamond', Georgia, serif;
+  --display-size: 2.9rem;
+  --display-size-sm: 2.5rem;
+  --display-weight: 700;
+}
+
+body.theme-library .nbv-title,
+body.theme-library .figma-view-title {
+  font-style: italic;
+}
+
+body.theme-library::before {
+  background-color: #0b1712;
+  background-image:
+    radial-gradient(ellipse 60% 45% at 86% 0%, rgba(235, 200, 110, 0.22), transparent 65%),
+    radial-gradient(ellipse 50% 50% at 0% 100%, rgba(30, 120, 80, 0.14), transparent 70%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 28px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 28px),
+    linear-gradient(180deg, #112219 0%, #0a1510 100%);
+}
+
+body.theme-library::after {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, transparent 40%, rgba(0, 0, 0, 0.62) 100%),
+    var(--grain);
+  background-size: auto, 180px 180px;
+  opacity: 0.55;
+}
+
+/* ==========================================================================
+   3. OFICINA — oficina moderna con luz LED fría y persianas
+   ========================================================================== */
+body.theme-office {
+  --lamp: 190, 215, 255;
+  --warm-a: #93d0ff;
+  --warm-b: #3b82f6;
+  --warm-rgb: 59, 130, 246;
+  --warm-grad: linear-gradient(135deg, #93d0ff, #3b82f6);
+  --warm-ink: #04121e;
+  --sheet-a: #1c2431;
+  --sheet-b: #121821;
+  --sheet-rgb: 28, 36, 49;
+  --nav-bg: rgba(18, 24, 33, 0.93);
+  --txt-hi: #f1f5fb;
+  --txt-mid: #cdd6e3;
+  --txt-soft: #93a1b5;
+  --shelf-bg: linear-gradient(180deg, #eef2f7 0%, #c9d1dc 55%, #a0abbb 100%);
+  --shelf-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+  --shelf-ink: #2a3441;
+  --shelf-ink-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  --f-font-display: 'Inter', system-ui, sans-serif;
+  --display-size: 2.1rem;
+  --display-size-sm: 1.9rem;
+  --display-weight: 800;
+  --display-spacing: -0.035em;
+}
+
+body.theme-office::before {
+  background-color: #141a23;
+  background-image:
+    linear-gradient(180deg, rgba(225, 238, 255, 0.2) 0, rgba(225, 238, 255, 0) 12%),
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(190, 215, 255, 0.12), transparent 70%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 3px, transparent 3px 24px),
+    linear-gradient(180deg, #1e2735 0%, #111720 100%);
+}
+
+body.theme-office::after {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, transparent 50%, rgba(0, 0, 0, 0.45) 100%);
+  opacity: 1;
+}
+
+/* ==========================================================================
+   4. MODERNO — grafito minimalista; usa tu color de acento
+   ========================================================================== */
+body.theme-modern_black {
+  --lamp: 148, 163, 184;
+  --warm-a: var(--f-accent, #38bdf8);
+  --warm-b: var(--f-accent, #38bdf8);
+  --warm-rgb: var(--f-accent-rgb, 56, 189, 248);
+  --warm-grad:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(135deg, var(--f-accent, #38bdf8), var(--f-accent, #38bdf8));
+  --warm-ink: #04121e;
+  --sheet-a: #17191f;
+  --sheet-b: #0d0f13;
+  --sheet-rgb: 23, 25, 31;
+  --nav-bg: rgba(14, 15, 20, 0.93);
+  --txt-hi: #f8fafc;
+  --txt-mid: #cbd5e1;
+  --txt-soft: #8b95a5;
+  --shelf-bg: linear-gradient(180deg, #3a3d45 0%, #23252b 55%, #141518 100%);
+  --shelf-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+  --shelf-ink: rgba(226, 232, 240, 0.85);
+  --shelf-ink-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+  --f-font-display: 'Inter', system-ui, sans-serif;
+  --display-size: 2.1rem;
+  --display-size-sm: 1.9rem;
+  --display-weight: 800;
+  --display-spacing: -0.035em;
+}
+
+/* ==========================================================================
+   5. ZEN — shoji, luna y bambú
+   ========================================================================== */
+body.theme-zen_garden {
+  --lamp: 190, 220, 170;
+  --warm-a: #dcebc8;
+  --warm-b: #8fb573;
+  --warm-rgb: 143, 181, 115;
+  --warm-grad: linear-gradient(135deg, #dcebc8, #8fb573);
+  --warm-ink: #0c1608;
+  --sheet-a: #1a1f1c;
+  --sheet-b: #101411;
+  --sheet-rgb: 26, 31, 28;
+  --nav-bg: rgba(16, 20, 17, 0.93);
+  --txt-hi: #f1f5ea;
+  --txt-mid: #ccd6c3;
+  --txt-soft: #93a18f;
+  --shelf-bg:
+    repeating-linear-gradient(90deg, rgba(70, 48, 12, 0.35) 0 2px, transparent 2px 120px),
+    linear-gradient(180deg, #e0cc96 0%, #bfa564 50%, #917a3d 100%);
+  --shelf-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 245, 210, 0.55),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+  --shelf-ink: #4a3a14;
+  --shelf-ink-shadow: 0 1px 0 rgba(255, 245, 210, 0.4);
+  --f-font-display: 'Shippori Mincho', 'Noto Serif JP', Georgia, serif;
+  --display-size: 2.3rem;
+  --display-size-sm: 2rem;
+  --display-weight: 700;
+  --display-spacing: 0.02em;
+}
+
+body.theme-zen_garden::before {
+  background-color: #14171a;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 20% 0%, rgba(190, 220, 170, 0.12), transparent 70%),
+    radial-gradient(circle at 86% 18%, rgba(255, 255, 255, 0.07) 0 84px, transparent 86px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 140px),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 140px),
+    linear-gradient(180deg, #181c1f 0%, #101315 100%);
+}
+
+body.theme-zen_garden::after {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, transparent 45%, rgba(0, 0, 0, 0.55) 100%),
+    var(--grain);
+  background-size: auto, 180px 180px;
+  opacity: 0.4;
+}
+
+/* ==========================================================================
+   6. FUTURISTA — cuadrícula de neón sobre un horizonte digital
+   ========================================================================== */
+body.theme-cyber_grid {
+  --lamp: 34, 211, 238;
+  --warm-a: #67e8f9;
+  --warm-b: #a855f7;
+  --warm-rgb: 34, 211, 238;
+  --warm-grad: linear-gradient(135deg, #67e8f9, #a855f7);
+  --warm-ink: #03101a;
+  --sheet-a: #0b1220;
+  --sheet-b: #070c16;
+  --sheet-rgb: 11, 18, 32;
+  --nav-bg: rgba(6, 10, 22, 0.93);
+  --txt-hi: #e8fbff;
+  --txt-mid: #bdd8e6;
+  --txt-soft: #7e9db3;
+  --shelf-bg: linear-gradient(180deg, #16233f 0%, #0b1426 100%);
+  --shelf-shadow:
+    0 0 26px rgba(34, 211, 238, 0.4),
+    0 14px 22px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(103, 232, 249, 0.95),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.6);
+  --shelf-ink: #67e8f9;
+  --shelf-ink-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
+  --f-font-display: 'Orbitron', 'Segoe UI', sans-serif;
+  --display-size: 1.9rem;
+  --display-size-sm: 1.7rem;
+  --display-weight: 800;
+  --display-spacing: 0.05em;
+}
+
+body.theme-cyber_grid .nbv-title,
+body.theme-cyber_grid .figma-view-title {
+  text-transform: uppercase;
+}
+
+body.theme-cyber_grid::before {
+  background-color: #050a17;
+  background-image:
+    radial-gradient(ellipse 70% 40% at 50% 100%, rgba(34, 211, 238, 0.24), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 82% 0%, rgba(168, 85, 247, 0.22), transparent 70%),
+    radial-gradient(ellipse 90% 70% at 50% 40%, transparent 50%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(180deg, #060b1c 0%, #050814 60%, #04060f 100%);
+}
+
+body.theme-cyber_grid::after {
+  background:
+    linear-gradient(rgba(34, 211, 238, 0.28) 1px, transparent 1px) 0 0 / 64px 64px,
+    linear-gradient(90deg, rgba(34, 211, 238, 0.28) 1px, transparent 1px) 0 0 / 64px 64px;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0, 0, 0, 0) 58%);
+  mask-image: linear-gradient(to top, #000 0%, rgba(0, 0, 0, 0) 58%);
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   7. ESTACIÓN ESPACIAL — estrellas, nebulosa y el borde de un planeta
+   ========================================================================== */
+body.theme-space_station {
+  --lamp: 147, 197, 253;
+  --warm-a: #c4b5fd;
+  --warm-b: #6366f1;
+  --warm-rgb: 99, 102, 241;
+  --warm-grad: linear-gradient(135deg, #c4b5fd, #6366f1);
+  --warm-ink: #0b0820;
+  --sheet-a: #121428;
+  --sheet-b: #0b0c1c;
+  --sheet-rgb: 18, 20, 40;
+  --nav-bg: rgba(8, 9, 24, 0.93);
+  --txt-hi: #eef2ff;
+  --txt-mid: #c7cdee;
+  --txt-soft: #8890b8;
+  --shelf-bg:
+    radial-gradient(circle, rgba(0, 0, 0, 0.4) 1.5px, transparent 2.5px) 0 50% / 56px 100% repeat-x,
+    linear-gradient(180deg, #dbe1ed 0%, #aeb7c8 50%, #7d889d 100%);
+  --shelf-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+  --shelf-ink: #1e2538;
+  --shelf-ink-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  --f-font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --display-size: 2.2rem;
+  --display-size-sm: 1.95rem;
+  --display-weight: 700;
+  --display-spacing: -0.02em;
+}
+
+body.theme-space_station::before {
+  background-color: #050615;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, #fff, transparent),
+    radial-gradient(1px 1px at 28% 62%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.4px 1.4px at 44% 12%, #cfe3ff, transparent),
+    radial-gradient(1px 1px at 63% 38%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 78% 72%, #ffe9c4, transparent),
+    radial-gradient(1px 1px at 90% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 8% 84%, #fff, transparent),
+    radial-gradient(1.4px 1.4px at 54% 88%, #cfe3ff, transparent),
+    radial-gradient(ellipse 60% 45% at 80% 12%, rgba(99, 102, 241, 0.36), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 8% 92%, rgba(168, 85, 247, 0.26), transparent 70%),
+    radial-gradient(ellipse 130% 36% at 50% 135%, rgba(56, 189, 248, 0.5), transparent 60%),
+    linear-gradient(180deg, #050615, #0a0c24);
+  background-size:
+    420px 420px, 330px 330px, 510px 510px, 390px 390px, 460px 460px, 300px 300px, 370px 370px, 480px 480px,
+    auto, auto, auto, auto;
+}
+
+body.theme-space_station::after {
+  background: radial-gradient(ellipse 90% 70% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.5) 100%);
+  opacity: 1;
+}
+
+/* ==========================================================================
+   8. FONDOS ABSTRACTOS (los de siempre) — estantería de cristal
+   ========================================================================== */
+body.theme-holo_cyber,
+body.theme-emerald_vision,
+body.theme-digital_blue,
+body.theme-sunset_magenta {
+  --sheet-a: #17181f;
+  --sheet-b: #0f1015;
+  --sheet-rgb: 23, 24, 31;
+  --nav-bg: rgba(12, 13, 18, 0.93);
+  --txt-hi: #f8fafc;
+  --txt-mid: #cbd5e1;
+  --txt-soft: #94a3b8;
+  --shelf-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
+  --shelf-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  --shelf-ink: rgba(255, 255, 255, 0.88);
+  --shelf-ink-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+  --f-font-display: 'Inter', system-ui, sans-serif;
+  --display-size: 2.1rem;
+  --display-size-sm: 1.9rem;
+  --display-weight: 800;
+  --display-spacing: -0.035em;
+}
+
+body.theme-holo_cyber {
+  --lamp: 236, 72, 153;
+  --warm-a: #f9a8d4;
+  --warm-b: #ec4899;
+  --warm-rgb: 236, 72, 153;
+  --warm-grad: linear-gradient(135deg, #f9a8d4, #ec4899);
+  --warm-ink: #2a0618;
+}
+
+body.theme-emerald_vision {
+  --lamp: 16, 185, 129;
+  --warm-a: #6ee7b7;
+  --warm-b: #10b981;
+  --warm-rgb: 16, 185, 129;
+  --warm-grad: linear-gradient(135deg, #6ee7b7, #10b981);
+  --warm-ink: #03140d;
+}
+
+body.theme-digital_blue {
+  --lamp: 56, 189, 248;
+  --warm-a: #7dd3fc;
+  --warm-b: #0284c7;
+  --warm-rgb: 2, 132, 199;
+  --warm-grad: linear-gradient(135deg, #7dd3fc, #0284c7);
+  --warm-ink: #03121e;
+}
+
+body.theme-sunset_magenta {
+  --lamp: 168, 85, 247;
+  --warm-a: #f0abfc;
+  --warm-b: #a855f7;
+  --warm-rgb: 168, 85, 247;
+  --warm-grad: linear-gradient(135deg, #f0abfc, #a855f7);
+  --warm-ink: #1e0636;
+}
+
+/* ==========================================================================
+   9. VISTAS PREVIAS EN AJUSTES
+   ========================================================================== */
+.preview-desk-wood {
+  background:
+    radial-gradient(ellipse 70% 55% at 12% 0%, rgba(255, 186, 98, 0.4) 0%, transparent 62%),
+    repeating-linear-gradient(94deg, rgba(0, 0, 0, 0.2) 0 2px, transparent 2px 9px),
+    linear-gradient(180deg, #3a2616, #1d130b) !important;
+}
+
+.preview-cabin {
+  background:
+    radial-gradient(ellipse 50% 40% at 6% 100%, rgba(255, 120, 40, 0.5), transparent 70%),
+    repeating-linear-gradient(180deg, #5d391f 0px, #4a2c17 9px, #35200f 24px, #1e1008 30px) !important;
+}
+
+.preview-library {
+  background:
+    radial-gradient(ellipse 60% 50% at 86% 0%, rgba(235, 200, 110, 0.45), transparent 65%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 14px),
+    linear-gradient(180deg, #153024, #0a1510) !important;
+}
+
+.preview-office {
+  background:
+    linear-gradient(180deg, rgba(225, 238, 255, 0.4) 0, transparent 22%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 10px),
+    linear-gradient(180deg, #2a3647, #131a24) !important;
+}
+
+.preview-zen {
+  background:
+    radial-gradient(circle at 78% 30%, rgba(255, 255, 255, 0.22) 0 14px, transparent 15px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 34px),
+    linear-gradient(180deg, #232a2e, #12161a) !important;
+}
+
+.preview-cyber {
+  background:
+    linear-gradient(rgba(34, 211, 238, 0.5) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(90deg, rgba(34, 211, 238, 0.5) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(180deg, #0a1226, #050814) !important;
+}
+
+.preview-space {
+  background:
+    radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 60% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 80% 60%, #cfe3ff, transparent),
+    radial-gradient(1px 1px at 35% 70%, #fff, transparent),
+    radial-gradient(ellipse 130% 40% at 50% 140%, rgba(56, 189, 248, 0.8), transparent 60%),
+    linear-gradient(180deg, #050615, #14163a) !important;
+}
+
+.theme-group-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--f-text-secondary);
+  margin: 4px 0 12px;
+}
+
+.theme-preset-card.selected {
+  border-color: rgb(var(--lamp)) !important;
+  box-shadow: 0 0 24px rgba(var(--lamp), 0.32) !important;
+}
