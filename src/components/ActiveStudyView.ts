@@ -7,7 +7,6 @@ import { dialogService } from '../services/dialog.service';
 import { openScientificFormulaAssistant } from './ScientificFormulaAssistant';
 import { nativeService } from '../services/native.service';
 import Sortable from 'sortablejs';
-import { openFeynmanDiagnosticModal } from './FeynmanDiagnosticModal';
 import { openFeynmanGuideViewerModal } from './FeynmanGuideViewerModal';
 import { feynmanLlmService } from '../services/feynman-llm.service';
 import { feynmanSandboxService } from '../services/feynman-sandbox.service';
@@ -50,438 +49,304 @@ export function getSubjectInfo(subjectName?: string) {
 }
 
 /**
- * Renderiza la Vista de Cuadernos de Estudio (Ultra Clean)
+ * Colores de la tapa a partir del degradado de la materia
+ */
+function hexPair(gradient: string): [string, string] {
+  const m = gradient.match(/#[0-9a-fA-F]{6}/g) || [];
+  return [m[0] || '#1e3a8a', m[1] || m[0] || '#0284c7'];
+}
+
+function coverBackground(topic: ActiveStudyTopic, info: ReturnType<typeof getSubjectInfo>): string {
+  if (topic.coverImage) {
+    return `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.4)), url('${escapeAttr(topic.coverImage)}') center/cover`;
+  }
+  if (topic.color) {
+    return `linear-gradient(135deg, ${escapeAttr(topic.color)} 0%, ${escapeAttr(topic.color)} 100%)`;
+  }
+  const [a, b] = hexPair(info.gradient);
+  return `linear-gradient(135deg, ${a} 0%, ${b} 100%)`;
+}
+
+function displayTitleOf(topic: ActiveStudyTopic): string {
+  return topic.title.replace(/^\[Feynman\]\s*/i, '');
+}
+
+/**
+ * Cuaderno real sobre la estantería: tapa con tela, lomo cosido, goma elástica y etiqueta manuscrita.
+ * Al pasar el cursor la tapa se abre y deja ver en qué página te quedaste.
+ */
+function renderNotebookItem(topic: ActiveStudyTopic): string {
+  const info = getSubjectInfo(topic.subject);
+  const linkedDeck = topic.deckId ? deckService.getDeckById(topic.deckId) : null;
+  const isLinked = Boolean(topic.deckId && linkedDeck && !deckService.isFolder(linkedDeck));
+  const cards = isLinked ? deckService.getCardsByDeck(topic.deckId!, false).length : 0;
+  const total = topic.chunks.length;
+  const done = topic.chunks.filter((c) => c.isCompleted).length;
+  const consolidated = topic.state === 'TOPIC_CONSOLIDATED';
+  const pct = consolidated ? 100 : total ? Math.round((done / total) * 100) : 0;
+  const current = topic.chunks[topic.currentChunkIndex] || topic.chunks[0];
+  const title = displayTitleOf(topic);
+  const emoji = topic.emoji || info.icon;
+  const subjectLine = topic.feynmanGuideId ? '🔬 Ruta Feynman' : info.name;
+  const searchBlob = `${title} ${info.name} ${topic.description || ''}`.toLowerCase();
+
+  return `
+    <div class="nb-item" data-notebook-id="${topic.id}" data-search="${escapeAttr(searchBlob)}" data-subject="${escapeAttr(info.name)}" style="--nb-bg: ${coverBackground(topic, info)};${topic.fontFamily ? ` font-family:'${escapeAttr(topic.fontFamily)}', sans-serif;` : ''}">
+      <div class="nb-book">
+        <div class="nb-pages"></div>
+        <div class="nb-peek">
+          <small>${consolidated ? 'Cuaderno completado' : done > 0 ? 'Continúas en' : 'Empiezas en'}</small>
+          <strong>${escapeHtml(current ? current.title.replace(/^[^\p{L}\p{N}]+/u, '') : title)}</strong>
+          <div class="nb-peek-bar"><i style="width:${pct}%;"></i></div>
+        </div>
+        <div class="nb-cover">
+          <div class="nb-spine"></div>
+          <div class="nb-band"></div>
+          ${!isLinked ? '<span class="nb-warn">Sin mazo</span>' : ''}
+          <button class="nb-menu-btn" data-topic-id="${topic.id}" title="Más opciones" aria-label="Más opciones">⋯</button>
+          <div class="nb-label">
+            <span class="nb-label-emoji">${escapeHtml(emoji)}</span>
+            <span class="nb-label-title">${escapeHtml(title)}</span>
+            <span class="nb-label-subject">${escapeHtml(subjectLine)}</span>
+          </div>
+          <div class="nb-cover-foot">
+            <div class="nb-progress"><i style="width:${pct}%;"></i></div>
+            <em>${consolidated ? '✓' : pct + '%'}</em>
+          </div>
+        </div>
+      </div>
+      <div class="nb-caption">${consolidated ? '✓ Consolidado' : `📖 ${done}/${total}`}${isLinked ? ` · 🎴 ${cards}` : ''}</div>
+    </div>
+  `;
+}
+
+/**
+ * Carpeta como archivador manila con sus hojas asomando
+ */
+function renderFolderItem(topic: ActiveStudyTopic): string {
+  const childCount = activeStudyService.getFolderContents(topic.id).length;
+  const emoji = topic.emoji || '📁';
+  const bg = topic.color
+    ? `linear-gradient(160deg, ${escapeAttr(topic.color)}, ${escapeAttr(topic.color)})`
+    : 'linear-gradient(160deg, #ecd08a, #c99a45)';
+  const searchBlob = `${topic.title} carpeta ${topic.description || ''}`.toLowerCase();
+
+  return `
+    <div class="nb-item is-folder" data-folder-id="${topic.id}" data-search="${escapeAttr(searchBlob)}" data-subject="Carpeta" style="--nb-bg: ${bg};">
+      <div class="nb-book">
+        <div class="nbf-papers"></div>
+        <div class="nbf-body">
+          <button class="nb-menu-btn" data-topic-id="${topic.id}" title="Más opciones" aria-label="Más opciones" style="top:12px; right:8px;">⋯</button>
+          <span class="nbf-emoji">${escapeHtml(emoji)}</span>
+          <span class="nbf-title">${escapeHtml(topic.title)}</span>
+          <span class="nbf-count">${childCount} ${childCount === 1 ? 'cuaderno' : 'cuadernos'}</span>
+        </div>
+        <div class="nbf-tab"></div>
+      </div>
+      <div class="nb-caption">📁 Carpeta</div>
+    </div>
+  `;
+}
+
+/**
+ * Renderiza la Vista de Cuadernos: un escritorio con la estantería de cuadernos
  */
 export function renderActiveStudyDashboard(_selectedTopicId?: string): string {
   const allTopics = activeStudyService.getAllTopics();
   const userCoins = activeStudyService.getUserCoins();
   const savedFeynmanGuides = feynmanLlmService.getSavedGuides();
 
-  // Si el usuario está activamente en modo estudio de un cuaderno:
+  // Si el usuario está dentro de un cuaderno (lectura / esquema / consolidación)
   if (activeStudyingTopicId) {
-    const studyingTopic = allTopics.find((t) => t.id === activeStudyingTopicId) || allTopics[0];
-    if (studyingTopic) {
+    const studyingTopic = allTopics.find((t) => t.id === activeStudyingTopicId);
+    if (studyingTopic && !studyingTopic.isFolder) {
       return renderSelectedTopicWorkspace(studyingTopic, userCoins);
     }
+    activeStudyingTopicId = null;
   }
 
   const currentFolder = currentFolderId ? allTopics.find((t) => t.id === currentFolderId && t.isFolder) : null;
   if (currentFolderId && !currentFolder) {
     currentFolderId = null;
   }
-  const allFolders = activeStudyService.getAllFolders();
+
   const visibleTopics = currentFolderId
-    ? allTopics.filter((t) => t.folderId === currentFolderId && !t.isFolder)
+    ? allTopics.filter((t) => t.folderId === currentFolderId)
     : allTopics.filter((t) => !t.folderId);
 
-  // Lista de materias presentes para las píldoras de filtro
-  const activeSubjectNames = Array.from(new Set(visibleTopics.map((t) => t.subject || 'General'))).filter(Boolean);
-  const activeSubjects = activeSubjectNames.map((name) => getSubjectInfo(name));
+  // Una sola píldora por materia (distintos textos pueden apuntar a la misma materia)
+  const activeSubjects = Array.from(
+    new Map(
+      visibleTopics
+        .filter((t) => !t.isFolder)
+        .map((t) => getSubjectInfo(t.subject))
+        .map((info) => [info.id, info] as const)
+    ).values()
+  );
+
+  const headerHtml = `
+    <div class="nbv-head">
+      <div>
+        <div class="nbv-kicker">${currentFolder ? 'Carpeta' : 'Mi espacio de estudio'}</div>
+        <h1 class="nbv-title">${currentFolder ? escapeHtml(currentFolder.title) : 'Mis cuadernos'}</h1>
+        <p class="nbv-sub">${
+          currentFolder
+            ? escapeHtml(currentFolder.description || 'Cuadernos organizados dentro de esta carpeta.')
+            : visibleTopics.length > 0
+            ? 'Toca un cuaderno para abrirlo y seguir donde lo dejaste.'
+            : 'Tu escritorio está listo. Crea tu primer cuaderno y empieza a estudiar.'
+        }</p>
+      </div>
+      <div class="nbv-actions">
+        <button class="nbv-btn soft btn-toggle-orientation" title="Rotar pantalla (horizontal / vertical)" aria-label="Rotar pantalla" style="padding:12px 14px;">🔄</button>
+        <button class="nbv-btn ai" id="btn-open-feynman-diagnostic"><span>🔬</span><span>Ruta Feynman IA</span></button>
+        <button class="nbv-btn gold" id="btn-open-create-hub"><span style="font-size:1.1rem; line-height:1;">＋</span><span>Nuevo</span></button>
+      </div>
+    </div>
+  `;
+
+  const crumbsHtml = currentFolder
+    ? `<div class="nbv-crumbs">
+         <button class="btn-breadcrumb-root" type="button">🏠 Todos los cuadernos</button>
+         <span>/</span>
+         <span style="color:#fff3df; font-weight:800;">📁 ${escapeHtml(currentFolder.title)}</span>
+       </div>`
+    : '';
+
+  const routesHtml =
+    savedFeynmanGuides.length > 0 && !currentFolder
+      ? `<div class="nbv-routes">
+           <span class="nbv-routes-label">Rutas Feynman</span>
+           ${savedFeynmanGuides
+             .map(
+               (g) => `<button class="nbv-route btn-open-saved-feynman" data-guide-id="${g.id}" type="button">
+                 <span>🔬 ${escapeHtml(g.topic)}</span><small>${g.levelsCount}L</small>
+               </button>`
+             )
+             .join('')}
+         </div>`
+      : '';
+
+  const toolbarHtml =
+    visibleTopics.length > 0
+      ? `<div class="nbv-toolbar">
+           <label class="nbv-search">
+             <span style="opacity:0.6;">🔍</span>
+             <input type="text" id="input-search-notebooks" placeholder="Buscar cuaderno…" />
+           </label>
+           ${
+             activeSubjects.length > 1
+               ? `<div class="nbv-pills" id="notebooks-filter-pills">
+                    <button class="nbv-pill notebook-subject-filter-btn active" data-subject-filter="ALL">Todos</button>
+                    ${activeSubjects
+                      .map(
+                        (s) => `<button class="nbv-pill notebook-subject-filter-btn" data-subject-filter="${escapeAttr(s.name)}">${s.icon} ${escapeHtml(s.name)}</button>`
+                      )
+                      .join('')}
+                  </div>`
+               : ''
+           }
+         </div>`
+      : '';
+
+  const shelfHtml =
+    visibleTopics.length > 0
+      ? `<div class="nb-shelf" id="notebooks-shelf-grid">
+           ${visibleTopics.map((t) => (t.isFolder ? renderFolderItem(t) : renderNotebookItem(t))).join('')}
+           <div class="nb-item nb-add" id="btn-shelf-add">
+             <div class="nb-book"><div class="nb-add-cover"><b>＋</b><span>Nuevo cuaderno</span></div></div>
+             <div class="nb-caption"></div>
+           </div>
+         </div>`
+      : `<div class="nbv-empty">
+           <div class="nbv-empty-book">${currentFolder ? '📁' : '📓'}</div>
+           <h2>${currentFolder ? 'Esta carpeta está vacía' : 'Tu estantería está vacía'}</h2>
+           <p>${
+             currentFolder
+               ? 'Crea un cuaderno aquí dentro para organizar tus asignaturas.'
+               : 'Empieza con una ruta Feynman guiada por IA (cuaderno + flashcards en un solo paso) o abre un cuaderno en blanco.'
+           }</p>
+           <div class="nbv-empty-actions">
+             ${currentFolder ? '' : '<button class="nbv-btn ai" id="btn-empty-feynman"><span>🔬</span><span>Crear con Feynman IA</span></button>'}
+             <button class="nbv-btn gold" id="btn-empty-create-notebook"><span>📓</span><span>Cuaderno en blanco</span></button>
+             ${
+               currentFolder
+                 ? '<button class="nbv-btn soft btn-breadcrumb-root">← Volver</button>'
+                 : `<button class="nbv-btn soft" id="btn-load-neuro-demo">🧪 Probar demo</button>`
+             }
+           </div>
+         </div>`;
 
   return `
-    <div class="notebooks-view-container">
-      <!-- CABECERA ULTRA CLEAN DE CUADERNOS -->
-      <div class="notebooks-view-header apple-glass-panel">
-        <div class="notebooks-header-left">
-          <div class="notebooks-header-badge">
-            <span>📓 ZONA DE ESTUDIO</span>
-          </div>
-          <h1 class="notebooks-header-title">
-            ${currentFolder ? `Carpeta: ${escapeHtml(currentFolder.title)}` : 'Mis Cuadernos de Estudio'}
-          </h1>
-          <p class="notebooks-header-subtitle">
-            ${
-              currentFolder
-                ? escapeHtml(currentFolder.description || 'Cuadernos organizados dentro de esta carpeta temática.')
-                : 'Crea cuadernos para tus materias, organízalos en carpetas con mapas mentales interactivos y aprende con lectura atómica y repaso espaciado.'
-            }
-          </p>
-        </div>
-        <div class="notebooks-header-actions" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <button class="figma-icon-btn-ghost btn-toggle-orientation" title="Rotar pantalla (Horizontal / Vertical)" style="padding: 10px; font-size: 1.1rem; border-radius: 12px; border: 1px solid var(--f-border); background: var(--f-input-bg);">
-            🔄📱
-          </button>
-          <button class="figma-btn-study-large" id="btn-open-feynman-diagnostic" style="background:linear-gradient(135deg, #0284c7, #8b5cf6); border:none; padding:12px 20px; font-size:0.92rem; display:inline-flex; align-items:center; gap:8px; width:auto; box-shadow:0 4px 15px rgba(56,189,248,0.25); color:#fff; cursor:pointer;">
-            <span>🔬</span>
-            <span>Ruta Feynman IA</span>
-          </button>
-          <button class="figma-btn-white-pill" id="btn-create-study-folder" style="padding:12px 18px; font-size:0.92rem; display:inline-flex; align-items:center; gap:8px;">
-            <span>📁</span>
-            <span>+ Carpeta</span>
-          </button>
-          <button class="figma-btn-study-large" id="btn-create-study-topic" style="padding:12px 24px; font-size:0.92rem; display:inline-flex; align-items:center; gap:8px; width:auto;">
-            <span>✨</span>
-            <span>+ Nuevo Cuaderno</span>
-          </button>
-        </div>
-      </div>
-
-      ${
-        savedFeynmanGuides.length > 0 && !currentFolder
-          ? `
-        <!-- SECCIÓN DE RUTAS FEYNMAN GUARDADAS -->
-        <div class="apple-glass-panel" style="padding: 14px 20px; margin-bottom: 16px; border-radius: 16px; border: 1px solid rgba(56,189,248,0.2); background: linear-gradient(135deg, rgba(56,189,248,0.06), rgba(168,85,247,0.06));">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 1.1rem;">🔬</span>
-              <h3 style="font-size: 0.92rem; font-weight: 800; color: #fff; margin: 0;">Rutas Feynman Personalizadas</h3>
-              <span style="font-size: 0.7rem; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 1px 8px; border-radius: 999px; font-weight: 700;">${savedFeynmanGuides.length}</span>
-            </div>
-            <button class="figma-btn-ghost" id="btn-new-feynman-banner" style="font-size: 0.78rem; padding: 4px 10px; color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); border-radius: 8px;">
-              + Nueva Ruta
-            </button>
-          </div>
-          <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin;">
-            ${savedFeynmanGuides
-              .map(
-                (g) => `
-              <div class="apple-glass-panel btn-open-saved-feynman" data-guide-id="${g.id}" style="min-width: 220px; max-width: 280px; padding: 10px 14px; border-radius: 12px; cursor: pointer; border: 1px solid var(--f-border); background: var(--f-input-bg); display: flex; flex-direction: column; justify-content: space-between; gap: 6px; transition: all 0.2s ease;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="font-size: 0.85rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(g.topic)}</span>
-                  <span style="font-size: 0.68rem; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 1px 6px; border-radius: 999px;">${g.levelsCount}L</span>
-                </div>
-                <div style="font-size: 0.72rem; color: var(--f-text-secondary);">
-                  ${new Date(g.createdAt).toLocaleDateString()} • Nivel actual ${g.formData.currentLevel}/5
-                </div>
-              </div>
-            `
-              )
-              .join('')}
-          </div>
-        </div>
-      `
-          : ''
-      }
-
-      <!-- BREADCRUMBS SI ESTAMOS DENTRO DE UNA CARPETA -->
-      ${
-        currentFolder
-          ? `
-        <div class="notebook-breadcrumbs">
-          <button class="notebook-breadcrumb-item btn-breadcrumb-root" type="button">
-            <span>🏠 Todos los Cuadernos</span>
-          </button>
-          <span class="notebook-breadcrumb-sep">/</span>
-          <span class="notebook-breadcrumb-item active">
-            📁 ${escapeHtml(currentFolder.title)}
-          </span>
-        </div>
-      `
-          : ''
-      }
-
-      <!-- BARRA DE BÚSQUEDA Y FILTRO RÁPIDO DE CUADERNOS -->
-      <div class="notebooks-search-bar-wrap apple-glass-panel">
-        <div class="notebooks-search-input-box">
-          <span class="notebooks-search-icon">🔍</span>
-          <input 
-            type="text" 
-            id="input-search-notebooks" 
-            placeholder="Buscar cuaderno por título o materia..." 
-            class="notebooks-search-input"
-          />
-        </div>
-        ${
-          activeSubjects.length > 0
-            ? `
-          <div class="notebooks-subject-pills-row" id="notebooks-filter-pills">
-            <button class="notebook-subject-filter-btn active" data-subject-filter="ALL">Todos (${visibleTopics.length})</button>
-            ${activeSubjects
-              .map(
-                (subj) => `
-              <button class="notebook-subject-filter-btn" data-subject-filter="${escapeAttr(subj.name)}">
-                ${subj.icon} ${escapeHtml(subj.name)}
-              </button>
-            `
-              )
-              .join('')}
-          </div>
-        `
-            : ''
-        }
-      </div>
-
-      <!-- ESTANTERÍA / GRID DE CUADERNOS -->
-      ${
-        visibleTopics.length > 0
-          ? `
-        <div class="notebooks-shelf-grid" id="notebooks-shelf-grid">
-          ${visibleTopics
-            .map((topic) => {
-              if (topic.isFolder) {
-                const childCount = activeStudyService.getFolderContents(topic.id).length;
-                return `
-                <div class="notebook-card notebook-folder-card apple-glass-panel" data-folder-id="${topic.id}" data-subject="Carpeta">
-                  <div class="notebook-folder-preview">
-                    <span class="notebook-folder-icon">${topic.emoji || '📁'}</span>
-                    <div class="notebook-folder-meta">
-                      <span class="notebook-folder-badge">CARPETA CONTENEDORA</span>
-                      <span class="notebook-folder-count">${childCount} cuadernos organizados</span>
-                    </div>
-                  </div>
-                  <div class="notebook-card-body" style="padding-top:4px;">
-                    <h3 class="notebook-cover-title" style="margin-bottom:6px; font-size:1.15rem;">${escapeHtml(topic.title)}</h3>
-                    <p class="notebook-card-desc">
-                      ${escapeHtml(topic.description || 'Carpeta para agrupar múltiples cuadernos temáticos.')}
-                    </p>
-                    <div class="notebook-card-actions" style="margin-top:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                      <button class="figma-btn-study-large btn-open-folder" data-folder-id="${topic.id}" style="width:auto; padding:8px 18px; font-size:0.84rem;">
-                        <span>📂 Abrir Carpeta ➔</span>
-                      </button>
-                      <button class="figma-icon-btn-ghost btn-edit-notebook" data-topic-id="${topic.id}" title="Editar carpeta">
-                        ✏️
-                      </button>
-                      <button class="figma-icon-btn-ghost notebook-delete-btn" data-topic-id="${topic.id}" title="Eliminar carpeta" style="color:#ef4444;">
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                `;
-              }
-
-              const subjectInfo = getSubjectInfo(topic.subject);
-              const linkedDeck = topic.deckId ? deckService.getDeckById(topic.deckId) : null;
-              const isLinked = Boolean(topic.deckId && linkedDeck);
-              const cardsCount = isLinked ? deckService.getCardsByDeck(topic.deckId!, false).length : 0;
-              const hasCover = Boolean(topic.coverImage);
-              const chunksCount = topic.chunks.length;
-              const completedChunks = topic.chunks.filter((c) => c.isCompleted).length;
-              const customFont = topic.fontFamily ? `font-family: '${topic.fontFamily}', sans-serif;` : '';
-              const customColor = topic.color || subjectInfo.color;
-
-              return `
-              <div class="notebook-card apple-glass-panel" data-notebook-id="${topic.id}" data-subject="${escapeAttr(topic.subject || 'General')}" style="${customFont}">
-                <!-- Portada del Cuaderno -->
-                <div 
-                  class="notebook-card-cover" 
-                  style="${
-                    hasCover
-                      ? `background-image: url('${topic.coverImage}'); background-size: cover; background-position: center;`
-                      : topic.color
-                      ? `background: linear-gradient(135deg, ${topic.color}dd, #0f172a);`
-                      : `background: ${subjectInfo.gradient};`
-                  }"
-                >
-                  <div class="notebook-cover-spine" style="${topic.color ? `background:${topic.color};` : ''}"></div>
-                  <div class="notebook-cover-badge-row">
-                    <span class="notebook-cover-subject-tag" style="background:${subjectInfo.badgeBg}; color:${customColor}; border: 1px solid ${subjectInfo.borderColor};">
-                      ${topic.emoji || subjectInfo.icon} ${escapeHtml(subjectInfo.name)}
-                    </span>
-                    <button class="notebook-delete-btn figma-icon-btn-ghost" data-topic-id="${topic.id}" title="Eliminar cuaderno">
-                      🗑️
-                    </button>
-                  </div>
-                  <div class="notebook-cover-content">
-                    <h3 class="notebook-cover-title">${topic.emoji ? topic.emoji + ' ' : ''}${escapeHtml(topic.title)}</h3>
-                  </div>
-                </div>
-
-                <!-- Cuerpo / Detalles del Cuaderno -->
-                <div class="notebook-card-body">
-                  <p class="notebook-card-desc">
-                    ${escapeHtml(topic.description || 'Cuaderno interactivo con mapa mental y flujo de estudio activo.')}
-                  </p>
-
-                  <div class="notebook-card-meta">
-                    ${
-                      isLinked
-                        ? `<span class="notebook-card-deck-pill">🎴 ${escapeHtml(linkedDeck!.name)} · ${cardsCount} tarjetas</span>`
-                        : `<span class="notebook-card-deck-pill unlinked" style="background:rgba(239,68,68,0.18); border:1px solid rgba(239,68,68,0.4); color:#f87171; font-weight:700;">⚠️ Sin mazo vinculado</span>`
-                    }
-                    <span class="notebook-card-chunks-pill">
-                      📖 ${completedChunks}/${chunksCount} bloques
-                    </span>
-                  </div>
-
-                  <!-- Botones de Acción del Cuaderno -->
-                  <div class="notebook-card-actions" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <button class="figma-btn-white-pill btn-open-topic-mindmap" data-topic-id="${topic.id}" title="Abrir Mapa Mental de este cuaderno">
-                      <span>🧠 Mapa Mental</span>
-                    </button>
-                    ${
-                      !isLinked
-                        ? `<button class="figma-btn-white-pill btn-link-topic-deck" data-topic-id="${topic.id}" style="border-color:#38bdf8; color:#38bdf8; font-weight:700; padding:8px 14px; font-size:0.84rem;">
-                            <span>🔗 Vincular a Mazo</span>
-                           </button>`
-                        : ''
-                    }
-                    <button class="figma-btn-study-large btn-study-notebook ${!isLinked ? 'unlinked' : ''}" data-topic-id="${topic.id}" style="width:auto; padding:8px 16px; font-size:0.84rem;" title="${isLinked ? 'Comenzar o continuar lectura de estudio' : 'Requiere vincular a un mazo para estudiar'}">
-                      <span>📖 Estudiar ➔</span>
-                    </button>
-                    <button class="figma-icon-btn-ghost btn-edit-notebook" data-topic-id="${topic.id}" title="Editar personalización del cuaderno">
-                      ✏️
-                    </button>
-                    <button class="figma-icon-btn-ghost btn-convert-to-folder" data-topic-id="${topic.id}" title="Convertir en carpeta contenedora">
-                      📁
-                    </button>
-                    ${
-                      allFolders.length > 0
-                        ? `<button class="figma-icon-btn-ghost btn-move-to-folder" data-topic-id="${topic.id}" title="Mover a otra carpeta">
-                            📥
-                           </button>`
-                        : ''
-                    }
-                  </div>
-                </div>
-              </div>
-            `;
-            })
-            .join('')}
-        </div>
-      `
-          : `
-        <div class="notebooks-empty-state apple-glass-panel">
-          <div style="font-size:3.5rem; margin-bottom:12px;">${currentFolder ? '📁' : '📓'}</div>
-          <h2 style="color:#fff; font-size:1.4rem; margin:0 0 8px 0;">
-            ${currentFolder ? 'Esta carpeta está vacía' : 'Tu estantería de cuadernos está vacía'}
-          </h2>
-          <p style="color:var(--f-text-secondary); max-width:480px; margin:0 auto 20px auto; font-size:0.92rem; line-height:1.5;">
-            ${
-              currentFolder
-                ? 'Crea un cuaderno dentro de esta carpeta para organizar tus asignaturas.'
-                : 'Crea tu primer cuaderno para organizar tus materias con esquemas mentales interactivos, lectura atómica y flashcards activas.'
-            }
-          </p>
-          <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
-            <button class="figma-btn-study-large" id="btn-empty-create-notebook" style="width:auto; padding:12px 26px;">
-              ✨ + Crear Cuaderno
-            </button>
-            ${
-              currentFolder
-                ? `<button class="figma-btn-white-pill btn-breadcrumb-root" style="width:auto; padding:12px 20px;">
-                    ← Volver a Cuadernos Raíz
-                   </button>`
-                : `
-                <button class="figma-btn-white-pill" id="btn-load-neuro-demo" style="width:auto; padding:12px 20px;">
-                  🧪 Cargar Demo Neurociencia
-                </button>
-                <button class="figma-btn-white-pill" id="btn-load-nuclear-demo" style="width:auto; padding:12px 20px;">
-                  ⚛️ Cargar Demo Física Nuclear
-                </button>
-                `
-            }
-          </div>
-        </div>
-      `
-      }
+    <div class="nbv">
+      ${headerHtml}
+      ${crumbsHtml}
+      ${routesHtml}
+      ${toolbarHtml}
+      ${shelfHtml}
     </div>
   `;
 }
 
 /**
- * Renderiza el espacio de trabajo de un tema seleccionado con sus 3 fases
+ * Pantalla de trabajo de un cuaderno abierto: enruta según la fase
+ * lectura (hoja con renglones) → esquema ciego → consolidación.
  */
 function renderSelectedTopicWorkspace(topic: ActiveStudyTopic, userCoins: number): string {
   const state = topic.state;
   const currentChunk = topic.chunks[topic.currentChunkIndex] || topic.chunks[0];
-  
+
+  if (!currentChunk) {
+    return renderBenchDesk(
+      topic,
+      `<div class="apple-glass-panel" style="padding:32px; text-align:center; color:#fff;">Este cuaderno aún no tiene páginas.</div>`,
+      '📓 Cuaderno vacío',
+      ''
+    );
+  }
+
   // Obtener tarjetas asociadas a este tema
   const cardsTopic = deckService.getCardsByDeck(topic.id, true);
   const cardsDeck = topic.deckId ? deckService.getCardsByDeck(topic.deckId, false) : [];
   const mergedCards = [...cardsTopic, ...cardsDeck].filter((c, idx, self) => self.findIndex((x) => x.id === c.id) === idx);
-  const currentChunkCards = currentChunk ? mergedCards.filter((c) => c.chunkId === currentChunk.id) : [];
+  const currentChunkCards = mergedCards.filter((c) => c.chunkId === currentChunk.id);
 
-  const linkedDeck = topic.deckId ? deckService.getDeckById(topic.deckId) : null;
-  const deckName = linkedDeck ? linkedDeck.name : 'Baraja sin vincular';
-
-  // Si el usuario está activamente en modo estudio atómico centrado:
-  if (activeStudyingTopicId === topic.id) {
-    return renderCenteredAtomicReadingScreen(topic, currentChunk, currentChunkCards, deckName, mergedCards);
+  if (state === 'TOPIC_CONSOLIDATED') {
+    return renderBenchDesk(topic, renderConsolidatedScreen(topic, userCoins, mergedCards), '🧠 Tema consolidado', 'green');
   }
 
+  if (state === 'BUILDING_OUTLINE') {
+    return renderBenchDesk(topic, renderOutlineBuildingScreen(topic, currentChunk, currentChunkCards), '🌳 Esquema de memoria', 'purple');
+  }
+
+  const linkedDeck = topic.deckId ? deckService.getDeckById(topic.deckId) : null;
+  return renderCenteredAtomicReadingScreen(topic, currentChunk, currentChunkCards, linkedDeck ? linkedDeck.name : '', mergedCards);
+}
+
+/**
+ * Marco común (barra superior + escritorio) para las pantallas intermedias del cuaderno
+ */
+function renderBenchDesk(topic: ActiveStudyTopic, innerHtml: string, chipText: string, chipClass: string): string {
   return `
-    <div class="active-study-topic-workspace" data-topic-id="${topic.id}">
-      <!-- Barra Superior de Información del Tema -->
-      <div class="active-study-top-bar apple-glass-panel">
-        <div class="study-topic-info">
-          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <button class="figma-btn-white-pill btn-back-to-notebooks" style="padding:5px 12px; font-size:0.78rem; gap:4px; border-color:rgba(255,255,255,0.2); cursor:pointer;">
-              ← Volver a Cuadernos
-            </button>
-            <span class="study-topic-chip">CUADERNO</span>
-            <button class="atomic-deck-link-chip btn-change-topic-deck" data-topic-id="${topic.id}" title="Toca para cambiar de baraja vinculada" style="border:none; cursor:pointer;">🎴 Baraja: ${escapeAttr(deckName)} ✎</button>
-            <span class="study-topic-date">${new Date(topic.createdAt).toLocaleDateString()}</span>
-          </div>
-          <h3 class="study-topic-title">${escapeHtml(topic.title)}</h3>
+    <div class="pg-desk active-study-topic-workspace" data-topic-id="${topic.id}">
+      <header class="pg-bar">
+        <div class="pg-bar-left">
+          <button class="pg-exit btn-back-to-notebooks" type="button">← Cuadernos</button>
+          <span class="pg-chip ${chipClass}">${chipText}</span>
         </div>
-
-        <div class="study-top-right-meta">
-          <button class="figma-icon-btn-ghost btn-toggle-orientation" title="Rotar pantalla (Horizontal / Vertical)" style="padding: 6px 10px; font-size: 0.95rem; border-radius: 8px;">
-            🔄📱
-          </button>
-          <button class="figma-btn-white-pill btn-open-topic-mindmap" data-topic-id="${topic.id}" style="padding:6px 14px; font-size:0.82rem; border-color:rgba(56,189,248,0.4); color:#38bdf8;">
-            🧠 Ver Mapa Mental
-          </button>
-          <button class="figma-icon-btn-ghost" id="btn-study-topic-reset" title="Reiniciar sesión de estudio">
-            🔄
-          </button>
-          <button class="figma-icon-btn-ghost" id="btn-study-topic-delete" title="Eliminar este tema" style="color:#ef4444;">
-            🗑️
-          </button>
+        <div class="pg-bar-right">
+          <button class="pg-round btn-toggle-orientation" title="Rotar pantalla" type="button">🔄</button>
+          <button class="pg-round btn-open-topic-mindmap" data-topic-id="${topic.id}" title="Abrir mapa mental" type="button">🧠</button>
         </div>
-      </div>
-
-      <!-- Stepper de Bloques Atómicos -->
-      <div class="study-chunks-stepper">
-        ${topic.chunks
-          .map((chunk, idx) => {
-            const isDone = chunk.isCompleted;
-            const isCurrent = idx === topic.currentChunkIndex && state !== 'TOPIC_CONSOLIDATED';
-            return `
-            <div class="stepper-step ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''}">
-              <div class="stepper-dot">${isDone ? '✓' : idx + 1}</div>
-              <span class="stepper-label">${escapeAttr(chunk.title)}</span>
-            </div>
-          `;
-          })
-          .join('')}
-        
-        <div class="stepper-step ${state === 'TOPIC_CONSOLIDATED' ? 'done current' : ''}">
-          <div class="stepper-dot">🔒</div>
-          <span class="stepper-label">Consolidación</span>
-        </div>
-      </div>
-
-      <!-- CONTENIDO SEGÚN LA FASE ACTIVA O CTA DE ESTUDIO -->
-      ${
-        state === 'TOPIC_CONSOLIDATED'
-          ? renderConsolidatedScreen(topic, userCoins, mergedCards)
-          : state === 'BUILDING_OUTLINE'
-          ? renderOutlineBuildingScreen(topic, currentChunk, currentChunkCards)
-          : `
-          <div class="study-overview-cta-card apple-glass-panel" style="text-align:center; padding:36px 20px; border:1.5px solid rgba(56,189,248,0.3); border-radius:24px; margin-top:10px;">
-            <div style="font-size:3rem; margin-bottom:12px;">🔬</div>
-            <h3 style="font-size:1.45rem; font-weight:900; color:#fff; margin:0 0 8px 0;">
-              ${escapeAttr(currentChunk.title)}
-            </h3>
-            <p style="color:var(--f-text-secondary); max-width:540px; margin:0 auto 24px auto; font-size:0.95rem; line-height:1.55;">
-              Inicia el ciclo de estudio activo en el centro de tu pantalla. Lee la información átomo, redacta tus flashcards con asistencia KaTeX y continúa de inmediato a tu mapa mental.
-            </p>
-            <div style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap;">
-              <button class="figma-btn-study-large" id="btn-start-active-study" style="width:auto; padding:14px 34px; font-size:1.02rem; box-shadow:0 8px 30px rgba(56,189,248,0.35);">
-                🚀 Empezar Estudio (Átomo ${topic.currentChunkIndex + 1}/${topic.chunks.length}) ➔
-              </button>
-              <button class="figma-btn-white-pill btn-open-topic-mindmap" data-topic-id="${topic.id}" style="width:auto; padding:14px 22px; font-size:0.92rem; border-color:rgba(56,189,248,0.4); color:#38bdf8;">
-                🧠 Abrir Mapa Mental
-              </button>
-            </div>
-          </div>
-          `
-      }
+      </header>
+      <div class="pg-bench">${innerHtml}</div>
     </div>
   `;
 }
 
 /**
- * MODO LECTURA ATÓMICA CENTRADA: Pone en el centro de la pantalla la información del átomo
- */
-/**
- * MODO LECTURA ATÓMICA CENTRADA: Ultra Inmersivo a Pantalla Completa
- * Muestra solo:
- * 1. Fila de dos botones: [➕ Agregar Flashcard] y [🧠 Mapa]
- * 2. Botón inferior de [Continuar ➔]
- * Sin HUDs ni elementos distractores.
+ * MODO LECTURA: una hoja de cuaderno con renglones, margen y espiral, bajo la luz de tu lámpara.
+ * Solo lo esencial: leer, agregar flashcard, ver mapa y pasar de página.
  */
 function renderCenteredAtomicReadingScreen(
   topic: ActiveStudyTopic,
@@ -496,87 +361,91 @@ function renderCenteredAtomicReadingScreen(
   const isAtomTransitionChunk = chunk.title.includes('Transición Sinérgica: Átomo');
   const isExamChunk = chunk.title.includes('Examen Final');
 
-  let chunkBadgeText = `🔬 ÁTOMO ${topic.currentChunkIndex + 1} DE ${topic.chunks.length}`;
-  let badgeClass = 'badge-atom';
+  const position = `${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
+  let chipText = topic.feynmanGuideId ? `🔬 Átomo ${position}` : `📄 Página ${position}`;
+  let chipClass = '';
 
   if (isRoadmapChunk) {
-    chunkBadgeText = `🗺️ HOJA DE RUTA • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
-    badgeClass = 'badge-roadmap';
+    chipText = `🗺️ Hoja de ruta ${position}`;
+    chipClass = 'purple';
   } else if (isPurposeAxiomChunk) {
-    chunkBadgeText = `🎯 PROPÓSITO & AXIOMA • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
-    badgeClass = 'badge-purpose';
+    chipText = `🎯 Propósito y axioma ${position}`;
   } else if (isBridgeChunk) {
-    chunkBadgeText = `🌉 PUENTE INTER-NIVEL • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
-    badgeClass = 'badge-bridge';
+    chipText = `🌉 Puente ${position}`;
+    chipClass = 'green';
   } else if (isAtomTransitionChunk) {
-    chunkBadgeText = `🔗 TRANSICIÓN SINÉRGICA • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
-    badgeClass = 'badge-bridge';
+    chipText = `🔗 Transición ${position}`;
+    chipClass = 'green';
   } else if (isExamChunk) {
-    chunkBadgeText = `🎓 EXAMEN FINAL • BLOQUE ${topic.currentChunkIndex + 1}/${topic.chunks.length}`;
-    badgeClass = 'badge-exam';
+    chipText = `🎓 Examen final ${position}`;
+    chipClass = 'gold';
   }
 
-  let nextBtnText = topic.currentChunkIndex + 1 < topic.chunks.length ? 'Continuar' : 'Finalizar y Consolidar';
-  if (isRoadmapChunk) {
-    nextBtnText = 'Ir al Nivel 1 (Propósito)';
-  } else if (isPurposeAxiomChunk) {
-    nextBtnText = 'Entrar al Desglose Atómico';
-  } else if (isBridgeChunk) {
-    nextBtnText = 'Cruzar al Siguiente Nivel';
-  } else if (isAtomTransitionChunk) {
-    nextBtnText = 'Continuar al Siguiente Átomo';
-  }
+  const isLast = topic.currentChunkIndex + 1 >= topic.chunks.length;
+  let nextBtnText = isLast ? 'Terminar y armar mi esquema' : 'Pasar de página';
+  if (isRoadmapChunk) nextBtnText = 'Ir al Nivel 1';
+  else if (isPurposeAxiomChunk) nextBtnText = 'Entrar al desglose';
+  else if (isBridgeChunk) nextBtnText = 'Cruzar al siguiente nivel';
+  else if (isAtomTransitionChunk) nextBtnText = 'Siguiente átomo';
 
   const progressPercent = Math.round(((topic.currentChunkIndex + 1) / topic.chunks.length) * 100);
 
-  return `
-    <div class="active-study-topic-workspace atomic-study-immersive-container" data-topic-id="${topic.id}">
-      <!-- Barra de Progreso Superior Immersiva -->
-      <div class="atomic-study-progress-bar" style="width: ${progressPercent}%;"></div>
+  // Pestañas separadoras del cuaderno (máx. 12) que indican el avance
+  const tabCount = Math.min(topic.chunks.length, 12);
+  const palette = ['#ef4444', '#f59e0b', '#10b981', '#38bdf8', '#a855f7', '#ec4899'];
+  const currentTabIdx = Math.min(tabCount - 1, Math.floor((topic.currentChunkIndex / topic.chunks.length) * tabCount));
+  const tabsHtml = Array.from({ length: tabCount })
+    .map(
+      (_, i) =>
+        `<span class="pg-tab ${i < currentTabIdx ? 'done' : ''} ${i === currentTabIdx ? 'current' : ''}" style="--tab:${palette[i % palette.length]};"></span>`
+    )
+    .join('');
 
-      <!-- Barra de Control Mínima Superior (Sin HUDs) -->
-      <header class="atomic-study-minimal-topbar">
-        <div class="atomic-study-badge ${badgeClass}">
-          <span>${chunkBadgeText}</span>
+  const displayTitle = chunk.title;
+
+  return `
+    <div class="pg-desk" data-topic-id="${topic.id}">
+      <div class="pg-progress" style="width: ${progressPercent}%;"></div>
+
+      <header class="pg-bar">
+        <div class="pg-bar-left">
+          <button class="pg-exit" id="btn-exit-atomic-reading" type="button" title="Salir (se guarda tu avance)">✕ Salir</button>
+          <span class="pg-chip ${chipClass}">${chipText}</span>
+          <span class="pg-notebook-name">${escapeHtml(displayTitleOf(topic))}</span>
         </div>
-        <div class="atomic-study-topbar-actions">
-          <button class="figma-icon-btn-ghost btn-toggle-orientation" title="Rotar pantalla" style="padding: 6px 10px; font-size: 0.95rem; border-radius: 8px;">
-            🔄📱
-          </button>
-          <button class="atomic-study-exit-btn" id="btn-exit-atomic-reading" title="Salir del estudio (se guarda tu avance)">
-            <span>✕ Salir</span>
-          </button>
+        <div class="pg-bar-right">
+          <button class="pg-round btn-toggle-orientation" type="button" title="Rotar pantalla">🔄</button>
         </div>
       </header>
 
-      <!-- Tarjeta Central de Lectura Atómica -->
-      <div class="atomic-reading-card-wrapper">
-        <article class="atomic-reading-card" style="animation: atomSlideFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
-          <h2 class="atomic-chunk-headline">${escapeHtml(chunk.title)}</h2>
+      <div class="pg-wrap">
+        <div class="pg-tabs">${tabsHtml}</div>
+        <article class="pg-sheet" id="pg-sheet">
+          <div class="pg-spiral"></div>
+          <div class="pg-ribbon"></div>
 
-          <div class="atomic-reading-content">
+          <div class="pg-kicker">Página ${topic.currentChunkIndex + 1} de ${topic.chunks.length}</div>
+          <h2 class="pg-title">${escapeHtml(displayTitle)}</h2>
+
+          <div class="pg-content">
             ${feynmanSandboxService.renderContentWithSandboxes(chunk.sourceContent, chunk.title)}
           </div>
 
-          <!-- SOLO DOS BOTONES: AGREGAR FLASHCARDS Y MAPA -->
-          <div class="atomic-dual-action-row">
-            <button class="btn-atomic-action-card" id="btn-atomic-add-card" title="Crear flashcard para este átomo">
-              <span class="btn-icon">➕</span>
-              <span class="btn-text">Agregar Flashcard</span>
-              <span class="btn-counter">(${chunkCards.length})</span>
+          <div class="pg-tools">
+            <button class="pg-tool" id="btn-atomic-add-card" type="button" title="Crear flashcard para esta página">
+              <span>➕ Agregar flashcard</span>
+              <span class="count">${chunkCards.length}</span>
             </button>
-
-            <button class="btn-atomic-action-map" id="btn-atomic-continue-mindmap" title="Ver esquema y mapa mental de este tema">
-              <span class="btn-icon">🧠</span>
-              <span class="btn-text">Mapa</span>
+            <button class="pg-tool" id="btn-atomic-continue-mindmap" type="button" title="Ver el mapa mental de este cuaderno">
+              <span>🧠 Mapa mental</span>
             </button>
           </div>
 
-          <!-- BOTÓN ABAJO DE CONTINUAR (ÚNICO CTA PRINCIPAL) -->
-          <div class="atomic-continue-action-row">
-            <button class="btn-atomic-primary-continue" id="btn-atomic-next" title="Continuar al siguiente bloque de estudio">
+          <div class="pg-foot">
+            <span class="pg-number">pág. ${topic.currentChunkIndex + 1}</span>
+            <button class="pg-next" id="btn-atomic-next" type="button">
               <span>${nextBtnText}</span>
-              <span class="arrow-icon">➔</span>
+              <span class="arrow">➔</span>
             </button>
           </div>
         </article>
@@ -584,7 +453,6 @@ function renderCenteredAtomicReadingScreen(
     </div>
   `;
 }
-
 
 
 /**
@@ -905,48 +773,18 @@ export function bindActiveStudyDashboardEvents(
 ): () => void {
   const allTopics = activeStudyService.getAllTopics();
 
-  // 1. Selector de Píldoras de Tema
-  container.querySelectorAll<HTMLButtonElement>('.study-topic-pill-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const topicId = btn.dataset.topicId;
-      if (topicId) {
-        activeStudyingTopicId = null;
-        onSelectTopic(topicId);
-        onRefresh();
-      }
-    });
-  });
-
-  // 2. Creación de Cuadernos
-  const handleOpenCreateModal = () => {
-    openCreateNotebookModal((newTopicId) => {
-      onSelectTopic(newTopicId);
-      onRefresh();
-    });
-  };
-
-  container.querySelector('#btn-create-study-topic')?.addEventListener('click', handleOpenCreateModal);
-  container.querySelector('#btn-empty-create-notebook')?.addEventListener('click', handleOpenCreateModal);
-
-  // 1.5 Lanzar Diagnóstico y Rutas Feynman
-  const handleOpenFeynmanDiagnostic = () => {
+  // 1. Creación: todo pasa por el hub único (main.ts escucha este evento)
+  const emitCreate = (choice: string) => {
     nativeService.triggerHaptics('medium');
-    openFeynmanDiagnosticModal({
-      onGenerated: (guide) => {
-        openFeynmanGuideViewerModal({
-          guide,
-          onOpenTopic: (topicId) => {
-            onSelectTopic(topicId);
-            onRefresh();
-          }
-        });
-        onRefresh();
-      }
-    });
+    window.dispatchEvent(new CustomEvent('eureka:create', { detail: { choice, context: 'notebooks' } }));
   };
 
-  container.querySelector('#btn-open-feynman-diagnostic')?.addEventListener('click', handleOpenFeynmanDiagnostic);
-  container.querySelector('#btn-new-feynman-banner')?.addEventListener('click', handleOpenFeynmanDiagnostic);
+  container.querySelector('#btn-open-create-hub')?.addEventListener('click', () => emitCreate('hub'));
+  container.querySelector('#btn-create-study-topic')?.addEventListener('click', () => emitCreate('hub'));
+  container.querySelector('#btn-empty-create-notebook')?.addEventListener('click', () => emitCreate('notebook'));
+  container.querySelector('#btn-empty-feynman')?.addEventListener('click', () => emitCreate('feynman'));
+  container.querySelector('#btn-open-feynman-diagnostic')?.addEventListener('click', () => emitCreate('feynman'));
+  container.querySelector('#btn-shelf-add')?.addEventListener('click', () => emitCreate('hub'));
 
   container.querySelectorAll<HTMLElement>('.btn-open-saved-feynman').forEach((card) => {
     card.addEventListener('click', () => {
@@ -958,8 +796,12 @@ export function bindActiveStudyDashboardEvents(
           openFeynmanGuideViewerModal({
             guide,
             onOpenTopic: (topicId) => {
+              openStudyNotebook(topicId);
               onSelectTopic(topicId);
               onRefresh();
+            },
+            onOpenDeck: (deckId) => {
+              window.dispatchEvent(new CustomEvent('eureka:open-deck', { detail: { deckId } }));
             }
           });
         }
@@ -967,20 +809,20 @@ export function bindActiveStudyDashboardEvents(
     });
   });
 
-  // 2.1 Búsqueda y Filtro de Cuadernos en vivo
+  // 2. Búsqueda y filtro en vivo sobre la estantería
   const searchInput = container.querySelector('#input-search-notebooks') as HTMLInputElement | null;
   const filterPills = container.querySelectorAll<HTMLButtonElement>('.notebook-subject-filter-btn');
   let currentSubjectFilter = 'ALL';
 
   const applyNotebookFilters = () => {
     const query = searchInput?.value.toLowerCase().trim() || '';
-    container.querySelectorAll<HTMLElement>('.notebook-card').forEach((card) => {
-      const title = card.querySelector('.notebook-cover-title')?.textContent?.toLowerCase() || '';
-      const desc = card.querySelector('.notebook-card-desc')?.textContent?.toLowerCase() || '';
-      const subj = card.dataset.subject || '';
-      const matchesQuery = !query || title.includes(query) || desc.includes(query) || subj.toLowerCase().includes(query);
-      const matchesSubj = currentSubjectFilter === 'ALL' || subj.toLowerCase() === currentSubjectFilter.toLowerCase();
-      card.style.display = matchesQuery && matchesSubj ? 'flex' : 'none';
+    container.querySelectorAll<HTMLElement>('.nb-item[data-search]').forEach((item) => {
+      const blob = item.dataset.search || '';
+      const subj = item.dataset.subject || '';
+      const matchesQuery = !query || blob.includes(query);
+      const matchesSubj =
+        currentSubjectFilter === 'ALL' || item.classList.contains('is-folder') || subj.toLowerCase() === currentSubjectFilter.toLowerCase();
+      item.style.display = matchesQuery && matchesSubj ? '' : 'none';
     });
   };
 
@@ -994,54 +836,44 @@ export function bindActiveStudyDashboardEvents(
     });
   });
 
-  // 2.2 Botón de Estudiar Cuaderno (Bloquea si no está vinculado a un mazo)
-  container.querySelectorAll<HTMLButtonElement>('.btn-study-notebook').forEach((btn) => {
+  // 3. Un toque en un cuaderno lo abre; un toque en una carpeta entra en ella; ⋯ abre el menú
+  container.querySelectorAll<HTMLElement>('.nb-item[data-notebook-id], .nb-item[data-folder-id]').forEach((item) => {
+    item.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.nb-menu-btn')) return;
+
+      const folderId = item.dataset.folderId;
+      if (folderId) {
+        nativeService.triggerHaptics('light');
+        currentFolderId = folderId;
+        onRefresh();
+        return;
+      }
+
+      const tid = item.dataset.notebookId;
+      if (!tid) return;
+      const t = activeStudyService.getTopicById(tid);
+      if (!t) return;
+      nativeService.triggerHaptics('medium');
+      openStudyNotebook(tid);
+      onSelectTopic(tid);
+      onRefresh();
+    });
+  });
+
+  container.querySelectorAll<HTMLButtonElement>('.nb-menu-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const tid = btn.dataset.topicId;
       if (!tid) return;
       const t = activeStudyService.getTopicById(tid);
       if (!t) return;
-
-      const linkedDeck = t.deckId ? deckService.getDeckById(t.deckId) : null;
-      if (!t.deckId || !linkedDeck || deckService.isFolder(linkedDeck)) {
-        nativeService.triggerHaptics('heavy');
-        dialogService.showAlert({
-          title: '🔗 Mazo Requerido para Estudiar',
-          message: 'No puedes iniciar la sesión de estudio de este cuaderno porque no está vinculado a un mazo de flashcards válido.\n\nPor favor vincula un mazo existente o crea uno nuevo para continuar.',
-          buttonText: 'Vincular a Mazo Ahora',
-          onConfirm: () => {
-            openLinkTopicDeckModal(t, () => onRefresh());
-          }
-        });
-        return;
-      }
-
-      activeStudyingTopicId = tid;
-      onSelectTopic(tid);
-      onRefresh();
-    });
-  });
-
-  // 2.2b Botón directo para Vincular Mazo
-  container.querySelectorAll<HTMLButtonElement>('.btn-link-topic-deck').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tid = btn.dataset.topicId;
-      if (!tid) return;
-      const t = activeStudyService.getTopicById(tid);
-      if (t) {
-        openLinkTopicDeckModal(t, () => onRefresh());
-      }
-    });
-  });
-
-  // 2.2c Navegación de Carpetas y Breadcrumbs
-  container.querySelectorAll<HTMLButtonElement>('.btn-open-folder').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      currentFolderId = btn.dataset.folderId || null;
-      onRefresh();
+      nativeService.triggerHaptics('light');
+      openNotebookActionSheet(t, {
+        onRefresh,
+        onSelectTopic,
+        onOpenMindMap
+      });
     });
   });
 
@@ -1053,63 +885,7 @@ export function bindActiveStudyDashboardEvents(
     });
   });
 
-  // 2.2d Crear Carpeta
-  container.querySelector('#btn-create-study-folder')?.addEventListener('click', () => {
-    openCreateFolderModal(() => onRefresh());
-  });
-
-  // 2.2e Convertir Cuaderno en Carpeta
-  container.querySelectorAll<HTMLButtonElement>('.btn-convert-to-folder').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tid = btn.dataset.topicId;
-      if (!tid) return;
-      const t = activeStudyService.getTopicById(tid);
-      if (!t) return;
-
-      dialogService.showConfirm({
-        title: '📁 Convertir en Carpeta',
-        message: `¿Deseas convertir el cuaderno "${t.title}" en una carpeta?\n\nSe transformará en un contenedor donde podrás organizar varios cuadernos dentro.`,
-        confirmText: 'Convertir en Carpeta',
-        onConfirm: () => {
-          activeStudyService.convertTopicToFolder(t.id);
-          dialogService.showAlert({
-            title: '¡Carpeta Creada!',
-            message: `"${t.title}" ahora es una carpeta. Puedes abrirla para organizar y agregar cuadernos dentro.`
-          });
-          onRefresh();
-        }
-      });
-    });
-  });
-
-  // 2.2f Mover Cuaderno a Carpeta
-  container.querySelectorAll<HTMLButtonElement>('.btn-move-to-folder').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tid = btn.dataset.topicId;
-      if (!tid) return;
-      const t = activeStudyService.getTopicById(tid);
-      if (t) {
-        openMoveToFolderModal(t, () => onRefresh());
-      }
-    });
-  });
-
-  // 2.2g Editar Cuaderno (Personalización completa: color, emoji, fuente, etc.)
-  container.querySelectorAll<HTMLButtonElement>('.btn-edit-notebook').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tid = btn.dataset.topicId;
-      if (!tid) return;
-      const t = activeStudyService.getTopicById(tid);
-      if (t) {
-        openEditNotebookModal(t, () => onRefresh());
-      }
-    });
-  });
-
-  // 2.2h Alternar Orientación Nativa de Pantalla (Horizontal / Vertical)
+  // Alternar orientación nativa de pantalla (horizontal / vertical)
   container.querySelectorAll<HTMLButtonElement>('.btn-toggle-orientation').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -1119,27 +895,6 @@ export function bindActiveStudyDashboardEvents(
         message: isLandscape
           ? '📱 Modo horizontal (paisaje) activado para lectura amplia y estudio descansado.'
           : '📱 Modo vertical (retrato) restaurado.'
-      });
-    });
-  });
-
-  // 2.3 Botón de Eliminar Cuaderno
-  container.querySelectorAll<HTMLButtonElement>('.notebook-delete-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tid = btn.dataset.topicId;
-      if (!tid) return;
-      dialogService.showConfirm({
-        title: 'Eliminar Cuaderno o Carpeta',
-        message: '¿Estás seguro de que deseas eliminar este elemento? Si es un cuaderno, sus tarjetas se conservarán en su baraja vinculada.',
-        confirmText: 'Eliminar',
-        cancelText: 'Cancelar',
-        onConfirm: () => {
-          activeStudyService.deleteTopic(tid);
-          if (activeStudyingTopicId === tid) activeStudyingTopicId = null;
-          if (currentFolderId === tid) currentFolderId = null;
-          onRefresh();
-        }
       });
     });
   });
@@ -1277,13 +1032,27 @@ export function bindActiveStudyDashboardEvents(
   container.querySelector('#btn-atomic-next')?.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
+    const btn = e.currentTarget as HTMLButtonElement;
+    if (btn.disabled) return;
+    btn.disabled = true;
     nativeService.triggerHaptics('light');
-    if (topic.currentChunkIndex + 1 < topic.chunks.length) {
-      activeStudyService.setCurrentChunk(topic.id, topic.currentChunkIndex + 1);
+
+    const goNext = () => {
+      if (topic.currentChunkIndex + 1 < topic.chunks.length) {
+        activeStudyService.setCurrentChunk(topic.id, topic.currentChunkIndex + 1);
+      } else {
+        activeStudyService.updateTopicState(topic.id, 'BUILDING_OUTLINE');
+      }
       onRefresh();
+    };
+
+    // Animación de pasar la página antes de mostrar la siguiente
+    const sheet = container.querySelector('#pg-sheet');
+    if (sheet) {
+      sheet.classList.add('turn-out');
+      window.setTimeout(goNext, 300);
     } else {
-      activeStudyService.updateTopicState(topic.id, 'BUILDING_OUTLINE');
-      onRefresh();
+      goNext();
     }
   });
 
@@ -1738,167 +1507,402 @@ function openAddFlashcardModal(
 }
 
 /**
- * Modal interactivo y limpio para crear un nuevo Cuaderno de Estudio
- * Campos: Nombre, Descripción, Foto (opcional), 20 Materias populares, Ligar a un mazo
+ * Abre un cuaderno directamente en modo lectura (y le asegura un mazo de flashcards)
  */
+export function openStudyNotebook(topicId: string): void {
+  const topic = activeStudyService.getTopicById(topicId);
+  if (!topic || topic.isFolder) return;
+  ensureDeckForTopic(topic);
+  activeStudyingTopicId = topicId;
+}
+
+export function closeStudyNotebook(): void {
+  activeStudyingTopicId = null;
+}
+
 /**
- * Modal interactivo y limpio para crear un nuevo Cuaderno de Estudio
- * Al crearlo, pasa de inmediato al enlace con un mazo de flashcards
+ * Garantiza que el cuaderno tenga un mazo real vinculado.
+ * Si no lo tiene, crea uno con su mismo nombre: el usuario ya no tiene que "vincular" nada a mano.
+ */
+function ensureDeckForTopic(topic: ActiveStudyTopic): string {
+  const linked = topic.deckId ? deckService.getDeckById(topic.deckId) : null;
+  if (linked && !deckService.isFolder(linked)) return linked.id;
+
+  const info = getSubjectInfo(topic.subject);
+  const deck = deckService.createDeck({
+    name: displayTitleOf(topic),
+    icon: 'deck',
+    color: topic.color || info.color || '#38bdf8'
+  });
+  activeStudyService.updateTopic(topic.id, { deckId: deck.id });
+  return deck.id;
+}
+
+function confirmDeleteTopic(topic: ActiveStudyTopic, onDone: () => void): void {
+  const isFolder = Boolean(topic.isFolder);
+  dialogService.showConfirm({
+    title: isFolder ? `¿Eliminar la carpeta “${topic.title}”?` : `¿Eliminar “${displayTitleOf(topic)}”?`,
+    message: isFolder
+      ? 'Los cuadernos que contiene NO se borran: volverán a tu estantería principal.'
+      : 'Se borra el cuaderno y su esquema. Las flashcards se conservan en su mazo vinculado.',
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    isDanger: true,
+    onConfirm: () => {
+      if (isFolder) {
+        activeStudyService.getFolderContents(topic.id).forEach((child) => activeStudyService.moveTopicToFolder(child.id, null));
+      }
+      activeStudyService.deleteTopic(topic.id);
+      if (activeStudyingTopicId === topic.id) activeStudyingTopicId = null;
+      if (currentFolderId === topic.id) currentFolderId = null;
+      onDone();
+    }
+  });
+}
+
+interface ActionSheetContext {
+  onRefresh: () => void;
+  onSelectTopic: (topicId: string) => void;
+  onOpenMindMap?: (topicId?: string) => void;
+}
+
+/**
+ * Menú ⋯ de un cuaderno o carpeta: todas las acciones secundarias en un solo lugar
+ */
+function openNotebookActionSheet(topic: ActiveStudyTopic, ctx: ActionSheetContext): void {
+  document.getElementById('nb-action-sheet')?.remove();
+
+  interface Item {
+    icon: string;
+    label: string;
+    sub?: string;
+    danger?: boolean;
+    run: () => void;
+  }
+
+  const items: Item[] = [];
+  const info = getSubjectInfo(topic.subject);
+
+  if (topic.isFolder) {
+    items.push({
+      icon: '📂',
+      label: 'Abrir carpeta',
+      run: () => {
+        currentFolderId = topic.id;
+        ctx.onRefresh();
+      }
+    });
+    items.push({
+      icon: '✏️',
+      label: 'Renombrar',
+      run: () => {
+        dialogService.showPrompt({
+          title: 'Renombrar carpeta',
+          placeholder: topic.title,
+          confirmText: 'Guardar',
+          onConfirm: (name) => {
+            if (name && name.trim()) {
+              activeStudyService.updateTopic(topic.id, { title: name.trim() });
+              ctx.onRefresh();
+            }
+          }
+        });
+      }
+    });
+  } else {
+    items.push({
+      icon: '📖',
+      label: topic.state === 'TOPIC_CONSOLIDATED' ? 'Repasar cuaderno' : 'Estudiar / continuar',
+      sub: 'Abrir en modo lectura',
+      run: () => {
+        openStudyNotebook(topic.id);
+        ctx.onSelectTopic(topic.id);
+        ctx.onRefresh();
+      }
+    });
+    items.push({
+      icon: '🧠',
+      label: 'Mapa mental',
+      sub: 'Ver el esquema como mapa',
+      run: () => ctx.onOpenMindMap?.(topic.id)
+    });
+    items.push({
+      icon: '✏️',
+      label: 'Personalizar',
+      sub: 'Nombre, color, emoji, portada',
+      run: () => openEditNotebookModal(topic, () => ctx.onRefresh())
+    });
+    items.push({
+      icon: '🎴',
+      label: 'Cambiar mazo de flashcards',
+      sub: 'Vinculado: ' + (topic.deckId ? deckService.getDeckById(topic.deckId)?.name || 'ninguno' : 'ninguno'),
+      run: () => openLinkTopicDeckModal(topic, () => ctx.onRefresh())
+    });
+    if (activeStudyService.getAllFolders().length > 0 || topic.folderId) {
+      items.push({
+        icon: '📥',
+        label: 'Mover a carpeta',
+        run: () => openMoveToFolderModal(topic, () => ctx.onRefresh())
+      });
+    }
+    items.push({
+      icon: '📁',
+      label: 'Convertir en carpeta',
+      sub: 'Para agrupar otros cuadernos',
+      run: () => {
+        dialogService.showConfirm({
+          title: '📁 Convertir en carpeta',
+          message: `“${displayTitleOf(topic)}” pasará a ser una carpeta donde podrás organizar varios cuadernos.`,
+          confirmText: 'Convertir',
+          onConfirm: () => {
+            activeStudyService.convertTopicToFolder(topic.id);
+            ctx.onRefresh();
+          }
+        });
+      }
+    });
+  }
+
+  items.push({
+    icon: '🗑️',
+    label: 'Eliminar',
+    danger: true,
+    run: () => confirmDeleteTopic(topic, () => ctx.onRefresh())
+  });
+
+  const root = document.createElement('div');
+  root.id = 'nb-action-sheet';
+  root.className = 'as-overlay';
+  root.innerHTML = `
+    <div class="as-sheet" role="dialog" aria-modal="true">
+      <div class="as-head">
+        <span class="as-head-emoji">${escapeHtml(topic.emoji || (topic.isFolder ? '📁' : info.icon))}</span>
+        <div style="min-width:0;">
+          <div class="as-head-title">${escapeHtml(displayTitleOf(topic))}</div>
+          <div class="as-head-sub">${topic.isFolder ? 'Carpeta' : escapeHtml(info.name)}</div>
+        </div>
+      </div>
+      ${items
+        .map(
+          (it, i) => `
+        <button class="as-item ${it.danger ? 'danger' : ''}" data-i="${i}" type="button">
+          <span class="ico">${it.icon}</span>
+          <span><span>${it.label}</span>${it.sub ? `<small>${escapeHtml(it.sub)}</small>` : ''}</span>
+        </button>`
+        )
+        .join('')}
+    </div>
+  `;
+  document.body.appendChild(root);
+
+  const close = () => {
+    root.remove();
+    document.removeEventListener('keydown', onKey);
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') close();
+  };
+  document.addEventListener('keydown', onKey);
+  root.addEventListener('click', (e) => {
+    if (e.target === root) close();
+  });
+
+  root.querySelectorAll<HTMLElement>('.as-item').forEach((el) => {
+    el.addEventListener('click', () => {
+      const i = parseInt(el.dataset.i || '0', 10);
+      close();
+      items[i]?.run();
+    });
+  });
+}
+
+const NOTEBOOK_COLORS = ['', '#1e3a8a', '#7f1d1d', '#14532d', '#581c87', '#9a3412', '#0f766e', '#374151', '#be185d', '#a16207', '#1d4ed8', '#292524'];
+
+/**
+ * Crear cuaderno en una sola hoja: nombre, materia y color con vista previa en vivo.
+ * Al crearlo, su mazo de flashcards se genera y se vincula solo.
  */
 function openCreateNotebookModal(onCreated: (topicId: string) => void): void {
-  let chosenPhotoDataUrl: string | undefined = undefined;
+  document.getElementById('nc-root')?.remove();
 
-  const modal = document.createElement('div');
-  modal.className = 'apple-modal-overlay';
-  modal.innerHTML = `
-    <div class="apple-modal-content apple-glass-panel" style="max-width:540px; width:94%; padding:24px; max-height:92vh; display:flex; flex-direction:column; overflow:hidden; border-radius:24px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span style="font-size:1.5rem;">📓</span>
-          <div>
-            <h3 style="font-size:1.25rem; font-weight:800; color:#fff; margin:0;">Nuevo Cuaderno de Estudio</h3>
-            <p style="font-size:0.8rem; color:var(--f-text-secondary); margin:2px 0 0 0;">Configura tu cuaderno con mapa mental y lectura atómica</p>
-          </div>
-        </div>
-        <button id="btn-close-create-modal" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
-      </div>
+  let name = '';
+  let subjectName = 'General / Otra';
+  let color = '';
+  let photo: string | undefined;
 
-      <div style="overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:14px; flex:1;">
-        <!-- 1. Nombre del Cuaderno -->
-        <div>
-          <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; margin-bottom:6px;">
-            Nombre del Cuaderno *
-          </label>
-          <input 
-            type="text" 
-            id="modal-notebook-name" 
-            placeholder="Ej: Biología Celular, Macroeconomía..." 
-            style="width:100%; box-sizing:border-box; background:#14151c; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:11px 14px; color:#fff; font-size:0.95rem; outline:none;"
-          />
-        </div>
-
-        <!-- 2. Descripción -->
-        <div>
-          <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; margin-bottom:6px;">
-            Descripción
-          </label>
-          <textarea 
-            id="modal-notebook-desc" 
-            rows="2" 
-            placeholder="Breve descripción o temario de este cuaderno..." 
-            style="width:100%; box-sizing:border-box; background:#14151c; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:0.9rem; font-family:inherit; outline:none;"
-          ></textarea>
-        </div>
-
-        <!-- 3. Tipo de Materia (20 materias populares) -->
-        <div>
-          <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; margin-bottom:6px;">
-            Tipo de Materia
-          </label>
-          <select 
-            id="modal-notebook-subject" 
-            style="width:100%; box-sizing:border-box; background:#14151c; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:11px 14px; color:#fff; font-size:0.92rem; outline:none; cursor:pointer;"
-          >
-            ${POPULAR_SUBJECTS.map((subj) => `<option value="${subj.name}">${subj.icon} ${escapeHtml(subj.name)}</option>`).join('')}
-          </select>
-        </div>
-
-        <!-- 4. Foto de Portada (Opcional) -->
-        <div>
-          <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; margin-bottom:6px;">
-            Foto de Portada (Opcional)
-          </label>
-          <input type="file" id="modal-notebook-photo-file" accept="image/*" style="display:none;" />
-          <div id="modal-notebook-photo-preview-wrap" style="display:none; margin-bottom:8px; position:relative; border-radius:12px; overflow:hidden; max-height:140px; border:1px solid rgba(255,255,255,0.15);">
-            <img id="modal-notebook-photo-img" style="width:100%; height:140px; object-fit:cover; display:block;" />
-            <button id="btn-remove-notebook-photo" type="button" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.7); border:none; color:#fff; border-radius:50%; width:28px; height:28px; cursor:pointer; font-size:0.8rem;">✕</button>
-          </div>
-          <button type="button" class="figma-btn-white-pill" id="btn-trigger-notebook-photo" style="width:100%; justify-content:center; padding:10px; font-size:0.88rem;">
-            📷 Seleccionar Foto de Portada
-          </button>
-        </div>
-
-        <!-- 5. Contenido Inicial o Apuntes (Opcional) -->
-        <div>
-          <details style="border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:8px 12px; background:rgba(0,0,0,0.2);">
-            <summary style="font-size:0.82rem; color:var(--f-text-secondary); cursor:pointer; font-weight:600;">
-              + Agregar texto o notas iniciales para estudio (Opcional)
-            </summary>
-            <textarea 
-              id="modal-notebook-content" 
-              rows="4" 
-              placeholder="Pega aquí apuntes o texto para generar bloques de lectura atómica..." 
-              style="width:100%; box-sizing:border-box; margin-top:8px; background:#14151c; border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:8px 12px; color:#fff; font-size:0.88rem; font-family:inherit; outline:none;"
-            ></textarea>
-          </details>
+  const root = document.createElement('div');
+  root.id = 'nc-root';
+  root.className = 'nc-overlay';
+  root.innerHTML = `
+    <div class="nc-sheet" role="dialog" aria-modal="true" aria-label="Nuevo cuaderno">
+      <div class="nc-preview">
+        <div id="nc-preview-book"></div>
+        <div class="nc-colors" id="nc-colors">
+          ${NOTEBOOK_COLORS.map(
+            (c) =>
+              `<span class="nc-swatch ${c === color ? 'active' : ''}" data-color="${c}" title="${c ? c : 'Color según materia'}" style="background:${
+                c || 'conic-gradient(#f43f5e, #f59e0b, #10b981, #38bdf8, #a855f7, #f43f5e)'
+              };"></span>`
+          ).join('')}
         </div>
       </div>
 
-      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);">
-        <button class="figma-btn-white-pill" id="modal-btn-cancel" style="background:rgba(255,255,255,0.06); color:#fff; padding:10px 18px;">
-          Cancelar
-        </button>
-        <button class="figma-btn-study-large" id="modal-btn-save" style="width:auto; padding:10px 24px;">
-          ✨ Crear y Vincular Mazo ➔
-        </button>
+      <div class="nc-form">
+        <div>
+          <h3>Nuevo cuaderno</h3>
+        </div>
+        <div class="nc-sub">Se crea con su mazo de flashcards ya vinculado. Sin pasos extra.</div>
+
+        <div>
+          <span class="fw-label">Nombre</span>
+          <input class="fw-input" id="nc-name" type="text" autocomplete="off" placeholder="Ej: Biología celular, Macroeconomía…" />
+        </div>
+
+        <div>
+          <span class="fw-label">Materia</span>
+          <div class="fw-chips scroll" id="nc-subjects" style="margin:0; padding-left:0; padding-right:0;">
+            ${POPULAR_SUBJECTS.map(
+              (s) => `<button type="button" class="fw-chip ${s.name === subjectName ? 'active' : ''}" data-subject="${escapeAttr(s.name)}"><span>${s.icon}</span>${escapeHtml(s.name)}</button>`
+            ).join('')}
+          </div>
+        </div>
+
+        <details class="fw-more">
+          <summary>Más opciones</summary>
+          <div class="fw-more-body">
+            <div>
+              <span class="fw-label">Descripción</span>
+              <textarea class="fw-textarea" id="nc-desc" style="min-height:60px;" placeholder="Breve descripción o temario (opcional)"></textarea>
+            </div>
+            <div>
+              <span class="fw-label">Apuntes iniciales</span>
+              <textarea class="fw-textarea" id="nc-content" placeholder="Pega apuntes para trocearlos en páginas (opcional)…"></textarea>
+            </div>
+            <div>
+              <span class="fw-label">Portada con foto</span>
+              <input type="file" id="nc-photo-file" accept="image/*" style="display:none;" />
+              <div class="fw-ai-row">
+                <button type="button" class="fw-btn ghost" id="nc-photo-btn" style="padding:9px 14px; font-size:0.82rem;">📷 Elegir foto</button>
+                <button type="button" class="fw-link hidden" id="nc-photo-remove">Quitar foto</button>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div class="nc-actions">
+          <button type="button" class="fw-btn ghost" id="nc-cancel">Cancelar</button>
+          <button type="button" class="fw-btn gold" id="nc-save">✨ Crear cuaderno</button>
+        </div>
       </div>
     </div>
   `;
+  document.body.appendChild(root);
 
-  document.body.appendChild(modal);
+  const previewEl = root.querySelector('#nc-preview-book') as HTMLElement;
+  const nameInput = root.querySelector('#nc-name') as HTMLInputElement;
 
-  // Manejo de foto de portada
-  const fileInput = modal.querySelector('#modal-notebook-photo-file') as HTMLInputElement;
-  const triggerPhotoBtn = modal.querySelector('#btn-trigger-notebook-photo') as HTMLButtonElement;
-  const photoPreviewWrap = modal.querySelector('#modal-notebook-photo-preview-wrap') as HTMLElement;
-  const photoImg = modal.querySelector('#modal-notebook-photo-img') as HTMLImageElement;
-  const removePhotoBtn = modal.querySelector('#btn-remove-notebook-photo') as HTMLButtonElement;
+  const renderPreview = () => {
+    const info = getSubjectInfo(subjectName);
+    const fake = { coverImage: photo, color: color || undefined } as ActiveStudyTopic;
+    previewEl.innerHTML = `
+      <div class="nb-item" style="--nb-bg: ${coverBackground(fake, info)};">
+        <div class="nb-book">
+          <div class="nb-pages"></div>
+          <div class="nb-cover">
+            <div class="nb-spine"></div>
+            <div class="nb-band"></div>
+            <div class="nb-label">
+              <span class="nb-label-emoji">${escapeHtml(info.icon)}</span>
+              <span class="nb-label-title">${escapeHtml(name.trim() || 'Mi cuaderno')}</span>
+              <span class="nb-label-subject">${escapeHtml(info.name)}</span>
+            </div>
+            <div class="nb-cover-foot"><div class="nb-progress"><i style="width:0%;"></i></div><em>0%</em></div>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+  renderPreview();
 
-  triggerPhotoBtn?.addEventListener('click', () => fileInput.click());
-  fileInput?.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        chosenPhotoDataUrl = e.target?.result as string;
-        photoImg.src = chosenPhotoDataUrl;
-        photoPreviewWrap.style.display = 'block';
-        triggerPhotoBtn.textContent = '📷 Cambiar Foto de Portada';
-      };
-      reader.readAsDataURL(file);
+  const close = () => {
+    root.remove();
+    document.removeEventListener('keydown', onKey);
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') close();
+  };
+  document.addEventListener('keydown', onKey);
+  root.addEventListener('mousedown', (e) => {
+    if (e.target === root && !name.trim()) close();
+  });
+  root.querySelector('#nc-cancel')?.addEventListener('click', close);
+
+  nameInput.addEventListener('input', () => {
+    name = nameInput.value;
+    renderPreview();
+  });
+  nameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      save();
     }
   });
+  setTimeout(() => nameInput.focus(), 120);
 
-  removePhotoBtn?.addEventListener('click', () => {
-    chosenPhotoDataUrl = undefined;
-    fileInput.value = '';
-    photoPreviewWrap.style.display = 'none';
-    triggerPhotoBtn.textContent = '📷 Seleccionar Foto de Portada';
+  root.querySelectorAll<HTMLElement>('#nc-subjects .fw-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      nativeService.triggerHaptics('light');
+      subjectName = chip.dataset.subject || 'General / Otra';
+      root.querySelectorAll('#nc-subjects .fw-chip').forEach((c) => c.classList.toggle('active', c === chip));
+      renderPreview();
+    });
   });
 
-  const closeModal = () => modal.remove();
-  modal.querySelector('#btn-close-create-modal')?.addEventListener('click', closeModal);
-  modal.querySelector('#modal-btn-cancel')?.addEventListener('click', closeModal);
+  root.querySelectorAll<HTMLElement>('#nc-colors .nc-swatch').forEach((sw) => {
+    sw.addEventListener('click', () => {
+      nativeService.triggerHaptics('light');
+      color = sw.dataset.color || '';
+      root.querySelectorAll('#nc-colors .nc-swatch').forEach((s) => s.classList.toggle('active', s === sw));
+      renderPreview();
+    });
+  });
 
-  // Guardar Cuaderno e Iniciar Enlace Inmediato a Mazo
-  modal.querySelector('#modal-btn-save')?.addEventListener('click', () => {
-    const nameInput = modal.querySelector('#modal-notebook-name') as HTMLInputElement | null;
-    const descInput = modal.querySelector('#modal-notebook-desc') as HTMLTextAreaElement | null;
-    const subjectSelect = modal.querySelector('#modal-notebook-subject') as HTMLSelectElement | null;
-    const contentInput = modal.querySelector('#modal-notebook-content') as HTMLTextAreaElement | null;
+  // Foto de portada
+  const fileInput = root.querySelector('#nc-photo-file') as HTMLInputElement;
+  const photoBtn = root.querySelector('#nc-photo-btn') as HTMLButtonElement;
+  const photoRemove = root.querySelector('#nc-photo-remove') as HTMLButtonElement;
+  photoBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      photo = e.target?.result as string;
+      photoBtn.textContent = '📷 Cambiar foto';
+      photoRemove.classList.remove('hidden');
+      renderPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+  photoRemove.addEventListener('click', () => {
+    photo = undefined;
+    fileInput.value = '';
+    photoBtn.textContent = '📷 Elegir foto';
+    photoRemove.classList.add('hidden');
+    renderPreview();
+  });
 
-    const name = nameInput?.value.trim() || '';
-    if (!name) {
-      dialogService.showAlert({
-        title: 'Nombre requerido',
-        message: 'Por favor ingresa un nombre para el cuaderno.'
-      });
+  function save() {
+    const finalName = name.trim();
+    if (!finalName) {
+      nameInput.classList.add('error');
+      nameInput.focus();
+      setTimeout(() => nameInput.classList.remove('error'), 1800);
       return;
     }
 
-    const description = descInput?.value.trim() || '';
-    const subject = subjectSelect?.value || 'General';
-    const rawContent = contentInput?.value.trim() || '';
+    const description = (root.querySelector('#nc-desc') as HTMLTextAreaElement).value.trim();
+    const rawContent = (root.querySelector('#nc-content') as HTMLTextAreaElement).value.trim();
 
     let chunksData: { title: string; content: string }[] = [];
     let detectedGuide: any = null;
@@ -1912,8 +1916,8 @@ function openCreateNotebookModal(onCreated: (topicId: string) => void): void {
     ) {
       try {
         detectedGuide = feynmanLlmService.importGuideFromMarkdown(rawContent, {
-          topic: name,
-          subject,
+          topic: finalName,
+          subject: subjectName,
           currentLevel: 1,
           targetGoal: 'general'
         });
@@ -1929,38 +1933,34 @@ function openCreateNotebookModal(onCreated: (topicId: string) => void): void {
       const paragraphs = rawContent ? rawContent.split(/\n\s*\n/).filter((p) => p.trim().length > 0) : [];
       chunksData =
         paragraphs.length > 0
-          ? paragraphs.map((p, idx) => ({
-              title: `Bloque ${idx + 1}`,
-              content: p.trim()
-            }))
-          : [
-              {
-                title: 'Bloque 1: Contenido Principal',
-                content: description || `Notas principales de ${name}`
-              }
-            ];
+          ? paragraphs.map((p, idx) => ({ title: `Página ${idx + 1}`, content: p.trim() }))
+          : [{ title: 'Página 1', content: description || `Notas principales de ${finalName}. Toca “Agregar flashcard” para empezar a estudiar.` }];
     }
 
-    const newTopic = activeStudyService.createTopic('', name, chunksData, {
+    const newTopic = activeStudyService.createTopic('', finalName, chunksData, {
       description,
-      coverImage: chosenPhotoDataUrl,
-      subject,
+      coverImage: photo,
+      subject: subjectName,
+      color: color || undefined,
       folderId: currentFolderId,
       feynmanGuideId: detectedGuide?.id,
       rawMarkdown: rawContent
     });
 
-    nativeService.triggerHaptics('medium');
-    closeModal();
+    // El mazo se crea y se vincula solo
+    ensureDeckForTopic(newTopic);
 
-    // Requisito 5: Inmediatamente solicitar vincular con un mazo existente o crear uno nuevo
-    openLinkTopicDeckModal(newTopic, () => {
-      onCreated(newTopic.id);
-    });
-  });
+    nativeService.triggerHaptics('medium');
+    close();
+    onCreated(newTopic.id);
+  }
+
+  root.querySelector('#nc-save')?.addEventListener('click', save);
 }
 
 export const openCreateTopicModal = openCreateNotebookModal;
+export const openCreateStudyFolder = (onCreated: () => void): void => openCreateFolderModal(onCreated);
+
 
 /**
  * Requisito 5: Modal moderno para vincular un cuaderno a un mazo existente o crear uno nuevo.

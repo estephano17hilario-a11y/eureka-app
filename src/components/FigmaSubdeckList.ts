@@ -19,10 +19,10 @@ export function renderFigmaSubdeckList(deck: Deck): string {
       <!-- Action Header with Breadcrumbs -->
       <div class="figma-action-header">
         <div class="figma-breadcrumbs">
-          <button class="figma-icon-btn-dark" id="btn-back-to-inicio" style="margin-right:6px;" title="Volver a Inicio">
+          <button class="figma-icon-btn-dark" id="btn-back-to-inicio" style="margin-right:6px;" title="Volver a Mis mazos">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           </button>
-          <span class="figma-crumb-link" id="crumb-inicio">Inicio</span>
+          <span class="figma-crumb-link" id="crumb-inicio">Mis mazos</span>
           <span class="figma-crumb-sep">/</span>
           <span class="figma-crumb-current">${deck.name}</span>
         </div>

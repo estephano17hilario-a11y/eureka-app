@@ -178,7 +178,8 @@ export class FeynmanLlmService {
    */
   public importMarkdownGuide(
     rawMarkdown: string,
-    formFallback?: FeynmanDiagnosticForm
+    formFallback?: FeynmanDiagnosticForm,
+    persist: boolean = true
   ): FeynmanStudyGuide {
     if (!rawMarkdown || !rawMarkdown.trim()) {
       throw new Error('El texto Markdown proporcionado está vacío.');
@@ -225,16 +226,19 @@ export class FeynmanLlmService {
       createdAt: Date.now()
     };
 
-    this.savedGuides.set(guide.id, guide);
-    this.persistGuides();
+    if (persist) {
+      this.savedGuides.set(guide.id, guide);
+      this.persistGuides();
+    }
     return guide;
   }
 
   public importGuideFromMarkdown(
     rawMarkdown: string,
-    formFallback?: FeynmanDiagnosticForm
+    formFallback?: FeynmanDiagnosticForm,
+    persist: boolean = true
   ): FeynmanStudyGuide {
-    return this.importMarkdownGuide(rawMarkdown, formFallback);
+    return this.importMarkdownGuide(rawMarkdown, formFallback, persist);
   }
 
   /**
@@ -1673,6 +1677,37 @@ export default App;
     });
 
     return newDeck.id;
+  }
+
+  /**
+   * Crea de una sola vez el cuaderno de estudio y su mazo de flashcards, ya vinculados entre sí.
+   * Es idempotente: si la guía ya tiene cuaderno o mazo, los reutiliza en lugar de duplicarlos.
+   */
+  public createStudyKit(guide: FeynmanStudyGuide): {
+    topicId: string;
+    deckId: string;
+    chunksCount: number;
+    cardsCount: number;
+  } {
+    const existing = activeStudyService
+      .getAllTopics()
+      .find((t) => t.feynmanGuideId === guide.id && !t.isFolder);
+
+    const topicId = existing ? existing.id : this.exportToActiveStudyTopic(guide);
+
+    const linkedDeck = existing?.deckId ? deckService.getDeckById(existing.deckId) : undefined;
+    const deckId =
+      linkedDeck && !deckService.isFolder(linkedDeck) ? linkedDeck.id : this.exportToFlashcardDeck(guide);
+
+    activeStudyService.updateTopic(topicId, { deckId });
+
+    const topic = activeStudyService.getTopicById(topicId);
+    return {
+      topicId,
+      deckId,
+      chunksCount: topic?.chunks.length ?? 0,
+      cardsCount: deckService.getCardsByDeck(deckId, false).length
+    };
   }
 }
 

@@ -477,6 +477,8 @@ class ActiveStudyService {
   // TEMAS DE ESTUDIO (CRUD)
   // ==========================================
 
+  private enrichmentAttempted = new Set<string>();
+
   public getAllTopics(): ActiveStudyTopic[] {
     const list = Array.from(this.topics.values());
     list.forEach((t) => this.ensureEnrichedFeynmanChunks(t));
@@ -526,6 +528,14 @@ se obtiene la energía de enlace nuclear total.`;
   public ensureEnrichedFeynmanChunks(topic: ActiveStudyTopic): void {
     if (!topic || !topic.chunks || topic.chunks.length === 0) return;
 
+    // Solo los cuadernos de ruta Feynman se enriquecen: un cuaderno en blanco no debe recibir
+    // una "Hoja de Ruta" ni un "Nivel 1" inventados ni cambiar su página actual.
+    const looksLikeFeynman =
+      Boolean(topic.feynmanGuideId) ||
+      /^\[Feynman\]/i.test(topic.title) ||
+      topic.chunks.some((c) => c.title.startsWith('Átomo') || c.title.includes('Nivel '));
+    if (!looksLikeFeynman) return;
+
     const hasRoadmapOrPurpose = topic.chunks.some((c) =>
       c.title.includes('Hoja de Ruta') ||
       c.title.includes('Problemática Global') ||
@@ -558,6 +568,11 @@ se obtiene la energía de enlace nuclear total.`;
 
     // Si ya tiene contexto, no está truncado, tiene las transiciones separadas y no tiene formalismo repetido
     if (hasRoadmapOrPurpose && !isAtomTruncated && !needsTransitionSeparation && !hasDuplicateMathFormalism && !hasEmbeddedTransitions) return;
+
+    // La reparación pesada (re-parseo del Markdown completo) corre como máximo UNA vez por cuaderno y sesión.
+    // Antes se repetía en cada render y, con guías grandes, entraba en bucle y reventaba la memoria.
+    if (this.enrichmentAttempted.has(topic.id)) return;
+    this.enrichmentAttempted.add(topic.id);
 
     let guide: any;
     try {
@@ -599,14 +614,19 @@ se obtiene la energía de enlace nuclear total.`;
 
       // Si tenemos la guía con su markdown original, refrescar el desglose para aplicar los nuevos parsers
       if (guide && guide.markdown) {
-        const refreshed = feynmanLlmService.importGuideFromMarkdown(guide.markdown, {
-          topic: guide.topic,
-          subject: guide.formData?.subject || topic.subject || 'Informática & Programación',
-          currentLevel: 1,
-          targetGoal: 'general'
-        });
+        // persist=false: solo re-parsea para reconstruir los bloques, sin clonar la guía guardada
+        const refreshed = feynmanLlmService.importGuideFromMarkdown(
+          guide.markdown,
+          {
+            topic: guide.topic,
+            subject: guide.formData?.subject || topic.subject || 'Informática & Programación',
+            currentLevel: 1,
+            targetGoal: 'general'
+          },
+          false
+        );
         if (refreshed && refreshed.levels && refreshed.levels.length > 0) {
-          guide = refreshed;
+          guide = { ...refreshed, id: guide.id };
         }
       }
 

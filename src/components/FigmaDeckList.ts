@@ -16,7 +16,7 @@ export function renderFigmaDeckList(): string {
       <div>
         <!-- Responsive Action Header -->
         <div class="figma-action-header">
-          <h2 class="figma-view-title">Inicio</h2>
+          <h2 class="figma-view-title">Mis mazos</h2>
           <div class="figma-header-actions-group">
             <button class="figma-btn-white-pill" id="btn-main-add" style="display:flex; align-items:center; gap:6px; font-weight:700;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -49,7 +49,7 @@ export function renderFigmaDeckList(): string {
     <div>
       <!-- Responsive Action Header -->
       <div class="figma-action-header">
-        <h2 class="figma-view-title">Inicio</h2>
+        <h2 class="figma-view-title">Mis mazos</h2>
 
         <div class="figma-header-actions-group">
           <button class="figma-btn-white-pill" id="btn-main-add" style="display:flex; align-items:center; gap:6px; font-weight:700;">

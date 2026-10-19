@@ -5,20 +5,22 @@ export function renderEurekaBottomNav(activeTab: FigmaMainTab = 'flashcards'): s
 
   const tabs = [
     {
+      id: 'estudio',
+      label: 'Cuadernos',
+      isActive: activeTab === 'estudio',
+      icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H19v18H6.5A2.5 2.5 0 0 0 4 22.5z"/>
+        <path d="M8 7h7M8 11h5"/>
+        <path d="M4 19.5V4.5"/>
+      </svg>`
+    },
+    {
       id: 'flashcards',
-      label: 'Flashcards',
+      label: 'Mazos',
       isActive: isFlashcards,
       icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="4" width="18" height="16" rx="3"/>
         <path d="M7 8h10M7 12h7M7 16h4"/>
-      </svg>`
-    },
-    {
-      id: 'estudio',
-      label: 'Estudio',
-      isActive: activeTab === 'estudio',
-      icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2a4.5 4.5 0 0 0-4.5 4.5c0 1.25.51 2.38 1.34 3.2A4.5 4.5 0 0 0 5 14c0 1.9 1.18 3.52 2.86 4.18A4.5 4.5 0 0 0 12 22a4.5 4.5 0 0 0 4.14-3.82C17.82 17.52 19 15.9 19 14a4.5 4.5 0 0 0-3.84-4.3A4.5 4.5 0 0 0 16.5 6.5 4.5 4.5 0 0 0 12 2z"/>
       </svg>`
     },
     {
@@ -42,21 +44,27 @@ export function renderEurekaBottomNav(activeTab: FigmaMainTab = 'flashcards'): s
     }
   ];
 
-  return `
-    <nav class="eureka-mobile-bottom-nav mobile-only" aria-label="Navegación inferior">
-      <div class="eureka-bottom-nav-inner">
-        ${tabs
-          .map(
-            (tab) => `
+  const renderTab = (tab: (typeof tabs)[number]) => `
           <button class="eureka-bottom-nav-item figma-nav-tab-btn ${tab.isActive ? 'active' : ''}" data-tab="${tab.id}">
             <div class="eureka-nav-icon-wrap">
               ${tab.icon}
             </div>
             <span class="eureka-nav-label">${tab.label}</span>
           </button>
-        `
-          )
-          .join('')}
+        `;
+
+  const createButton = `
+          <button class="eureka-bottom-nav-create" id="btn-nav-create" type="button" aria-label="Crear" title="Crear cuaderno, ruta Feynman, mazo o carpeta">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        `;
+
+  return `
+    <nav class="eureka-mobile-bottom-nav mobile-only" aria-label="Navegación inferior">
+      <div class="eureka-bottom-nav-inner">
+        ${tabs.slice(0, 2).map(renderTab).join('')}
+        ${createButton}
+        ${tabs.slice(2).map(renderTab).join('')}
       </div>
     </nav>
   `;

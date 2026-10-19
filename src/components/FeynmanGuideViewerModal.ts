@@ -774,18 +774,18 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
     showLocalToast('Archivo .md descargado');
   });
 
-  // Convertir en Cuaderno de Estudio de Eureka
+  // Convertir en Cuaderno de Estudio + Mazo (un solo paso, sin duplicar si ya existen)
   modalRoot?.querySelector('#btn-export-to-notebook')?.addEventListener('click', () => {
     try {
-      const topicId = feynmanLlmService.exportToActiveStudyTopic(guide);
+      const kit = feynmanLlmService.createStudyKit(guide);
       dialogService.showAlert({
-        title: '📓 ¡Cuaderno de Estudio Creado!',
-        message: `Se ha creado el cuaderno "[Feynman] ${guide.topic}" con ${guide.levelsCount} fragmentos interactivos en tu zona de Estudio Activo.`,
+        title: '📓 ¡Cuaderno listo con sus flashcards!',
+        message: `"[Feynman] ${guide.topic}" tiene ${kit.chunksCount} páginas y un mazo vinculado con ${kit.cardsCount} flashcards.`,
         buttonText: 'Abrir Cuaderno',
         onConfirm: () => {
           modalRoot.remove();
           options.onClose?.();
-          options.onOpenTopic?.(topicId);
+          options.onOpenTopic?.(kit.topicId);
         }
       });
     } catch (err: any) {
@@ -796,18 +796,18 @@ export function openFeynmanGuideViewerModal(options: FeynmanGuideViewerOptions):
     }
   });
 
-  // Exportar a Mazo de Flashcards
+  // Ir al Mazo de Flashcards (se crea junto con el cuaderno si aún no existe)
   modalRoot?.querySelector('#btn-export-to-deck')?.addEventListener('click', () => {
     try {
-      const deckId = feynmanLlmService.exportToFlashcardDeck(guide);
+      const kit = feynmanLlmService.createStudyKit(guide);
       dialogService.showAlert({
-        title: '🎴 ¡Mazo de Flashcards Generado!',
-        message: `Se ha generado el mazo "Ruta Feynman: ${guide.topic}" con los axiomas centrales y principios de microlearning listos para repaso espaciado.`,
+        title: '🎴 Mazo de flashcards listo',
+        message: `Tu mazo "Ruta Feynman: ${guide.topic}" tiene ${kit.cardsCount} tarjetas listas para repaso espaciado.`,
         buttonText: 'Ir al Mazo',
         onConfirm: () => {
           modalRoot.remove();
           options.onClose?.();
-          options.onOpenDeck?.(deckId);
+          options.onOpenDeck?.(kit.deckId);
         }
       });
     } catch (err: any) {

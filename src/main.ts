@@ -1,4 +1,5 @@
 import './index.css';
+import './ui/styles/workspace.css';
 import katex from 'katex';
 import 'katex/dist/contrib/mhchem.js';
 import 'katex/dist/katex.min.css';
@@ -29,12 +30,20 @@ import { FigmaStudySession } from './components/FigmaStudySession';
 import { dialogService } from './services/dialog.service';
 import { openFigmaBatchImportModal } from './components/FigmaBatchImportModal';
 import { openFigmaAiBuilderModal } from './components/FigmaAiBuilderModal';
-import { renderActiveStudyDashboard, bindActiveStudyDashboardEvents, isActivelyStudying } from './components/ActiveStudyView';
+import {
+  renderActiveStudyDashboard,
+  bindActiveStudyDashboardEvents,
+  isActivelyStudying,
+  openStudyNotebook,
+  closeStudyNotebook,
+  openCreateTopicModal,
+  openCreateStudyFolder
+} from './components/ActiveStudyView';
+import { openCreateHub, type CreateHubChoice, type CreateHubContext } from './components/CreateHubSheet';
 import { UltraFastMindMap } from './components/UltraFastMindMap';
 import { activeStudyService } from './services/active-study.service';
 import { feynmanLlmService } from './services/feynman-llm.service';
 import { openFeynmanDiagnosticModal } from './components/FeynmanDiagnosticModal';
-import { openFeynmanGuideViewerModal } from './components/FeynmanGuideViewerModal';
 
 type AppView =
   | 'root'
@@ -50,7 +59,7 @@ type AppView =
   | 'study';
 
 class EurekaFigmaApp {
-  private currentTab: FigmaMainTab = 'flashcards';
+  private currentTab: FigmaMainTab = 'estudio';
   private currentView: AppView = 'root';
   private selectedRootDeckId: string = '';
   private selectedSubdeckId: string = '';
@@ -63,6 +72,8 @@ class EurekaFigmaApp {
   private returnToStudyOnCardEditorClose: boolean = false;
   private activeStudyChunkIdForNewCards: string | null = null;
   private toastTimeout: number | null = null;
+  private sessionSeconds = 0;
+  private sessionPaused = false;
 
   constructor() {
     const el = document.getElementById('app');
@@ -73,6 +84,25 @@ class EurekaFigmaApp {
   public async init(): Promise<void> {
     themeService.applyTheme();
     await nativeService.initialize();
+
+    // Hub de creación: cualquier vista puede pedir crear algo emitiendo este evento
+    window.addEventListener('eureka:create', (e) => {
+      const detail = (e as CustomEvent).detail || {};
+      const choice = detail.choice as CreateHubChoice | 'hub';
+      const context = (detail.context as CreateHubContext) || 'notebooks';
+      if (choice === 'hub') {
+        this.openCreateHubFor(context);
+      } else {
+        this.runCreate(choice, context, detail.parentId ?? null);
+      }
+    });
+
+    window.addEventListener('eureka:open-deck', (e) => {
+      const deckId = (e as CustomEvent).detail?.deckId as string | undefined;
+      if (deckId) this.openDeck(deckId);
+    });
+
+    this.startSessionClock();
 
     // Suscribirse a cambios en los mazos y tarjetas
     deckService.subscribe(() => {
@@ -373,17 +403,108 @@ class EurekaFigmaApp {
 
   private handleOpenAddMenu(parentId?: string | null): void {
     nativeService.triggerHaptics('light');
+    this.openCreateHubFor('decks', parentId ?? null);
+  }
+
+  /** Hub único de creación (cuaderno, ruta Feynman, mazo, carpeta) */
+  private openCreateHubFor(context: CreateHubContext, parentId: string | null = null): void {
     const parent = parentId ? deckService.getDeckById(parentId) : undefined;
-    dialogService.showCreateChoiceModal({
-      parentName: parent?.name,
-      onChoice: (choice) => {
-        if (choice === 'folder') {
-          this.promptCreateFolder(parentId || null);
-        } else {
-          this.promptCreateDeck(parentId || null);
-        }
-      }
+    openCreateHub({
+      context,
+      parentName: context === 'decks' ? parent?.name : undefined,
+      onChoice: (choice) => this.runCreate(choice, context, parentId)
     });
+  }
+
+  private runCreate(choice: CreateHubChoice, context: CreateHubContext, parentId: string | null): void {
+    switch (choice) {
+      case 'feynman':
+        this.openFeynmanFlow();
+        break;
+      case 'import':
+        this.openFeynmanFlow('import_only');
+        break;
+      case 'notebook':
+        openCreateTopicModal((topicId) => {
+          this.selectedStudyTopicId = topicId;
+          this.currentTab = 'estudio';
+          this.currentView = 'root';
+          this.showToast('📓 Cuaderno creado con su mazo de flashcards');
+          this.render();
+        });
+        break;
+      case 'deck':
+        this.promptCreateDeck(context === 'decks' ? parentId : null);
+        break;
+      case 'folder':
+        if (context === 'notebooks') {
+          openCreateStudyFolder(() => {
+            this.showToast('📁 Carpeta creada');
+            this.currentTab = 'estudio';
+            this.render();
+          });
+        } else {
+          this.promptCreateFolder(parentId);
+        }
+        break;
+    }
+  }
+
+  /** Asistente Feynman: prompt maestro → pegar respuesta → cuaderno + flashcards */
+  public openFeynmanFlow(stage?: 'import_only'): void {
+    nativeService.triggerHaptics('medium');
+    openFeynmanDiagnosticModal({
+      initialStage: stage,
+      onGenerated: () => {
+        this.showToast('✨ Cuaderno y flashcards creados');
+        this.render();
+      },
+      onOpenTopic: (topicId) => this.openNotebook(topicId),
+      onOpenDeck: (deckId) => this.openDeck(deckId)
+    });
+  }
+
+  private openNotebook(topicId: string): void {
+    openStudyNotebook(topicId);
+    this.selectedStudyTopicId = topicId;
+    this.currentTab = 'estudio';
+    this.currentView = 'root';
+    this.render();
+  }
+
+  private openDeck(deckId: string): void {
+    const deck = deckService.getDeckById(deckId);
+    this.currentTab = 'flashcards';
+    if (deck && deckService.isFolder(deck)) {
+      this.selectedRootDeckId = deck.id;
+      this.currentView = 'subdeck';
+    } else {
+      this.selectedSubdeckId = deckId;
+      this.selectedRootDeckId = deck?.parentId || deckId;
+      this.currentView = 'dashboard';
+    }
+    this.render();
+  }
+
+  /** Reloj de la sesión de estudio: cuenta el tiempo real que llevas con la app visible */
+  private startSessionClock(): void {
+    window.setInterval(() => {
+      if (this.sessionPaused || document.visibilityState === 'hidden') return;
+      this.sessionSeconds += 1;
+      this.updateSessionClock();
+    }, 1000);
+  }
+
+  private updateSessionClock(): void {
+    const el = document.getElementById('header-session-clock');
+    if (!el) return;
+    const h = Math.floor(this.sessionSeconds / 3600);
+    const m = Math.floor((this.sessionSeconds % 3600) / 60);
+    const sec = this.sessionSeconds % 60;
+    const mm = String(m).padStart(2, '0');
+    const ss = String(sec).padStart(2, '0');
+    el.textContent = h > 0 ? h + ':' + mm + ':' + ss : mm + ':' + ss;
+    el.closest('.figma-timer-capsule')?.classList.toggle('paused', this.sessionPaused);
   }
 
   private promptCreateFolder(parentId: string | null): void {
@@ -401,6 +522,7 @@ class EurekaFigmaApp {
             color: '#38bdf8'
           });
           this.showToast(`📁 Carpeta "${name}" creada`);
+          this.currentTab = 'flashcards';
           if (parentId) {
             this.selectedRootDeckId = parentId;
             this.currentView = 'subdeck';
@@ -429,6 +551,7 @@ class EurekaFigmaApp {
             color: '#a855f7'
           });
           this.showToast(`🎴 Mazo "${name}" creado`);
+          this.currentTab = 'flashcards';
           this.selectedSubdeckId = newDeck.id;
           if (parentId) {
             this.selectedRootDeckId = parentId;
@@ -502,7 +625,10 @@ class EurekaFigmaApp {
       }
     }
 
-    if (this.currentTab === 'estudio' && isActivelyStudying()) {
+    const reading = this.currentTab === 'estudio' && isActivelyStudying();
+    document.body.classList.toggle('eureka-reading', reading);
+
+    if (reading) {
       this.appElement.innerHTML = bodyHtml;
       this.bindEvents();
       return;
@@ -519,6 +645,7 @@ class EurekaFigmaApp {
     `;
 
     this.bindEvents();
+    this.updateSessionClock();
   }
 
   private bindEvents(): void {
@@ -547,7 +674,8 @@ class EurekaFigmaApp {
     });
 
     layout.querySelector('#nav-brand-logo')?.addEventListener('click', () => {
-      this.currentTab = 'flashcards';
+      closeStudyNotebook();
+      this.currentTab = 'estudio';
       this.currentView = 'root';
       this.render();
     });
@@ -562,30 +690,23 @@ class EurekaFigmaApp {
       this.render();
     });
 
-    // Botón Feynman IA en Header
-    layout.querySelector('#btn-header-feynman')?.addEventListener('click', () => {
+    // Botón "Crear" (escritorio) y botón central "+" (celular)
+    const openGlobalCreate = () => {
       nativeService.triggerHaptics('medium');
-      openFeynmanDiagnosticModal({
-        onGenerated: (guide) => {
-          this.showToast(`✨ ¡Ruta Feynman creada: ${guide.topic}!`);
-          openFeynmanGuideViewerModal({
-            guide,
-            onOpenTopic: (topicId) => {
-              this.selectedStudyTopicId = topicId;
-              this.currentTab = 'estudio';
-              this.currentView = 'root';
-              this.render();
-            },
-            onOpenDeck: (deckId) => {
-              this.selectedSubdeckId = deckId;
-              this.currentTab = 'flashcards';
-              this.currentView = 'dashboard';
-              this.render();
-            }
-          });
-          this.render();
-        }
-      });
+      if (this.currentTab === 'estudio') {
+        this.openCreateHubFor('notebooks');
+      } else {
+        this.openCreateHubFor('decks', this.currentView === 'subdeck' ? this.selectedRootDeckId : null);
+      }
+    };
+    layout.querySelector('#btn-header-create')?.addEventListener('click', openGlobalCreate);
+    layout.querySelector('#btn-nav-create')?.addEventListener('click', openGlobalCreate);
+
+    // Reloj de sesión: toca para pausar / reanudar
+    layout.querySelector('#btn-header-premium')?.addEventListener('click', () => {
+      this.sessionPaused = !this.sessionPaused;
+      this.showToast(this.sessionPaused ? '⏸️ Reloj de sesión en pausa' : '▶️ Reloj de sesión en marcha');
+      this.updateSessionClock();
     });
 
     const rootDecks = deckService.getRootDecks();

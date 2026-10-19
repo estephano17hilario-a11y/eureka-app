@@ -1,6 +1,6 @@
 import { eurekaBackend } from './backend.service';
 
-export type BgThemeType = 'modern_black' | 'holo_cyber' | 'emerald_vision' | 'digital_blue' | 'sunset_magenta';
+export type BgThemeType = 'desk_wood' | 'modern_black' | 'holo_cyber' | 'emerald_vision' | 'digital_blue' | 'sunset_magenta';
 
 export interface AppCustomizationTheme {
   accentColor: string;
@@ -9,6 +9,7 @@ export interface AppCustomizationTheme {
   cardRadius: 'super_rounded' | 'standard' | 'sharp';
   cardSurface: 'matte' | 'glass' | 'obsidian' | 'holo';
   uiScale: 'comfortable' | 'normal';
+  paperStyle: 'cream' | 'night';
 }
 
 const STORAGE_KEY = 'eureka_customization_theme_v2';
@@ -16,10 +17,11 @@ const STORAGE_KEY = 'eureka_customization_theme_v2';
 const DEFAULT_THEME: AppCustomizationTheme = {
   accentColor: '#38bdf8',
   accentName: 'blue',
-  bgTheme: 'modern_black',
+  bgTheme: 'desk_wood',
   cardRadius: 'super_rounded',
   cardSurface: 'glass',
-  uiScale: 'comfortable'
+  uiScale: 'comfortable',
+  paperStyle: 'cream'
 };
 
 export class ThemeService {
@@ -107,6 +109,7 @@ export class ThemeService {
     body.classList.add(`radius-${this.currentTheme.cardRadius}`);
     body.classList.add(`surface-${this.currentTheme.cardSurface}`);
     body.classList.add(`scale-${this.currentTheme.uiScale}`);
+    body.classList.add(`paper-${this.currentTheme.paperStyle || 'cream'}`);
   }
 }
 

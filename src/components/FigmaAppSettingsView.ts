@@ -109,9 +109,19 @@ export function renderFigmaAppSettingsView(): string {
 
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
             
+            <div class="theme-preset-card ${t.bgTheme === 'desk_wood' ? 'selected' : ''}" data-bg="desk_wood">
+              <div class="theme-preview-box preview-desk-wood">
+                <span class="theme-badge-glow" style="background:#f59e0b; color:#1c1204;">Escritorio</span>
+              </div>
+              <div class="theme-card-info">
+                <div class="theme-card-title">Escritorio de Estudio</div>
+                <div class="theme-card-desc">Madera oscura con la luz cálida de tu lámpara. Ideal para sentirte en tu espacio de trabajo</div>
+              </div>
+            </div>
+
             <div class="theme-preset-card ${t.bgTheme === 'modern_black' ? 'selected' : ''}" data-bg="modern_black">
               <div class="theme-preview-box preview-modern-black">
-                <span class="theme-badge-glow">Default</span>
+                <span class="theme-badge-glow">Clásico</span>
               </div>
               <div class="theme-card-info">
                 <div class="theme-card-title">Modern Lead Black</div>
@@ -159,6 +169,29 @@ export function renderFigmaAppSettingsView(): string {
               </div>
             </div>
 
+          </div>
+        </div>
+
+        <!-- 3b. Papel de los cuadernos -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:4px;">
+            Papel de tus cuadernos
+          </div>
+          <div style="font-size:0.85rem; color:var(--f-text-secondary); margin-bottom:16px;">
+            Cómo se ve la hoja cuando lees y estudias
+          </div>
+
+          <div class="paper-preview">
+            <div class="paper-card ${t.paperStyle !== 'night' ? 'selected' : ''}" data-paper="cream">
+              <div class="sheet cream"></div>
+              <b>Papel crema</b>
+              <span class="d">Renglones azules y margen rojo, como un cuaderno de verdad</span>
+            </div>
+            <div class="paper-card ${t.paperStyle === 'night' ? 'selected' : ''}" data-paper="night">
+              <div class="sheet night"></div>
+              <b>Papel nocturno</b>
+              <span class="d">Hoja oscura para estudiar de noche sin cansar la vista</span>
+            </div>
           </div>
         </div>
 
@@ -302,6 +335,19 @@ export function bindFigmaAppSettingsViewEvents(
       if (bg) {
         themeService.setTheme({ bgTheme: bg });
         container.querySelectorAll('.theme-preset-card').forEach((c) => c.classList.remove('selected'));
+        card.classList.add('selected');
+        callbacks.onThemeChanged();
+      }
+    });
+  });
+
+  // Paper style cards
+  container.querySelectorAll<HTMLElement>('.paper-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const paper = card.dataset.paper as AppCustomizationTheme['paperStyle'];
+      if (paper) {
+        themeService.setTheme({ paperStyle: paper });
+        container.querySelectorAll('.paper-card').forEach((c) => c.classList.remove('selected'));
         card.classList.add('selected');
         callbacks.onThemeChanged();
       }
