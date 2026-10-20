@@ -60,6 +60,9 @@ const P: Record<string, string> = {
   reset: '<path d="M4 12a8 8 0 108-8H7"/><path d="M7 1v6H1"/>',
   minimap: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><rect x="12" y="11" width="6" height="5" rx="1"/>',
   download: '<path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 20h14"/>',
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  focus: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 3"/>',
+  keyboard: '<rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
   sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>'
 };
 

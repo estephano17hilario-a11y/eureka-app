@@ -45,6 +45,8 @@ export class Inspector {
   private emojiOpen = false;
   private scrollTop: Record<string, number> = {};
   private noteTimer = 0;
+  private collapsed = new Set<string>(['branch', 'structure', 'lines', 'bg', 'type', 'view']);
+  private opened = new Set<string>();
 
   constructor(private studio: MindMapStudio, private el: HTMLElement) {
     this.bind();
@@ -87,12 +89,22 @@ export class Inspector {
 
     this.el.innerHTML = `${head}<div class="mmx-insp-body" data-tab-body="${this.tab}">${content}</div>`;
     this.body = this.el.querySelector('.mmx-insp-body');
+    this.el.querySelectorAll<HTMLElement>('.mmx-sec[data-sec]').forEach((sec) => {
+      const key = sec.dataset.sec as string;
+      const closed = this.collapsed.has(key) && !this.opened.has(key);
+      sec.classList.toggle('is-collapsed', closed);
+    });
     if (this.body) this.body.scrollTop = this.scrollTop[this.tab] || 0;
   }
 
   public scrollTo(section: string): void {
     window.setTimeout(() => {
       const target = this.el.querySelector(`[data-sec="${section}"]`) as HTMLElement | null;
+      if (target?.classList.contains('is-collapsed')) {
+        target.classList.remove('is-collapsed');
+        this.collapsed.delete(section);
+        this.opened.add(section);
+      }
       if (target && this.body) this.body.scrollTo({ top: target.offsetTop - 8, behavior: 'smooth' });
     }, 40);
   }
@@ -407,6 +419,22 @@ export class Inspector {
     const t = ev.target as HTMLElement;
     const s = this.studio;
     const e = s.engine;
+
+    const head = t.closest('.mmx-sec > h5') as HTMLElement | null;
+    if (head) {
+      const sec = head.parentElement as HTMLElement;
+      const key = sec.dataset.sec as string;
+      const nowClosed = !sec.classList.contains('is-collapsed');
+      sec.classList.toggle('is-collapsed', nowClosed);
+      if (nowClosed) {
+        this.opened.delete(key);
+        this.collapsed.add(key);
+      } else {
+        this.collapsed.delete(key);
+        this.opened.add(key);
+      }
+      return;
+    }
 
     const tab = t.closest('[data-tab]') as HTMLElement | null;
     if (tab) return this.setTab(tab.dataset.tab as InspectorTab);

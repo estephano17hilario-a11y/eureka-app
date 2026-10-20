@@ -52,7 +52,7 @@
   box-sizing: border-box;
 }
 
-.mmx-studio button {
+.mmx-studio :where(button) {
   font: inherit;
   color: inherit;
   background: none;
@@ -154,7 +154,7 @@
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, var(--mm-vignette, 0)) 100%);
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, calc(var(--mm-vignette, 0) * 0.3)) 100%);
 }
 
 .mmx-grain {
@@ -375,8 +375,14 @@
   cursor: text;
 }
 
-.mmx-inline-editor .mmx-edit-input {
-  box-shadow: 0 2px 0 -0.5px var(--mmx-accent);
+.mmx-edit-input:focus,
+.mmx-edit-input:focus-visible {
+  outline: none !important;
+  box-shadow: none;
+}
+
+.mmx-edit-input::selection {
+  background: color-mix(in srgb, var(--mmx-accent) 45%, transparent);
 }
 
 .mmx-edit-sheet {
@@ -519,7 +525,7 @@
   flex-direction: column;
   justify-content: center;
   padding: 0 6px;
-  max-width: 34vw;
+  max-width: calc(34vw + 16px);
 }
 
 .mmx-title-text {
@@ -788,20 +794,20 @@
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 4px;
+  gap: 1px;
+  padding: 2px;
   background: var(--ui-bg);
   -webkit-backdrop-filter: blur(16px) saturate(1.5);
   backdrop-filter: blur(16px) saturate(1.5);
   border: 1px solid var(--ui-border);
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow: var(--ui-shadow);
 }
 
 .mmx-zoom-pct {
-  min-width: 52px;
-  height: 32px;
-  border-radius: 9px;
+  min-width: 48px;
+  height: 26px;
+  border-radius: 8px;
   font-weight: 700;
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
@@ -1589,7 +1595,7 @@
 }
 
 .mmx-studio[data-mobile='true'] .mmx-title {
-  max-width: 38vw;
+  max-width: calc(38vw + 16px);
 }
 
 .mmx-studio[data-mobile='true'] .mmx-zoom {
@@ -2177,4 +2183,255 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* =====================================================================
+   Pulido: secciones plegables, modo estudio, enfoque, progreso, atajos
+   ===================================================================== */
+.mmx-sec h5 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 0 8px;
+  margin: 0;
+}
+
+.mmx-sec h5::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--ui-fg2);
+  border-bottom: 2px solid var(--ui-fg2);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 0.18s;
+}
+
+.mmx-sec.is-collapsed h5::after {
+  transform: rotate(-45deg);
+}
+
+.mmx-sec.is-collapsed > :not(h5) {
+  display: none !important;
+}
+
+.mmx-sec.is-collapsed {
+  padding-bottom: 0;
+}
+
+.mmx-ib.on {
+  background: var(--mmx-accent);
+  color: #fff;
+}
+
+.smm-node.mmx-faded {
+  opacity: 0.16;
+  transition: opacity 0.2s;
+}
+
+path.mmx-faded,
+.mmx-faded path {
+  opacity: 0.12;
+}
+
+.mmx-node-hide .mmx-node-text,
+.mmx-node-hide .mmx-node-emoji,
+.mmx-node-hide .mmx-node-img {
+  filter: blur(7px);
+  opacity: 0.7;
+  transition: filter 0.2s;
+}
+
+.mmx-node-hide {
+  cursor: pointer;
+}
+
+.mmx-chip.mmx-prog {
+  background: rgba(59, 130, 246, 0.28);
+}
+
+.mmx-chip.mmx-prog.is-done {
+  background: rgba(34, 197, 94, 0.35);
+}
+
+.mmx-studio[data-study='true'] .mmx-top {
+  box-shadow: 0 0 0 2px var(--mmx-accent), var(--ui-shadow);
+}
+
+.mmx-keys {
+  display: grid;
+  gap: 4px;
+}
+
+.mmx-keys > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.mmx-keys > div:nth-child(odd) {
+  background: var(--ui-chip);
+}
+
+.mmx-keys kbd {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--ui-solid);
+  border: 1px solid var(--ui-border);
+  white-space: nowrap;
+}
+
+.mmx-keys span {
+  color: var(--ui-fg2);
+  font-size: 13px;
+  text-align: right;
+}
+
+.mmx-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.mmx-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 11px 0 8px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--c);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--c) 40%, transparent);
+}
+
+/* Interfaz más limpia y moderna */
+.mmx-top {
+  border-radius: 22px;
+}
+
+.mmx-ib:hover,
+.mmx-tb:hover {
+  background: color-mix(in srgb, var(--mmx-accent) 14%, transparent);
+}
+
+.mmx-handle {
+  animation: mmx-pop 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+@keyframes mmx-pop {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+.mmx-ntb {
+  animation: mmx-pop 0.16s ease-out;
+}
+
+.mmx-inspector {
+  border-radius: 24px;
+}
+
+.mmx-sec {
+  border-top: 0;
+  margin: 6px 0;
+  padding: 10px 12px 8px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--ui-chip) 70%, transparent);
+}
+
+.mmx-sec:first-child,
+.mmx-selected + .mmx-sec {
+  border-top: 0;
+}
+
+.mmx-selected {
+  background: color-mix(in srgb, var(--mmx-accent) 14%, transparent);
+}
+
+/* Barra de atajos de edición (móvil), pegada sobre el teclado */
+.mmx-edit-bar {
+  position: absolute;
+  z-index: 70;
+  left: 8px;
+  right: 8px;
+  bottom: calc(var(--mmx-kb, 0px) + 8px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  background: var(--ui-solid);
+  color: var(--ui-fg);
+  border: 1px solid var(--ui-border);
+  border-radius: 18px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.42);
+  overflow-x: auto;
+  scrollbar-width: none;
+  animation: mmx-sheet-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.mmx-edit-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.mmx-edit-bar button {
+  flex: none;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 11px;
+  border-radius: 13px;
+  background: var(--ui-chip);
+  font-weight: 700;
+}
+
+.mmx-edit-bar button.wide {
+  font-size: 12.5px;
+}
+
+.mmx-edit-bar button.danger {
+  color: #f87171;
+}
+
+.mmx-edit-bar button.done {
+  background: var(--mmx-accent);
+  color: #fff;
+}
+
+.mmx-edit-bar-sep {
+  flex: 1;
+  min-width: 4px;
+}
+
+.mmx-studio:has(.mmx-edit-bar) .mmx-dock,
+.mmx-studio:has(.mmx-edit-bar) .mmx-zoom {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mmx-zoom .mmx-ib.sm {
+  width: 28px;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.mmx-zoom .mmx-ico {
+  width: 15px;
+  height: 15px;
+}
+
+.mmx-zoom [data-act='fit'] .mmx-ico {
+  width: 20px;
+  height: 20px;
 }

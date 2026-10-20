@@ -22,7 +22,7 @@ import { TouchGestureEngine } from '../engine/gestures/TouchGestureEngine';
 import { formatNodeText, stripToPlain } from './richText';
 import { MAP_THEMES, THEME_BY_ID, FONT_CHOICES, resolveLook, themeForAppEnvironment, type MapTheme, type ResolvedNodeStyle, type CanvasPattern } from './themes';
 import { DEFAULT_SETTINGS, type MapSettings, type MapDoc } from './store';
-import { withAlpha, readableOn, lighten, darken, isTransparent } from './color';
+import { withAlpha, readableOn, lighten, darken, isTransparent, luminance } from './color';
 
 // Plugins (se registran una sola vez para toda la app)
 MindMap.usePlugin(Drag).usePlugin(Select).usePlugin(AssociativeLine).usePlugin(Demonstrate).usePlugin(OuterFrame);
@@ -309,18 +309,37 @@ export class MindMapEngine {
     const prevLayout = this.settings.layout;
     this.settings = { ...this.settings, ...partial };
     if (partial.layout && partial.layout !== prevLayout && this.mm) {
+      const keep = this.captureState();
       this.mm.setLayout(partial.layout, true);
       this.patchLayout();
       this.refreshTheme(false);
       this.withoutHistory(() => this.mm.render());
       this.emit('change');
       this.emit('settings');
-      setTimeout(() => this.fit(true), 60);
+      void this.restoreState(keep, true);
       return;
     }
     this.refreshTheme(opts.relayout !== false);
     this.emit('change');
     this.emit('settings');
+  }
+
+  /** Guarda selección y vista para que un re-render completo no las pierda */
+  private captureState(): { uids: string[]; view?: { scale: number; x: number; y: number } } {
+    return {
+      uids: this.getActiveNodes().map((n) => String(n.nodeData?.data?.uid)).filter(Boolean),
+      view: this.getViewState()
+    };
+  }
+
+  private async restoreState(st: { uids: string[]; view?: { scale: number; x: number; y: number } }, layoutChanged: boolean): Promise<void> {
+    await this.nextRender(700);
+    if (this.destroyed || !this.mm) return;
+    if (st.view) this.setView(st.view, 0);
+    // Tras cambiar de diseño solo se reencuadra si el mapa quedó fuera de pantalla
+    if (layoutChanged && !this.isTreeInView()) this.fit(true);
+    const nodes = st.uids.map((u) => this.findNode(u)).filter(Boolean);
+    if (nodes.length) this.mm.renderer.activeMultiNode(nodes);
   }
 
   /** Reaplica tema/ajustes: fondo, estilos y re-render completo de nodos */
@@ -341,7 +360,9 @@ export class MindMapEngine {
       /* ignore */
     }
     if (rerender) {
+      const keep = this.captureState();
       this.withoutHistory(() => this.mm.reRender());
+      void this.restoreState(keep, false);
     }
     this.updatePatternVars();
     this.emit('theme', th);
@@ -382,7 +403,7 @@ export class MindMapEngine {
 
   /** Cambia el color del lienzo (personalizado) */
   public setCanvasColor(color: string): void {
-    this.updateSettings({ bgColor: color }, { relayout: false });
+    this.updateSettings({ bgColor: color });
   }
 
   /* ===================================================================== */
@@ -442,7 +463,7 @@ export class MindMapEngine {
     const level = this.levelOf(node);
     const branch = this.branchColor(node);
     const fontId = this.settings.fontId;
-    const key = `${this.theme.id}|${level}|${branch}|${this.settings.fontScale}|${fontId}`;
+    const key = `${this.theme.id}|${level}|${branch}|${this.settings.fontScale}|${fontId}|${this.settings.bgColor}`;
     let st = this.styleCache.get(key);
     if (!st) {
       st = { ...resolveLook(this.theme, level, branch) };
@@ -454,6 +475,8 @@ export class MindMapEngine {
       }
       const fam = this.effectiveFontFamily();
       if (fam) st.fontFamily = fam;
+      const ink = this.inkOverride();
+      if (ink && this.theme[level].text === 'ink') st.color = ink;
       this.styleCache.set(key, st);
     }
     return st;
@@ -494,6 +517,84 @@ export class MindMapEngine {
   /* ===================================================================== */
   /*  Contenido de los nodos                                                */
   /* ===================================================================== */
+  /** Tareas hechas / totales entre los descendientes (para mostrar el avance de una rama) */
+  public progressOf(nodeData: any): { done: number; total: number } {
+    let done = 0;
+    let total = 0;
+    const walk = (n: any) => {
+      for (const c of n?.children || []) {
+        if (typeof c?.data?.checked === 'boolean') {
+          total++;
+          if (c.data.checked) done++;
+        }
+        walk(c);
+      }
+    };
+    walk(nodeData);
+    return { done, total };
+  }
+
+  /* ---- Modo estudio: oculta las ideas de detalle hasta tocarlas ---- */
+  public studyMode = false;
+  private revealed = new Set<string>();
+
+  public setStudyMode(on: boolean): void {
+    this.studyMode = on;
+    this.revealed.clear();
+    if (this.mm) this.withoutHistory(() => this.mm.reRender());
+    this.emit('study', on);
+  }
+
+  public toggleReveal(node: any): void {
+    const uid = String(node?.nodeData?.data?.uid || '');
+    if (!this.studyMode || !uid) return;
+    if (this.revealed.has(uid)) this.revealed.delete(uid);
+    else this.revealed.add(uid);
+    node.reRender?.();
+  }
+
+  public revealAll(): void {
+    this.allNodes().forEach((n) => this.revealed.add(String(n.nodeData?.data?.uid)));
+    if (this.mm) this.withoutHistory(() => this.mm.reRender());
+  }
+
+  /* ---- Enfoque: atenúa todo salvo la rama elegida ---- */
+  private focusUid: string | null = null;
+
+  public focusBranch(node: any | null): void {
+    this.focusUid = node ? String(node.nodeData?.data?.uid) : null;
+    const keep = new Set<string>();
+    if (node) {
+      let a = node;
+      while (a) {
+        keep.add(String(a.nodeData?.data?.uid));
+        a = a.parent;
+      }
+      const down = (n: any) => {
+        keep.add(String(n.nodeData?.data?.uid));
+        (n.children || []).forEach(down);
+      };
+      down(node);
+    }
+    this.allNodes().forEach((n) => {
+      const g = n.group?.node as SVGElement | undefined;
+      g?.classList.toggle('mmx-faded', Boolean(node) && !keep.has(String(n.nodeData?.data?.uid)));
+      (n.children || []).forEach((c: any, i: number) => {
+        const ln = n._lines?.[i]?.node as SVGElement | undefined;
+        ln?.classList.toggle('mmx-faded', Boolean(node) && !keep.has(String(c.nodeData?.data?.uid)));
+      });
+    });
+    this.emit('focus', this.focusUid);
+  }
+
+  public refocus(): void {
+    if (this.focusUid) this.focusBranch(this.findNode(this.focusUid));
+  }
+
+  public isFocused(): boolean {
+    return this.focusUid !== null;
+  }
+
   private escapeAttr(s: string): string {
     return s.replace(/"/g, '&quot;');
   }
@@ -508,12 +609,13 @@ export class MindMapEngine {
 
     const fontStyle = d.fontStyle || 'normal';
     const decoration = d.textDecoration || 'none';
-    const maxW = level === 'root' ? 340 : level === 'second' ? 300 : 280;
+    const maxW = level === 'root' ? 380 : level === 'second' ? 340 : 320;
     const minW = level === 'root' ? 96 : 64;
 
     const el = document.createElement('div');
     el.className = `mmx-node mmx-mode-${st.mode} mmx-level-${level}`;
     if (d.uid) el.dataset.uid = String(d.uid);
+    if (this.studyMode && level === 'node' && !this.revealed.has(String(d.uid)) && plain.trim() && !editing) el.classList.add('mmx-node-hide');
     el.style.cssText = [
       `font-family:${st.fontFamily}`,
       `font-size:${st.fontSize}px`,
@@ -599,6 +701,11 @@ export class MindMapEngine {
     if (d.note) chips.push(`<span class="mmx-chip" data-mm-action="note" title="Nota">📝</span>`);
     if (d.hyperlink) chips.push(`<span class="mmx-chip" data-mm-action="link" title="${this.escapeAttr(String(d.hyperlink))}">🔗</span>`);
     if (d.flashcardId) chips.push(`<span class="mmx-chip" data-mm-action="card" title="Flashcard vinculada">🎴</span>`);
+    const prog = this.progressOf(node.nodeData);
+    if (prog.total > 0) {
+      const pct = Math.round((prog.done / prog.total) * 100);
+      chips.push(`<span class="mmx-chip mmx-prog ${pct === 100 ? 'is-done' : ''}" title="Progreso de tareas">✓ ${prog.done}/${prog.total}</span>`);
+    }
     if (Array.isArray(d.tags)) {
       d.tags.slice(0, 3).forEach((t: string) => chips.push(`<span class="mmx-chip mmx-tag">#${this.escapeAttr(String(t))}</span>`));
     }
@@ -709,12 +816,51 @@ export class MindMapEngine {
     return s === 'theme' ? this.theme.line.style : s;
   }
 
+  private horizontalLayout(): boolean {
+    const n = this.mm?.opt?.layout;
+    return n === 'logicalStructure' || n === 'logicalStructureLeft' || n === 'mindMap';
+  }
+
+  /** Solo las ramas que salen de la raíz en diseños horizontales se dibujan como "cinta" orgánica */
+  public isRibbonLine(child: any): boolean {
+    return this.lineStyleKind() === 'organic' && Boolean(child?.parent?.isRoot) && this.horizontalLayout();
+  }
+
+  /** ¿El lienzo es oscuro? (tiene en cuenta el color de fondo personalizado) */
+  public effectiveDark(): boolean {
+    const bg = this.settings.bgColor;
+    if (bg) return luminance(bg) < 0.45;
+    return this.theme.dark;
+  }
+
+  /** Si el fondo personalizado invierte la claridad del tema, devuelve una tinta legible */
+  private inkOverride(): string | null {
+    if (!this.settings.bgColor) return null;
+    const dark = this.effectiveDark();
+    if (dark === this.theme.dark) return null;
+    return dark ? '#f1f5f9' : '#0f172a';
+  }
+
+  /** Color de la línea garantizando contraste con el fondo del tema */
+  public lineColorFor(child: any): string {
+    const c = this.branchColor(child);
+    const L = luminance(c);
+    const dark = this.effectiveDark();
+    if (dark && L < 0.38) return lighten(c, 0.38);
+    if (!dark && L > 0.62) return darken(c, 0.32);
+    return c;
+  }
+
+  public lineWidthFor(child: any): number {
+    return Number(child?.nodeData?.data?.lineWidth) || Math.max(2.8, this.theme.line.width);
+  }
+
   public styleBranchLine(line: any, childNode: any): void {
     const th = this.theme;
-    const color = this.branchColor(childNode);
+    const color = this.lineColorFor(childNode);
     const own = childNode?.nodeData?.data;
-    const width = Number(own?.lineWidth) || th.line.width;
-    const isRibbon = childNode?.parent?.isRoot && this.lineStyleKind() === 'organic';
+    const width = this.lineWidthFor(childNode);
+    const isRibbon = this.isRibbonLine(childNode);
     if (isRibbon) {
       line.fill({ color }).stroke({ color: 'none', width: 0 });
     } else {
@@ -726,7 +872,7 @@ export class MindMapEngine {
         linejoin: 'round'
       }).fill({ color: 'none' });
     }
-    line.attr('opacity', th.line.opacity);
+    line.attr('opacity', 1);
   }
 
   private patchLayout(): void {
@@ -757,8 +903,8 @@ export class MindMapEngine {
         if (![child.left, child.top, child.width, child.height].every(Number.isFinite)) return;
 
         let d = '';
-        const color = self.branchColor(child);
-        const isRibbon = kind === 'organic' && node.isRoot;
+        const color = self.lineColorFor(child);
+        const isRibbon = self.isRibbonLine(child);
 
         if (horizontal) {
           const isLeft = child.dir === 'left' || child.left + child.width / 2 < left + width / 2;
@@ -767,8 +913,8 @@ export class MindMapEngine {
 
           if (isRibbon) {
             d = AdaptiveSplineEngine.generateOrganicRibbonPath(p0, p3, {
-              wRoot: th.line.rootWidth,
-              wChild: th.line.width + 0.4,
+              wRoot: Math.max(th.line.rootWidth, 7),
+              wChild: Math.max(3, th.line.width + 0.4),
               alpha: 1.25,
               tension: 0.55,
               samples: 22
@@ -803,16 +949,16 @@ export class MindMapEngine {
 
         line.plot(d);
         if (isRibbon) {
-          line.attr({ fill: color, stroke: 'none', 'stroke-width': 0, opacity: th.line.opacity });
+          line.attr({ fill: color, stroke: 'none', 'stroke-width': 0, opacity: 1 });
         } else {
           line.attr({
             fill: 'none',
             stroke: color,
-            'stroke-width': Number(child.nodeData?.data?.lineWidth) || th.line.width,
+            'stroke-width': self.lineWidthFor(child),
             'stroke-linecap': th.line.cap,
             'stroke-linejoin': 'round',
             'stroke-dasharray': th.line.dash || null,
-            opacity: th.line.opacity
+            opacity: 1
           });
         }
       });
@@ -1364,15 +1510,9 @@ export class MindMapEngine {
 
   private requestLiveRender(node: any, immediate: boolean): void {
     this.liveNode = node;
-    if (immediate) {
-      this.runLiveRender();
-      return;
-    }
-    if (this.liveRaf) return;
-    this.liveRaf = requestAnimationFrame(() => {
-      this.liveRaf = 0;
-      this.runLiveRender();
-    });
+    void immediate;
+    // Sincrónico: el recuadro del nodo crece/encoge en el mismo instante en que se escribe
+    this.runLiveRender();
   }
 
   private runLiveRender(): void {

@@ -23,11 +23,10 @@ interface EditState {
   isInserting: boolean;
   ta: HTMLTextAreaElement;
   wrap: HTMLElement;
+  bar: HTMLElement | null;
   mobile: boolean;
   closing: boolean;
 }
-
-const DEFAULT_TEXTS = new Set(['Nueva rama', 'Nueva idea', 'Resumen', 'Idea']);
 
 export class NodeEditor {
   private st: EditState | null = null;
@@ -37,7 +36,7 @@ export class NodeEditor {
   constructor(private engine: MindMapEngine, private host: EditorHost) {
     engine.on('rendered', () => this.schedulePosition());
     engine.on('view', () => this.schedulePosition());
-    engine.on('live', () => this.schedulePosition());
+    engine.on('live', () => this.position());
   }
 
   public isOpen(): boolean {
@@ -70,14 +69,13 @@ export class NodeEditor {
     ta.setAttribute('aria-label', 'Texto de la idea');
 
     const wrap = document.createElement('div');
-    this.st = { uid, node, original, isInserting: Boolean(opts.isInserting), ta, wrap, mobile, closing: false };
+    this.st = { uid, node, original, isInserting: Boolean(opts.isInserting), ta, wrap, bar: null, mobile, closing: false };
 
-    if (mobile) this.buildSheet(wrap, ta);
-    else {
-      wrap.className = 'mmx-inline-editor mmx-ui';
-      wrap.appendChild(ta);
-    }
+    // Se escribe siempre dentro del propio recuadro de la idea; en móvil se añade una barra de atajos sobre el teclado
+    wrap.className = 'mmx-inline-editor mmx-ui';
+    wrap.appendChild(ta);
     this.host.root.appendChild(wrap);
+    if (mobile) this.buildBar();
 
     ta.addEventListener('input', () => {
       if (!this.st) return;
@@ -104,9 +102,9 @@ export class NodeEditor {
 
     this.position();
     ta.focus({ preventScroll: true });
-    const isDefault = DEFAULT_TEXTS.has(original.trim()) || original.trim() === '';
-    if (isDefault || opts.isInserting) ta.select();
-    else ta.setSelectionRange(original.length, original.length);
+    // Nuevas ideas: se selecciona el texto por defecto para reemplazarlo; al editar una existente el cursor queda al final
+    if (opts.isInserting) ta.select();
+    else ta.setSelectionRange(ta.value.length, ta.value.length);
 
     if (mobile) this.trackKeyboard(true);
   }
@@ -177,6 +175,10 @@ export class NodeEditor {
     ta.focus({ preventScroll: true });
   }
 
+  public selectAll(): void {
+    this.st?.ta.select();
+  }
+
   public insertAtCursor(text: string): void {
     const st = this.st;
     if (!st) return;
@@ -199,6 +201,7 @@ export class NodeEditor {
 
     this.trackKeyboard(false);
     st.wrap.remove();
+    st.bar?.remove();
     this.st = null;
     cancelAnimationFrame(this.rafPos);
 
@@ -226,9 +229,8 @@ export class NodeEditor {
 
   private autoGrow(): void {
     const st = this.st;
-    if (!st || st.mobile) return;
-    st.ta.style.height = 'auto';
-    st.ta.style.height = `${st.ta.scrollHeight}px`;
+    if (!st) return;
+    void st;
   }
 
   private position(): void {
@@ -238,17 +240,14 @@ export class NodeEditor {
     const g = node?.group?.node as Element | undefined;
     const textEl = g?.querySelector('.mmx-node-text') as HTMLElement | null;
 
-    if (st.mobile) {
-      this.syncSheetHeight();
-      return;
-    }
+    if (st.mobile) this.syncSheetHeight();
     if (!g || !textEl) return;
 
     const rect = textEl.getBoundingClientRect();
     const root = this.host.root.getBoundingClientRect();
     const s = this.engine.getScale() || 1;
     const cs = getComputedStyle(textEl);
-    const w = Math.max(24, rect.width / s);
+    const w = Math.max(24, rect.width / s + 2);
     const h = Math.max(parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.3, rect.height / s);
 
     const ta = st.ta;
@@ -269,33 +268,29 @@ export class NodeEditor {
   }
 
   /* ------------------------------- Móvil ------------------------------ */
-  private buildSheet(wrap: HTMLElement, ta: HTMLTextAreaElement): void {
-    wrap.className = 'mmx-edit-sheet mmx-ui';
-    wrap.innerHTML = `
-      <div class="mmx-edit-sheet-grab"></div>
-      <div class="mmx-edit-sheet-row">
-        <div class="mmx-edit-sheet-field"></div>
-        <button type="button" class="mmx-edit-done" data-ed="done" aria-label="Listo">
-          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-      <div class="mmx-edit-sheet-tools">
-        <button type="button" data-ed="bold" aria-label="Negrita"><b>B</b></button>
-        <button type="button" data-ed="italic" aria-label="Cursiva"><i>I</i></button>
-        <button type="button" data-ed="math" aria-label="Fórmula">∑</button>
-        <button type="button" data-ed="br" aria-label="Salto de línea">↵</button>
-        <span class="mmx-edit-sheet-sep"></span>
-        <button type="button" data-ed="sibling" class="wide">+ Hermano</button>
-        <button type="button" data-ed="child" class="wide">+ Hijo</button>
-        <button type="button" data-ed="cancel" class="danger" aria-label="Cancelar">✕</button>
-      </div>`;
-    (wrap.querySelector('.mmx-edit-sheet-field') as HTMLElement).appendChild(ta);
+  private buildBar(): void {
+    const st = this.st;
+    if (!st) return;
+    const bar = document.createElement('div');
+    bar.className = 'mmx-edit-bar mmx-ui';
+    bar.innerHTML = `
+      <button type="button" data-ed="bold" aria-label="Negrita"><b>B</b></button>
+      <button type="button" data-ed="italic" aria-label="Cursiva"><i>I</i></button>
+      <button type="button" data-ed="math" aria-label="Fórmula">∑</button>
+      <button type="button" data-ed="br" aria-label="Salto de línea">↵</button>
+      <span class="mmx-edit-bar-sep"></span>
+      <button type="button" data-ed="sibling" class="wide">+ Hermana</button>
+      <button type="button" data-ed="child" class="wide">+ Hija</button>
+      <button type="button" data-ed="cancel" class="danger" aria-label="Cancelar">✕</button>
+      <button type="button" data-ed="done" class="done" aria-label="Listo"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+    st.bar = bar;
+    this.host.root.appendChild(bar);
 
-    // mousedown/pointerdown evitan que el teclado se cierre al tocar los botones
-    wrap.addEventListener('pointerdown', (e) => {
+    // pointerdown con preventDefault evita que el teclado se cierre al tocar los botones
+    bar.addEventListener('pointerdown', (e) => {
       if ((e.target as HTMLElement).closest('button')) e.preventDefault();
     });
-    wrap.addEventListener('click', (e) => {
+    bar.addEventListener('click', (e) => {
       const btn = (e.target as HTMLElement).closest('[data-ed]') as HTMLElement | null;
       if (!btn) return;
       switch (btn.dataset.ed) {
@@ -326,19 +321,18 @@ export class NodeEditor {
       }
     });
 
-    ta.addEventListener('input', () => {
-      ta.style.height = 'auto';
-      ta.style.height = `${Math.min(ta.scrollHeight, 132)}px`;
-      this.syncSheetHeight();
-    });
     requestAnimationFrame(() => {
       this.syncSheetHeight();
-      this.engine.ensureNodeVisible(this.currentNode(), this.sheetHeight() + this.keyboardHeight());
+      this.engine.ensureNodeVisible(this.currentNode(), this.sheetHeight() + this.keyboardHeight() + 40);
     });
+    window.setTimeout(() => {
+      this.syncSheetHeight();
+      this.engine.ensureNodeVisible(this.currentNode(), this.sheetHeight() + this.keyboardHeight() + 40);
+    }, 320);
   }
 
   private sheetHeight(): number {
-    return this.st?.mobile ? this.st.wrap.getBoundingClientRect().height : 0;
+    return this.st?.mobile && this.st.bar ? this.st.bar.getBoundingClientRect().height + 8 : 0;
   }
 
   private keyboardHeight(): number {
@@ -369,7 +363,7 @@ export class NodeEditor {
       const kb = this.keyboardHeight();
       this.host.root.style.setProperty('--mmx-kb', `${kb}px`);
       this.syncSheetHeight();
-      if (this.st) this.engine.ensureNodeVisible(this.currentNode(), this.sheetHeight() + kb);
+      if (this.st) this.engine.ensureNodeVisible(this.currentNode(), this.sheetHeight() + kb + 40);
     };
     vv.addEventListener('resize', this.vvHandler);
     vv.addEventListener('scroll', this.vvHandler);
@@ -380,6 +374,7 @@ export class NodeEditor {
     if (this.st) {
       this.st.closing = true;
       this.st.wrap.remove();
+      this.st.bar?.remove();
       try {
         this.engine.endEdit(this.currentNode(), true, this.st.ta.value.replace(/​/g, ''), this.st.original);
       } catch {

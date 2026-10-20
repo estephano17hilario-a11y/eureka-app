@@ -129,6 +129,29 @@ export const MAP_THEMES: MapTheme[] = [
     line: { style: 'organic', width: 2.4, rootWidth: 9, opacity: 0.92, cap: 'round' }
   },
   {
+    id: 'cristal',
+    name: 'Cristal',
+    emoji: '🫧',
+    group: 'Clásicos',
+    dark: true,
+    font: INTER,
+    ink: '#eef2ff',
+    accent: '#7dd3fc',
+    canvas: {
+      bg: 'radial-gradient(60% 45% at 12% 8%, rgba(56,189,248,0.2), transparent 70%), radial-gradient(55% 50% at 92% 92%, rgba(139,92,246,0.18), transparent 70%), linear-gradient(180deg, #11142a 0%, #0d101d 100%)',
+      pattern: 'dots',
+      patternColor: 'rgba(255,255,255,0.06)',
+      patternSize: 28,
+      vignette: 0.2,
+      grain: 0
+    },
+    palette: ['#7dd3fc', '#a5b4fc', '#c4b5fd', '#5eead4', '#fda4af', '#fcd34d', '#86efac', '#f0abfc'],
+    root: look({ mode: 'solid', fill: '#f8fafc', border: 'transparent', text: '#0f172a', radius: 18, fontSize: 19, fontWeight: 800, paddingX: 24, paddingY: 13, shadow: '0 12px 34px rgba(125,211,252,0.28)' }),
+    second: look({ mode: 'solid', fill: 'branch', text: 'auto', radius: 14, fontSize: 15, fontWeight: 700, paddingX: 16, paddingY: 9, shadow: '0 8px 22px rgba(0,0,0,0.3)' }),
+    node: look({ mode: 'tinted', fill: 'tint', border: 'branch', borderWidth: 1, text: 'ink', radius: 12, fontSize: 13.5, paddingX: 12, paddingY: 6 }),
+    line: { style: 'curve', width: 2.6, rootWidth: 3, opacity: 1, cap: 'round' }
+  },
+  {
     id: 'ocean',
     name: 'Océano',
     emoji: '🌊',
@@ -540,7 +563,8 @@ export const ENV_TO_MAP_THEME: Record<string, string> = {
   holo_cyber: 'aurora',
   digital_blue: 'ocean',
   emerald_vision: 'forest',
-  sunset_magenta: 'sunset'
+  sunset_magenta: 'sunset',
+  clean_glass: 'cristal'
 };
 
 export function themeForAppEnvironment(env?: string): MapTheme {

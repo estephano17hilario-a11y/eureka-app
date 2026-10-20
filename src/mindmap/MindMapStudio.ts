@@ -144,6 +144,7 @@ export class MindMapStudio {
     this.cameraInput = q('input[data-file="camera"]');
     this.importInput = q('input[data-file="import"]');
 
+    if ((import.meta as any).env?.DEV) (window as any).__mmx = this;
     this.store.onState((s, d) => this.setSaveState(s, d));
     this.updateDeviceMode(true);
     this.bindStatic();
@@ -166,6 +167,7 @@ export class MindMapStudio {
           <button data-view="map" class="on" role="tab">${icon('map', 16)}<span>Mapa</span></button>
           <button data-view="outline" role="tab">${icon('outline', 16)}<span>Esquema</span></button>
         </div>
+        <button class="mmx-ib mmx-hide-m" data-act="study" title="Modo estudio: oculta las ideas y revélalas al tocar" aria-label="Modo estudio">${icon('eye')}</button>
         <button class="mmx-btn mmx-hide-m" data-act="present" title="Presentar">${icon('present', 16)}<span>Presentar</span></button>
         <button class="mmx-btn mmx-hide-m" data-act="export-menu" title="Exportar">${icon('export', 16)}<span>Exportar</span></button>
         <button class="mmx-ib" data-act="more" title="Más opciones" aria-label="Más opciones">${icon('more')}</button>
@@ -201,7 +203,7 @@ export class MindMapStudio {
           <button class="mmx-zoom-pct" data-act="zoom-reset" data-zoom-label title="Restablecer al 100%">100%</button>
           <button class="mmx-ib sm" data-act="zoom-in" aria-label="Acercar">${icon('plus', 16)}</button>
           <span class="mmx-zoom-sep"></span>
-          <button class="mmx-ib sm" data-act="fit" title="Ajustar a la pantalla" aria-label="Ajustar a la pantalla">${icon('fit', 16)}</button>
+          <button class="mmx-ib sm" data-act="fit" title="Ajustar a la pantalla" aria-label="Ajustar a la pantalla">${icon('fit', 20)}</button>
         </div>
 
         <div class="mmx-minimap mmx-ui" hidden><canvas width="200" height="140"></canvas></div>
@@ -257,7 +259,11 @@ export class MindMapStudio {
       /* ignore */
     }
 
-    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+    // El lienzo necesita tamaño real antes de crear el mapa (los estilos pueden tardar un instante)
+    for (let i = 0; i < 100 && !this.destroyed; i++) {
+      if (this.canvas.clientWidth > 40 && this.canvas.clientHeight > 40) break;
+      await new Promise<void>((r) => window.setTimeout(r, 30));
+    }
     if (this.destroyed) return;
 
     let env = 'desk_wood';
@@ -303,6 +309,10 @@ export class MindMapStudio {
       if (this.destroyed) return;
       // Sin vista guardada (o si quedó fuera de pantalla) se ajusta todo el mapa
       if (this.pendingFirstFit || !this.engine.isTreeInView()) this.engine.fit(false);
+      if (this.pendingFirstFit && !this.getSelection().length) {
+        const r = this.engine.getRoot();
+        if (r && !this.isBrandNew) this.engine.selectNode(r);
+      }
       this.pendingFirstFit = false;
       this.scheduleOverlays();
       window.setTimeout(() => {
@@ -442,6 +452,7 @@ export class MindMapStudio {
       this.scheduleMinimap();
       this.applySearchHighlight();
       this.updateUndoState();
+      if (this.engine.isFocused()) this.engine.refocus();
     });
     e.on('live', () => this.scheduleOverlays());
     e.on('copied', () => {
@@ -481,6 +492,10 @@ export class MindMapStudio {
   private onNodeClick(node: any, ev: MouseEvent): void {
     const target = ev?.target as HTMLElement | null;
     if (target?.closest?.('[data-mm-action]')) return;
+    if (this.engine.studyMode) {
+      this.engine.toggleReveal(node);
+      return;
+    }
     const uid = node?.nodeData?.data?.uid || '';
     const now = performance.now();
     if (uid && this.lastTap.uid === uid && now - this.lastTap.t < 340) {
@@ -677,6 +692,8 @@ export class MindMapStudio {
     if (key === 'Escape') {
       if (this.menuEl) return this.closeMenu();
       if (!this.searchBar.hidden) return this.closeSearch();
+      if (this.engine.isFocused()) return this.engine.focusBranch(null);
+      if (this.engine.studyMode) return this.toggleStudyMode();
       if (document.querySelector('.mmx-modal')) return this.closeTopModal();
       if (!typing) {
         if (this.mobile && this.inspectorEl.dataset.open === 'true') this.setInspectorOpen(false);
@@ -721,7 +738,10 @@ export class MindMapStudio {
       e.preventDefault();
       this.beginEdit(n);
       window.setTimeout(() => {
-        if (this.editor.isOpen()) this.editor.insertAtCursor(key);
+        if (this.editor.isOpen()) {
+          this.editor.selectAll();
+          this.editor.insertAtCursor(key);
+        }
       }, 0);
     }
   }
@@ -756,6 +776,12 @@ export class MindMapStudio {
         break;
       case 'present':
         this.present();
+        break;
+      case 'study':
+        this.toggleStudyMode();
+        break;
+      case 'shortcuts':
+        this.openShortcuts();
         break;
       case 'export-menu':
         this.openMenu(anchor, this.exportMenu());
@@ -1232,6 +1258,9 @@ export class MindMapStudio {
       items.push({ sep: true });
     }
     items.push(
+      { label: this.engine.studyMode ? 'Salir del modo estudio' : 'Modo estudio (ocultar ideas)', icon: 'eye', onClick: () => this.toggleStudyMode() },
+      { label: 'Flashcards de todo el mapa…', icon: 'card', onClick: () => this.pickDeck((id, name) => this.createAllCards(id, name)) },
+      { sep: true },
       { label: 'Guardar ahora', icon: 'save', kbd: 'Ctrl+S', onClick: () => void this.saveNow().then(() => this.toast('Mapa guardado')) },
       { label: 'Plantillas…', icon: 'template', onClick: () => this.openTemplateGallery(false) },
       { label: 'Importar archivo…', icon: 'import', onClick: () => this.importInput.click() },
@@ -1240,7 +1269,9 @@ export class MindMapStudio {
       { label: 'Ajustar a la pantalla', icon: 'fit', kbd: 'Ctrl+0', onClick: () => this.engine.fit(true) },
       { label: 'Expandir todo', icon: 'expand', onClick: () => this.engine.expandAll() },
       { label: 'Contraer a nivel 1', icon: 'collapse', onClick: () => this.engine.collapseToLevel(1) },
-      { label: 'Contraer a nivel 2', icon: 'collapse', onClick: () => this.engine.collapseToLevel(2) }
+      { label: 'Contraer a nivel 2', icon: 'collapse', onClick: () => this.engine.collapseToLevel(2) },
+      { sep: true },
+      { label: 'Atajos de teclado', icon: 'keyboard', onClick: () => this.openShortcuts() }
     );
     return items;
   }
@@ -1262,6 +1293,7 @@ export class MindMapStudio {
       { sep: true },
       { label: 'Foto…', icon: 'image', onClick: () => this.pickImage() },
       { label: 'Nota…', icon: 'note', onClick: () => { this.openInspector('node'); this.inspector.focusField('note'); } },
+      { label: this.engine.isFocused() ? 'Salir del enfoque' : 'Enfocar esta rama', icon: 'focus', onClick: () => this.engine.focusBranch(this.engine.isFocused() ? null : node) },
       { label: 'Crear flashcard…', icon: 'card', onClick: () => this.openFlashcardMenu(node) },
       { sep: true },
       { label: 'Copiar', icon: 'copy', kbd: 'Ctrl+C', onClick: () => this.engine.copyNodes() },
@@ -1320,8 +1352,25 @@ export class MindMapStudio {
     const row = (title: string, k: string) => `
       <div class="mmx-pop-title">${title}</div>
       <div class="mmx-sw-row">${th.palette.map((c) => sw(c, k)).join('')}${neutrals.map((c) => sw(c, k)).join('')}<button class="mmx-sw auto" data-k="${k}" data-c="" title="Automático" aria-label="Automático">${icon('reset', 14)}</button></div>`;
-    this.popover(anchor, `<div class="mmx-pop-body">${row('Relleno de la idea', 'fillColor')}${row('Color de la rama', 'lineColor')}${row('Color del texto', 'color')}</div>`, (pop) => {
+    const presets: [string, string, string][] = [
+      ['❗', 'Importante', '#ef4444'],
+      ['💡', 'Idea', '#f59e0b'],
+      ['❓', 'Duda', '#a855f7'],
+      ['✅', 'Hecho', '#22c55e'],
+      ['⭐', 'Clave', '#3b82f6']
+    ];
+    const presetRow = `<div class="mmx-pop-title">Estilos rápidos</div><div class="mmx-presets">${presets
+      .map(([e, l, c]) => `<button class="mmx-preset" data-preset="${c}|${e}" style="--c:${c}"><span>${e}</span>${l}</button>`)
+      .join('')}</div>`;
+    this.popover(anchor, `<div class="mmx-pop-body">${presetRow}${row('Relleno de la idea', 'fillColor')}${row('Color de la rama', 'lineColor')}${row('Color del texto', 'color')}</div>`, (pop) => {
       pop.addEventListener('click', (e) => {
+        const pr = (e.target as HTMLElement).closest('[data-preset]') as HTMLElement | null;
+        if (pr) {
+          const [c, em] = (pr.dataset.preset || '').split('|');
+          this.applyStyle({ fillColor: c, color: '#ffffff', emoji: em, borderColor: c }, true);
+          this.closeMenu();
+          return;
+        }
         const b = (e.target as HTMLElement).closest('.mmx-sw') as HTMLElement | null;
         if (!b) return;
         const k = b.dataset.k as string;
@@ -1568,6 +1617,52 @@ export class MindMapStudio {
     }
     if (mode === 'this' && firstId) this.engine.applyData([node], { flashcardId: firstId }, { relayout: true });
     this.toast(`${count} ${count === 1 ? 'tarjeta creada' : 'tarjetas creadas'} en «${deckName}»`, 3000);
+  }
+
+  public toggleStudyMode(): void {
+    const on = !this.engine.studyMode;
+    this.engine.setStudyMode(on);
+    this.root.dataset.study = String(on);
+    this.root.querySelector('[data-act="study"]')?.classList.toggle('on', on);
+    this.toast(on ? 'Modo estudio: toca una idea para revelarla' : 'Modo estudio desactivado', 2600);
+  }
+
+  private createAllCards(deckId: string, deckName: string): void {
+    let count = 0;
+    const walk = (n: any, isRoot: boolean) => {
+      if (!isRoot) {
+        const p = this.cardPieces(n);
+        if (p) {
+          deckService.createCard({ deckId, type: 'standard', front: p.front, back: p.back });
+          count++;
+        }
+      }
+      (n.children || []).forEach((c: any) => walk(c, false));
+    };
+    walk(this.engine.getDoc().root, true);
+    this.toast(count ? `${count} tarjetas creadas en «${deckName}»` : 'No hay ideas con detalles para convertir en tarjetas', 3200);
+  }
+
+  public openShortcuts(): void {
+    const rows: [string, string][] = [
+      ['Doble clic · F2', 'Editar la idea'],
+      ['Tab', 'Añadir idea hija'],
+      ['Enter', 'Añadir idea hermana'],
+      ['Mayús + Tab', 'Hermana desde el editor'],
+      ['Supr', 'Eliminar (con confirmación)'],
+      ['Ctrl + C / X / V', 'Copiar, cortar, pegar'],
+      ['Ctrl + D', 'Duplicar rama'],
+      ['Ctrl + Z / Y', 'Deshacer / rehacer'],
+      ['Ctrl + F', 'Buscar'],
+      ['Ctrl + 0', 'Ajustar a la pantalla'],
+      ['Ctrl + + / −', 'Acercar / alejar'],
+      ['Ctrl + B / I / M', 'Negrita, cursiva, fórmula (al escribir)'],
+      ['Esc', 'Salir del editor, enfoque o modo estudio']
+    ];
+    const body = document.createElement('div');
+    body.className = 'mmx-keys';
+    body.innerHTML = rows.map(([k, d]) => `<div><kbd>${esc(k)}</kbd><span>${esc(d)}</span></div>`).join('');
+    this.openModal({ title: 'Atajos de teclado', subtitle: 'Escribe sobre una idea seleccionada para empezar a editarla.', body });
   }
 
   /* ===================================================================== */

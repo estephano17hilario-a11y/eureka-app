@@ -1,4 +1,5 @@
 import { themeService, type AppCustomizationTheme, type BgThemeType } from '../services/theme.service';
+import { openStyleStudio } from './StyleStudio';
 import { nativeService, type VibrationIntensity } from '../services/native.service';
 
 export interface FigmaAppSettingsViewCallbacks {
@@ -16,6 +17,7 @@ interface EnvironmentCard {
 }
 
 const STUDY_ENVIRONMENTS: EnvironmentCard[] = [
+  { id: 'clean_glass', title: 'Cristal moderno', desc: 'Grafito azulado, cristal esmerilado y un toque de acento', preview: 'preview-clean-glass', badge: 'Nuevo', badgeStyle: 'background:#8b5cf6; color:#fff;' },
   { id: 'desk_wood', title: 'Escritorio de madera', desc: 'Nogal oscuro y la luz cálida de tu lámpara', preview: 'preview-desk-wood', badge: 'Escritorio', badgeStyle: 'background:#f59e0b; color:#1c1204;' },
   { id: 'cabin', title: 'Cabaña de madera', desc: 'Paredes de troncos y el resplandor de la chimenea', preview: 'preview-cabin', badge: 'Cabaña', badgeStyle: 'background:#ea580c; color:#fff;' },
   { id: 'library', title: 'Biblioteca clásica', desc: 'Empapelado verde, latón y estantes de caoba', preview: 'preview-library', badge: 'Clásico', badgeStyle: 'background:#b8892f; color:#1a1405;' },
@@ -165,6 +167,14 @@ export function renderFigmaAppSettingsView(): string {
           </div>
         </div>
 
+        <!-- 3a. Estilo avanzado -->
+        <div class="apple-card-grouped" style="padding:18px;">
+          <button type="button" class="ss-btn-open" id="btn-open-style-studio">
+            <span class="ss-ic">🎛️</span>
+            <span><b>Estilo avanzado</b><small>Fondo, botones, cuadernos, tarjetas, flashcards, contenido y más: cambia cada elemento y míralo en vivo</small></span>
+          </button>
+        </div>
+
         <!-- 3b. Papel de los cuadernos -->
         <div class="apple-card-grouped" style="padding:22px;">
           <div style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:4px;">
@@ -255,6 +265,7 @@ export function bindFigmaAppSettingsViewEvents(
   callbacks: FigmaAppSettingsViewCallbacks
 ): void {
   container.querySelector('#btn-app-settings-back')?.addEventListener('click', () => callbacks.onBack());
+  container.querySelector('#btn-open-style-studio')?.addEventListener('click', () => openStyleStudio());
 
   // Vibration toggle
   const toggleVib = container.querySelector<HTMLInputElement>('#toggle-vibration');

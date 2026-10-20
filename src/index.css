@@ -35,14 +35,17 @@
   --sab: env(safe-area-inset-bottom, 0px);
 }
 
+
 /* Visibility Utilities */
 .desktop-only {
   display: flex !important;
 }
 
+
 .mobile-only {
   display: none !important;
 }
+
 
 /* Fixed Inamovible Background Atmosphere */
 body {
@@ -53,6 +56,7 @@ body {
   position: relative;
   overflow-x: hidden;
 }
+
 
 body::before {
   content: "";
@@ -71,6 +75,7 @@ body::before {
   transition: background-image 0.4s ease, background-color 0.4s ease;
 }
 
+
 /* Theme Presets */
 body.theme-modern_black::before {
   background-color: #0e0f14;
@@ -78,6 +83,7 @@ body.theme-modern_black::before {
     radial-gradient(at 10% 20%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
     radial-gradient(at 90% 80%, rgba(168, 85, 247, 0.07) 0px, transparent 50%);
 }
+
 
 body.theme-holo_cyber::before {
   background-color: #0c0d12;
@@ -87,12 +93,14 @@ body.theme-holo_cyber::before {
     radial-gradient(at 50% 85%, rgba(168, 85, 247, 0.15) 0px, transparent 60%);
 }
 
+
 body.theme-emerald_vision::before {
   background-color: #0a110e;
   background-image: 
     radial-gradient(circle at 75% 20%, rgba(16, 185, 129, 0.18) 0px, transparent 50%),
     radial-gradient(at 20% 80%, rgba(6, 182, 212, 0.12) 0px, transparent 50%);
 }
+
 
 body.theme-digital_blue::before {
   background-color: #090e17;
@@ -101,12 +109,14 @@ body.theme-digital_blue::before {
     radial-gradient(at 20% 70%, rgba(56, 189, 248, 0.16) 0px, transparent 50%);
 }
 
+
 body.theme-sunset_magenta::before {
   background-color: #120b14;
   background-image: 
     radial-gradient(at 10% 20%, rgba(236, 72, 153, 0.2) 0px, transparent 55%),
     radial-gradient(at 85% 75%, rgba(147, 51, 234, 0.18) 0px, transparent 50%);
 }
+
 
 /* Radius Variations */
 body.radius-super_rounded .apple-card-grouped,
@@ -119,6 +129,7 @@ body.radius-super_rounded .figma-hero-metric-box {
   border-radius: 26px !important;
 }
 
+
 body.radius-standard .apple-card-grouped,
 body.radius-standard .cupertino-flashcard-box,
 body.radius-standard .cupertino-editor-card-box,
@@ -128,6 +139,7 @@ body.radius-standard .occlusion-group-card,
 body.radius-standard .figma-hero-metric-box {
   border-radius: 18px !important;
 }
+
 
 body.radius-sharp .apple-card-grouped,
 body.radius-sharp .cupertino-flashcard-box,
@@ -139,6 +151,7 @@ body.radius-sharp .figma-hero-metric-box {
   border-radius: 10px !important;
 }
 
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -148,10 +161,12 @@ body.radius-sharp .figma-hero-metric-box {
   -webkit-user-select: none;
 }
 
+
 input, textarea, select, [contenteditable="true"], [contenteditable], math-field, .vaul-interactive-mathfield, .ML__base, .ML__mathlive {
   user-select: text !important;
   -webkit-user-select: text !important;
 }
+
 
 html, body {
   width: 100%;
@@ -163,9 +178,11 @@ html, body {
   letter-spacing: -0.015em;
 }
 
+
 .hidden {
   display: none !important;
 }
+
 
 #app {
   width: 100%;
@@ -173,6 +190,7 @@ html, body {
   display: flex;
   flex-direction: column;
 }
+
 
 .figma-app-layout {
   width: 100%;
@@ -184,6 +202,7 @@ html, body {
   padding: calc(var(--sat) + 20px) 24px calc(var(--sab) + 50px) 24px;
   position: relative;
 }
+
 
 /* ==========================================================================
    Header Navigation
@@ -198,11 +217,13 @@ html, body {
   border-bottom: 1px solid var(--f-border);
 }
 
+
 .figma-nav-left {
   display: flex;
   align-items: center;
   gap: 28px;
 }
+
 
 .figma-logo-wrap {
   display: flex;
@@ -212,6 +233,7 @@ html, body {
   cursor: pointer;
 }
 
+
 .figma-brand-name {
   font-size: 1.35rem;
   font-weight: 800;
@@ -219,11 +241,13 @@ html, body {
   color: #ffffff;
 }
 
+
 .figma-nav-tabs {
   display: flex;
   align-items: center;
   gap: 16px;
 }
+
 
 .figma-nav-tab-btn {
   background: none;
@@ -236,20 +260,24 @@ html, body {
   transition: color 0.15s;
 }
 
+
 .figma-nav-tab-btn:hover {
   color: #ffffff;
 }
+
 
 .figma-nav-tab-btn.active {
   color: #ffffff;
   font-weight: 800;
 }
 
+
 .figma-nav-right {
   display: flex;
   align-items: center;
   gap: 14px;
 }
+
 
 .figma-timer-capsule {
   display: flex;
@@ -264,6 +292,7 @@ html, body {
   box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3);
 }
 
+
 .figma-streak-badge {
   display: flex;
   align-items: center;
@@ -272,6 +301,7 @@ html, body {
   font-size: 1rem;
   font-weight: 800;
 }
+
 
 .figma-avatar-circle {
   width: 42px;
@@ -289,9 +319,11 @@ html, body {
   transition: transform 0.12s;
 }
 
+
 .figma-avatar-circle:hover {
   transform: scale(1.06);
 }
+
 
 /* ==========================================================================
    EUREKA MOBILE BOTTOM NAVIGATION (FROSTED GLASS MODERN DOCK)
@@ -311,6 +343,7 @@ html, body {
   display: none;
 }
 
+
 .eureka-bottom-nav-inner {
   max-width: 520px;
   margin: 0 auto;
@@ -319,6 +352,7 @@ html, body {
   justify-content: space-around;
   gap: 4px;
 }
+
 
 .eureka-bottom-nav-item {
   flex: 1;
@@ -337,6 +371,7 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+
 .eureka-nav-icon-wrap {
   width: 42px;
   height: 28px;
@@ -347,10 +382,12 @@ html, body {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+
 .eureka-bottom-nav-item svg {
   stroke: currentColor;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 
 .eureka-nav-label {
   font-size: 0.72rem;
@@ -359,13 +396,16 @@ html, body {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+
 .eureka-bottom-nav-item:hover {
   color: #ffffff;
 }
 
+
 .eureka-bottom-nav-item.active {
   color: #38bdf8;
 }
+
 
 .eureka-bottom-nav-item.active .eureka-nav-icon-wrap {
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(59, 130, 246, 0.18));
@@ -373,17 +413,20 @@ html, body {
   transform: translateY(-1px);
 }
 
+
 .eureka-bottom-nav-item.active .eureka-nav-label {
   color: #38bdf8;
   font-weight: 800;
 }
 
+
 .eureka-bottom-nav-item:active {
   transform: scale(0.92);
 }
 
+
 @media screen and (max-width: 860px) {
-  .eureka-mobile-bottom-nav {
+.eureka-mobile-bottom-nav {
     display: block !important;
   }
   .desktop-only {
@@ -396,6 +439,7 @@ html, body {
     padding-bottom: calc(70px + env(safe-area-inset-bottom, 10px));
   }
 }
+
 
 /* ==========================================================================
    Action Header & Buttons
@@ -410,12 +454,14 @@ html, body {
   gap: 12px;
 }
 
+
 .figma-view-title {
   font-size: 1.75rem;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.02em;
 }
+
 
 .figma-action-header {
   display: flex;
@@ -426,6 +472,7 @@ html, body {
   margin-bottom: 14px;
   flex-wrap: nowrap;
 }
+
 
 .figma-breadcrumbs {
   display: flex;
@@ -441,6 +488,7 @@ html, body {
   white-space: nowrap;
 }
 
+
 .figma-crumb-link {
   color: var(--f-text-secondary);
   text-decoration: none;
@@ -450,15 +498,18 @@ html, body {
   white-space: nowrap;
 }
 
+
 .figma-crumb-link:hover {
   color: #ffffff;
 }
+
 
 .figma-crumb-sep {
   color: var(--f-text-muted);
   font-size: 0.95rem;
   flex-shrink: 0;
 }
+
 
 .figma-crumb-current {
   color: #ffffff;
@@ -469,6 +520,7 @@ html, body {
   flex-shrink: 1;
 }
 
+
 .figma-header-actions-group {
   display: flex;
   align-items: center;
@@ -477,11 +529,13 @@ html, body {
   flex-shrink: 0;
 }
 
+
 .figma-actions-mini-group {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 
 .figma-icon-btn-dark {
   width: 46px;
@@ -498,9 +552,11 @@ html, body {
   flex-shrink: 0;
 }
 
+
 .figma-icon-btn-dark:hover {
   background: var(--f-surface-subtle);
 }
+
 
 .figma-btn-outline {
   display: flex;
@@ -518,9 +574,11 @@ html, body {
   white-space: nowrap;
 }
 
+
 .figma-btn-outline:hover {
   background: var(--f-surface-subtle);
 }
+
 
 .figma-btn-blue-pill {
   display: flex;
@@ -540,13 +598,16 @@ html, body {
   white-space: nowrap;
 }
 
+
 .figma-btn-blue-pill:hover {
   background: var(--f-blue-hover);
 }
 
+
 .figma-btn-blue-pill:active {
   transform: scale(0.97);
 }
+
 
 .figma-btn-white-pill {
   display: flex;
@@ -566,9 +627,11 @@ html, body {
   white-space: nowrap;
 }
 
+
 .figma-btn-white-pill:active {
   transform: scale(0.97);
 }
+
 
 .figma-floating-add-btn-wrap {
   position: fixed;
@@ -577,6 +640,7 @@ html, body {
   transform: translateX(-50%);
   z-index: 100;
 }
+
 
 /* ==========================================================================
    Deck Main Container & List Rows
@@ -591,6 +655,7 @@ html, body {
   margin-bottom: 26px;
 }
 
+
 .figma-deck-row {
   display: flex;
   align-items: center;
@@ -601,13 +666,16 @@ html, body {
   transition: background 0.15s;
 }
 
+
 .figma-deck-row:last-child {
   border-bottom: none;
 }
 
+
 .figma-deck-row:hover {
   background: var(--f-surface-subtle);
 }
+
 
 .figma-deck-left {
   display: flex;
@@ -616,6 +684,7 @@ html, body {
   min-width: 0;
   flex: 1;
 }
+
 
 .figma-deck-folder-icon {
   width: 48px;
@@ -628,10 +697,12 @@ html, body {
   flex-shrink: 0;
 }
 
+
 .figma-deck-info-wrap {
   min-width: 0;
   flex: 1;
 }
+
 
 .figma-deck-title {
   font-size: 1.15rem;
@@ -640,6 +711,7 @@ html, body {
   color: #ffffff;
   display: block;
 }
+
 
 .figma-deck-subtext {
   font-size: 0.88rem;
@@ -650,6 +722,7 @@ html, body {
   text-overflow: ellipsis;
 }
 
+
 .figma-chevron {
   color: var(--f-text-muted);
   font-size: 1.4rem;
@@ -657,6 +730,7 @@ html, body {
   margin-left: 12px;
   flex-shrink: 0;
 }
+
 
 /* ==========================================================================
    Deck Dashboard Hero View (Compact & On-Screen Ergonomics)
@@ -669,6 +743,7 @@ html, body {
   margin-bottom: 12px;
 }
 
+
 .figma-dash-title {
   font-size: 1.45rem;
   font-weight: 800;
@@ -677,11 +752,13 @@ html, body {
   line-height: 1.25;
 }
 
+
 .figma-dash-subtitle {
   font-size: 0.82rem;
   color: var(--f-text-secondary);
   margin-top: 3px;
 }
+
 
 .figma-hero-metric-box {
   background: var(--f-surface);
@@ -698,6 +775,7 @@ html, body {
   flex-wrap: wrap;
 }
 
+
 .figma-hero-main-group {
   display: flex;
   align-items: center;
@@ -705,11 +783,13 @@ html, body {
   flex-wrap: wrap;
 }
 
+
 .figma-hero-due-col {
   display: flex;
   align-items: baseline;
   gap: 8px;
 }
+
 
 .figma-hero-large-number {
   font-size: 2.1rem;
@@ -719,6 +799,7 @@ html, body {
   color: #ffffff;
 }
 
+
 .figma-hero-label {
   font-size: 0.84rem;
   color: var(--f-text-secondary);
@@ -726,12 +807,14 @@ html, body {
   font-weight: 600;
 }
 
+
 .figma-three-stats-row {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 0;
 }
+
 
 .figma-stat-pill {
   display: flex;
@@ -743,6 +826,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+
 .figma-stat-val-badge {
   display: flex;
   align-items: center;
@@ -751,11 +835,13 @@ html, body {
   font-weight: 800;
 }
 
+
 .figma-stat-name {
   font-size: 0.76rem;
   color: var(--f-text-secondary);
   font-weight: 600;
 }
+
 
 .figma-btn-study-large {
   padding: 10px 22px;
@@ -771,10 +857,12 @@ html, body {
   white-space: nowrap;
 }
 
+
 .figma-btn-study-large:hover {
   background: var(--f-blue-hover);
   transform: translateY(-1px);
 }
+
 
 /* Progress bar and bottom board section */
 .figma-progress-section,
@@ -782,6 +870,7 @@ html, body {
   margin-top: 0;
   margin-bottom: 20px;
 }
+
 
 .figma-bottom-tabs-header {
   display: flex;
@@ -792,6 +881,7 @@ html, body {
   flex-wrap: wrap;
 }
 
+
 .figma-bottom-segmented-bar {
   display: inline-flex;
   align-items: center;
@@ -801,6 +891,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.08);
   gap: 4px;
 }
+
 
 .figma-bottom-tab {
   display: inline-flex;
@@ -818,10 +909,12 @@ html, body {
   user-select: none;
 }
 
+
 .figma-bottom-tab:hover:not(.active) {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.04);
 }
+
 
 .figma-bottom-tab.active {
   background: rgba(56, 189, 248, 0.16);
@@ -829,6 +922,7 @@ html, body {
   border-color: rgba(56, 189, 248, 0.3);
   box-shadow: 0 2px 10px rgba(56, 189, 248, 0.15);
 }
+
 
 .figma-tab-count-chip {
   background: rgba(255, 255, 255, 0.1);
@@ -840,10 +934,12 @@ html, body {
   line-height: 1;
 }
 
+
 .figma-bottom-tab.active .figma-tab-count-chip {
   background: rgba(56, 189, 248, 0.28);
   color: #38bdf8;
 }
+
 
 .figma-icon-btn-ghost {
   background: transparent;
@@ -860,15 +956,18 @@ html, body {
   transition: all 0.15s;
 }
 
+
 .figma-icon-btn-ghost:hover {
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.05);
 }
 
+
 .dash-bottom-section {
   animation: figmaFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 
 @keyframes figmaFadeIn {
   from {
@@ -880,6 +979,7 @@ html, body {
     transform: translateY(0);
   }
 }
+
 
 /* Study Empty Canvas (Apple / Glassmorphism) */
 .figma-study-empty-canvas {
@@ -897,6 +997,7 @@ html, body {
   margin-top: 4px;
 }
 
+
 .study-canvas-icon-wrap {
   position: relative;
   width: 76px;
@@ -910,6 +1011,7 @@ html, body {
   margin-bottom: 20px;
 }
 
+
 .study-canvas-glow {
   position: absolute;
   width: 100%;
@@ -921,10 +1023,12 @@ html, body {
   pointer-events: none;
 }
 
+
 .study-canvas-icon-wrap svg {
   position: relative;
   z-index: 1;
 }
+
 
 .study-canvas-title {
   font-size: 1.3rem;
@@ -934,6 +1038,7 @@ html, body {
   margin: 0 0 8px 0;
 }
 
+
 .study-canvas-desc {
   font-size: 0.92rem;
   color: var(--f-text-secondary);
@@ -941,6 +1046,7 @@ html, body {
   line-height: 1.5;
   margin: 0 0 24px 0;
 }
+
 
 .study-canvas-empty-slot {
   display: inline-flex;
@@ -955,6 +1061,7 @@ html, body {
   font-weight: 600;
 }
 
+
 .study-canvas-slot-dot {
   width: 8px;
   height: 8px;
@@ -964,10 +1071,12 @@ html, body {
   animation: pulseDot 2s infinite ease-in-out;
 }
 
+
 @keyframes pulseDot {
   0%, 100% { opacity: 0.4; transform: scale(0.9); }
   50% { opacity: 1; transform: scale(1.15); }
 }
+
 
 /* ==========================================================================
    EUREKA - MÓDULO DE ESTUDIO ACTIVO (ACTIVE STUDY MODULE)
@@ -981,12 +1090,14 @@ html, body {
   animation: figmaFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+
 /* Welcome Hero */
 .active-study-hero {
   text-align: center;
   padding: 40px 24px;
   border-radius: var(--f-radius-lg);
 }
+
 
 .study-hero-badge {
   display: inline-flex;
@@ -1001,6 +1112,7 @@ html, body {
   margin-bottom: 14px;
 }
 
+
 .study-hero-title {
   font-size: 1.65rem;
   font-weight: 900;
@@ -1008,6 +1120,7 @@ html, body {
   margin: 0 0 10px 0;
   letter-spacing: -0.02em;
 }
+
 
 .study-hero-subtitle {
   font-size: 0.95rem;
@@ -1017,6 +1130,7 @@ html, body {
   line-height: 1.55;
 }
 
+
 .study-flow-pills-row {
   display: flex;
   align-items: center;
@@ -1025,6 +1139,7 @@ html, body {
   flex-wrap: wrap;
   margin-bottom: 28px;
 }
+
 
 .flow-pill-item {
   display: inline-flex;
@@ -1039,6 +1154,7 @@ html, body {
   color: #ffffff;
 }
 
+
 .flow-num {
   width: 20px;
   height: 20px;
@@ -1052,10 +1168,12 @@ html, body {
   justify-content: center;
 }
 
+
 .flow-arrow {
   color: var(--f-text-muted);
   font-size: 0.85rem;
 }
+
 
 .study-welcome-actions {
   display: flex;
@@ -1064,6 +1182,7 @@ html, body {
   gap: 14px;
   flex-wrap: wrap;
 }
+
 
 /* Dashboard Container & Grid */
 .active-study-dashboard-container {
@@ -1075,23 +1194,27 @@ html, body {
   gap: 20px;
 }
 
+
 .study-dashboard-stats-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 14px;
 }
 
+
 @media (max-width: 900px) {
-  .study-dashboard-stats-grid {
+.study-dashboard-stats-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
+
 @media (max-width: 600px) {
-  .study-dashboard-stats-grid {
+.study-dashboard-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
 
 .study-stat-card {
   padding: 16px 18px;
@@ -1103,15 +1226,18 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+
 .study-stat-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
+
 .study-stat-icon {
   font-size: 1.3rem;
 }
+
 
 .study-stat-tag {
   font-size: 0.68rem;
@@ -1119,6 +1245,7 @@ html, body {
   color: var(--f-text-muted);
   letter-spacing: 0.05em;
 }
+
 
 .study-stat-val {
   font-size: 1.85rem;
@@ -1128,11 +1255,13 @@ html, body {
   font-family: monospace;
 }
 
+
 .study-stat-label {
   font-size: 0.78rem;
   color: var(--f-text-secondary);
   font-weight: 600;
 }
+
 
 .btn-micro-pill {
   align-self: flex-start;
@@ -1148,10 +1277,12 @@ html, body {
   transition: all 0.15s;
 }
 
+
 .btn-micro-pill:hover {
   background: rgba(245, 158, 11, 0.28);
   transform: translateY(-1px);
 }
+
 
 /* Topic Manager Bar & Pills */
 .study-topics-manager-bar {
@@ -1161,6 +1292,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+
 .study-topics-header-row {
   display: flex;
   align-items: center;
@@ -1169,12 +1301,14 @@ html, body {
   gap: 12px;
 }
 
+
 .study-topics-quick-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
+
 
 .study-topics-pills-scroll {
   display: flex;
@@ -1185,6 +1319,7 @@ html, body {
   margin-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
+
 
 .study-topic-pill-btn {
   display: inline-flex;
@@ -1199,15 +1334,18 @@ html, body {
   transition: all 0.15s;
 }
 
+
 .study-topic-pill-btn:hover {
   background: rgba(255, 255, 255, 0.09);
 }
+
 
 .study-topic-pill-btn.active {
   background: rgba(56, 189, 248, 0.15);
   border-color: rgba(56, 189, 248, 0.45);
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
 }
+
 
 .topic-pill-state-tag {
   font-size: 0.68rem;
@@ -1218,11 +1356,13 @@ html, body {
   color: var(--f-blue);
 }
 
+
 .topic-pill-title {
   font-size: 0.84rem;
   font-weight: 700;
   color: #ffffff;
 }
+
 
 .study-no-topics-notice {
   padding: 14px 0 6px 0;
@@ -1230,17 +1370,20 @@ html, body {
   color: var(--f-text-muted);
 }
 
+
 .study-empty-workspace {
   text-align: center;
   padding: 56px 20px;
   border-radius: var(--f-radius-lg);
 }
 
+
 .study-topic-date {
   font-size: 0.74rem;
   color: var(--f-text-muted);
   font-weight: 600;
 }
+
 
 /* Top Topic Bar */
 .active-study-top-bar {
@@ -1252,6 +1395,7 @@ html, body {
   gap: 12px;
 }
 
+
 .study-topic-chip {
   font-size: 0.72rem;
   font-weight: 800;
@@ -1260,6 +1404,7 @@ html, body {
   text-transform: uppercase;
 }
 
+
 .study-topic-title {
   font-size: 1.15rem;
   font-weight: 800;
@@ -1267,11 +1412,13 @@ html, body {
   margin: 2px 0 0 0;
 }
 
+
 .study-top-right-meta {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 
 .study-coins-capsule {
   display: inline-flex;
@@ -1286,6 +1433,7 @@ html, body {
   user-select: none;
 }
 
+
 /* Stepper */
 .study-chunks-stepper {
   display: flex;
@@ -1294,6 +1442,7 @@ html, body {
   overflow-x: auto;
   padding: 6px 2px;
 }
+
 
 .stepper-step {
   display: flex;
@@ -1309,17 +1458,20 @@ html, body {
   white-space: nowrap;
 }
 
+
 .stepper-step.current {
   background: rgba(56, 189, 248, 0.14);
   border-color: rgba(56, 189, 248, 0.35);
   color: #38bdf8;
 }
 
+
 .stepper-step.done {
   background: rgba(16, 185, 129, 0.12);
   border-color: rgba(16, 185, 129, 0.3);
   color: #10b981;
 }
+
 
 .stepper-dot {
   width: 20px;
@@ -1333,20 +1485,24 @@ html, body {
   font-weight: 800;
 }
 
+
 .stepper-step.current .stepper-dot {
   background: #38bdf8;
   color: #07080a;
 }
+
 
 .stepper-step.done .stepper-dot {
   background: #10b981;
   color: #ffffff;
 }
 
+
 /* Screen Headers & Badges */
 .study-screen-header {
   margin-bottom: 16px;
 }
+
 
 .study-phase-badge {
   display: inline-flex;
@@ -1361,12 +1517,14 @@ html, body {
   margin-bottom: 8px;
 }
 
+
 .study-chunk-title {
   font-size: 1.35rem;
   font-weight: 800;
   color: #ffffff;
   margin: 0 0 6px 0;
 }
+
 
 .study-phase-instruction {
   font-size: 0.9rem;
@@ -1375,12 +1533,14 @@ html, body {
   margin: 0;
 }
 
+
 /* Source Box (Reading View) */
 .active-study-source-box {
   padding: 22px;
   border-radius: var(--f-radius-md);
   margin-bottom: 20px;
 }
+
 
 .source-box-top-tag {
   display: flex;
@@ -1393,6 +1553,7 @@ html, body {
   margin-bottom: 14px;
 }
 
+
 .active-study-source-text {
   font-size: 1.05rem;
   line-height: 1.75;
@@ -1401,13 +1562,16 @@ html, body {
   letter-spacing: 0.01em;
 }
 
+
 .active-study-source-text p {
   margin: 0 0 14px 0;
 }
 
+
 .active-study-source-text p:last-child {
   margin-bottom: 0;
 }
+
 
 /* Quick Card Creator */
 .study-quick-card-creator {
@@ -1415,6 +1579,7 @@ html, body {
   border-radius: var(--f-radius-md);
   margin-bottom: 20px;
 }
+
 
 .quick-card-header {
   display: flex;
@@ -1425,6 +1590,7 @@ html, body {
   gap: 10px;
 }
 
+
 .cards-count-chip {
   padding: 5px 12px;
   border-radius: var(--f-radius-full);
@@ -1432,11 +1598,13 @@ html, body {
   font-weight: 700;
 }
 
+
 .cards-count-chip.pending {
   background: rgba(245, 158, 11, 0.15);
   border: 1px solid rgba(245, 158, 11, 0.35);
   color: #f59e0b;
 }
+
 
 .cards-count-chip.valid {
   background: rgba(16, 185, 129, 0.15);
@@ -1444,11 +1612,13 @@ html, body {
   color: #10b981;
 }
 
+
 .quick-card-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
+
 
 .quick-form-field label {
   display: block;
@@ -1457,6 +1627,7 @@ html, body {
   color: var(--f-text-secondary);
   margin-bottom: 6px;
 }
+
 
 .quick-form-field input,
 .quick-form-field textarea {
@@ -1472,17 +1643,20 @@ html, body {
   transition: border-color 0.15s;
 }
 
+
 .quick-form-field input:focus,
 .quick-form-field textarea:focus {
   outline: none;
   border-color: var(--f-blue);
 }
 
+
 .created-cards-preview-list {
   margin-top: 16px;
   padding-top: 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
+
 
 .created-card-pill {
   display: flex;
@@ -1496,11 +1670,13 @@ html, body {
   color: #ffffff;
 }
 
+
 .card-pill-idx {
   color: var(--f-blue);
   font-weight: 800;
   font-size: 0.78rem;
 }
+
 
 /* Study Bottom Nav Bar */
 .study-bottom-nav-bar {
@@ -1516,11 +1692,13 @@ html, body {
   gap: 12px;
 }
 
+
 .validation-status-text {
   font-size: 0.88rem;
   font-weight: 700;
   color: var(--f-text-secondary);
 }
+
 
 .btn-disabled {
   opacity: 0.45 !important;
@@ -1529,12 +1707,14 @@ html, body {
   filter: grayscale(0.5);
 }
 
+
 /* Screen B: Cues Tray */
 .study-cues-tray {
   padding: 18px;
   border-radius: var(--f-radius-md);
   margin-bottom: 20px;
 }
+
 
 .cues-tray-header {
   display: flex;
@@ -1545,6 +1725,7 @@ html, body {
   gap: 8px;
 }
 
+
 .cues-tray-scroll {
   display: flex;
   align-items: center;
@@ -1552,6 +1733,7 @@ html, body {
   overflow-x: auto;
   padding-bottom: 6px;
 }
+
 
 .cue-chip-btn {
   display: inline-flex;
@@ -1569,14 +1751,17 @@ html, body {
   transition: all 0.15s;
 }
 
+
 .cue-chip-btn:hover {
   background: rgba(56, 189, 248, 0.2);
   transform: translateY(-1px);
 }
 
+
 .cue-spark {
   color: #f59e0b;
 }
+
 
 .cue-insert-icon {
   background: rgba(56, 189, 248, 0.3);
@@ -1591,12 +1776,14 @@ html, body {
   font-weight: 900;
 }
 
+
 /* Screen B: Outliner Tree */
 .study-outliner-box {
   padding: 22px;
   border-radius: var(--f-radius-md);
   margin-bottom: 20px;
 }
+
 
 .outliner-box-header {
   display: flex;
@@ -1605,11 +1792,13 @@ html, body {
   margin-bottom: 16px;
 }
 
+
 .nodes-count-badge {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--f-text-muted);
 }
+
 
 .outliner-add-root-row {
   display: flex;
@@ -1617,6 +1806,7 @@ html, body {
   gap: 10px;
   margin-bottom: 18px;
 }
+
 
 .outliner-add-root-row input {
   flex: 1;
@@ -1628,9 +1818,11 @@ html, body {
   font-size: 0.92rem;
 }
 
+
 .outliner-tree-mount {
   min-height: 120px;
 }
+
 
 .outliner-empty-state {
   text-align: center;
@@ -1639,15 +1831,18 @@ html, body {
   font-size: 0.9rem;
 }
 
+
 .outliner-node-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
+
 .outliner-node-list.depth-0 > .outliner-node-item {
   margin-bottom: 10px;
 }
+
 
 .outliner-node-list:not(.depth-0) {
   padding-left: 24px;
@@ -1656,9 +1851,11 @@ html, body {
   margin-bottom: 6px;
 }
 
+
 .outliner-node-item {
   margin-bottom: 6px;
 }
+
 
 .outliner-node-row {
   display: flex;
@@ -1671,9 +1868,11 @@ html, body {
   transition: background 0.12s;
 }
 
+
 .outliner-node-row:hover {
   background: rgba(255, 255, 255, 0.07);
 }
+
 
 .node-bullet-symbol {
   color: var(--f-blue);
@@ -1681,6 +1880,7 @@ html, body {
   line-height: 1;
   user-select: none;
 }
+
 
 .node-text-content {
   flex: 1;
@@ -1690,11 +1890,13 @@ html, body {
   outline: none;
 }
 
+
 .node-text-content:focus {
   background: rgba(56, 189, 248, 0.1);
   border-radius: 4px;
   padding: 2px 4px;
 }
+
 
 .node-action-buttons {
   display: flex;
@@ -1702,6 +1904,7 @@ html, body {
   gap: 4px;
   opacity: 0.85;
 }
+
 
 .btn-node-action {
   background: rgba(255, 255, 255, 0.06);
@@ -1715,10 +1918,12 @@ html, body {
   transition: all 0.12s;
 }
 
+
 .btn-node-action:hover {
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
 }
+
 
 /* Screen C: Consolidated & 24h Lock */
 .study-screen-consolidated-wrap {
@@ -1727,16 +1932,19 @@ html, body {
   gap: 20px;
 }
 
+
 .consolidated-hero {
   text-align: center;
   padding: 32px 20px;
   border-radius: var(--f-radius-lg);
 }
 
+
 .consolidated-trophy {
   font-size: 3.2rem;
   margin-bottom: 12px;
 }
+
 
 /* 24h Lock Card */
 .twentyfour-lock-card {
@@ -1748,6 +1956,7 @@ html, body {
   position: relative;
   overflow: hidden;
 }
+
 
 .lock-visual-badge {
   position: relative;
@@ -1762,6 +1971,7 @@ html, body {
   margin-bottom: 16px;
 }
 
+
 .lock-pulsing-glow {
   position: absolute;
   width: 100%;
@@ -1772,12 +1982,14 @@ html, body {
   animation: pulseDot 2s infinite;
 }
 
+
 .lock-card-title {
   font-size: 1.35rem;
   font-weight: 800;
   color: #ffffff;
   margin: 0 0 8px 0;
 }
+
 
 .lock-card-desc {
   font-size: 0.92rem;
@@ -1786,6 +1998,7 @@ html, body {
   margin: 0 auto 20px auto;
   line-height: 1.5;
 }
+
 
 .lock-countdown-box {
   display: inline-block;
@@ -1796,6 +2009,7 @@ html, body {
   margin-bottom: 22px;
 }
 
+
 .countdown-label {
   font-size: 0.78rem;
   font-weight: 700;
@@ -1803,6 +2017,7 @@ html, body {
   text-transform: uppercase;
   margin-bottom: 6px;
 }
+
 
 .countdown-digits {
   font-size: 2.2rem;
@@ -1813,6 +2028,7 @@ html, body {
   text-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
 }
 
+
 .lock-bypass-box {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 18px;
@@ -1820,11 +2036,13 @@ html, body {
   margin: 0 auto;
 }
 
+
 .bypass-notice {
   font-size: 0.85rem;
   color: var(--f-text-secondary);
   margin: 0 0 10px 0;
 }
+
 
 .btn-bypass-coins {
   display: inline-flex;
@@ -1843,15 +2061,18 @@ html, body {
   transition: all 0.15s;
 }
 
+
 .btn-bypass-coins:hover {
   transform: translateY(-1px);
   filter: brightness(1.08);
 }
 
+
 .bypass-balance-tag {
   font-size: 0.78rem;
   opacity: 0.85;
 }
+
 
 /* Unlocked Card */
 .twentyfour-unlocked-card {
@@ -1861,6 +2082,7 @@ html, body {
   background: rgba(16, 185, 129, 0.05);
 }
 
+
 .unlocked-chunk-item {
   padding: 14px;
   background: rgba(255, 255, 255, 0.03);
@@ -1868,11 +2090,13 @@ html, body {
   margin-bottom: 10px;
 }
 
+
 /* Consolidated Section */
 .consolidated-section {
   padding: 22px;
   border-radius: var(--f-radius-md);
 }
+
 
 .consolidated-section-header {
   display: flex;
@@ -1880,6 +2104,7 @@ html, body {
   justify-content: space-between;
   margin-bottom: 16px;
 }
+
 
 .status-free-badge {
   font-size: 0.75rem;
@@ -1891,11 +2116,13 @@ html, body {
   border-radius: var(--f-radius-full);
 }
 
+
 .consolidated-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 12px;
 }
+
 
 .figma-progress-title-row {
   display: flex;
@@ -1905,6 +2132,7 @@ html, body {
   font-size: 1.12rem;
   font-weight: 700;
 }
+
 
 .figma-segment-bar {
   width: 100%;
@@ -1916,9 +2144,13 @@ html, body {
   margin-bottom: 14px;
 }
 
+
 .f-seg-gray { background: #64748b; height: 100%; }
+
 .f-seg-green { background: #10b981; height: 100%; }
+
 .f-seg-blue { background: #38bdf8; height: 100%; }
+
 
 .figma-bar-legend {
   display: flex;
@@ -1929,17 +2161,20 @@ html, body {
   flex-wrap: wrap;
 }
 
+
 .f-legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+
 .f-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
 }
+
 
 .figma-search-bar-row {
   display: flex;
@@ -1949,11 +2184,13 @@ html, body {
   flex-wrap: wrap;
 }
 
+
 .figma-search-input-wrap {
   flex: 1;
   min-width: 220px;
   position: relative;
 }
+
 
 .figma-search-input-wrap svg {
   position: absolute;
@@ -1962,6 +2199,7 @@ html, body {
   transform: translateY(-50%);
   color: var(--f-text-muted);
 }
+
 
 .figma-search-input {
   width: 100%;
@@ -1974,9 +2212,11 @@ html, body {
   outline: none;
 }
 
+
 .figma-search-input:focus {
   border-color: var(--f-blue);
 }
+
 
 /* ==========================================================================
    Flashcard Items in Deck Dashboard and Library
@@ -1996,17 +2236,20 @@ html, body {
   transition: background 0.15s, transform 0.12s, border-color 0.15s;
 }
 
+
 .figma-card-item:hover {
   background: var(--f-surface-subtle) !important;
   border-color: rgba(255, 255, 255, 0.16) !important;
   transform: translateY(-1px);
 }
 
+
 .figma-card-top-tag-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 
 .figma-tag-invertido {
   display: flex;
@@ -2016,17 +2259,20 @@ html, body {
   color: var(--f-text-secondary);
 }
 
+
 .figma-card-title-bold {
   font-size: 1.15rem;
   font-weight: 700;
   color: #ffffff;
 }
 
+
 .figma-card-body-text {
   font-size: 0.96rem;
   color: var(--f-text-secondary);
   line-height: 1.55;
 }
+
 
 /* Apple Panels, Chevrons and Grouped Cards */
 .apple-chevron {
@@ -2035,12 +2281,14 @@ html, body {
   font-weight: 600;
 }
 
+
 .apple-glass-panel {
   background: var(--f-surface);
   border: 1px solid var(--f-border);
   border-radius: var(--f-radius-lg);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08);
 }
+
 
 .apple-card-grouped {
   background: var(--f-surface);
@@ -2051,6 +2299,7 @@ html, body {
   margin-bottom: 16px;
 }
 
+
 .apple-list-row {
   display: flex;
   align-items: center;
@@ -2060,13 +2309,16 @@ html, body {
   transition: background 0.15s;
 }
 
+
 .apple-list-row:last-child {
   border-bottom: none;
 }
 
+
 .apple-list-row:hover {
   background: rgba(255, 255, 255, 0.03);
 }
+
 
 .apple-badge-beta {
   background: var(--f-blue);
@@ -2078,6 +2330,7 @@ html, body {
   text-transform: uppercase;
 }
 
+
 .apple-badge-subpill {
   display: inline-block;
   background: rgba(56, 189, 248, 0.14);
@@ -2087,6 +2340,7 @@ html, body {
   padding: 3px 10px;
   border-radius: var(--f-radius-full);
 }
+
 
 .apple-tab-pill {
   background: none;
@@ -2099,10 +2353,12 @@ html, body {
   transition: all 0.15s;
 }
 
+
 .apple-tab-pill.active {
   background: var(--f-blue);
   color: #07080a;
 }
+
 
 .apple-btn-primary {
   display: flex;
@@ -2119,9 +2375,11 @@ html, body {
   transition: transform 0.12s, background 0.15s;
 }
 
+
 .apple-btn-primary:active {
   transform: scale(0.97);
 }
+
 
 .apple-btn-secondary {
   display: flex;
@@ -2135,9 +2393,11 @@ html, body {
   transition: background 0.15s, border-color 0.15s;
 }
 
+
 .apple-btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
 }
+
 
 .apple-btn-outline-pill {
   padding: 9px 18px;
@@ -2151,9 +2411,11 @@ html, body {
   transition: background 0.15s, border-color 0.15s;
 }
 
+
 .apple-btn-outline-pill:hover {
   background: rgba(255, 255, 255, 0.12);
 }
+
 
 .active-pill {
   background: var(--f-blue) !important;
@@ -2161,6 +2423,7 @@ html, body {
   font-weight: 800 !important;
   border-color: var(--f-blue) !important;
 }
+
 
 .apple-icon-circle-sm {
   width: 34px;
@@ -2173,6 +2436,7 @@ html, body {
   font-size: 1.1rem;
 }
 
+
 /* Switch & Controls */
 .figma-switch {
   position: relative;
@@ -2181,7 +2445,9 @@ html, body {
   height: 30px;
 }
 
+
 .figma-switch input { display: none; }
+
 
 .figma-slider {
   position: absolute;
@@ -2191,6 +2457,7 @@ html, body {
   cursor: pointer;
   transition: 0.2s;
 }
+
 
 .figma-slider::before {
   position: absolute;
@@ -2204,13 +2471,16 @@ html, body {
   transition: 0.2s;
 }
 
+
 .figma-switch input:checked + .figma-slider {
   background-color: var(--f-blue);
 }
 
+
 .figma-switch input:checked + .figma-slider::before {
   transform: translateX(22px);
 }
+
 
 /* Algorithm Card Styles */
 .apple-algo-card {
@@ -2223,20 +2493,24 @@ html, body {
   transition: border-color 0.15s, background 0.15s;
 }
 
+
 .apple-algo-card:hover {
   background: var(--f-surface-subtle);
   border-color: rgba(255, 255, 255, 0.16);
 }
+
 
 .apple-algo-card.selected {
   border-color: var(--f-blue);
   background: rgba(56, 189, 248, 0.06);
 }
 
+
 .apple-algo-icon {
   font-size: 1.3rem;
   color: var(--f-blue);
 }
+
 
 .apple-algo-title {
   font-size: 1.08rem;
@@ -2244,11 +2518,13 @@ html, body {
   color: #ffffff;
 }
 
+
 .apple-algo-desc {
   font-size: 0.86rem;
   color: var(--f-text-secondary);
   line-height: 1.5;
 }
+
 
 .apple-checkbox {
   width: 22px;
@@ -2256,6 +2532,7 @@ html, body {
   accent-color: var(--f-blue);
   cursor: pointer;
 }
+
 
 .apple-icon-del-btn {
   width: 28px;
@@ -2272,9 +2549,11 @@ html, body {
   transition: background 0.15s;
 }
 
+
 .apple-icon-del-btn:hover {
   background: rgba(239, 68, 68, 0.4);
 }
+
 
 /* ==========================================================================
    Theme Customization Settings UI Tokens (Personalización de la App)
@@ -2292,15 +2571,18 @@ html, body {
   transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s !important;
 }
 
+
 .theme-preset-card:hover {
   transform: translateY(-2px);
   border-color: rgba(255, 255, 255, 0.18) !important;
 }
 
+
 .theme-preset-card.selected {
   border-color: var(--f-blue) !important;
   box-shadow: 0 0 24px rgba(56, 189, 248, 0.28) !important;
 }
+
 
 .theme-preview-box {
   height: 90px !important;
@@ -2313,25 +2595,31 @@ html, body {
   border-bottom: 1px solid var(--f-border);
 }
 
+
 .preview-modern-black {
   background: #0e0f14 radial-gradient(at 10% 20%, rgba(56, 189, 248, 0.25) 0px, transparent 55%) !important;
 }
+
 
 .preview-holo-cyber {
   background: linear-gradient(135deg, #ff007a 0%, #7928ca 40%, #0070f3 80%, #00dfd8 100%) !important;
 }
 
+
 .preview-digital-blue {
   background: radial-gradient(circle at 80% 30%, #38bdf8 0%, #0051cb 60%, #080f1d 100%) !important;
 }
+
 
 .preview-emerald-vision {
   background: radial-gradient(circle at 50% 50%, #10b981 0%, #064e3b 50%, #0a110e 100%) !important;
 }
 
+
 .preview-sunset-magenta {
   background: radial-gradient(circle at 20% 30%, #ec4899 0%, #7e22ce 60%, #120b14 100%) !important;
 }
+
 
 .theme-badge-glow {
   font-size: 0.74rem !important;
@@ -2343,9 +2631,11 @@ html, body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
 }
 
+
 .theme-card-info {
   padding: 16px !important;
 }
+
 
 .theme-card-title {
   font-size: 1.05rem !important;
@@ -2353,12 +2643,14 @@ html, body {
   color: #ffffff !important;
 }
 
+
 .theme-card-desc {
   font-size: 0.82rem !important;
   color: var(--f-text-secondary) !important;
   margin-top: 4px !important;
   line-height: 1.4 !important;
 }
+
 
 .theme-color-circle {
   width: 44px !important;
@@ -2372,15 +2664,18 @@ html, body {
   transition: transform 0.15s, border-color 0.15s !important;
 }
 
+
 .theme-color-circle:hover {
   transform: scale(1.1);
 }
+
 
 .theme-color-circle.active {
   border-color: #ffffff !important;
   transform: scale(1.15) !important;
   box-shadow: 0 0 16px rgba(255, 255, 255, 0.45) !important;
 }
+
 
 /* ==========================================================================
    Occlusion Accordion Group Card
@@ -2396,6 +2691,7 @@ html, body {
   transition: border-color 0.15s;
 }
 
+
 .occlusion-group-header {
   display: flex;
   align-items: center;
@@ -2404,6 +2700,7 @@ html, body {
   flex-wrap: wrap;
   gap: 10px;
 }
+
 
 .occlusion-child-card-row {
   display: flex;
@@ -2420,9 +2717,11 @@ html, body {
   gap: 8px;
 }
 
+
 .occlusion-child-card-row:hover {
   background: rgba(255, 255, 255, 0.05);
 }
+
 
 /* ==========================================================================
    Card Editor & Thumbnails
@@ -2434,12 +2733,14 @@ html, body {
   gap: 8px;
 }
 
+
 .cupertino-editor-label {
   font-size: 1.05rem;
   font-weight: 700;
   color: #ffffff;
   margin-left: 4px;
 }
+
 
 .cupertino-editor-card-box {
   background: var(--f-surface);
@@ -2452,6 +2753,7 @@ html, body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08);
   transition: border-color 0.2s, background-color 0.2s;
 }
+
 
 .cupertino-editor-textarea {
   width: 100%;
@@ -2466,9 +2768,11 @@ html, body {
   resize: vertical;
 }
 
+
 .cupertino-editor-textarea::placeholder {
   color: var(--f-text-muted);
 }
+
 
 .cupertino-thumbnail-box {
   width: 76px;
@@ -2485,12 +2789,14 @@ html, body {
   transition: transform 0.12s;
 }
 
+
 .cupertino-thumb-img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
   border-radius: 14px;
 }
+
 
 .cupertino-thumb-del-badge {
   position: absolute;
@@ -2511,9 +2817,11 @@ html, body {
   z-index: 10;
 }
 
+
 .cupertino-thumb-del-badge:hover {
   background: #ef4444;
 }
+
 
 .cupertino-thumb-overlay {
   position: absolute;
@@ -2530,9 +2838,11 @@ html, body {
   transition: opacity 0.15s;
 }
 
+
 .cupertino-thumbnail-box:hover .cupertino-thumb-overlay {
   opacity: 1;
 }
+
 
 .cupertino-rich-toolbar-dock {
   display: flex;
@@ -2543,6 +2853,7 @@ html, body {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
 
 .cupertino-btn-ai-pill {
   padding: 7px 16px;
@@ -2560,6 +2871,7 @@ html, body {
   flex-shrink: 0;
 }
 
+
 .cupertino-tool-icon {
   width: 38px;
   height: 38px;
@@ -2576,10 +2888,12 @@ html, body {
   flex-shrink: 0;
 }
 
+
 .cupertino-tool-icon:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
 }
+
 
 .cupertino-tool-icon.active-format-tool {
   background: rgba(56, 189, 248, 0.22) !important;
@@ -2587,6 +2901,7 @@ html, body {
   border: 1px solid rgba(56, 189, 248, 0.5) !important;
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
 }
+
 
 .apple-code-block {
   background: #0d0e12;
@@ -2601,6 +2916,7 @@ html, body {
   margin: 10px 0;
 }
 
+
 .apple-code-inline {
   background: rgba(255, 255, 255, 0.08);
   padding: 2px 6px;
@@ -2610,6 +2926,7 @@ html, body {
   color: #f43f5e;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
+
 
 .cupertino-live-preview-box {
   margin-top: 10px;
@@ -2625,6 +2942,7 @@ html, body {
   overflow-y: auto;
 }
 
+
 .cupertino-tool-divider {
   width: 1px;
   height: 18px;
@@ -2632,6 +2950,7 @@ html, body {
   margin: 0 4px;
   flex-shrink: 0;
 }
+
 
 .cupertino-btn-check-save {
   width: 46px;
@@ -2647,6 +2966,7 @@ html, body {
   flex-shrink: 0;
 }
 
+
 /* ==========================================================================
    Cupertino Study View
    ========================================================================== */
@@ -2661,9 +2981,11 @@ html, body {
   animation: iosFadeIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+
 .cupertino-study-header {
   margin-bottom: 16px;
 }
+
 
 .cupertino-progress-row {
   display: flex;
@@ -2671,6 +2993,7 @@ html, body {
   gap: 12px;
   margin-top: 6px;
 }
+
 
 .cupertino-progress-pill {
   background: var(--f-surface);
@@ -2682,6 +3005,7 @@ html, body {
   border-radius: var(--f-radius-full);
 }
 
+
 .cupertino-track-bar {
   flex: 1;
   height: 6px;
@@ -2690,12 +3014,14 @@ html, body {
   position: relative;
 }
 
+
 .cupertino-track-fill {
   height: 100%;
   background: #10b981;
   border-radius: var(--f-radius-full);
   transition: width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+
 
 .cupertino-track-thumb {
   position: absolute;
@@ -2708,6 +3034,7 @@ html, body {
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.9);
   transition: left 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+
 
 .cupertino-flashcard-box {
   width: 100%;
@@ -2727,12 +3054,14 @@ html, body {
   overflow-y: auto;
 }
 
+
 .cupertino-card-top-action {
   position: absolute;
   top: 16px;
   right: 16px;
   z-index: 10;
 }
+
 
 .cupertino-btn-card-menu {
   background: none;
@@ -2744,6 +3073,7 @@ html, body {
   padding: 4px 8px;
 }
 
+
 .cupertino-card-body-content {
   width: 100%;
   display: flex;
@@ -2752,6 +3082,7 @@ html, body {
   justify-content: center;
   text-align: center;
 }
+
 
 .cupertino-card-main-title {
   font-size: 1.45rem;
@@ -2762,12 +3093,14 @@ html, body {
   margin: 0 auto;
 }
 
+
 .cupertino-card-divider {
   width: 75%;
   height: 1px;
   background: rgba(255, 255, 255, 0.08);
   margin: 20px auto;
 }
+
 
 .cupertino-card-answer-text {
   font-size: 1.2rem;
@@ -2777,6 +3110,7 @@ html, body {
   max-width: 95%;
   margin: 0 auto;
 }
+
 
 .cupertino-card-hint-text {
   position: absolute;
@@ -2788,6 +3122,7 @@ html, body {
   white-space: nowrap;
 }
 
+
 .cupertino-responsive-img {
   max-height: 44vh;
   width: auto;
@@ -2798,12 +3133,14 @@ html, body {
   margin: 0 auto;
 }
 
+
 .cupertino-occlusion-wrap {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 
 .cupertino-occlusion-img-box {
   position: relative;
@@ -2814,6 +3151,7 @@ html, body {
   touch-action: manipulation;
 }
 
+
 .figma-drawn-mask.active-question-mask {
   cursor: pointer !important;
   user-select: none !important;
@@ -2822,15 +3160,18 @@ html, body {
   z-index: 10;
 }
 
+
 .figma-drawn-mask.active-question-mask:hover {
   transform: scale(1.04);
   filter: brightness(1.15);
   box-shadow: 0 0 25px rgba(239, 68, 68, 0.95) !important;
 }
 
+
 .figma-drawn-mask.active-question-mask:active {
   transform: scale(0.96);
 }
+
 
 .figma-drawn-mask.other-hidden-mask {
   cursor: pointer !important;
@@ -2839,11 +3180,13 @@ html, body {
   z-index: 5;
 }
 
+
 .cupertino-bottom-controls {
   margin-top: auto;
   padding-top: 20px;
   width: 100%;
 }
+
 
 .cupertino-front-controls-row {
   display: flex;
@@ -2851,6 +3194,7 @@ html, body {
   justify-content: space-between;
   gap: 12px;
 }
+
 
 .cupertino-icon-square {
   width: 48px;
@@ -2866,6 +3210,7 @@ html, body {
   flex-shrink: 0;
 }
 
+
 .cupertino-btn-show-answer {
   flex: 1;
   padding: 16px 20px;
@@ -2880,11 +3225,13 @@ html, body {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
+
 .cupertino-rating-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
+
 
 .cupertino-rate-pill {
   display: flex;
@@ -2902,15 +3249,18 @@ html, body {
   outline: none;
 }
 
+
 .cupertino-rate-pill:hover {
   transform: translateY(-2px);
   filter: brightness(1.15);
 }
 
+
 .cupertino-rate-pill:active {
   transform: scale(0.95);
   filter: brightness(0.9);
 }
+
 
 .c-rate-title {
   font-size: 0.98rem;
@@ -2918,12 +3268,14 @@ html, body {
   line-height: 1.2;
 }
 
+
 .c-rate-subtitle {
   font-size: 0.8rem;
   font-weight: 700;
   margin-top: 3px;
   opacity: 0.9;
 }
+
 
 .c-rate-key {
   font-size: 0.68rem;
@@ -2936,10 +3288,15 @@ html, body {
   letter-spacing: 0.02em;
 }
 
+
 .rate-again { background: rgba(239, 68, 68, 0.14); border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+
 .rate-hard { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24; }
+
 .rate-good { background: rgba(16, 185, 129, 0.16); border-color: rgba(16, 185, 129, 0.45); color: #10b981; }
+
 .rate-easy { background: rgba(56, 189, 248, 0.14); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; }
+
 
 /* Fullscreen iOS Views */
 .ios-fullscreen-view {
@@ -2949,10 +3306,12 @@ html, body {
   animation: iosFadeIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+
 @keyframes iosFadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
 
 .ios-navbar {
   display: flex;
@@ -2962,6 +3321,7 @@ html, body {
   margin-bottom: 14px;
   border-bottom: 1px solid var(--f-border);
 }
+
 
 .ios-back-btn {
   display: flex;
@@ -2976,10 +3336,12 @@ html, body {
   padding: 6px 4px;
 }
 
+
 .ios-back-chevron {
   font-size: 1.5rem;
   line-height: 1;
 }
+
 
 .ios-nav-title {
   font-size: 1.15rem;
@@ -2987,11 +3349,13 @@ html, body {
   color: #ffffff;
 }
 
+
 .ios-content-scroll {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
+
 
 /* Floating Action Buttons */
 .figma-fab-gift {
@@ -3012,6 +3376,7 @@ html, body {
   z-index: 90;
 }
 
+
 .figma-fab-help {
   position: fixed;
   bottom: calc(var(--sab) + 20px);
@@ -3031,6 +3396,7 @@ html, body {
   z-index: 90;
 }
 
+
 /* Modal Backdrop */
 .figma-modal-backdrop {
   position: fixed;
@@ -3044,11 +3410,13 @@ html, body {
   padding: 20px;
 }
 
+
 .figma-stage-inner {
   position: relative;
   display: inline-block;
   max-width: 100%;
 }
+
 
 .figma-mask-overlay {
   position: absolute;
@@ -3058,6 +3426,7 @@ html, body {
   cursor: crosshair;
   touch-action: none;
 }
+
 
 .figma-drawn-mask {
   position: absolute;
@@ -3070,7 +3439,9 @@ html, body {
   justify-content: center;
 }
 
+
 .f-mask-idx { font-size: 11px; font-weight: 900; color: #ffffff; }
+
 .f-mask-del {
   position: absolute;
   top: -8px;
@@ -3087,6 +3458,7 @@ html, body {
   justify-content: center;
   cursor: pointer;
 }
+
 
 /* Toast */
 .toast-notice {
@@ -3108,17 +3480,19 @@ html, body {
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+
 .toast-notice.show {
   transform: translateX(-50%) translateY(0);
   opacity: 1;
 }
+
 
 /* ==========================================================================
    MOBILE & TABLET RESPONSIVE MEDIA QUERIES (ANDROID, IPHONE, APK & WEB)
    ========================================================================== */
 
 @media (max-width: 768px) {
-  .desktop-only {
+.desktop-only {
     display: none !important;
   }
 
@@ -3296,8 +3670,9 @@ html, body {
   }
 }
 
+
 @media (max-width: 480px) {
-  .figma-app-layout {
+.figma-app-layout {
     padding: calc(var(--sat) + 10px) 12px calc(var(--sab) + 78px) 12px;
   }
 
@@ -3324,6 +3699,7 @@ html, body {
   }
 }
 
+
 /* ==========================================================================
    FLOATING ACTION BUTTONS (FABS)
    ========================================================================== */
@@ -3347,14 +3723,17 @@ html, body {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+
 .figma-fab-gift:hover {
   transform: scale(1.08);
   box-shadow: 0 8px 24px rgba(56, 189, 248, 0.5);
 }
 
+
 .figma-fab-gift:active {
   transform: scale(0.94);
 }
+
 
 .figma-fab-help {
   position: fixed;
@@ -3376,10 +3755,12 @@ html, body {
   transition: transform 0.15s ease;
 }
 
+
 .figma-fab-help:hover {
   transform: scale(1.08);
   color: #fff;
 }
+
 
 /* ==========================================================================
    CARD MULTI-SELECTION & BATCH ACTIONS DOCK
@@ -3403,15 +3784,18 @@ html, body {
   outline: none;
 }
 
+
 .figma-card-checkbox:hover {
   border-color: var(--f-blue);
 }
+
 
 .figma-card-checkbox:checked {
   background: var(--f-blue);
   border-color: var(--f-blue);
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
 }
+
 
 .figma-card-checkbox:checked::after {
   content: "✓";
@@ -3423,6 +3807,7 @@ html, body {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
 
 .figma-batch-actions-dock {
   position: fixed;
@@ -3446,6 +3831,7 @@ html, body {
   animation: slideUpFade 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+
 @keyframes slideUpFade {
   from {
     opacity: 0;
@@ -3457,11 +3843,13 @@ html, body {
   }
 }
 
+
 .batch-info {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 
 .batch-count-badge {
   background: rgba(56, 189, 248, 0.16);
@@ -3472,6 +3860,7 @@ html, body {
   border-radius: 9999px;
   white-space: nowrap;
 }
+
 
 .batch-text-btn {
   background: none;
@@ -3484,9 +3873,11 @@ html, body {
   white-space: nowrap;
 }
 
+
 .batch-text-btn:hover {
   color: #fff;
 }
+
 
 .batch-actions-btns {
   display: flex;
@@ -3494,6 +3885,7 @@ html, body {
   gap: 8px;
   flex-wrap: wrap;
 }
+
 
 .batch-action-btn {
   padding: 8px 14px;
@@ -3509,14 +3901,17 @@ html, body {
   white-space: nowrap;
 }
 
+
 .batch-action-btn:active {
   transform: scale(0.95);
 }
+
 
 .btn-batch-move {
   background: var(--f-blue);
   color: #07080a;
 }
+
 
 .btn-batch-invert {
   background: rgba(168, 85, 247, 0.18);
@@ -3524,11 +3919,13 @@ html, body {
   border: 1px solid rgba(168, 85, 247, 0.4);
 }
 
+
 .btn-batch-delete {
   background: rgba(239, 68, 68, 0.15);
   color: #f87171;
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
+
 
 .btn-batch-close {
   background: rgba(255, 255, 255, 0.1);
@@ -3543,6 +3940,7 @@ html, body {
   font-size: 1rem;
 }
 
+
 /* ==========================================================================
    TYPE-IN ANSWER & COMPARISON STYLES
    ========================================================================== */
@@ -3554,9 +3952,11 @@ html, body {
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
 }
 
+
 .cupertino-type-answer-box {
   width: 100%;
 }
+
 
 .cupertino-typed-input {
   width: 100%;
@@ -3573,24 +3973,28 @@ html, body {
   box-sizing: border-box;
 }
 
+
 .cupertino-typed-input:focus {
   border-color: var(--f-blue);
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
   background: rgba(255, 255, 255, 0.11);
 }
 
+
 .cupertino-typed-comparison-card {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
+
 
 /* Accordion transition for groups */
 .occlusion-group-body {
   transition: all 0.2s ease-in-out;
 }
 
+
 @media (max-width: 600px) {
-  .figma-batch-actions-dock {
+.figma-batch-actions-dock {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
@@ -3611,6 +4015,7 @@ html, body {
   }
 }
 
+
 /* Selected Card Highlight */
 .selectable-card-target {
   transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
@@ -3618,15 +4023,18 @@ html, body {
   -webkit-user-select: none;
 }
 
+
 .selectable-card-target:active {
   transform: scale(0.985);
 }
+
 
 .card-selected-active {
   border-color: var(--f-blue) !important;
   box-shadow: 0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 12px rgba(56, 189, 248, 0.12) !important;
   background: rgba(56, 189, 248, 0.08) !important;
 }
+
 
 /* Micro Study Tag (Minimalist & Compact) */
 .micro-study-badge {
@@ -3640,10 +4048,12 @@ html, body {
   padding: 2px;
 }
 
+
 .selectable-card-target:hover .micro-study-badge {
   opacity: 1;
   transform: scale(1.15);
 }
+
 
 /* Review Due Date Badge */
 .figma-due-badge {
@@ -3657,11 +4067,13 @@ html, body {
   white-space: nowrap;
 }
 
+
 .due-new {
   background: rgba(148, 163, 184, 0.12);
   color: #94a3b8;
   border: 1px solid rgba(148, 163, 184, 0.25);
 }
+
 
 .due-now {
   background: rgba(245, 158, 11, 0.14);
@@ -3669,17 +4081,20 @@ html, body {
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
+
 .due-future {
   background: rgba(16, 185, 129, 0.12);
   color: #10b981;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
+
 .btn-batch-edit {
   background: rgba(56, 189, 248, 0.2);
   color: var(--f-blue);
   border: 1px solid rgba(56, 189, 248, 0.4);
 }
+
 
 /* ==========================================================================
    UNIFORM FLASHCARD PREVIEWS (EXACT SAME HEIGHT ACROSS ALL CARDS)
@@ -3701,6 +4116,7 @@ html, body {
   cursor: pointer;
 }
 
+
 .figma-card-top-tag-row {
   display: flex;
   align-items: center;
@@ -3709,6 +4125,7 @@ html, body {
   flex-shrink: 0;
   margin-bottom: 4px;
 }
+
 
 .figma-card-title-bold {
   font-size: 1.02rem;
@@ -3721,6 +4138,7 @@ html, body {
   margin-top: 1px;
 }
 
+
 .occlusion-group-card {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -3729,6 +4147,7 @@ html, body {
   margin-bottom: 10px;
   box-sizing: border-box;
 }
+
 
 .occlusion-child-card-row {
   height: 44px;
@@ -3744,6 +4163,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
 }
+
 
 /* ==========================================================================
    FAST FRENETIC ARCADE REFLEX MICRO-GAMES
@@ -3764,15 +4184,18 @@ html, body {
   transition: transform 0.08s ease, box-shadow 0.1s ease;
 }
 
+
 .cyber-crystal-core:active {
   transform: scale(0.88);
   box-shadow: 0 0 50px #38bdf8, inset 0 0 30px #ffffff;
 }
 
+
 @keyframes crystalFloat {
   0% { transform: translateY(0px) rotate(0deg); }
   100% { transform: translateY(-8px) rotate(4deg); }
 }
+
 
 .crystal-hp-bar {
   width: 44px;
@@ -3783,10 +4206,12 @@ html, body {
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
+
 .crystal-hp-bar.active {
   background: linear-gradient(90deg, #38bdf8, #818cf8);
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
 }
+
 
 .turbo-tap-btn {
   width: 170px;
@@ -3805,12 +4230,14 @@ html, body {
   outline: none;
 }
 
+
 .turbo-tap-btn:active,
 .turbo-tap-btn.tap-pulse {
   transform: scale(0.91);
   box-shadow: 0 0 60px rgba(239, 68, 68, 0.9), inset 0 0 30px rgba(255, 255, 255, 0.8);
   background: radial-gradient(circle at 35% 35%, #ef4444, #b91c1c 65%, #7f1d1d);
 }
+
 
 .flash-target-btn {
   height: 80px;
@@ -3825,9 +4252,11 @@ html, body {
   transition: transform 0.08s ease, background 0.1s ease, box-shadow 0.1s ease;
 }
 
+
 .flash-target-btn:active {
   transform: scale(0.93);
 }
+
 
 .flash-target-btn.flashing {
   background: var(--c) !important;
@@ -3837,10 +4266,12 @@ html, body {
   animation: flashJolt 0.2s ease-in-out infinite alternate;
 }
 
+
 @keyframes flashJolt {
   from { transform: scale(1.05); }
   to { transform: scale(1.12); }
 }
+
 
 .meteor-target {
   position: absolute;
@@ -3852,9 +4283,11 @@ html, body {
   filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
 }
 
+
 .meteor-target:hover {
   transform: scale(1.25);
 }
+
 
 .meteor-target.smashed {
   transform: scale(2.2);
@@ -3862,10 +4295,12 @@ html, body {
   pointer-events: none;
 }
 
+
 @keyframes meteorFloat {
   0% { transform: translateY(0px) rotate(0deg); }
   100% { transform: translateY(-16px) rotate(15deg); }
 }
+
 
 .arrow-dir-btn {
   height: 52px;
@@ -3880,15 +4315,18 @@ html, body {
   transition: transform 0.08s ease, background 0.12s ease;
 }
 
+
 .arrow-dir-btn:hover {
   background: rgba(168, 85, 247, 0.25);
   border-color: #c084fc;
 }
 
+
 .arrow-dir-btn:active {
   transform: scale(0.9);
   background: #a855f7;
 }
+
 
 
 /* ==========================================================================
@@ -3906,6 +4344,7 @@ html, body {
   }
 }
 
+
 .cupertino-dialog-input {
   background: rgba(255, 255, 255, 0.07);
   border: 1.5px solid rgba(255, 255, 255, 0.15);
@@ -3921,11 +4360,13 @@ html, body {
   width: 100%;
 }
 
+
 .cupertino-dialog-input:focus {
   border-color: var(--f-blue);
   box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
   background: rgba(255, 255, 255, 0.11);
 }
+
 
 .preset-btn {
   background: rgba(255, 255, 255, 0.06);
@@ -3939,6 +4380,7 @@ html, body {
   transition: all 0.12s ease;
 }
 
+
 .preset-btn:hover {
   background: rgba(56, 189, 248, 0.2);
   border-color: var(--f-blue);
@@ -3946,9 +4388,11 @@ html, body {
   transform: translateY(-1px);
 }
 
+
 .preset-btn:active {
   transform: scale(0.95);
 }
+
 
 .dialog-btn {
   padding: 11px 20px;
@@ -3963,9 +4407,11 @@ html, body {
   transition: transform 0.1s, opacity 0.15s;
 }
 
+
 .dialog-btn:active {
   transform: scale(0.96);
 }
+
 
 .dialog-btn-primary {
   background: var(--f-blue);
@@ -3973,15 +4419,18 @@ html, body {
   font-weight: 800;
 }
 
+
 .dialog-btn-cancel {
   background: rgba(255, 255, 255, 0.08);
   color: var(--f-text-secondary);
 }
 
+
 .dialog-btn-cancel:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.12);
 }
+
 
 .dialog-btn-danger {
   background: #ef4444;
@@ -3989,9 +4438,11 @@ html, body {
   font-weight: 800;
 }
 
+
 .dialog-btn-danger:hover {
   background: #dc2626;
 }
+
 
 /* ==========================================================================
    FULL-SCREEN FIXED MODAL OVERLAYS & CENTERING (CRITICAL FIX)
@@ -4022,6 +4473,7 @@ html, body {
   animation: fadeInOverlay 0.16s ease-out !important;
 }
 
+
 @keyframes fadeInOverlay {
   from {
     opacity: 0;
@@ -4030,6 +4482,7 @@ html, body {
     opacity: 1;
   }
 }
+
 
 .apple-modal-content,
 .apple-glass-modal,
@@ -4049,19 +4502,23 @@ html, body {
   animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
+
 .menu-action-item-btn {
   transition: transform 0.1s ease, filter 0.15s ease, background 0.15s ease;
   user-select: none;
 }
+
 
 .menu-action-item-btn:hover {
   filter: brightness(1.15);
   transform: translateY(-1px);
 }
 
+
 .menu-action-item-btn:active {
   transform: scale(0.97);
 }
+
 
 /* ==========================================================================
    CUPERTINO LUXURY CARD EDITOR STYLES (NO RAW HTML)
@@ -4081,14 +4538,17 @@ html, body {
   transition: transform 0.1s ease, filter 0.15s ease;
 }
 
+
 .cupertino-btn-check-save:hover {
   transform: scale(1.06);
   filter: brightness(1.1);
 }
 
+
 .cupertino-btn-check-save:active {
   transform: scale(0.94);
 }
+
 
 .cupertino-icon-square {
   background: rgba(255, 255, 255, 0.06);
@@ -4102,16 +4562,19 @@ html, body {
   transition: all 0.15s ease;
 }
 
+
 .cupertino-icon-square:hover {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
 }
+
 
 .cupertino-editor-block {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
 
 .cupertino-editor-label {
   font-size: 0.88rem;
@@ -4121,6 +4584,7 @@ html, body {
   color: var(--f-text-secondary);
   padding-left: 4px;
 }
+
 
 .cupertino-editor-card-box {
   background: rgba(20, 21, 28, 0.95);
@@ -4136,10 +4600,12 @@ html, body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+
 .cupertino-editor-card-box:focus-within {
   border-color: rgba(56, 189, 248, 0.6);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 24px rgba(56, 189, 248, 0.18);
 }
+
 
 .cupertino-editor-textarea {
   width: 100%;
@@ -4156,9 +4622,11 @@ html, body {
   box-sizing: border-box;
 }
 
+
 .cupertino-editor-textarea::placeholder {
   color: rgba(255, 255, 255, 0.25);
 }
+
 
 .cupertino-thumbnail-box {
   position: relative;
@@ -4169,12 +4637,14 @@ html, body {
   border: 1.5px solid rgba(255, 255, 255, 0.15);
 }
 
+
 .cupertino-thumb-img {
   width: 100%;
   max-height: 110px;
   object-fit: cover;
   display: block;
 }
+
 
 .cupertino-thumb-del-badge {
   position: absolute;
@@ -4194,6 +4664,7 @@ html, body {
   cursor: pointer;
 }
 
+
 .cupertino-thumb-overlay {
   position: absolute;
   bottom: 0;
@@ -4208,6 +4679,7 @@ html, body {
   cursor: pointer;
 }
 
+
 .cupertino-rich-toolbar-dock {
   display: flex;
   align-items: center;
@@ -4216,6 +4688,7 @@ html, body {
   padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
 
 .cupertino-btn-ai-pill {
   display: inline-flex;
@@ -4232,11 +4705,13 @@ html, body {
   transition: all 0.15s ease;
 }
 
+
 .cupertino-btn-ai-pill:hover {
   transform: translateY(-1px);
   background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(56, 189, 248, 0.4));
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
 }
+
 
 .cupertino-tool-icon {
   width: 34px;
@@ -4253,15 +4728,18 @@ html, body {
   transition: all 0.12s ease;
 }
 
+
 .cupertino-tool-icon:hover {
   background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
   transform: scale(1.05);
 }
 
+
 .cupertino-tool-icon:active {
   transform: scale(0.92);
 }
+
 
 .cupertino-tool-divider {
   width: 1px;
@@ -4269,6 +4747,7 @@ html, body {
   background: rgba(255, 255, 255, 0.12);
   margin: 0 4px;
 }
+
 
 /* ==========================================================================
    LUXURY FORM ELEMENTS (NO NATIVE/RAW BROWSER UI)
@@ -4290,6 +4769,7 @@ select,
   box-sizing: border-box !important;
 }
 
+
 select:focus,
 .form-input:focus,
 .input-textarea:focus {
@@ -4297,10 +4777,12 @@ select:focus,
   box-shadow: 0 0 20px rgba(56, 189, 248, 0.25) !important;
 }
 
+
 option {
   background: #12131a !important;
   color: #ffffff !important;
 }
+
 
 /* ==========================================================================
    LATERAL FLASHCARD NAVIGATION ARROWS (ROTAR ENTRE FLASHCARDS - POSICIÓN FIJA SUPERIOR)
@@ -4313,6 +4795,7 @@ option {
   position: relative;
   min-height: 220px;
 }
+
 
 .cupertino-nav-arrow {
   position: absolute;
@@ -4337,13 +4820,16 @@ option {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
 }
 
+
 .cupertino-nav-arrow.left {
   left: -58px;
 }
 
+
 .cupertino-nav-arrow.right {
   right: -58px;
 }
+
 
 .cupertino-nav-arrow:hover {
   background: rgba(56, 189, 248, 0.28);
@@ -4353,12 +4839,14 @@ option {
   box-shadow: 0 0 24px rgba(56, 189, 248, 0.5);
 }
 
+
 .cupertino-nav-arrow:active {
   transform: scale(0.92);
 }
 
+
 @media (max-width: 768px) {
-  .cupertino-nav-arrow.left {
+.cupertino-nav-arrow.left {
     left: -10px;
   }
   .cupertino-nav-arrow.right {
@@ -4366,8 +4854,9 @@ option {
   }
 }
 
+
 @media (max-width: 540px) {
-  .cupertino-nav-arrow {
+.cupertino-nav-arrow {
     width: 38px;
     height: 38px;
     font-size: 1.4rem;
@@ -4381,6 +4870,7 @@ option {
   }
 }
 
+
 /* ==========================================================================
    STACKED DECK EFFECT & CLEAN CARDS (IDÉNTICO A LA IMAGEN 2)
    ========================================================================== */
@@ -4389,6 +4879,7 @@ option {
   position: relative;
   margin-bottom: 26px;
 }
+
 
 .figma-card-stacked-wrapper::before {
   content: '';
@@ -4405,6 +4896,7 @@ option {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
 }
 
+
 .figma-card-stacked-wrapper::after {
   content: '';
   position: absolute;
@@ -4420,6 +4912,7 @@ option {
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.6);
 }
 
+
 .figma-card-item {
   position: relative;
   z-index: 1;
@@ -4431,10 +4924,12 @@ option {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 
+
 .figma-card-item:hover {
   border-color: rgba(56, 189, 248, 0.35) !important;
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 0 16px rgba(56, 189, 248, 0.12) !important;
 }
+
 
 /* ==========================================================================
    IMAGE OCCLUSION LIVE DRAWING RECTANGLE (MATCHING REFERENCE SCREENSHOT)
@@ -4451,6 +4946,7 @@ option {
   -webkit-user-select: none !important;
 }
 
+
 .occlusion-rect.drawing {
   position: absolute !important;
   border: 3px dashed #10b981 !important;
@@ -4463,9 +4959,11 @@ option {
   transition: none !important;
 }
 
+
 .figma-drawn-mask.revealed-active-mask {
   display: none !important;
 }
+
 
 /* ==========================================================================
    DIRECTIVA 3: MATHLIVE & NATIVE <math-field> WEBVIRTUALKEYBOARD
@@ -4487,11 +4985,13 @@ math-field.cupertino-mathfield-input {
   min-height: 58px;
 }
 
+
 math-field.cupertino-mathfield-input:focus,
 math-field.cupertino-mathfield-input:focus-within {
   border-color: var(--f-blue, #38bdf8);
   box-shadow: 0 0 24px rgba(56, 189, 248, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.1);
 }
+
 
 /* MathLive Virtual Keyboard Dark Theme Override */
 :root {
@@ -4505,6 +5005,7 @@ math-field.cupertino-mathfield-input:focus-within {
   --keyboard-accent-color: #38bdf8;
 }
 
+
 /* ==========================================================================
    DIRECTIVA 5: OUTLINER DOM LIGHTWEIGHT TOUCH DRAG-AND-DROP (SORTABLEJS)
    ========================================================================== */
@@ -4516,15 +5017,18 @@ math-field.cupertino-mathfield-input:focus-within {
   min-height: 10px;
 }
 
+
 .outliner-node-list.depth-0 {
   padding-left: 0;
 }
+
 
 .outliner-node-item {
   margin: 6px 0;
   transition: background-color 0.15s ease;
   position: relative;
 }
+
 
 .outliner-node-row {
   display: flex;
@@ -4537,10 +5041,12 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
+
 .outliner-node-row:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
 }
+
 
 .node-drag-handle {
   cursor: grab;
@@ -4558,10 +5064,12 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: color 0.15s ease;
 }
 
+
 .node-drag-handle:active {
   cursor: grabbing;
   color: var(--f-blue, #38bdf8);
 }
+
 
 .node-text-content {
   flex: 1;
@@ -4572,10 +5080,12 @@ math-field.cupertino-mathfield-input:focus-within {
   border-radius: 4px;
 }
 
+
 .node-text-content:focus {
   background: rgba(56, 189, 248, 0.1);
   box-shadow: 0 0 0 1px var(--f-blue, #38bdf8);
 }
+
 
 /* SortableJS drag states */
 .outliner-ghost-node {
@@ -4585,9 +5095,11 @@ math-field.cupertino-mathfield-input:focus-within {
   border-radius: 12px;
 }
 
+
 .outliner-chosen-node {
   background: rgba(255, 255, 255, 0.08) !important;
 }
+
 
 .outliner-drag-node {
   opacity: 0.95;
@@ -4595,72 +5107,17 @@ math-field.cupertino-mathfield-input:focus-within {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 16px rgba(56, 189, 248, 0.35);
 }
 
+
 /* ==========================================================================
    ULTRA-FAST TACTILE MIND MAP (CAPACITOR 60 FPS MOBILE HYBRID)
    ========================================================================== */
 
-#eureka-mindmap-fullscreen-mount {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 99999;
-  background: #07080d;
-  overflow: hidden;
-}
 
-.mindmap-viewport-wrapper {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #07080d;
-  overflow: hidden;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  z-index: 99999;
-}
 
-.mindmap-canvas-container {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-  background: #07080d;
-  contain: strict;
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.mindmap-canvas-container svg {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.mindmap-canvas-container svg filter {
-  display: none !important;
-}
 
 /* Header Superior Minimalista */
-.mindmap-top-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 56px;
-  padding: env(safe-area-inset-top, 6px) 16px 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(12, 13, 20, 0.92);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  z-index: 25;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
+
+
 
 .top-bar-left,
 .top-bar-right {
@@ -4669,66 +5126,17 @@ math-field.cupertino-mathfield-input:focus-within {
   gap: 8px;
 }
 
+
 .top-bar-title-wrap {
   display: flex;
   flex-direction: column;
   margin-left: 6px;
 }
 
-.mindmap-top-title {
-  font-size: 0.88rem;
-  font-weight: 800;
-  color: #ffffff;
-  max-width: 160px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mindmap-save-indicator {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #10b981;
-  letter-spacing: 0.02em;
-}
-
-.mindmap-touch-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.1s, transform 0.08s;
-  touch-action: manipulation;
-}
-
-.mindmap-touch-btn:active {
-  background: rgba(56, 189, 248, 0.2);
-  transform: scale(0.95);
-}
 
 /* Barra Inferior Táctil (Bottom Action Dock) */
-.mindmap-bottom-dock {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px 16px calc(env(safe-area-inset-bottom, 10px) + 8px) 16px;
-  background: rgba(12, 13, 20, 0.94);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 8px;
-  z-index: 25;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
+
+
 
 .dock-action-btn {
   flex: 1;
@@ -4748,10 +5156,12 @@ math-field.cupertino-mathfield-input:focus-within {
   touch-action: manipulation;
 }
 
+
 .dock-action-btn:disabled {
   opacity: 0.35;
   pointer-events: none;
 }
+
 
 .dock-action-btn:active {
   background: rgba(56, 189, 248, 0.25);
@@ -4759,10 +5169,12 @@ math-field.cupertino-mathfield-input:focus-within {
   transform: translateY(-2px);
 }
 
+
 .dock-icon {
   font-size: 1.15rem;
   line-height: 1;
 }
+
 
 .dock-label {
   font-size: 0.68rem;
@@ -4771,23 +5183,16 @@ math-field.cupertino-mathfield-input:focus-within {
   text-transform: uppercase;
 }
 
+
 .dock-btn-danger:active {
   background: rgba(239, 68, 68, 0.25);
   border-color: #ef4444;
 }
 
+
 /* Modal Bottom Sheet de Edición Antiteclado (Optimizado para teclado virtual de móvil) */
-.mindmap-edit-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  align-items: flex-end;
-  z-index: 99999;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  animation: sheetFadeIn 0.15s ease-out;
-}
+
+
 
 .edit-sheet-panel {
   width: 100%;
@@ -4799,6 +5204,7 @@ math-field.cupertino-mathfield-input:focus-within {
   box-sizing: border-box;
 }
 
+
 .edit-sheet-header {
   display: flex;
   align-items: center;
@@ -4809,6 +5215,7 @@ math-field.cupertino-mathfield-input:focus-within {
   margin-bottom: 12px;
 }
 
+
 .btn-sheet-close {
   background: none;
   border: none;
@@ -4817,6 +5224,7 @@ math-field.cupertino-mathfield-input:focus-within {
   cursor: pointer;
   padding: 4px;
 }
+
 
 .edit-sheet-panel textarea {
   width: 100%;
@@ -4832,12 +5240,14 @@ math-field.cupertino-mathfield-input:focus-within {
   outline: none;
 }
 
+
 .edit-sheet-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 14px;
 }
+
 
 .sheet-btn-secondary {
   padding: 10px 18px;
@@ -4850,6 +5260,7 @@ math-field.cupertino-mathfield-input:focus-within {
   cursor: pointer;
 }
 
+
 .sheet-btn-primary {
   padding: 10px 22px;
   background: #38bdf8;
@@ -4861,10 +5272,12 @@ math-field.cupertino-mathfield-input:focus-within {
   cursor: pointer;
 }
 
+
 @keyframes sheetFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 
 /* ==========================================================================
    ASISTENTE CIENTÍFICO Y RECUADRO KATEX / LATEX
@@ -4884,6 +5297,7 @@ math-field.cupertino-mathfield-input:focus-within {
   overflow: hidden;
 }
 
+
 .formula-modal-header {
   display: flex;
   align-items: center;
@@ -4891,6 +5305,7 @@ math-field.cupertino-mathfield-input:focus-within {
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
+
 
 .formula-live-preview-box {
   background: #090a10;
@@ -4904,6 +5319,7 @@ math-field.cupertino-mathfield-input:focus-within {
   justify-content: center;
 }
 
+
 .preview-box-tag {
   font-size: 0.72rem;
   font-weight: 800;
@@ -4911,6 +5327,7 @@ math-field.cupertino-mathfield-input:focus-within {
   color: #38bdf8;
   text-transform: uppercase;
 }
+
 
 .preview-rendered-output {
   font-size: 1.25rem;
@@ -4922,11 +5339,13 @@ math-field.cupertino-mathfield-input:focus-within {
   padding: 4px 0;
 }
 
+
 .formula-input-row {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
+
 
 .formula-text-input {
   flex: 1;
@@ -4941,10 +5360,12 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: border-color 0.2s;
 }
 
+
 .formula-text-input:focus {
   border-color: #38bdf8;
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
 }
+
 
 .formula-categories-bar {
   display: flex;
@@ -4954,9 +5375,11 @@ math-field.cupertino-mathfield-input:focus-within {
   scrollbar-width: none;
 }
 
+
 .formula-categories-bar::-webkit-scrollbar {
   display: none;
 }
+
 
 .formula-cat-tab {
   padding: 8px 14px;
@@ -4971,11 +5394,13 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: all 0.2s;
 }
 
+
 .formula-cat-tab.active {
   background: rgba(56, 189, 248, 0.18);
   border-color: rgba(56, 189, 248, 0.45);
   color: #38bdf8;
 }
+
 
 .formula-chips-grid {
   display: grid;
@@ -4985,6 +5410,7 @@ math-field.cupertino-mathfield-input:focus-within {
   overflow-y: auto;
   padding: 4px 2px;
 }
+
 
 .formula-chip-item {
   background: #111420;
@@ -5002,6 +5428,7 @@ math-field.cupertino-mathfield-input:focus-within {
   text-align: center;
 }
 
+
 .formula-chip-item:hover,
 .formula-chip-item:active {
   background: rgba(56, 189, 248, 0.14);
@@ -5009,11 +5436,13 @@ math-field.cupertino-mathfield-input:focus-within {
   transform: translateY(-2px);
 }
 
+
 .formula-chip-item .chip-rendered {
   font-size: 1.05rem;
   color: #38bdf8;
   pointer-events: none;
 }
+
 
 .formula-chip-item .chip-name {
   font-size: 0.72rem;
@@ -5024,6 +5453,7 @@ math-field.cupertino-mathfield-input:focus-within {
   max-width: 100%;
 }
 
+
 .formula-modal-footer {
   display: flex;
   justify-content: space-between;
@@ -5033,6 +5463,7 @@ math-field.cupertino-mathfield-input:focus-within {
   gap: 12px;
   flex-wrap: wrap;
 }
+
 
 /* ==========================================================================
    MODO LECTURA ATÓMICA CENTRADA (EN EL MEDIO DE LA PANTALLA)
@@ -5046,6 +5477,7 @@ math-field.cupertino-mathfield-input:focus-within {
   box-sizing: border-box;
   width: 100%;
 }
+
 
 .atomic-reading-card {
   max-width: 980px;
@@ -5065,6 +5497,7 @@ math-field.cupertino-mathfield-input:focus-within {
   animation: cardFadeScale 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+
 @keyframes cardFadeScale {
   from {
     opacity: 0;
@@ -5076,6 +5509,7 @@ math-field.cupertino-mathfield-input:focus-within {
   }
 }
 
+
 .atomic-card-top-meta {
   display: flex;
   align-items: center;
@@ -5085,6 +5519,7 @@ math-field.cupertino-mathfield-input:focus-within {
   flex-wrap: wrap;
   gap: 10px;
 }
+
 
 .atomic-tag-badge {
   display: inline-flex;
@@ -5101,6 +5536,7 @@ math-field.cupertino-mathfield-input:focus-within {
   text-transform: uppercase;
 }
 
+
 .atomic-deck-link-chip {
   display: inline-flex;
   align-items: center;
@@ -5114,6 +5550,7 @@ math-field.cupertino-mathfield-input:focus-within {
   font-weight: 700;
 }
 
+
 .atomic-chunk-headline {
   font-size: 1.75rem;
   font-weight: 900;
@@ -5122,6 +5559,7 @@ math-field.cupertino-mathfield-input:focus-within {
   margin: 0;
   letter-spacing: -0.02em;
 }
+
 
 .atomic-reading-content {
   color: #f1f5f9;
@@ -5137,6 +5575,7 @@ math-field.cupertino-mathfield-input:focus-within {
   box-shadow: none;
 }
 
+
 .atomic-reading-content p,
 .atomic-reading-content .reading-p {
   margin: 0 0 16px 0;
@@ -5144,10 +5583,12 @@ math-field.cupertino-mathfield-input:focus-within {
   color: #e2e8f0;
 }
 
+
 .atomic-reading-content p:last-child,
 .atomic-reading-content .reading-p:last-child {
   margin-bottom: 0;
 }
+
 
 /* KaTeX Containers */
 .katex-block-container {
@@ -5162,15 +5603,18 @@ math-field.cupertino-mathfield-input:focus-within {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
+
 .katex-inline-container {
   display: inline-block;
   padding: 0 2px;
   vertical-align: middle;
 }
 
+
 .katex-display {
   margin: 0 !important;
 }
+
 
 /* Markdown Elements in Reading Screen */
 .apple-markdown-quote {
@@ -5183,6 +5627,7 @@ math-field.cupertino-mathfield-input:focus-within {
   font-style: italic;
 }
 
+
 .apple-table-wrap {
   overflow-x: auto;
   margin: 16px 0;
@@ -5191,12 +5636,14 @@ math-field.cupertino-mathfield-input:focus-within {
   background: rgba(0, 0, 0, 0.2);
 }
 
+
 .apple-markdown-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.94rem;
 }
+
 
 .apple-markdown-table th {
   background: rgba(255, 255, 255, 0.08);
@@ -5206,15 +5653,18 @@ math-field.cupertino-mathfield-input:focus-within {
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+
 .apple-markdown-table td {
   padding: 10px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   color: #e2e8f0;
 }
 
+
 .apple-markdown-table tr:last-child td {
   border-bottom: none;
 }
+
 
 .apple-markdown-h1 {
   font-size: 1.5rem;
@@ -5223,12 +5673,14 @@ math-field.cupertino-mathfield-input:focus-within {
   margin: 18px 0 10px 0;
 }
 
+
 .apple-markdown-h2 {
   font-size: 1.3rem;
   font-weight: 800;
   color: #ffffff;
   margin: 16px 0 8px 0;
 }
+
 
 .apple-markdown-h3 {
   font-size: 1.15rem;
@@ -5237,6 +5689,7 @@ math-field.cupertino-mathfield-input:focus-within {
   margin: 14px 0 6px 0;
 }
 
+
 .apple-markdown-h4 {
   font-size: 1.02rem;
   font-weight: 700;
@@ -5244,12 +5697,14 @@ math-field.cupertino-mathfield-input:focus-within {
   margin: 12px 0 4px 0;
 }
 
+
 .apple-markdown-hr {
   border: none;
   height: 1px;
   background: rgba(255, 255, 255, 0.1);
   margin: 20px 0;
 }
+
 
 .apple-markdown-list-item {
   display: flex;
@@ -5259,12 +5714,14 @@ math-field.cupertino-mathfield-input:focus-within {
   color: #e2e8f0;
 }
 
+
 .apple-markdown-list-item .list-bullet,
 .apple-markdown-list-item .list-number {
   color: #38bdf8;
   font-weight: 800;
   flex-shrink: 0;
 }
+
 
 .atomic-action-dock-centered {
   display: flex;
@@ -5275,6 +5732,7 @@ math-field.cupertino-mathfield-input:focus-within {
   flex-wrap: wrap;
   gap: 14px;
 }
+
 
 .btn-atomic-add-card {
   display: inline-flex;
@@ -5291,11 +5749,13 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: all 0.2s;
 }
 
+
 .btn-atomic-add-card:hover {
   transform: translateY(-2px);
   border-color: #38bdf8;
   box-shadow: 0 8px 25px rgba(56, 189, 248, 0.25);
 }
+
 
 .btn-atomic-continue {
   display: inline-flex;
@@ -5313,11 +5773,13 @@ math-field.cupertino-mathfield-input:focus-within {
   box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
 }
 
+
 .btn-atomic-continue:hover {
   transform: translateY(-2px);
   background: #7dd3fc;
   box-shadow: 0 10px 28px rgba(56, 189, 248, 0.5);
 }
+
 
 .btn-atomic-continue.locked {
   background: rgba(255, 255, 255, 0.07);
@@ -5328,6 +5790,7 @@ math-field.cupertino-mathfield-input:focus-within {
   opacity: 0.88;
 }
 
+
 .btn-atomic-continue.locked:hover {
   transform: none;
   background: rgba(239, 68, 68, 0.15);
@@ -5336,37 +5799,12 @@ math-field.cupertino-mathfield-input:focus-within {
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2);
 }
 
+
 /* ==========================================================================
    MAPA MENTAL ENTERPRISE $10M STUDIO
    ========================================================================== */
-#eureka-mindmap-fullscreen-mount {
-  position: fixed !important;
-  inset: 0 !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 9999 !important;
-  background: #07080d !important;
-  overflow: hidden !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
 
-.mindmap-viewport-wrapper {
-  position: absolute !important;
-  inset: 0 !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  overflow: hidden !important;
-  background: #07080d !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
+
 
 .mindmap-canvas-container,
 #mindmap-render-canvas {
@@ -5380,108 +5818,6 @@ math-field.cupertino-mathfield-input:focus-within {
   z-index: 1 !important;
 }
 
-.mindmap-canvas-container svg {
-  width: 100% !important;
-  height: 100% !important;
-  display: block !important;
-}
-
-.mindmap-top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  background: rgba(10, 12, 18, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  gap: 12px;
-  overflow-x: auto;
-}
-
-.mindmap-top-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.mindmap-pro-controls-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.mindmap-select-pill {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #e2e8f0;
-  padding: 7px 12px;
-  border-radius: 10px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.mindmap-select-pill:focus {
-  border-color: #38bdf8;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.mindmap-top-action-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #fff;
-  padding: 7px 14px;
-  border-radius: 10px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.18s;
-  white-space: nowrap;
-}
-
-.mindmap-top-action-chip:hover {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
-}
-
-.mindmap-top-action-chip.badge-glow {
-  background: rgba(168, 85, 247, 0.18);
-  border-color: rgba(168, 85, 247, 0.4);
-  color: #d8b4fe;
-}
-
-.mindmap-fit-main-btn {
-  background: rgba(56, 189, 248, 0.18) !important;
-  border-color: rgba(56, 189, 248, 0.5) !important;
-  color: #38bdf8 !important;
-}
-
-.mindmap-fit-main-btn:hover {
-  background: #38bdf8 !important;
-  color: #07080d !important;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
-}
-
-.mindmap-color-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: rgba(18, 20, 30, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-}
 
 .color-dot-btn {
   width: 22px;
@@ -5493,30 +5829,16 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: transform 0.15s;
 }
 
+
 .color-dot-btn:hover {
   transform: scale(1.25);
   border-color: #fff;
 }
 
+
 /* Barra de Búsqueda Flotante */
-.mindmap-search-floating-bar {
-  position: absolute;
-  top: 68px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 150;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(15, 18, 28, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(56, 189, 248, 0.4);
-  border-radius: 999px;
-  padding: 6px 14px;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.2);
-  animation: searchSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
+
+
 
 @keyframes searchSlideDown {
   from {
@@ -5529,14 +5851,6 @@ math-field.cupertino-mathfield-input:focus-within {
   }
 }
 
-.mindmap-search-floating-bar input {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 0.88rem;
-  width: 200px;
-  outline: none;
-}
 
 .search-counter {
   font-size: 0.78rem;
@@ -5546,6 +5860,7 @@ math-field.cupertino-mathfield-input:focus-within {
   padding: 2px 8px;
   border-radius: 999px;
 }
+
 
 .search-nav-btn {
   background: rgba(255, 255, 255, 0.08);
@@ -5562,48 +5877,16 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: all 0.15s;
 }
 
+
 .search-nav-btn:hover {
   background: rgba(56, 189, 248, 0.3);
   color: #38bdf8;
 }
 
+
 /* Botón Flotante Ergonómico de Centrado a Límites (Azul, compacto, circular, esquina inferior derecha) */
-.mindmap-floating-fit-btn {
-  position: absolute;
-  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
-  right: calc(22px + env(safe-area-inset-right, 0px));
-  z-index: 120;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #0284c7, #38bdf8);
-  color: #07080d;
-  border: 1.5px solid rgba(255, 255, 255, 0.45);
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.5), 0 0 16px rgba(56, 189, 248, 0.4);
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
-}
 
-.mindmap-floating-fit-btn svg {
-  stroke: #07080d;
-  width: 20px;
-  height: 20px;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-.mindmap-floating-fit-btn:hover {
-  transform: translateY(-2px) scale(1.08);
-  box-shadow: 0 12px 30px rgba(2, 132, 199, 0.65), 0 0 24px rgba(56, 189, 248, 0.6);
-}
-
-.mindmap-floating-fit-btn:active {
-  transform: translateY(1px) scale(0.92);
-}
 
 /* iOS / Figma Toggle Switch */
 .figma-toggle-switch {
@@ -5615,11 +5898,13 @@ math-field.cupertino-mathfield-input:focus-within {
   cursor: pointer;
 }
 
+
 .figma-toggle-switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
+
 
 .figma-toggle-slider {
   position: absolute;
@@ -5634,6 +5919,7 @@ math-field.cupertino-mathfield-input:focus-within {
   border-radius: 999px;
 }
 
+
 .figma-toggle-slider:before {
   position: absolute;
   content: "";
@@ -5647,21 +5933,23 @@ math-field.cupertino-mathfield-input:focus-within {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
+
 .figma-toggle-switch input:checked + .figma-toggle-slider {
   background: linear-gradient(135deg, #0284c7, #38bdf8);
   border-color: #38bdf8;
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
 }
 
+
 .figma-toggle-switch input:checked + .figma-toggle-slider:before {
   transform: translateX(22px);
   background-color: #ffffff;
 }
 
+
 /* Efecto de Flash/Highlight al Calzar Límites */
-.mindmap-fit-highlight {
-  animation: fitPulse 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-}
+
+
 
 @keyframes fitPulse {
   0% {
@@ -5671,6 +5959,7 @@ math-field.cupertino-mathfield-input:focus-within {
     box-shadow: inset 0 0 0 0 transparent, 0 0 0 transparent;
   }
 }
+
 
 /* Fila de Stickers Rápidos en Sheet de Edición */
 .sheet-stickers-row {
@@ -5682,9 +5971,11 @@ math-field.cupertino-mathfield-input:focus-within {
   -webkit-overflow-scrolling: touch;
 }
 
+
 .sheet-stickers-row::-webkit-scrollbar {
   display: none;
 }
+
 
 .sticker-chip {
   background: rgba(255, 255, 255, 0.05);
@@ -5697,10 +5988,12 @@ math-field.cupertino-mathfield-input:focus-within {
   flex-shrink: 0;
 }
 
+
 .sticker-chip:hover {
   transform: scale(1.2);
   background: rgba(255, 255, 255, 0.12);
 }
+
 
 /* Input de Edición de Nodo con Cursor de Alto Contraste */
 #input-sheet-text {
@@ -5720,10 +6013,12 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+
 #input-sheet-text:focus {
   border-color: #38bdf8;
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
 }
+
 
 /* Live Preview KaTeX en Sheet */
 .sheet-katex-live-preview-box {
@@ -5733,6 +6028,7 @@ math-field.cupertino-mathfield-input:focus-within {
   padding: 10px 14px;
   text-align: left;
 }
+
 
 .sheet-katex-live-preview-box .preview-tag {
   font-size: 0.7rem;
@@ -5744,26 +6040,17 @@ math-field.cupertino-mathfield-input:focus-within {
   margin-bottom: 4px;
 }
 
+
 .sheet-katex-live-preview-box .preview-content {
   color: #f1f5f9;
   font-size: 1.05rem;
   overflow-x: auto;
 }
 
+
 /* Modal Drawer de Flashcards del Tema */
-.mindmap-flashcards-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  animation: sheetFadeIn 0.2s ease-out;
-}
+
+
 
 .flashcards-modal-panel {
   max-width: 640px;
@@ -5779,6 +6066,7 @@ math-field.cupertino-mathfield-input:focus-within {
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(168, 85, 247, 0.15);
 }
 
+
 .flashcards-list-scroll {
   overflow-y: auto;
   display: flex;
@@ -5787,21 +6075,13 @@ math-field.cupertino-mathfield-input:focus-within {
   padding-right: 4px;
 }
 
-.mindmap-card-review-item {
-  background: #141624;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
 
 .review-item-front {
   font-size: 1rem;
   font-weight: 700;
   color: #fff;
 }
+
 
 .review-item-back {
   font-size: 0.92rem;
@@ -5811,6 +6091,7 @@ math-field.cupertino-mathfield-input:focus-within {
   padding-top: 8px;
 }
 
+
 /* Modal de Atajos de Teclado */
 .shortcuts-grid {
   display: grid;
@@ -5818,6 +6099,7 @@ math-field.cupertino-mathfield-input:focus-within {
   gap: 10px;
   margin-top: 10px;
 }
+
 
 .shortcut-row {
   display: flex;
@@ -5828,6 +6110,7 @@ math-field.cupertino-mathfield-input:focus-within {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
+
 
 .kbd-badge {
   padding: 3px 8px;
@@ -5840,6 +6123,7 @@ math-field.cupertino-mathfield-input:focus-within {
   color: #38bdf8;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
 }
+
 
 /* ==========================================================================
    INTERACTIVE VISUAL DECK LINKING SYSTEM ($10M APPLE GLASS)
@@ -5855,6 +6139,7 @@ math-field.cupertino-mathfield-input:focus-within {
   gap: 12px;
 }
 
+
 .deck-linking-label {
   font-size: 0.82rem;
   font-weight: 800;
@@ -5862,6 +6147,7 @@ math-field.cupertino-mathfield-input:focus-within {
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
+
 
 .deck-linking-count {
   font-size: 0.75rem;
@@ -5872,6 +6158,7 @@ math-field.cupertino-mathfield-input:focus-within {
   border-radius: 999px;
 }
 
+
 .deck-linking-subtext {
   font-size: 0.8rem;
   color: var(--f-text-secondary);
@@ -5879,11 +6166,13 @@ math-field.cupertino-mathfield-input:focus-within {
   line-height: 1.35;
 }
 
+
 .deck-search-input-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
+
 
 .deck-search-icon {
   position: absolute;
@@ -5892,6 +6181,7 @@ math-field.cupertino-mathfield-input:focus-within {
   pointer-events: none;
   opacity: 0.7;
 }
+
 
 .deck-search-input {
   width: 100%;
@@ -5906,9 +6196,11 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: border-color 0.15s;
 }
 
+
 .deck-search-input:focus {
   border-color: #38bdf8;
 }
+
 
 .deck-selection-grid {
   display: grid;
@@ -5918,6 +6210,7 @@ math-field.cupertino-mathfield-input:focus-within {
   overflow-y: auto;
   padding-right: 4px;
 }
+
 
 .deck-select-tile {
   position: relative;
@@ -5933,11 +6226,13 @@ math-field.cupertino-mathfield-input:focus-within {
   user-select: none;
 }
 
+
 .deck-select-tile:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.18);
   transform: translateY(-1px);
 }
+
 
 .deck-select-tile.active {
   background: rgba(56, 189, 248, 0.12);
@@ -5945,16 +6240,19 @@ math-field.cupertino-mathfield-input:focus-within {
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
 }
 
+
 .deck-select-tile-new {
   border-style: dashed;
   border-color: rgba(168, 85, 247, 0.4);
   background: rgba(168, 85, 247, 0.04);
 }
 
+
 .deck-select-tile-new:hover {
   border-color: #c084fc;
   background: rgba(168, 85, 247, 0.1);
 }
+
 
 .deck-select-tile-new.active {
   border-style: solid;
@@ -5962,6 +6260,7 @@ math-field.cupertino-mathfield-input:focus-within {
   background: rgba(168, 85, 247, 0.16);
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
 }
+
 
 .deck-tile-color-indicator {
   position: absolute;
@@ -5971,6 +6270,7 @@ math-field.cupertino-mathfield-input:focus-within {
   width: 4px;
   border-radius: 0 4px 4px 0;
 }
+
 
 .deck-tile-icon-wrap {
   width: 34px;
@@ -5984,12 +6284,14 @@ math-field.cupertino-mathfield-input:focus-within {
   flex-shrink: 0;
 }
 
+
 .deck-tile-info {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-width: 0;
 }
+
 
 .deck-tile-title {
   font-size: 0.86rem;
@@ -6000,11 +6302,13 @@ math-field.cupertino-mathfield-input:focus-within {
   text-overflow: ellipsis;
 }
 
+
 .deck-tile-meta {
   font-size: 0.72rem;
   color: var(--f-text-secondary);
   margin-top: 1px;
 }
+
 
 .deck-tile-check {
   width: 20px;
@@ -6020,9 +6324,11 @@ math-field.cupertino-mathfield-input:focus-within {
   flex-shrink: 0;
 }
 
+
 .deck-select-tile.active .deck-tile-check {
   display: flex;
 }
+
 
 .deck-new-inline-card {
   background: #090a12;
@@ -6031,6 +6337,7 @@ math-field.cupertino-mathfield-input:focus-within {
   padding: 14px;
   animation: cardFadeScale 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 
 .deck-inline-input {
   width: 100%;
@@ -6044,9 +6351,11 @@ math-field.cupertino-mathfield-input:focus-within {
   outline: none;
 }
 
+
 .deck-inline-input:focus {
   border-color: #c084fc;
 }
+
 
 .deck-inline-color-row {
   display: flex;
@@ -6055,10 +6364,12 @@ math-field.cupertino-mathfield-input:focus-within {
   margin-top: 10px;
 }
 
+
 .deck-color-pills {
   display: flex;
   gap: 8px;
 }
+
 
 .deck-color-pill {
   width: 22px;
@@ -6069,11 +6380,13 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: transform 0.1s, border-color 0.1s;
 }
 
+
 .deck-color-pill.active {
   border-color: #fff;
   transform: scale(1.18);
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
+
 
 /* ==========================================================================
    PHOTOMATH VISUAL MATH CALCULATOR & FLOATING KEYPAD (60 FPS WebView Flat)
@@ -6092,10 +6405,12 @@ math-field.cupertino-mathfield-input:focus-within {
   animation: pmOverlayFade 0.18s ease-out !important;
 }
 
+
 @keyframes pmOverlayFade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 
 .photomath-editor-sheet {
   width: 100%;
@@ -6112,6 +6427,7 @@ math-field.cupertino-mathfield-input:focus-within {
   transform: translateZ(0);
 }
 
+
 .photomath-header {
   display: flex;
   align-items: center;
@@ -6121,17 +6437,20 @@ math-field.cupertino-mathfield-input:focus-within {
   background: #111420;
 }
 
+
 .photomath-header-title {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+
 .photomath-logo-chip {
   font-size: 0.95rem;
   font-weight: 800;
   color: #fff;
 }
+
 
 .photomath-mode-tag {
   font-size: 0.72rem;
@@ -6142,11 +6461,13 @@ math-field.cupertino-mathfield-input:focus-within {
   border-radius: 999px;
 }
 
+
 .photomath-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 
 .photomath-icon-btn {
   background: rgba(255, 255, 255, 0.07);
@@ -6161,16 +6482,19 @@ math-field.cupertino-mathfield-input:focus-within {
   touch-action: manipulation;
 }
 
+
 .photomath-icon-btn:hover {
   background: rgba(56, 189, 248, 0.2);
   border-color: #38bdf8;
   color: #38bdf8;
 }
 
+
 .photomath-icon-btn.btn-close {
   padding: 6px 10px;
   font-size: 1rem;
 }
+
 
 .photomath-scope-badge {
   padding: 6px 16px;
@@ -6183,6 +6507,7 @@ math-field.cupertino-mathfield-input:focus-within {
   gap: 8px;
 }
 
+
 .photomath-input-section {
   padding: 12px 16px;
   display: flex;
@@ -6192,10 +6517,12 @@ math-field.cupertino-mathfield-input:focus-within {
   max-height: 36vh;
 }
 
+
 .photomath-input-wrapper {
   position: relative;
   width: 100%;
 }
+
 
 #photomath-textarea {
   width: 100%;
@@ -6214,10 +6541,12 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: border-color 0.15s;
 }
 
+
 #photomath-textarea:focus {
   border-color: #38bdf8;
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
 }
+
 
 .photomath-clear-btn {
   position: absolute;
@@ -6236,6 +6565,7 @@ math-field.cupertino-mathfield-input:focus-within {
   font-size: 0.8rem;
 }
 
+
 .photomath-preview-card {
   background: #05070c;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -6246,11 +6576,13 @@ math-field.cupertino-mathfield-input:focus-within {
   gap: 4px;
 }
 
+
 .preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 
 .preview-title {
   font-size: 0.72rem;
@@ -6259,10 +6591,12 @@ math-field.cupertino-mathfield-input:focus-within {
   letter-spacing: 0.04em;
 }
 
+
 .preview-status {
   font-size: 0.7rem;
   color: #34d399;
 }
+
 
 .preview-rendered-box {
   font-size: 1.15rem;
@@ -6274,6 +6608,7 @@ math-field.cupertino-mathfield-input:focus-within {
   padding: 2px 0;
 }
 
+
 .photomath-calc-banner {
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.14), rgba(168, 85, 247, 0.14));
   border: 1px solid rgba(56, 189, 248, 0.35);
@@ -6284,6 +6619,7 @@ math-field.cupertino-mathfield-input:focus-within {
   gap: 6px;
 }
 
+
 .calc-result-row {
   display: flex;
   align-items: center;
@@ -6292,12 +6628,14 @@ math-field.cupertino-mathfield-input:focus-within {
   color: #38bdf8;
 }
 
+
 .calc-text-wrap {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
 }
+
 
 .photomath-chips-bar {
   display: flex;
@@ -6306,6 +6644,7 @@ math-field.cupertino-mathfield-input:focus-within {
   overflow-x: auto;
   padding-top: 2px;
 }
+
 
 .pm-action-chip {
   padding: 6px 14px;
@@ -6322,10 +6661,12 @@ math-field.cupertino-mathfield-input:focus-within {
   min-height: 36px;
 }
 
+
 .pm-action-chip:active {
   background: #38bdf8;
   color: #07080d;
 }
+
 
 .photomath-keypad-panel {
   background: #06070d;
@@ -6336,12 +6677,14 @@ math-field.cupertino-mathfield-input:focus-within {
   gap: 6px;
 }
 
+
 .photomath-keypad-tabs {
   display: flex;
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 4px;
 }
+
 
 .pm-tab-btn {
   padding: 7px 12px;
@@ -6357,22 +6700,26 @@ math-field.cupertino-mathfield-input:focus-within {
   touch-action: manipulation;
 }
 
+
 .pm-tab-btn.active {
   background: rgba(56, 189, 248, 0.15);
   border-color: rgba(56, 189, 248, 0.4);
   color: #38bdf8;
 }
 
+
 .pm-tab-keyboard {
   background: rgba(255, 255, 255, 0.06);
   color: #cbd5e1;
 }
+
 
 .pm-keypad-grid-calc {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
 }
+
 
 .pm-keypad-grid-generic {
   display: grid;
@@ -6381,6 +6728,7 @@ math-field.cupertino-mathfield-input:focus-within {
   max-height: 195px;
   overflow-y: auto;
 }
+
 
 .pm-key {
   min-height: 48px;
@@ -6401,17 +6749,20 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: background 0.08s, transform 0.08s;
 }
 
+
 .pm-key:active {
   transform: scale(0.95);
   background: #38bdf8;
   color: #07080d;
 }
 
+
 .pm-key.key-num {
   background: #1b1f32;
   font-size: 1.15rem;
   font-weight: 800;
 }
+
 
 .pm-key.key-op {
   background: #132238;
@@ -6420,12 +6771,14 @@ math-field.cupertino-mathfield-input:focus-within {
   font-weight: 800;
 }
 
+
 .pm-key.key-equal {
   background: #38bdf8;
   color: #07080d;
   font-size: 1.3rem;
   font-weight: 900;
 }
+
 
 .pm-key.key-backspace {
   background: rgba(239, 68, 68, 0.18);
@@ -6434,11 +6787,13 @@ math-field.cupertino-mathfield-input:focus-within {
   font-size: 1.2rem;
 }
 
+
 .pm-key.key-func {
   background: #111420;
   color: #cbd5e1;
   font-size: 0.92rem;
 }
+
 
 .photomath-bottom-bar {
   display: flex;
@@ -6447,6 +6802,7 @@ math-field.cupertino-mathfield-input:focus-within {
   background: #090b12;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
 
 .pm-footer-btn {
   flex: 1;
@@ -6463,10 +6819,12 @@ math-field.cupertino-mathfield-input:focus-within {
   touch-action: manipulation;
 }
 
+
 .pm-btn-cancel {
   background: rgba(255, 255, 255, 0.08);
   color: #94a3b8;
 }
+
 
 .pm-btn-confirm {
   background: linear-gradient(135deg, #38bdf8, #0284c7);
@@ -6474,28 +6832,10 @@ math-field.cupertino-mathfield-input:focus-within {
   font-weight: 900;
 }
 
+
 /* Custom Node in Mind Map */
-.eureka-mindmap-custom-node {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  text-align: center;
-  word-break: break-word;
-  user-select: none;
-  -webkit-user-select: none;
-  pointer-events: none;
-}
 
-.eureka-mindmap-custom-node .katex {
-  font-size: 1.05em !important;
-  line-height: 1.25 !important;
-}
 
-.eureka-mindmap-custom-node .katex-display {
-  margin: 2px 0 !important;
-}
 
 /* ==========================================================================
    VAUL-STYLE MATH EDITOR DRAWER (60 FPS FLAT 2D ACCELERATED)
@@ -6514,10 +6854,12 @@ math-field.cupertino-mathfield-input:focus-within {
   animation: vaulOverlayFade 0.16s ease-out !important;
 }
 
+
 @keyframes vaulOverlayFade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 
 .vaul-math-drawer-sheet {
   width: 100%;
@@ -6537,10 +6879,12 @@ math-field.cupertino-mathfield-input:focus-within {
   animation: vaulSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+
 @keyframes vaulSlideUp {
   from { transform: translate3d(0, 100%, 0); }
   to { transform: translate3d(0, 0, 0); }
 }
+
 
 .vaul-drag-handle-bar {
   display: flex;
@@ -6550,12 +6894,14 @@ math-field.cupertino-mathfield-input:focus-within {
   cursor: grab;
 }
 
+
 .vaul-drag-handle {
   width: 40px;
   height: 4px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.22);
 }
+
 
 .vaul-drawer-header {
   display: flex;
@@ -6566,17 +6912,20 @@ math-field.cupertino-mathfield-input:focus-within {
   background: #121622;
 }
 
+
 .vaul-header-left {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+
 .vaul-header-title {
   font-size: 0.96rem;
   font-weight: 800;
   color: #ffffff;
 }
+
 
 .vaul-header-badge {
   font-size: 0.72rem;
@@ -6587,11 +6936,13 @@ math-field.cupertino-mathfield-input:focus-within {
   border-radius: 999px;
 }
 
+
 .vaul-header-right {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 
 .vaul-text-btn {
   background: rgba(255, 255, 255, 0.08);
@@ -6606,10 +6957,12 @@ math-field.cupertino-mathfield-input:focus-within {
   transition: background 0.1s;
 }
 
+
 .vaul-text-btn:active {
   background: rgba(56, 189, 248, 0.2);
   color: #38bdf8;
 }
+
 
 .vaul-btn-close {
   background: rgba(255, 255, 255, 0.06);
@@ -6626,6 +6979,7 @@ math-field.cupertino-mathfield-input:focus-within {
   touch-action: manipulation;
 }
 
+
 .vaul-scope-banner {
   padding: 6px 16px;
   font-size: 0.78rem;
@@ -6637,6 +6991,7 @@ math-field.cupertino-mathfield-input:focus-within {
   gap: 8px;
 }
 
+
 .vaul-mathfield-wrapper {
   position: relative;
   padding: 10px 16px;
@@ -6644,9 +6999,11 @@ math-field.cupertino-mathfield-input:focus-within {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+
 .vaul-mathfield-container {
   width: 100%;
 }
+
 
 .vaul-interactive-mathfield {
   width: 100%;
@@ -6667,6 +7024,7 @@ math-field.cupertino-mathfield-input:focus-within {
   cursor: text !important;
 }
 
+
 math-field,
 math-field::part(content),
 math-field::part(container) {
@@ -6675,6 +7033,7 @@ math-field::part(container) {
   cursor: text !important;
   touch-action: manipulation !important;
 }
+
 
 math-field::part(virtual-keyboard-toggle) {
   display: none !important;
@@ -6685,10 +7044,12 @@ math-field::part(virtual-keyboard-toggle) {
   opacity: 0 !important;
 }
 
+
 .vaul-interactive-mathfield:focus,
 .vaul-interactive-mathfield:focus-within {
   border-color: #38bdf8;
 }
+
 
 .vaul-clear-btn {
   position: absolute;
@@ -6709,6 +7070,7 @@ math-field::part(virtual-keyboard-toggle) {
   touch-action: manipulation;
 }
 
+
 .vaul-evaluation-bar {
   display: flex;
   align-items: center;
@@ -6719,6 +7081,7 @@ math-field::part(virtual-keyboard-toggle) {
   gap: 12px;
 }
 
+
 .vaul-eval-content {
   display: flex;
   align-items: center;
@@ -6728,14 +7091,17 @@ math-field::part(virtual-keyboard-toggle) {
   overflow-x: auto;
 }
 
+
 .vaul-eval-icon {
   font-size: 1.1rem;
 }
+
 
 .vaul-eval-text {
   font-weight: 800;
   white-space: nowrap;
 }
+
 
 .vaul-insert-result-btn {
   background: #38bdf8;
@@ -6751,9 +7117,11 @@ math-field::part(virtual-keyboard-toggle) {
   transition: transform 0.08s;
 }
 
+
 .vaul-insert-result-btn:active {
   transform: scale(0.96);
 }
+
 
 .vaul-keypad-section {
   padding: 6px 12px;
@@ -6763,12 +7131,14 @@ math-field::part(virtual-keyboard-toggle) {
   gap: 6px;
 }
 
+
 .vaul-keypad-tabs {
   display: flex;
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 2px;
 }
+
 
 .vaul-tab-btn {
   padding: 6px 12px;
@@ -6784,11 +7154,13 @@ math-field::part(virtual-keyboard-toggle) {
   touch-action: manipulation;
 }
 
+
 .vaul-tab-btn.active {
   background: rgba(56, 189, 248, 0.14);
   border-color: rgba(56, 189, 248, 0.35);
   color: #38bdf8;
 }
+
 
 .vaul-keypad-quick-bar {
   display: flex;
@@ -6800,9 +7172,11 @@ math-field::part(virtual-keyboard-toggle) {
   -webkit-overflow-scrolling: touch;
 }
 
+
 .vaul-keypad-quick-bar::-webkit-scrollbar {
   display: none;
 }
+
 
 .vaul-keypad-quick-bar .vaul-key {
   flex-shrink: 0;
@@ -6812,11 +7186,13 @@ math-field::part(virtual-keyboard-toggle) {
   font-size: 0.95rem;
 }
 
+
 .vaul-keypad-grid-calc {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
 }
+
 
 .vaul-keypad-grid-generic {
   display: grid;
@@ -6825,6 +7201,7 @@ math-field::part(virtual-keyboard-toggle) {
   max-height: 195px;
   overflow-y: auto;
 }
+
 
 .vaul-generic-nav-bar {
   display: grid;
@@ -6835,11 +7212,13 @@ math-field::part(virtual-keyboard-toggle) {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+
 .vaul-generic-nav-bar .vaul-key {
   height: 40px;
   min-height: 40px;
   font-size: 0.95rem;
 }
+
 
 .vaul-key {
   min-height: 48px;
@@ -6860,17 +7239,20 @@ math-field::part(virtual-keyboard-toggle) {
   transition: transform 0.06s;
 }
 
+
 .vaul-key:active {
   transform: scale(0.94);
   background: #38bdf8;
   color: #07080d;
 }
 
+
 .vaul-key.key-num {
   background: #191d2c;
   font-size: 1.15rem;
   font-weight: 800;
 }
+
 
 .vaul-key.key-op {
   background: #142033;
@@ -6879,12 +7261,14 @@ math-field::part(virtual-keyboard-toggle) {
   font-weight: 800;
 }
 
+
 .vaul-key.key-equal {
   background: #38bdf8;
   color: #07080d;
   font-size: 1.3rem;
   font-weight: 900;
 }
+
 
 .vaul-key.key-action {
   background: rgba(239, 68, 68, 0.16);
@@ -6893,17 +7277,20 @@ math-field::part(virtual-keyboard-toggle) {
   font-size: 1.15rem;
 }
 
+
 .vaul-key.key-nav {
   background: #171a27;
   color: #94a3b8;
   font-size: 1.25rem;
 }
 
+
 .vaul-key.key-func {
   background: #111420;
   color: #cbd5e1;
   font-size: 0.92rem;
 }
+
 
 .vaul-drawer-footer {
   display: flex;
@@ -6912,6 +7299,7 @@ math-field::part(virtual-keyboard-toggle) {
   background: #0d1017;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
 
 .vaul-footer-btn {
   flex: 1;
@@ -6928,16 +7316,19 @@ math-field::part(virtual-keyboard-toggle) {
   touch-action: manipulation;
 }
 
+
 .vaul-btn-cancel {
   background: rgba(255, 255, 255, 0.08);
   color: #94a3b8;
 }
+
 
 .vaul-btn-save {
   background: #38bdf8;
   color: #07080d;
   font-weight: 900;
 }
+
 
 /* =========================================================================
    UNIVERSAL SCIENCE SYMBOLS SELECTOR DRAWER (FLAT 2D - 60 FPS ULTRA-LOW END)
@@ -6954,10 +7345,12 @@ math-field::part(virtual-keyboard-toggle) {
   animation: ussFadeIn 0.18s ease-out;
 }
 
+
 @keyframes ussFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 
 .uss-drawer-sheet {
   width: 100%;
@@ -6975,10 +7368,12 @@ math-field::part(virtual-keyboard-toggle) {
   animation: ussSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+
 @keyframes ussSlideUp {
   from { transform: translate3d(0, 100%, 0); }
   to { transform: translate3d(0, 0, 0); }
 }
+
 
 .uss-drag-bar {
   display: flex;
@@ -6987,12 +7382,14 @@ math-field::part(virtual-keyboard-toggle) {
   padding: 8px 0 4px 0;
 }
 
+
 .uss-drag-pill {
   width: 36px;
   height: 4px;
   border-radius: 999px;
   background: #334155;
 }
+
 
 .uss-header {
   display: flex;
@@ -7003,11 +7400,13 @@ math-field::part(virtual-keyboard-toggle) {
   background: #0f172a;
 }
 
+
 .uss-header-left {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 
 .uss-title {
   font-size: 0.95rem;
@@ -7015,6 +7414,7 @@ math-field::part(virtual-keyboard-toggle) {
   color: #f8fafc;
   letter-spacing: -0.01em;
 }
+
 
 .uss-badge {
   font-size: 0.7rem;
@@ -7025,6 +7425,7 @@ math-field::part(virtual-keyboard-toggle) {
   color: #38bdf8;
   border: 1px solid #334155;
 }
+
 
 .uss-close-btn {
   background: #1e293b;
@@ -7041,16 +7442,19 @@ math-field::part(virtual-keyboard-toggle) {
   touch-action: manipulation;
 }
 
+
 .uss-close-btn:active {
   background: #334155;
   color: #ffffff;
 }
+
 
 .uss-search-wrapper {
   padding: 8px 16px;
   background: #0b1120;
   border-bottom: 1px solid #1e293b;
 }
+
 
 .uss-search-box {
   display: flex;
@@ -7062,10 +7466,12 @@ math-field::part(virtual-keyboard-toggle) {
   gap: 8px;
 }
 
+
 .uss-search-icon {
   font-size: 0.9rem;
   opacity: 0.7;
 }
+
 
 .uss-search-input {
   flex: 1;
@@ -7078,9 +7484,11 @@ math-field::part(virtual-keyboard-toggle) {
   -webkit-user-select: text !important;
 }
 
+
 .uss-search-input::placeholder {
   color: #64748b;
 }
+
 
 .uss-search-clear {
   background: transparent;
@@ -7091,6 +7499,7 @@ math-field::part(virtual-keyboard-toggle) {
   padding: 2px 6px;
   touch-action: manipulation;
 }
+
 
 .uss-tabs-nav {
   display: flex;
@@ -7104,9 +7513,11 @@ math-field::part(virtual-keyboard-toggle) {
   scrollbar-width: none;
 }
 
+
 .uss-tabs-nav::-webkit-scrollbar {
   display: none;
 }
+
 
 .uss-tab-chip {
   scroll-snap-align: start;
@@ -7125,12 +7536,14 @@ math-field::part(virtual-keyboard-toggle) {
   touch-action: manipulation;
 }
 
+
 .uss-tab-chip.active {
   background: #38bdf8;
   border-color: #38bdf8;
   color: #0f172a;
   font-weight: 700;
 }
+
 
 .uss-subcategories-bar {
   display: flex;
@@ -7142,9 +7555,11 @@ math-field::part(virtual-keyboard-toggle) {
   scrollbar-width: none;
 }
 
+
 .uss-subcategories-bar::-webkit-scrollbar {
   display: none;
 }
+
 
 .uss-subcat-pill {
   flex-shrink: 0;
@@ -7158,12 +7573,14 @@ math-field::part(virtual-keyboard-toggle) {
   touch-action: manipulation;
 }
 
+
 .uss-subcat-pill.active {
   background: #0284c7;
   border-color: #38bdf8;
   color: #ffffff;
   font-weight: 600;
 }
+
 
 .uss-grid-scroll-area {
   flex: 1;
@@ -7175,11 +7592,13 @@ math-field::part(virtual-keyboard-toggle) {
   max-height: 48vh;
 }
 
+
 .uss-symbols-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
   gap: 6px;
 }
+
 
 .uss-symbol-cell {
   min-height: 52px;
@@ -7198,11 +7617,13 @@ math-field::part(virtual-keyboard-toggle) {
   transition: background 0.1s, border-color 0.1s;
 }
 
+
 .uss-symbol-cell:active,
 .uss-symbol-cell.inserted {
   background: #0284c7 !important;
   border-color: #38bdf8 !important;
 }
+
 
 .uss-cell-preview {
   font-size: 1.05rem;
@@ -7215,9 +7636,11 @@ math-field::part(virtual-keyboard-toggle) {
   pointer-events: none;
 }
 
+
 .uss-cell-preview .katex {
   font-size: 0.95em;
 }
+
 
 .uss-cell-label {
   font-size: 0.62rem;
@@ -7231,6 +7654,7 @@ math-field::part(virtual-keyboard-toggle) {
   line-height: 1.1;
 }
 
+
 .uss-empty-state {
   display: flex;
   flex-direction: column;
@@ -7242,13 +7666,16 @@ math-field::part(virtual-keyboard-toggle) {
   text-align: center;
 }
 
+
 .uss-empty-state span {
   font-size: 2rem;
 }
 
+
 .uss-empty-state p {
   font-size: 0.85rem;
 }
+
 
 .uss-footer {
   display: flex;
@@ -7260,11 +7687,13 @@ math-field::part(virtual-keyboard-toggle) {
   gap: 12px;
 }
 
+
 .uss-footer-hint {
   font-size: 0.75rem;
   color: #64748b;
   flex: 1;
 }
+
 
 .uss-btn-done {
   padding: 8px 18px;
@@ -7279,94 +7708,25 @@ math-field::part(virtual-keyboard-toggle) {
   white-space: nowrap;
 }
 
+
 .uss-btn-done:active {
   background: #0284c7;
   color: #ffffff;
 }
 
+
 /* ==========================================================================
    MindMap: Two-Button Clean Toolbar & Dropdown Panels
    ========================================================================== */
 
-.mindmap-top-two-buttons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
-.mindmap-header-action-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #f1f5f9;
-  border-radius: 9999px;
-  padding: 6px 14px;
-  font-size: 0.84rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  user-select: none;
-}
 
-.mindmap-header-action-pill.mindmap-icon-only-pill {
-  padding: 6px 10px;
-  gap: 4px;
-  min-width: 44px;
-  justify-content: center;
-}
-
-.mindmap-header-action-pill:hover,
-.mindmap-header-action-pill.active {
-  background: rgba(56, 189, 248, 0.18);
-  border-color: rgba(56, 189, 248, 0.5);
-  color: #38bdf8;
-  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25);
-  transform: translateY(-1px);
-}
-
-.mindmap-header-action-pill:active {
-  transform: scale(0.96);
-}
-
-.mindmap-pill-arrow {
-  font-size: 0.7rem;
-  opacity: 0.7;
-}
 
 /* ==========================================================================
    MINMAP DROPDOWN HORIZONTAL RIBBON / DOCK (FORMATO HORIZONTAL)
    ========================================================================== */
-.mindmap-dropdown-menu-panel {
-  position: absolute;
-  top: 54px;
-  left: 12px;
-  right: 12px;
-  width: auto;
-  max-width: calc(100vw - 24px);
-  min-height: 46px;
-  height: 50px;
-  background: rgba(15, 23, 42, 0.96);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: 14px;
-  padding: 0 12px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  z-index: 250;
-  color: #f8fafc;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  overflow: visible; /* Clave: permite que los popovers floten sin recortarse */
-  white-space: nowrap;
-  animation: dropdownPopH 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
+
+
 
 @keyframes dropdownPopH {
   from {
@@ -7379,6 +7739,7 @@ math-field::part(virtual-keyboard-toggle) {
   }
 }
 
+
 .dropdown-h-group {
   display: inline-flex;
   align-items: center;
@@ -7386,12 +7747,14 @@ math-field::part(virtual-keyboard-toggle) {
   flex-shrink: 0;
 }
 
+
 .dropdown-h-title {
   font-size: 0.85rem;
   font-weight: 800;
   color: #38bdf8;
   letter-spacing: 0.3px;
 }
+
 
 .dropdown-h-label {
   font-size: 0.72rem;
@@ -7401,12 +7764,14 @@ math-field::part(virtual-keyboard-toggle) {
   letter-spacing: 0.4px;
 }
 
+
 .dropdown-h-divider {
   width: 1px;
   height: 24px;
   background: rgba(255, 255, 255, 0.12);
   flex-shrink: 0;
 }
+
 
 /* Anclas y Botones Compactos (Solo Emoji / Círculo / Número) */
 .popover-anchor {
@@ -7415,56 +7780,19 @@ math-field::part(virtual-keyboard-toggle) {
   align-items: center;
 }
 
-.compact-trigger-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid rgba(56, 189, 248, 0.32);
-  border-radius: 9999px;
-  padding: 4px 8px;
-  height: 34px;
-  min-width: 42px;
-  cursor: pointer;
-  color: #f8fafc;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  transition: all 0.15s ease;
-  user-select: none;
-}
-
-.compact-trigger-pill:hover,
-.compact-trigger-pill.active {
-  background: rgba(56, 189, 248, 0.22);
-  border-color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
-  transform: translateY(-1px);
-}
-
-.compact-trigger-pill:active {
-  transform: scale(0.96);
-}
-
-.compact-trigger-pill.danger {
-  color: #ef4444;
-  border-color: rgba(239, 68, 68, 0.4);
-}
-
-.compact-trigger-pill.danger:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: #ef4444;
-}
 
 .trigger-val-emoji {
   font-size: 1.15rem;
   line-height: 1;
 }
 
+
 .trigger-val-num {
   font-size: 0.86rem;
   font-weight: 800;
   color: #f1f5f9;
 }
+
 
 .color-dot-circle {
   width: 18px;
@@ -7474,12 +7802,14 @@ math-field::part(virtual-keyboard-toggle) {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+
 .mini-chevron {
   font-size: 0.65rem;
   color: #38bdf8;
   opacity: 0.8;
   margin-left: 1px;
 }
+
 
 /* Burbujas de Popover Flotante */
 .popover-bubble {
@@ -7501,11 +7831,13 @@ math-field::part(virtual-keyboard-toggle) {
   animation: popoverFadeIn 0.14s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+
 .popover-bubble.popover-grid-theme {
   display: grid;
   grid-template-columns: repeat(5, 34px);
   gap: 6px;
 }
+
 
 @keyframes popoverFadeIn {
   from {
@@ -7517,6 +7849,7 @@ math-field::part(virtual-keyboard-toggle) {
     transform: translateY(0);
   }
 }
+
 
 .popover-item-emoji {
   background: rgba(255, 255, 255, 0.05);
@@ -7532,12 +7865,14 @@ math-field::part(virtual-keyboard-toggle) {
   transition: all 0.12s ease;
 }
 
+
 .popover-item-emoji:hover,
 .popover-item-emoji.active {
   background: rgba(56, 189, 248, 0.25);
   border-color: #38bdf8;
   transform: scale(1.12);
 }
+
 
 .popover-item-number {
   background: rgba(255, 255, 255, 0.06);
@@ -7555,6 +7890,7 @@ math-field::part(virtual-keyboard-toggle) {
   transition: all 0.12s ease;
 }
 
+
 .popover-item-number:hover,
 .popover-item-number.active {
   background: rgba(56, 189, 248, 0.25);
@@ -7563,46 +7899,13 @@ math-field::part(virtual-keyboard-toggle) {
   transform: scale(1.1);
 }
 
+
 @media (max-width: 640px) {
-  .mindmap-top-bar {
-    padding: 8px 12px;
-    gap: 8px;
-  }
-  .mindmap-top-title {
-    max-width: 110px;
-    font-size: 0.82rem;
-  }
-  .mindmap-touch-btn {
-    width: 38px;
-    height: 38px;
-  }
-  .mindmap-touch-btn svg {
-    width: 18px;
-    height: 18px;
-  }
-  .mindmap-dropdown-menu-panel {
-    top: 48px;
-    left: 6px;
-    right: 6px;
-    max-width: calc(100vw - 12px);
-    padding: 0 8px;
-    height: 46px;
-    gap: 6px;
-  }
-  .dropdown-h-title {
+.dropdown-h-title {
     font-size: 0.76rem;
-  }
-  .compact-trigger-pill {
-    height: 32px;
-    min-width: 38px;
-    padding: 3px 6px;
   }
   .dropdown-h-group {
     gap: 4px;
-  }
-  .mindmap-header-action-pill.mindmap-icon-only-pill {
-    padding: 5px 8px;
-    min-width: 40px;
   }
   .popover-bubble {
     max-width: calc(100vw - 20px);
@@ -7612,26 +7915,11 @@ math-field::part(virtual-keyboard-toggle) {
     grid-template-columns: repeat(4, 32px);
     gap: 4px;
   }
-  .mindmap-floating-fit-btn {
-    bottom: 24px;
-    right: 14px;
-    padding: 0;
-    width: 44px;
-    height: 44px;
-    justify-content: center;
-    border-radius: 50%;
-  }
-  .mindmap-floating-fit-btn span {
-    display: none;
-  }
 }
 
+
 @media (max-width: 480px) {
-  .mindmap-top-title {
-    max-width: 85px;
-    font-size: 0.78rem;
-  }
-  .dropdown-h-title {
+.dropdown-h-title {
     display: none;
   }
   .dropdown-h-divider {
@@ -7642,16 +7930,19 @@ math-field::part(virtual-keyboard-toggle) {
   }
 }
 
+
 .dropdown-select-clean-sm:hover {
   border-color: #38bdf8;
   background-color: rgba(30, 41, 59, 1);
   box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
 }
 
+
 .dropdown-select-clean-sm:focus {
   border-color: #38bdf8;
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
 }
+
 
 .dropdown-select-clean-sm option {
   background-color: #0b0f19;
@@ -7659,28 +7950,6 @@ math-field::part(virtual-keyboard-toggle) {
   padding: 10px 14px;
 }
 
-.mindmap-touch-btn.mindmap-touch-btn-compact {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #cbd5e1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  transition: all 0.15s ease;
-}
-
-.mindmap-touch-btn.mindmap-touch-btn-compact:hover {
-  border-color: #38bdf8;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.15);
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
-  transform: translateY(-1px);
-}
-
-.mindmap-touch-btn.mindmap-touch-btn-compact:active {
-  transform: scale(0.94);
-}
 
 .theme-chips-row-sm,
 .text-size-chips-row-sm {
@@ -7689,6 +7958,7 @@ math-field::part(virtual-keyboard-toggle) {
   gap: 5px;
   flex-shrink: 0;
 }
+
 
 .theme-chip-btn {
   background: rgba(30, 41, 59, 0.8);
@@ -7704,12 +7974,14 @@ math-field::part(virtual-keyboard-toggle) {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
+
 .theme-chip-btn:hover {
   background: rgba(56, 189, 248, 0.15);
   border-color: rgba(56, 189, 248, 0.4);
   color: #38bdf8;
   transform: translateY(-1px);
 }
+
 
 .theme-chip-btn.active {
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(14, 165, 233, 0.35));
@@ -7718,12 +7990,14 @@ math-field::part(virtual-keyboard-toggle) {
   box-shadow: 0 0 0 1px #38bdf8, 0 4px 12px rgba(56, 189, 248, 0.3);
 }
 
+
 .color-dots-row-sm {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
 }
+
 
 .color-dots-row-sm .color-dot-btn {
   width: 20px;
@@ -7735,10 +8009,12 @@ math-field::part(virtual-keyboard-toggle) {
   padding: 0;
 }
 
+
 .color-dots-row-sm .color-dot-btn:hover {
   transform: scale(1.2);
   border-color: #fff;
 }
+
 
 .text-size-btn-sm {
   background: #1e293b;
@@ -7752,12 +8028,14 @@ math-field::part(virtual-keyboard-toggle) {
   transition: all 0.12s ease;
 }
 
+
 .text-size-btn-sm:hover,
 .text-size-btn-sm.active {
   background: rgba(56, 189, 248, 0.2);
   border-color: #38bdf8;
   color: #38bdf8;
 }
+
 
 .dropdown-tool-btn-sm {
   display: inline-flex;
@@ -7776,6 +8054,7 @@ math-field::part(virtual-keyboard-toggle) {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
+
 .dropdown-tool-btn-sm:hover {
   background: rgba(56, 189, 248, 0.2);
   border-color: rgba(56, 189, 248, 0.5);
@@ -7784,9 +8063,11 @@ math-field::part(virtual-keyboard-toggle) {
   box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
 }
 
+
 .dropdown-tool-btn-sm:active {
   transform: scale(0.96);
 }
+
 
 .figma-btn-white-pill-sm {
   display: inline-flex;
@@ -7804,20 +8085,24 @@ math-field::part(virtual-keyboard-toggle) {
   transition: all 0.12s ease;
 }
 
+
 .figma-btn-white-pill-sm:hover {
   border-color: #38bdf8;
   color: #38bdf8;
 }
+
 
 .figma-btn-white-pill-sm.danger {
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
 }
 
+
 .figma-btn-white-pill-sm.danger:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: #ef4444;
 }
+
 
 .figma-btn-study-sm {
   display: inline-flex;
@@ -7836,10 +8121,12 @@ math-field::part(virtual-keyboard-toggle) {
   transition: transform 0.12s ease;
 }
 
+
 .figma-btn-study-sm:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(56, 189, 248, 0.45);
 }
+
 
 .btn-dropdown-close-sm {
   margin-left: auto;
@@ -7858,10 +8145,12 @@ math-field::part(virtual-keyboard-toggle) {
   transition: all 0.12s ease;
 }
 
+
 .btn-dropdown-close-sm:hover {
   background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
 }
+
 
 /* ==========================================================================
    VISIBILIDAD PERFECTA DEL CURSOR Y SELECCIÓN DE TEXTO (CARET & SELECTION)
@@ -7880,6 +8169,7 @@ math-field::part(virtual-keyboard-toggle) {
   -webkit-user-select: text !important;
 }
 
+
 /* Selección de texto visible y de alto contraste */
 #input-sheet-text::selection,
 .edit-sheet-panel textarea::selection,
@@ -7895,19 +8185,16 @@ math-field::part(virtual-keyboard-toggle) {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
+
 ::selection {
   background: rgba(56, 189, 248, 0.42);
   color: #ffffff;
 }
 
+
 /* Renderizado y ajuste inmediato de imágenes en recuadros */
-.eureka-node-img-rendered {
-  display: block !important;
-  border-radius: 8px !important;
-  object-fit: cover !important;
-  margin-bottom: 6px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
-}
+
+
 
 /* ==========================================================================
    Cuadernos de Estudio: Vista Ultra Clean
@@ -7924,6 +8211,7 @@ math-field::part(virtual-keyboard-toggle) {
   animation: iosFadeIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+
 .notebooks-view-header {
   display: flex;
   align-items: center;
@@ -7937,10 +8225,12 @@ math-field::part(virtual-keyboard-toggle) {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
 }
 
+
 .notebooks-header-left {
   flex: 1;
   min-width: 240px;
 }
+
 
 .notebooks-header-badge {
   display: inline-flex;
@@ -7957,6 +8247,7 @@ math-field::part(virtual-keyboard-toggle) {
   margin-bottom: 6px;
 }
 
+
 .notebooks-header-title {
   font-size: 1.4rem;
   font-weight: 900;
@@ -7966,6 +8257,7 @@ math-field::part(virtual-keyboard-toggle) {
   line-height: 1.25;
 }
 
+
 .notebooks-header-subtitle {
   font-size: 0.84rem;
   color: var(--f-text-secondary);
@@ -7974,11 +8266,13 @@ math-field::part(virtual-keyboard-toggle) {
   max-width: 620px;
 }
 
+
 .notebooks-header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 
 /* Barra de Búsqueda y Filtros */
 .notebooks-search-bar-wrap {
@@ -7991,6 +8285,7 @@ math-field::part(virtual-keyboard-toggle) {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+
 .notebooks-search-input-box {
   display: flex;
   align-items: center;
@@ -8001,10 +8296,12 @@ math-field::part(virtual-keyboard-toggle) {
   padding: 8px 14px;
 }
 
+
 .notebooks-search-icon {
   font-size: 1rem;
   opacity: 0.6;
 }
+
 
 .notebooks-search-input {
   flex: 1;
@@ -8015,9 +8312,11 @@ math-field::part(virtual-keyboard-toggle) {
   font-size: 0.92rem;
 }
 
+
 .notebooks-search-input::placeholder {
   color: rgba(255, 255, 255, 0.35);
 }
+
 
 .notebooks-subject-pills-row {
   display: flex;
@@ -8027,6 +8326,7 @@ math-field::part(virtual-keyboard-toggle) {
   -webkit-overflow-scrolling: touch;
   padding-bottom: 4px;
 }
+
 
 .notebook-subject-filter-btn {
   white-space: nowrap;
@@ -8042,10 +8342,12 @@ math-field::part(virtual-keyboard-toggle) {
   flex-shrink: 0;
 }
 
+
 .notebook-subject-filter-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
+
 
 .notebook-subject-filter-btn.active {
   background: rgba(56, 189, 248, 0.2);
@@ -8054,12 +8356,14 @@ math-field::part(virtual-keyboard-toggle) {
   font-weight: 700;
 }
 
+
 /* Estantería / Grid de Cuadernos */
 .notebooks-shelf-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 22px;
 }
+
 
 .notebook-card {
   display: flex;
@@ -8073,11 +8377,13 @@ math-field::part(virtual-keyboard-toggle) {
   position: relative;
 }
 
+
 .notebook-card:hover {
   transform: translateY(-4px);
   border-color: rgba(56, 189, 248, 0.4);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.15);
 }
+
 
 .notebook-card-cover {
   height: 155px;
@@ -8089,6 +8395,7 @@ math-field::part(virtual-keyboard-toggle) {
   overflow: hidden;
 }
 
+
 .notebook-card-cover::before {
   content: '';
   position: absolute;
@@ -8096,6 +8403,7 @@ math-field::part(virtual-keyboard-toggle) {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.65) 100%);
   pointer-events: none;
 }
+
 
 /* Lomo del cuaderno (efecto visual de encuadernación) */
 .notebook-cover-spine {
@@ -8110,6 +8418,7 @@ math-field::part(virtual-keyboard-toggle) {
   pointer-events: none;
 }
 
+
 .notebook-cover-badge-row {
   display: flex;
   align-items: center;
@@ -8118,6 +8427,7 @@ math-field::part(virtual-keyboard-toggle) {
   position: relative;
   margin-left: 6px;
 }
+
 
 .notebook-cover-subject-tag {
   display: inline-flex;
@@ -8129,6 +8439,7 @@ math-field::part(virtual-keyboard-toggle) {
   font-weight: 700;
   backdrop-filter: blur(8px);
 }
+
 
 .notebook-delete-btn {
   background: rgba(0, 0, 0, 0.4);
@@ -8145,17 +8456,20 @@ math-field::part(virtual-keyboard-toggle) {
   transition: all 0.15s ease;
 }
 
+
 .notebook-delete-btn:hover {
   background: rgba(239, 68, 68, 0.25);
   border-color: #ef4444;
   transform: scale(1.1);
 }
 
+
 .notebook-cover-content {
   z-index: 3;
   position: relative;
   margin-left: 6px;
 }
+
 
 .notebook-cover-title {
   font-size: 1.15rem;
@@ -8170,6 +8484,7 @@ math-field::part(virtual-keyboard-toggle) {
   overflow: hidden;
 }
 
+
 .notebook-card-body {
   padding: 16px;
   display: flex;
@@ -8178,6 +8493,7 @@ math-field::part(virtual-keyboard-toggle) {
   flex: 1;
   background: rgba(15, 23, 42, 0.6);
 }
+
 
 .notebook-card-desc {
   font-size: 0.84rem;
@@ -8191,6 +8507,7 @@ math-field::part(virtual-keyboard-toggle) {
   min-height: 38px;
 }
 
+
 .notebook-card-meta {
   display: flex;
   align-items: center;
@@ -8202,12 +8519,14 @@ math-field::part(virtual-keyboard-toggle) {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+
 .notebook-card-deck-pill,
 .notebook-card-chunks-pill {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 
 .notebook-card-actions {
   display: flex;
@@ -8216,10 +8535,12 @@ math-field::part(virtual-keyboard-toggle) {
   margin-top: 4px;
 }
 
+
 .notebook-card-actions button {
   flex: 1;
   justify-content: center;
 }
+
 
 .notebooks-empty-state {
   text-align: center;
@@ -8229,6 +8550,7 @@ math-field::part(virtual-keyboard-toggle) {
   background: rgba(15, 23, 42, 0.4);
 }
 
+
 /* ==========================================================================
    REACT & TYPESCRIPT LIVE SANDBOX & CODE VIEWER (EUREKA NOTEBOOKS & FEYNMAN)
    ========================================================================== */
@@ -8237,25 +8559,30 @@ math-field::part(virtual-keyboard-toggle) {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+
 .reading-sandbox-header {
   user-select: none;
 }
+
 
 .btn-toggle-reading-sandbox {
   transition: all 0.2s ease;
   font-family: inherit;
 }
 
+
 .btn-toggle-reading-sandbox:hover {
   color: #fff !important;
   background: rgba(56, 189, 248, 0.15) !important;
 }
+
 
 .btn-toggle-reading-sandbox.active {
   color: #fff !important;
   background: rgba(56, 189, 248, 0.25) !important;
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
 }
+
 
 .code-viewer-scrollable {
   padding: 12px 0;
@@ -8264,6 +8591,7 @@ math-field::part(virtual-keyboard-toggle) {
   line-height: 1.6;
 }
 
+
 .code-line {
   display: flex;
   padding: 1px 16px;
@@ -8271,9 +8599,11 @@ math-field::part(virtual-keyboard-toggle) {
   transition: background 0.12s ease;
 }
 
+
 .code-line:hover {
   background: rgba(56, 189, 248, 0.06);
 }
+
 
 .code-gutter {
   width: 42px;
@@ -8285,6 +8615,7 @@ math-field::part(virtual-keyboard-toggle) {
   font-size: 0.76rem;
 }
 
+
 .code-content {
   flex: 1;
   white-space: pre;
@@ -8292,35 +8623,42 @@ math-field::part(virtual-keyboard-toggle) {
   color: #cbd5e1;
 }
 
+
 /* Syntax Highlighting Tokens */
 .tok-keyword {
   color: #f472b6;
   font-weight: 600;
 }
 
+
 .tok-hook {
   color: #38bdf8;
   font-weight: 700;
 }
+
 
 .tok-builtin {
   color: #a78bfa;
   font-weight: 600;
 }
 
+
 .tok-tag {
   color: #60a5fa;
   font-weight: 600;
 }
 
+
 .tok-string {
   color: #4ade80;
 }
+
 
 .tok-comment {
   color: #64748b;
   font-style: italic;
 }
+
 
 /* Modo Pantalla Completa Inmersivo */
 .feynman-interactive-sandbox-widget.reading-sandbox-fullscreen {
@@ -8339,15 +8677,18 @@ math-field::part(virtual-keyboard-toggle) {
   box-shadow: none !important;
 }
 
+
 .feynman-interactive-sandbox-widget.reading-sandbox-fullscreen .reading-sandbox-main-layout {
   flex: 1 !important;
   height: calc(100vh - 54px) !important;
 }
 
+
 .feynman-interactive-sandbox-widget.reading-sandbox-fullscreen .reading-sandbox-live-box,
 .feynman-interactive-sandbox-widget.reading-sandbox-fullscreen .reading-sandbox-code-box {
   height: 100% !important;
 }
+
 
 /* ==========================================================================
    FEYNMAN LEVEL & FINAL EXAMS INTERACTIVE QUIZZES
@@ -8364,9 +8705,11 @@ math-field::part(virtual-keyboard-toggle) {
   transition: all 0.2s ease;
 }
 
+
 .feynman-quiz-card:hover {
   border-color: rgba(56, 189, 248, 0.3);
 }
+
 
 .feynman-quiz-q-num {
   font-size: 0.74rem;
@@ -8378,6 +8721,7 @@ math-field::part(virtual-keyboard-toggle) {
   border-radius: 999px;
   display: inline-block;
 }
+
 
 .feynman-quiz-option {
   width: 100%;
@@ -8396,12 +8740,14 @@ math-field::part(virtual-keyboard-toggle) {
   gap: 10px;
 }
 
+
 .feynman-quiz-option:hover:not(:disabled) {
   background: rgba(56, 189, 248, 0.08);
   border-color: rgba(56, 189, 248, 0.4);
   color: #fff;
   transform: translateX(3px);
 }
+
 
 .feynman-quiz-option.correct {
   background: rgba(16, 185, 129, 0.15) !important;
@@ -8410,16 +8756,19 @@ math-field::part(virtual-keyboard-toggle) {
   font-weight: 700;
 }
 
+
 .feynman-quiz-option.incorrect {
   background: rgba(244, 63, 94, 0.15) !important;
   border-color: #f43f5e !important;
   color: #fecdd3 !important;
 }
 
+
 .feynman-quiz-option:disabled {
   cursor: default;
   opacity: 0.85;
 }
+
 
 .feynman-quiz-explanation {
   margin-top: 6px;
@@ -8430,17 +8779,20 @@ math-field::part(virtual-keyboard-toggle) {
   animation: fadeIn 0.25s ease-out;
 }
 
+
 .feynman-quiz-explanation.correct-exp {
   background: rgba(16, 185, 129, 0.08);
   border: 1px solid rgba(16, 185, 129, 0.25);
   color: #d1fae5;
 }
 
+
 .feynman-quiz-explanation.incorrect-exp {
   background: rgba(244, 63, 94, 0.08);
   border: 1px solid rgba(244, 63, 94, 0.25);
   color: #ffe4e6;
 }
+
 
 .feynman-exam-score-pill {
   font-size: 0.82rem;
@@ -8451,6 +8803,7 @@ math-field::part(virtual-keyboard-toggle) {
   align-items: center;
   gap: 6px;
 }
+
 
 /* ==========================================================================
    EUREKA 60 FPS ULTRA-RESPONSIVE & ACCESSIBILITY SUITE
@@ -8466,11 +8819,13 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+
 body, #app {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
 }
+
 
 /* Hardware accelerated panels for buttery 60 FPS */
 .apple-glass-panel,
@@ -8486,6 +8841,7 @@ body, #app {
   -webkit-backface-visibility: hidden;
 }
 
+
 /* 2. Safe Area Insets for Modern Mobile Notches & Gesture Bars */
 :root {
   --sat: env(safe-area-inset-top, 0px);
@@ -8494,9 +8850,10 @@ body, #app {
   --sar: env(safe-area-inset-right, 0px);
 }
 
+
 /* 3. Mobile Adaptive Rules (Phone Screens <= 640px) */
 @media (max-width: 640px) {
-  /* Touch target sizes >= 40px for ergonomics */
+/* Touch target sizes >= 40px for ergonomics */
   button,
   .figma-btn-ghost,
   .figma-btn-blue-pill,
@@ -8577,12 +8934,14 @@ body, #app {
   }
 }
 
+
 /* 4. Tablet Landscape & Desktop Optimizations (>= 1024px) */
 @media (min-width: 1024px) {
-  .modal-container {
+.modal-container {
     max-height: 90vh;
   }
 }
+
 
 /* ==========================================================================
    ANIMACIONES ELEGANTES ENTRE ÁTOMOS Y TRANSICIONES SINÉRGICAS
@@ -8598,6 +8957,7 @@ body, #app {
   }
 }
 
+
 @keyframes pulseSynergyGlow {
   0%, 100% {
     border-color: rgba(56, 189, 248, 0.3);
@@ -8608,6 +8968,7 @@ body, #app {
     box-shadow: 0 0 18px rgba(168, 85, 247, 0.22);
   }
 }
+
 
 @keyframes synergicBeamFlow {
   0% {
@@ -8621,16 +8982,19 @@ body, #app {
   }
 }
 
+
 .feynman-sublevel-card {
   animation: atomSlideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
   transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
 }
+
 
 .feynman-sublevel-card:hover {
   transform: translateY(-2px);
   border-color: rgba(56, 189, 248, 0.4) !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
+
 
 .feynman-synergic-bridge {
   position: relative;
@@ -8642,10 +9006,12 @@ body, #app {
   transition: all 0.25s ease;
 }
 
+
 .feynman-synergic-bridge:hover {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(168, 85, 247, 0.15));
   border-color: #38bdf8;
 }
+
 
 /* ==========================================================================
    MODO HORIZONTAL / ECHADO EN EL CELULAR (LANDSCAPE MODE)
@@ -8653,6 +9019,7 @@ body, #app {
 html.eureka-landscape-mode {
   overflow-x: hidden;
 }
+
 
 html.eureka-landscape-mode .modal-container {
   width: 100vw !important;
@@ -8662,6 +9029,7 @@ html.eureka-landscape-mode .modal-container {
   border-radius: 0 !important;
 }
 
+
 html.eureka-landscape-mode #feynman-viewer-body {
   padding: 14px 28px !important;
   display: grid !important;
@@ -8669,13 +9037,16 @@ html.eureka-landscape-mode #feynman-viewer-body {
   gap: 16px !important;
 }
 
+
 html.eureka-landscape-mode .atomic-reading-card {
   max-width: 92vw !important;
 }
 
+
 html.eureka-landscape-mode .notebooks-view-container {
   padding: 10px 24px !important;
 }
+
 
 /* ==========================================================================
    CARPETAS DE CUADERNOS DE ESTUDIO (FOLDERS)
@@ -8693,6 +9064,7 @@ html.eureka-landscape-mode .notebooks-view-container {
   gap: 12px;
 }
 
+
 .notebook-folder-card::before {
   content: '';
   position: absolute;
@@ -8706,15 +9078,18 @@ html.eureka-landscape-mode .notebooks-view-container {
   border-bottom: none;
 }
 
+
 .notebook-folder-card:hover {
   transform: translateY(-3px);
   border-color: #38bdf8;
   box-shadow: 0 12px 30px rgba(56, 189, 248, 0.18);
 }
 
+
 .notebook-folder-card:hover::before {
   background: #38bdf8;
 }
+
 
 .notebook-breadcrumbs {
   display: flex;
@@ -8727,6 +9102,7 @@ html.eureka-landscape-mode .notebooks-view-container {
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 0.85rem;
 }
+
 
 .notebook-breadcrumb-item {
   background: none;
@@ -8743,19 +9119,23 @@ html.eureka-landscape-mode .notebooks-view-container {
   transition: all 0.2s ease;
 }
 
+
 .notebook-breadcrumb-item:hover {
   background: rgba(56, 189, 248, 0.15);
 }
+
 
 .notebook-breadcrumb-item.active {
   color: #fff;
   cursor: default;
 }
 
+
 .notebook-breadcrumb-sep {
   color: var(--f-text-muted);
   font-size: 0.85rem;
 }
+
 
 .notebook-folder-preview {
   display: flex;
@@ -8763,16 +9143,19 @@ html.eureka-landscape-mode .notebooks-view-container {
   gap: 12px;
 }
 
+
 .notebook-folder-icon {
   font-size: 2.2rem;
   line-height: 1;
 }
+
 
 .notebook-folder-meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
+
 
 .notebook-folder-badge {
   font-size: 0.68rem;
@@ -8782,10 +9165,12 @@ html.eureka-landscape-mode .notebooks-view-container {
   text-transform: uppercase;
 }
 
+
 .notebook-folder-count {
   font-size: 0.78rem;
   color: var(--f-text-secondary);
 }
+
 
 .feynman-atom-nav-bar {
   display: flex;
@@ -8796,6 +9181,7 @@ html.eureka-landscape-mode .notebooks-view-container {
   padding-top: 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
 
 .feynman-atom-nav-btn {
   display: inline-flex;
@@ -8812,16 +9198,19 @@ html.eureka-landscape-mode .notebooks-view-container {
   color: #fff;
 }
 
+
 .feynman-atom-nav-btn:hover:not(:disabled) {
   background: rgba(56, 189, 248, 0.15);
   border-color: #38bdf8;
   color: #38bdf8;
 }
 
+
 .feynman-atom-nav-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
+
 
 .atomic-level-progress-pill {
   display: inline-flex;
@@ -8832,6 +9221,7 @@ html.eureka-landscape-mode .notebooks-view-container {
   font-size: 0.76rem;
   font-weight: 700;
 }
+
 
 /* ==========================================================================
    60 FPS Performance, GPU Acceleration & Stability Optimizations
@@ -8847,6 +9237,7 @@ html.eureka-landscape-mode .notebooks-view-container {
   contain-intrinsic-size: 72px 400px;
 }
 
+
 /* 2. Aceleración de Hardware GPU para Transiciones y Modales Suaves */
 .figma-app-layout,
 .mindmap-node,
@@ -8861,11 +9252,13 @@ html.eureka-landscape-mode .notebooks-view-container {
   -webkit-backface-visibility: hidden;
 }
 
+
 /* 3. Desplazamiento Cinético Fluido y Eliminación de Latencia Táctil */
 html, body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+
 
 .figma-app-layout,
 .figma-top-nav-mobile,
@@ -8876,6 +9269,7 @@ html, body {
   overscroll-behavior-y: contain;
 }
 
+
 /* 4. Aislamiento de capas (Layout Containment) */
 .figma-card-container,
 .feynman-atom-card,
@@ -8883,9 +9277,11 @@ html, body {
   contain: layout style;
 }
 
+
 .hidden {
   display: none !important;
 }
+
 
 /* ==========================================================================
    INTERFAZ DE ESTUDIO ATÓMICO ULTRA-INMERSIVA (PANTALLA COMPLETA PURA)
@@ -8898,20 +9294,24 @@ html, body {
   overscroll-behavior-x: none !important;
 }
 
+
 /* 2. Barra de Scroll Global Oscura y Elegante */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(56, 189, 248, 0.25) transparent;
 }
 
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.16);
@@ -8919,9 +9319,11 @@ html, body {
   transition: background 0.2s ease;
 }
 
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(56, 189, 248, 0.5);
 }
+
 
 .atomic-study-immersive-container {
   position: fixed !important;
@@ -8944,6 +9346,7 @@ html, body {
   overscroll-behavior-x: none !important;
 }
 
+
 /* Barra delgada de progreso en el borde superior absoluto */
 .atomic-study-progress-bar {
   position: fixed;
@@ -8955,6 +9358,7 @@ html, body {
   z-index: 10001;
   transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 
 /* Barra superior minimalista sin HUDs */
 .atomic-study-minimal-topbar {
@@ -8969,6 +9373,7 @@ html, body {
   animation: fadeInDown 0.3s ease-out;
 }
 
+
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -8979,6 +9384,7 @@ html, body {
     transform: translateY(0);
   }
 }
+
 
 .atomic-study-badge {
   display: inline-flex;
@@ -8998,11 +9404,13 @@ html, body {
   transition: all 0.25s ease;
 }
 
+
 .atomic-study-badge.badge-roadmap {
   background: rgba(168, 85, 247, 0.15);
   border-color: rgba(168, 85, 247, 0.35);
   color: #c084fc;
 }
+
 
 .atomic-study-badge.badge-purpose {
   background: rgba(56, 189, 248, 0.15);
@@ -9010,11 +9418,13 @@ html, body {
   color: #38bdf8;
 }
 
+
 .atomic-study-badge.badge-bridge {
   background: rgba(52, 211, 153, 0.15);
   border-color: rgba(52, 211, 153, 0.35);
   color: #34d399;
 }
+
 
 .atomic-study-badge.badge-exam {
   background: rgba(245, 158, 11, 0.15);
@@ -9022,11 +9432,13 @@ html, body {
   color: #fbbf24;
 }
 
+
 .atomic-study-topbar-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 
 .atomic-study-exit-btn {
   background: rgba(255, 255, 255, 0.07);
@@ -9045,6 +9457,7 @@ html, body {
   -webkit-backdrop-filter: blur(12px);
 }
 
+
 .atomic-study-exit-btn:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.45);
@@ -9052,9 +9465,11 @@ html, body {
   transform: translateY(-1px);
 }
 
+
 .atomic-study-exit-btn:active {
   transform: scale(0.95);
 }
+
 
 /* Contenedor y Tarjeta de Lectura */
 .atomic-reading-card-wrapper {
@@ -9063,6 +9478,7 @@ html, body {
   padding: 8px 16px calc(var(--sab, 16px) + 32px) 16px;
   box-sizing: border-box;
 }
+
 
 .atomic-reading-card {
   background: linear-gradient(180deg, rgba(17, 24, 39, 0.78) 0%, rgba(15, 23, 42, 0.88) 100%);
@@ -9078,6 +9494,7 @@ html, body {
   animation: atomSlideFadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+
 @keyframes atomSlideFadeIn {
   0% {
     opacity: 0;
@@ -9089,6 +9506,7 @@ html, body {
   }
 }
 
+
 .atomic-chunk-headline {
   font-size: 1.45rem;
   font-weight: 800;
@@ -9097,6 +9515,7 @@ html, body {
   margin: 0;
   letter-spacing: -0.02em;
 }
+
 
 /* Contenido atómico puro sin scrollbars internas ni recuadros blancos */
 .atomic-reading-content {
@@ -9113,12 +9532,14 @@ html, body {
   overflow: visible !important;
 }
 
+
 .atomic-reading-content h3 {
   font-size: 1.18rem;
   font-weight: 700;
   color: #38bdf8;
   margin: 18px 0 8px 0;
 }
+
 
 .atomic-reading-content blockquote {
   margin: 14px 0;
@@ -9129,6 +9550,7 @@ html, body {
   color: #cbd5e1;
 }
 
+
 /* FILA DE SOLO DOS BOTONES: AGREGAR FLASHCARD Y MAPA */
 .atomic-dual-action-row {
   display: grid;
@@ -9136,6 +9558,7 @@ html, body {
   gap: 12px;
   margin-top: 8px;
 }
+
 
 .btn-atomic-action-card,
 .btn-atomic-action-map {
@@ -9155,11 +9578,13 @@ html, body {
   -webkit-user-select: none;
 }
 
+
 .btn-atomic-action-card {
   background: linear-gradient(135deg, rgba(88, 28, 135, 0.35) 0%, rgba(59, 130, 246, 0.25) 100%);
   border-color: rgba(168, 85, 247, 0.35);
   color: #e9d5ff;
 }
+
 
 .btn-atomic-action-card:hover {
   background: linear-gradient(135deg, rgba(88, 28, 135, 0.5) 0%, rgba(59, 130, 246, 0.4) 100%);
@@ -9168,9 +9593,11 @@ html, body {
   box-shadow: 0 6px 18px rgba(168, 85, 247, 0.3);
 }
 
+
 .btn-atomic-action-card:active {
   transform: scale(0.96) !important;
 }
+
 
 .btn-atomic-action-card .btn-counter {
   font-size: 0.8rem;
@@ -9178,11 +9605,13 @@ html, body {
   font-weight: 600;
 }
 
+
 .btn-atomic-action-map {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(16, 185, 129, 0.2) 100%);
   border-color: rgba(56, 189, 248, 0.35);
   color: #7dd3fc;
 }
+
 
 .btn-atomic-action-map:hover {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.4) 0%, rgba(16, 185, 129, 0.3) 100%);
@@ -9191,9 +9620,11 @@ html, body {
   box-shadow: 0 6px 18px rgba(56, 189, 248, 0.3);
 }
 
+
 .btn-atomic-action-map:active {
   transform: scale(0.96) !important;
 }
+
 
 /* FILA DEL BOTÓN DE CONTINUAR (ÚNICO BOTÓN PRINCIPAL) */
 .atomic-continue-action-row {
@@ -9202,6 +9633,7 @@ html, body {
   gap: 10px;
   width: 100%;
 }
+
 
 .btn-atomic-primary-continue {
   flex: 1;
@@ -9224,27 +9656,32 @@ html, body {
   -webkit-user-select: none;
 }
 
+
 .btn-atomic-primary-continue:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 32px -4px rgba(56, 189, 248, 0.65);
   filter: brightness(1.08);
 }
 
+
 .btn-atomic-primary-continue:active {
   transform: scale(0.96) !important;
 }
+
 
 .btn-atomic-primary-continue .arrow-icon {
   font-size: 1.15rem;
   transition: transform 0.2s ease;
 }
 
+
 .btn-atomic-primary-continue:hover .arrow-icon {
   transform: translateX(4px);
 }
 
+
 @media (max-width: 600px) {
-  .atomic-reading-card {
+.atomic-reading-card {
     padding: 20px 16px;
     border-radius: 18px;
   }
@@ -9264,7 +9701,3 @@ html, body {
     font-size: 0.96rem;
   }
 }
-
-
-
-

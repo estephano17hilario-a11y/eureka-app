@@ -2,6 +2,7 @@ import './index.css';
 import './ui/styles/workspace.css';
 import './ui/styles/environments.css';
 import './ui/styles/surfaces.css';
+import './ui/styles/custom.css';
 import katex from 'katex';
 import 'katex/dist/contrib/mhchem.js';
 import 'katex/dist/katex.min.css';

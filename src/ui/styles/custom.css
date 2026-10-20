@@ -1,0 +1,675 @@
+/* ==========================================================================
+   PERSONALIZACIÓN AVANZADA (Ajustes → Estilo avanzado)
+   Las variables --u-* y las clases adv-* las escribe ThemeService.applyAdvanced().
+   Si no hay ninguna activa, nada de este archivo cambia el aspecto del ambiente.
+   ========================================================================== */
+
+/* ------------------------------ Fondo ------------------------------ */
+body.adv-bg-filter::before,
+body.adv-bg-filter::after {
+  filter: var(--u-bg-filter);
+}
+
+body.adv-bg-color::before {
+  background-image: none !important;
+  background-color: var(--u-bg-color) !important;
+}
+
+body.adv-bg-color::after {
+  opacity: 0.0 !important;
+}
+
+/* ------------------------------ Texto general ------------------------------ */
+body.adv-ui-font-inter { font-family: 'Inter', system-ui, sans-serif !important; --f-font-display: 'Inter', system-ui, sans-serif; }
+body.adv-ui-font-outfit { font-family: 'Outfit', 'Inter', system-ui, sans-serif !important; --f-font-display: 'Outfit', system-ui, sans-serif; }
+body.adv-ui-font-serif { font-family: 'Merriweather', Georgia, serif !important; --f-font-display: 'Merriweather', Georgia, serif; }
+body.adv-ui-font-mono { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace !important; --f-font-display: 'JetBrains Mono', ui-monospace, monospace; }
+
+body.adv-text-color {
+  --f-text-primary: var(--u-text-color);
+  --txt-hi: var(--u-text-color);
+  color: var(--u-text-color);
+}
+
+/* ------------------------------ Botones ------------------------------ */
+/* Principales (acciones) */
+body[class*='adv-btn-'] :is(.figma-btn-blue-pill, .figma-btn-study-large, .dialog-btn-primary, .btn-atomic-primary-continue, .cupertino-btn-check-save, .eureka-bottom-nav-create, .pg-next, .nbv-btn.primary, .apple-btn-primary) {
+  --_c: var(--u-btn-color, var(--f-accent, #38bdf8));
+}
+
+body.adv-btn-color :is(.figma-btn-blue-pill, .figma-btn-study-large, .dialog-btn-primary, .btn-atomic-primary-continue, .cupertino-btn-check-save, .eureka-bottom-nav-create, .pg-next, .apple-btn-primary) {
+  background: var(--u-btn-color) !important;
+  color: var(--u-btn-ink, #fff) !important;
+  border-color: transparent !important;
+  box-shadow: 0 6px 20px rgba(var(--u-btn-rgb, 56, 189, 248), 0.4) !important;
+}
+
+body.adv-btn-style-solid :is(.figma-btn-blue-pill, .figma-btn-study-large, .dialog-btn-primary, .btn-atomic-primary-continue, .cupertino-btn-check-save, .pg-next, .apple-btn-primary) {
+  background: var(--_c) !important;
+  background-image: none !important;
+  color: var(--u-btn-ink, #07080a) !important;
+  border: 0 !important;
+}
+
+body.adv-btn-style-gradient :is(.figma-btn-blue-pill, .figma-btn-study-large, .dialog-btn-primary, .btn-atomic-primary-continue, .cupertino-btn-check-save, .pg-next, .apple-btn-primary) {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--_c) 70%, #fff), var(--_c) 55%, color-mix(in srgb, var(--_c) 78%, #000)) !important;
+  color: var(--u-btn-ink, #07080a) !important;
+  border: 0 !important;
+}
+
+body.adv-btn-style-glass :is(.figma-btn-blue-pill, .figma-btn-study-large, .dialog-btn-primary, .btn-atomic-primary-continue, .cupertino-btn-check-save, .pg-next, .apple-btn-primary) {
+  background: color-mix(in srgb, var(--_c) 22%, transparent) !important;
+  color: var(--_c) !important;
+  border: 1px solid color-mix(in srgb, var(--_c) 55%, transparent) !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: none !important;
+}
+
+body.adv-btn-style-outline :is(.figma-btn-blue-pill, .figma-btn-study-large, .dialog-btn-primary, .btn-atomic-primary-continue, .cupertino-btn-check-save, .pg-next, .apple-btn-primary) {
+  background: transparent !important;
+  color: var(--_c) !important;
+  border: 2px solid var(--_c) !important;
+  box-shadow: none !important;
+}
+
+/* Forma, tamaño y sombra: botones principales y secundarios */
+body.adv-btn-shape-pill :is(.figma-btn-blue-pill, .figma-btn-study-large, .figma-btn-white-pill, .figma-btn-white-pill-sm, .dialog-btn, .btn-atomic-primary-continue, .cupertino-btn-check-save, .pg-next, .pg-tool, .pg-chip, .apple-btn-primary, .apple-btn-secondary, .apple-btn-outline-pill, .nbv-btn) {
+  border-radius: 999px !important;
+}
+
+body.adv-btn-shape-rounded :is(.figma-btn-blue-pill, .figma-btn-study-large, .figma-btn-white-pill, .figma-btn-white-pill-sm, .dialog-btn, .btn-atomic-primary-continue, .cupertino-btn-check-save, .pg-next, .pg-tool, .pg-chip, .apple-btn-primary, .apple-btn-secondary, .apple-btn-outline-pill, .nbv-btn) {
+  border-radius: 14px !important;
+}
+
+body.adv-btn-shape-square :is(.figma-btn-blue-pill, .figma-btn-study-large, .figma-btn-white-pill, .figma-btn-white-pill-sm, .dialog-btn, .btn-atomic-primary-continue, .cupertino-btn-check-save, .pg-next, .pg-tool, .pg-chip, .apple-btn-primary, .apple-btn-secondary, .apple-btn-outline-pill, .nbv-btn) {
+  border-radius: 4px !important;
+}
+
+body.adv-btn-size-compact :is(.figma-btn-blue-pill, .figma-btn-study-large, .figma-btn-white-pill, .dialog-btn, .btn-atomic-primary-continue, .cupertino-btn-check-save, .apple-btn-primary, .apple-btn-secondary) {
+  padding: 7px 14px !important;
+  font-size: 0.85rem !important;
+}
+
+body.adv-btn-size-large :is(.figma-btn-blue-pill, .figma-btn-study-large, .figma-btn-white-pill, .dialog-btn, .btn-atomic-primary-continue, .cupertino-btn-check-save, .apple-btn-primary, .apple-btn-secondary) {
+  padding: 16px 28px !important;
+  font-size: 1.05rem !important;
+}
+
+body.adv-btn-shadow-none :is(.figma-btn-blue-pill, .figma-btn-study-large, .figma-btn-white-pill, .dialog-btn, .btn-atomic-primary-continue, .cupertino-btn-check-save, .pg-next, .apple-btn-primary) {
+  box-shadow: none !important;
+}
+
+body.adv-btn-shadow-glow :is(.figma-btn-blue-pill, .figma-btn-study-large, .dialog-btn-primary, .btn-atomic-primary-continue, .cupertino-btn-check-save, .pg-next, .apple-btn-primary) {
+  box-shadow: 0 0 22px color-mix(in srgb, var(--_c, var(--f-accent)) 70%, transparent), 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* ------------------------------ Cuadernos ------------------------------ */
+body.adv-nb-radius .nb-cover {
+  border-radius: var(--u-nb-radius) !important;
+}
+
+body.adv-nb-flat .nb-cover {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+}
+
+body.adv-nb-flat .nb-cover::before,
+body.adv-nb-flat .nb-spine::after,
+body.adv-nb-flat .nb-band {
+  display: none !important;
+}
+
+body.adv-nb-flat .nb-spine {
+  background: rgba(0, 0, 0, 0.18) !important;
+  width: 8px !important;
+}
+
+body.adv-nb-glass .nb-cover {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)), var(--nb-bg, #1e3a8a) !important;
+  background-blend-mode: overlay;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.adv-nb-shadow-none .nb-item,
+body.adv-nb-shadow-none .nb-cover {
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+body.adv-nb-shadow-deep .nb-item {
+  filter: drop-shadow(0 22px 26px rgba(0, 0, 0, 0.6));
+}
+
+/* ------------------------------ Tarjetas y listas ------------------------------ */
+body.adv-card-bg :is(.apple-card-grouped, .figma-card-container, .figma-card-item) {
+  background: var(--u-card-bg) !important;
+  background-image: none !important;
+}
+
+body.adv-card-opacity :is(.apple-card-grouped, .figma-card-container, .figma-card-item) {
+  background-color: color-mix(in srgb, var(--u-card-bg, #151826) calc(var(--u-card-opacity) * 100%), transparent) !important;
+}
+
+body.adv-card-blur :is(.apple-card-grouped, .figma-card-container, .figma-card-item) {
+  -webkit-backdrop-filter: blur(var(--u-card-blur)) saturate(1.3);
+  backdrop-filter: blur(var(--u-card-blur)) saturate(1.3);
+}
+
+body.adv-card-border-none :is(.apple-card-grouped, .figma-card-container, .figma-card-item) {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.adv-card-border-thin :is(.apple-card-grouped, .figma-card-container, .figma-card-item) {
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+body.adv-card-border-accent :is(.apple-card-grouped, .figma-card-container, .figma-card-item) {
+  border: 1.5px solid var(--f-accent) !important;
+  box-shadow: 0 0 18px rgba(var(--f-accent-rgb, 56, 189, 248), 0.22) !important;
+}
+
+/* ------------------------------ Flashcards ------------------------------ */
+body.adv-fc-bg .cupertino-flashcard-box {
+  background: var(--u-fc-bg) !important;
+  background-image: none !important;
+}
+
+body.adv-fc-text .cupertino-flashcard-box,
+body.adv-fc-text .cupertino-flashcard-box * {
+  color: var(--u-fc-text) !important;
+}
+
+body.adv-fc-radius .cupertino-flashcard-box {
+  border-radius: var(--u-fc-radius) !important;
+}
+
+body.adv-fc-scale .cupertino-flashcard-box {
+  font-size: calc(1rem * var(--u-fc-scale)) !important;
+}
+
+body.adv-fc-font-serif .cupertino-flashcard-box { font-family: 'Merriweather', Georgia, serif !important; }
+body.adv-fc-font-mono .cupertino-flashcard-box { font-family: 'JetBrains Mono', ui-monospace, monospace !important; }
+body.adv-fc-font-hand .cupertino-flashcard-box { font-family: 'Caveat', 'Segoe Print', cursive !important; font-size: 1.3em; }
+body.adv-fc-font-rounded .cupertino-flashcard-box { font-family: 'Outfit', 'Inter', sans-serif !important; }
+
+body.adv-fc-bar-none .cupertino-flashcard-box {
+  border-top-width: 0 !important;
+  border-left-width: 0 !important;
+}
+
+body.adv-fc-bar-top .cupertino-flashcard-box {
+  border-left-width: 0 !important;
+  border-top: 5px solid var(--f-accent) !important;
+}
+
+body.adv-fc-bar-left .cupertino-flashcard-box {
+  border-top-width: 0 !important;
+  border-left: 6px solid var(--f-accent) !important;
+}
+
+/* ------------------------------ Contenido (hoja de lectura) ------------------------------ */
+body.adv-paper-bg .pg-sheet,
+body.adv-paper-bg .pg-content {
+  background: var(--u-paper-bg) !important;
+  background-image: none !important;
+}
+
+body.adv-paper-ink .pg-content,
+body.adv-paper-ink .pg-content * {
+  color: var(--u-paper-ink) !important;
+}
+
+body.adv-content-scale .pg-content {
+  font-size: calc(1rem * var(--u-content-scale)) !important;
+}
+
+body.adv-content-line .pg-content {
+  line-height: var(--u-content-line) !important;
+}
+
+body.adv-content-font-serif .pg-content { font-family: 'Merriweather', Georgia, serif !important; }
+body.adv-content-font-sans .pg-content { font-family: 'Inter', system-ui, sans-serif !important; }
+body.adv-content-font-mono .pg-content { font-family: 'JetBrains Mono', ui-monospace, monospace !important; }
+body.adv-content-font-hand .pg-content { font-family: 'Caveat', 'Segoe Print', cursive !important; font-size: 1.28em; }
+
+/* ------------------------------ Navegación ------------------------------ */
+body.adv-nav-glass :is(.eureka-bottom-nav, .eureka-mobile-bottom-nav) {
+  background: rgba(255, 255, 255, 0.08) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+}
+
+body.adv-nav-solid :is(.eureka-bottom-nav, .eureka-mobile-bottom-nav) {
+  background: #0b0d14 !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+body.adv-nav-minimal :is(.eureka-bottom-nav, .eureka-mobile-bottom-nav) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+body.adv-nav-minimal .eureka-nav-label {
+  display: none;
+}
+
+/* ======================================================================
+   Ambiente "Cristal moderno" (clean_glass): grafito azulado, cristal y acento.
+   ====================================================================== */
+body.theme-clean_glass::before {
+  background-color: #0f1220;
+  background-image:
+    radial-gradient(60% 45% at 12% 8%, rgba(var(--f-accent-rgb, 56, 189, 248), 0.20), transparent 70%),
+    radial-gradient(55% 50% at 92% 92%, rgba(139, 92, 246, 0.16), transparent 70%),
+    linear-gradient(180deg, #11142a 0%, #0d101d 100%);
+}
+
+.preview-clean-glass {
+  background:
+    radial-gradient(60% 60% at 15% 10%, rgba(56, 189, 248, 0.45), transparent 70%),
+    radial-gradient(60% 60% at 90% 95%, rgba(139, 92, 246, 0.4), transparent 70%),
+    linear-gradient(180deg, #151933, #0d101d);
+}
+
+
+/* ---- Cristal moderno: base clonada del ambiente Moderno ---- */
+body.theme-clean_glass {
+  --lamp: 148, 163, 184;
+  --warm-a: var(--f-accent, #38bdf8);
+  --warm-b: var(--f-accent, #38bdf8);
+  --warm-rgb: var(--f-accent-rgb, 56, 189, 248);
+  --warm-grad:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(135deg, var(--f-accent, #38bdf8), var(--f-accent, #38bdf8));
+  --warm-ink: #04121e;
+  --sheet-a: #17191f;
+  --sheet-b: #0d0f13;
+  --sheet-rgb: 23, 25, 31;
+  --nav-bg: rgba(14, 15, 20, 0.93);
+  --txt-hi: #f8fafc;
+  --txt-mid: #cbd5e1;
+  --txt-soft: #8b95a5;
+  --shelf-bg: linear-gradient(180deg, #3a3d45 0%, #23252b 55%, #141518 100%);
+  --shelf-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+  --shelf-ink: rgba(226, 232, 240, 0.85);
+  --shelf-ink-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+  --f-font-display: 'Inter', system-ui, sans-serif;
+  --display-size: 2.1rem;
+  --display-size-sm: 1.9rem;
+  --display-weight: 800;
+  --display-spacing: -0.035em;
+}
+
+body.theme-clean_glass {
+  --paper-a: #fafafa;
+  --paper-b: #f1f3f6;
+  --paper-line: rgba(15, 23, 42, 0.05);
+  --paper-margin: transparent;
+  --paper-ink: #1e293b;
+  --paper-strong: #020617;
+  --paper-soft: #64748b;
+  --paper-accent: var(--f-accent);
+  --paper-code-bg: rgba(15, 23, 42, 0.07);
+  --paper-code-ink: #be123c;
+  --paper-block-bg: rgba(15, 23, 42, 0.04);
+  --paper-block-border: rgba(15, 23, 42, 0.14);
+  --paper-title-font: 'Inter', system-ui, sans-serif;
+  --paper-body-font: 'Inter', system-ui, sans-serif;
+  --paper-title-size: 1.95rem;
+  --paper-title-weight: 800;
+  --paper-title-spacing: -0.035em;
+  --paper-title-color: #0f172a;
+  --paper-h3: var(--f-accent);
+  --paper-hl: rgba(var(--f-accent-rgb, 56, 189, 248), 0.25);
+  --paper-radius: 12px;
+  --paper-pad-left: 48px;
+  --paper-margin-x: -10px;
+  --paper-lines: linear-gradient(transparent, transparent);
+  --paper-grain-op: 0;
+  --paper-box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.55);
+  --paper-underline: var(--wave-line);
+  --paper-btn: var(--warm-grad);
+  --paper-btn-ink: var(--warm-ink);
+  --paper-btn-shadow: rgba(var(--warm-rgb), 0.5);
+  --paper-tool-bg: rgba(15, 23, 42, 0.04);
+  --paper-tool-hover: rgba(15, 23, 42, 0.09);
+  --paper-tool-border-style: solid;
+  --paper-ribbon: var(--warm-grad);
+  --paper-binding: var(--warm-grad);
+  --spiral-top: 0;
+  --spiral-left: 0;
+  --spiral-right: 0;
+  --spiral-h: 6px;
+  --spiral-filter: none;
+  --spiral-radius: 12px 12px 0 0;
+  --card-lines: linear-gradient(transparent, transparent);
+  --card-font: 'Inter', system-ui, sans-serif;
+  --card-size: 1.6rem;
+  --card-ans-size: 1.3rem;
+  --card-weight: 800;
+  --card-radius: 18px;
+  --card-border: rgba(255, 255, 255, 0.6);
+  --row-bg: rgba(255, 255, 255, 0.045);
+  --row-hover: rgba(255, 255, 255, 0.09);
+  --row-ink: #f8fafc;
+  --row-sub: #8b95a5;
+  --row-border: rgba(255, 255, 255, 0.09);
+  --row-radius: 16px;
+  --row-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --row-accent: var(--f-accent);
+  --row-pill-bg: rgba(255, 255, 255, 0.06);
+  --row-title-weight: 800;
+  --folder-bg: linear-gradient(160deg, #4b5563, #1f2937);
+  --folder-tab: #374151;
+  --folder-ink: #f8fafc;
+}
+
+body.paper-auto.theme-clean_glass .pg-content {
+  font-size: 0.98rem;
+}
+
+body.paper-auto.theme-clean_glass .pg-title::after {
+  height: 4px;
+  width: 64px;
+  border-radius: 4px;
+  background: var(--warm-grad);
+  opacity: 1;
+}
+
+body.theme-clean_glass .nb-cover {
+  border-radius: 6px 12px 12px 6px;
+  align-items: flex-start;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 -10px 24px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-clean_glass .nb-cover::before {
+  opacity: 0.1;
+}
+
+body.theme-clean_glass .nb-spine {
+  width: 10px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+body.theme-clean_glass .nb-spine::after, body.theme-clean_glass .nb-band {
+  display: none;
+}
+
+body.theme-clean_glass .nb-label {
+  background: none;
+  box-shadow: none;
+  color: #fff;
+  text-align: left;
+  padding: 10px 0 0;
+  transform: none;
+}
+
+body.theme-clean_glass .nb-label-emoji {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+body.theme-clean_glass .nb-label-title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.08rem;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+body.theme-clean_glass .nb-label-subject {
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.08em;
+}
+
+body.theme-clean_glass .nb-cover-foot .nb-progress i {
+  background: var(--warm-grad);
+}
+
+body.theme-clean_glass .nbf-title {
+  font-family: var(--f-font-display);
+  font-size: 1.05rem;
+  letter-spacing: var(--display-spacing);
+}
+
+body.theme-clean_glass .cupertino-flashcard-box {
+  border-top: 5px solid var(--warm-b) !important;
+}
+
+/* ---- Cristal moderno: ajustes propios ---- */
+body.theme-clean_glass {
+  --sheet-a: #1b2040;
+  --sheet-b: #11142a;
+  --sheet-rgb: 27, 32, 64;
+  --nav-bg: rgba(20, 24, 46, 0.72);
+  --txt-soft: #94a0c0;
+  --shelf-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+}
+
+body.theme-clean_glass .eureka-bottom-nav,
+body.theme-clean_glass .eureka-mobile-bottom-nav {
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+body.theme-clean_glass .nb-cover {
+  border-radius: 10px 16px 16px 10px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 14px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ======================================================================
+   Panel "Estilo avanzado"
+   ====================================================================== */
+.style-studio {
+  position: fixed;
+  z-index: 12000;
+  right: 12px;
+  top: 12px;
+  bottom: 12px;
+  width: min(372px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  color: #f1f5f9;
+  background: rgba(15, 18, 32, 0.9);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  font-family: 'Inter', system-ui, sans-serif;
+  animation: ss-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes ss-in {
+  from { opacity: 0; transform: translateX(24px); }
+}
+
+.style-studio .ss-grab { display: none; }
+
+.ss-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 14px 8px 18px;
+}
+
+.ss-head > div { flex: 1; display: flex; flex-direction: column; }
+.ss-head b { font-size: 1.05rem; font-weight: 800; }
+.ss-head span { font-size: 0.76rem; color: #94a3b8; }
+
+.ss-ghost, .ss-close {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  font-weight: 700;
+  font-size: 0.8rem;
+  border: 0;
+  cursor: pointer;
+}
+
+.ss-close { width: 34px; padding: 0; font-size: 0.95rem; }
+
+.ss-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 14px 8px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.ss-preview button { font-size: 0.82rem; }
+
+.ss-mini-fc {
+  flex: 1 1 100%;
+  min-height: 56px !important;
+  height: auto !important;
+  padding: 12px 14px !important;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  position: relative !important;
+  transform: none !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+
+.ss-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px 12px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ss-tabs::-webkit-scrollbar { display: none; }
+
+.ss-tabs button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 11px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.ss-tabs button i { font-style: normal; }
+.ss-tabs button.on { background: var(--f-accent, #38bdf8); color: #06121c; }
+
+.ss-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 18px 24px;
+  overscroll-behavior: contain;
+}
+
+.ss-field { margin: 12px 0 16px; }
+
+.ss-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.ss-label b { color: #f1f5f9; font-variant-numeric: tabular-nums; }
+
+.ss-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.ss-seg button {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 11px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.07);
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.ss-seg button.on { background: var(--f-accent, #38bdf8); color: #06121c; }
+
+.ss-sw-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.ss-sw {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  background: var(--c, rgba(255, 255, 255, 0.08));
+  color: #cbd5e1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ss-sw.on { box-shadow: 0 0 0 2px #0f1220, 0 0 0 4px var(--f-accent, #38bdf8); }
+.ss-sw.custom { background: conic-gradient(#f43f5e, #f59e0b, #84cc16, #06b6d4, #6366f1, #d946ef, #f43f5e); }
+.ss-sw.custom input { position: absolute; inset: -8px; width: 48px; height: 48px; opacity: 0; cursor: pointer; }
+
+.ss-range { width: 100%; accent-color: var(--f-accent, #38bdf8); height: 28px; }
+
+@media (max-width: 860px) {
+  .style-studio {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: min(58vh, 520px);
+    border-radius: 24px 24px 0 0;
+    animation: ss-up 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .style-studio .ss-grab { display: block; width: 38px; height: 4px; border-radius: 9px; background: rgba(255, 255, 255, 0.25); margin: 8px auto 0; }
+  @keyframes ss-up { from { opacity: 0; transform: translateY(40px); } }
+}
+
+.ss-btn-open {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(135deg, rgba(var(--f-accent-rgb, 56, 189, 248), 0.28), rgba(139, 92, 246, 0.22));
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.ss-btn-open .ss-ic { font-size: 1.7rem; }
+.ss-btn-open b { display: block; font-size: 1rem; font-weight: 800; }
+.ss-btn-open small { color: #cbd5e1; font-size: 0.82rem; }
