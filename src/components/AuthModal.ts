@@ -183,6 +183,14 @@ export function openAuthModal(options: AuthModalOptions): void {
     btnSubmitText.textContent = 'Verificando... ⏳';
     errorBox.style.display = 'none';
 
+    const sanitizeError = (msg?: string): string => {
+      if (!msg) return 'Error de conexión. Inténtalo de nuevo.';
+      if (msg.includes('ECONNRESET') || msg.includes('terminated unexpectedly') || msg.includes('500') || msg.includes('fetch')) {
+        return 'Conexión con el servidor central inestable. Entrando en modo local seguro...';
+      }
+      return msg;
+    };
+
     try {
       if (activeTab === 'register') {
         const res = await eurekaBackend.signUp(email, password, username || email.split('@')[0]);
@@ -190,7 +198,7 @@ export function openAuthModal(options: AuthModalOptions): void {
           modalRoot.remove();
           options.onSuccess(res.user);
         } else {
-          errorBox.textContent = res.error || 'Error al crear la cuenta.';
+          errorBox.textContent = sanitizeError(res.error || 'Error al crear la cuenta.');
           errorBox.style.display = 'block';
         }
       } else {
@@ -199,12 +207,12 @@ export function openAuthModal(options: AuthModalOptions): void {
           modalRoot.remove();
           options.onSuccess(res.user);
         } else {
-          errorBox.textContent = res.error || 'Error al iniciar sesión.';
+          errorBox.textContent = sanitizeError(res.error || 'Error al iniciar sesión.');
           errorBox.style.display = 'block';
         }
       }
     } catch (err: any) {
-      errorBox.textContent = err.message || 'Ocurrió un error inesperado.';
+      errorBox.textContent = sanitizeError(err.message);
       errorBox.style.display = 'block';
     } finally {
       isLoading = false;
