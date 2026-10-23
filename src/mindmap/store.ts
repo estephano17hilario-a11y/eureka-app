@@ -125,20 +125,36 @@ export function walkTree(root: any, fn: (data: any, node: any) => void): void {
   }
 }
 
-function cloneTree(root: any): any {
-  return JSON.parse(JSON.stringify(root));
+/**
+ * Copia el árbol cambiando solo lo que hace falta en cada `data`. A diferencia de un JSON.parse(JSON.stringify(...)),
+ * no vuelve a recorrer ni duplicar los miles de caracteres de cada foto, que es lo que más pesaba al guardar.
+ */
+function mapTree(node: any, fn: (data: any) => any): any {
+  if (!node) return node;
+  const out: any = { ...node };
+  if (node.data) out.data = fn({ ...node.data });
+  if (Array.isArray(node.children)) out.children = node.children.map((c: any) => mapTree(c, fn));
+  return out;
 }
 
 function stripImages(doc: MapDoc): MapDoc {
-  const root = cloneTree(doc.root);
-  walkTree(root, (d) => {
+  const root = mapTree(doc.root, (d) => {
     if (typeof d.image === 'string' && d.image.startsWith('data:')) {
       d.image = '';
       d.imageSize = null;
       d.imageLost = true;
     }
+    return d;
   });
   return { ...doc, root, slim: true };
+}
+
+function hasInlineImages(root: any): boolean {
+  let found = false;
+  walkTree(root, (d) => {
+    if (!found && typeof d.image === 'string' && d.image.startsWith('data:')) found = true;
+  });
+  return found;
 }
 
 function docSize(doc: MapDoc): number {
@@ -184,6 +200,8 @@ export class MindMapStore {
   private thumbCache = new Map<string, string>();
   private listeners: ((s: SaveState, detail?: string) => void)[] = [];
   private lastSavedAt = 0;
+  /** El mapa lleva fotos incrustadas: guardar es más caro, así que se agrupa en bloques más largos */
+  private heavy = false;
 
   constructor(opts: { userId: string; topicId?: string; fallbackKey?: string }) {
     const base = opts.topicId ? `topic_${opts.topicId}` : opts.fallbackKey || 'free';
@@ -295,10 +313,11 @@ export class MindMapStore {
     this.pendingGetter = getDoc;
     this.emit('saving');
     if (this.timer) window.clearTimeout(this.timer);
+    const wait = this.heavy && delay > 0 ? Math.max(delay, 1100) : delay;
     this.timer = window.setTimeout(() => {
       this.timer = null;
       void this.persist();
-    }, delay);
+    }, wait);
   }
 
   /** Guardado inmediato de lo pendiente (al salir de la pantalla). */
@@ -355,6 +374,7 @@ export class MindMapStore {
       return;
     }
 
+    this.heavy = hasInlineImages(doc.root);
     const [okIdb] = await Promise.all([idbPut(this.key, doc)]);
     const okLs = this.writeLocal(doc);
 
@@ -388,23 +408,24 @@ export class MindMapStore {
 
   /** Copia para la nube: las fotos grandes se reducen para no saturar la sincronización. */
   private async makePortable(doc: MapDoc): Promise<MapDoc> {
-    const root = cloneTree(doc.root);
     const jobs: Promise<void>[] = [];
-    walkTree(root, (d) => {
+    const root = mapTree(doc.root, (d) => {
       if (typeof d.image === 'string' && d.image.startsWith('data:') && d.image.length > 70000) {
         const src: string = d.image;
-        const cached = this.thumbCache.get(src.slice(0, 64) + src.length);
+        const key = src.slice(0, 64) + src.length;
+        const cached = this.thumbCache.get(key);
         if (cached) {
           d.image = cached;
         } else {
           jobs.push(
             makeThumbnail(src, 360).then((t) => {
-              this.thumbCache.set(src.slice(0, 64) + src.length, t);
+              this.thumbCache.set(key, t);
               d.image = t;
             })
           );
         }
       }
+      return d;
     });
     await Promise.all(jobs);
     return { ...doc, root };

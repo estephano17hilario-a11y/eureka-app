@@ -9,6 +9,7 @@ const BASE_OUTLINES_STORAGE_KEY = 'eureka_active_study_outlines_v1';
 const BASE_LOCKS_STORAGE_KEY = 'eureka_active_study_locks_v1';
 const BASE_USER_COINS_KEY = 'eureka_user_coins_v1';
 const BASE_MINDMAPS_STORAGE_KEY = 'eureka_active_study_mindmaps_v1';
+const BASE_ACKED_STORAGE_KEY = 'eureka_active_study_acked_v1';
 
 export const UNLOCK_COST = 50;
 
@@ -22,6 +23,29 @@ class ActiveStudyService {
   private userCoins: number = 150;
   private serverTimeOffset: number = 0; // offset between local clock and verified server time
   private cloudSyncTimer: any = null;
+  /** Versión (updatedAt) de cada cuaderno que el servidor ya confirmó: solo esos pueden borrarse si desaparecen de la nube */
+  private ackedTopics: Record<string, number> = {};
+
+  private getAckedKey(): string {
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
+    return `${BASE_ACKED_STORAGE_KEY}_${uid}`;
+  }
+
+  private loadAcked(): void {
+    try {
+      this.ackedTopics = JSON.parse(localStorage.getItem(this.getAckedKey()) || '{}') || {};
+    } catch {
+      this.ackedTopics = {};
+    }
+  }
+
+  private saveAcked(): void {
+    try {
+      localStorage.setItem(this.getAckedKey(), JSON.stringify(this.ackedTopics));
+    } catch {
+      /* ignore */
+    }
+  }
 
   private constructor() {
     this.currentUserId = eurekaBackend.getUserId();
@@ -104,6 +128,7 @@ class ActiveStudyService {
       this.outlineNodes.clear();
       this.locks.clear();
       this.mindMaps.clear();
+      this.loadAcked();
 
       // 1. Carga síncrona inicial de caché rápida scoped por usuario
       const savedCoins = localStorage.getItem(this.getCoinsKey());
@@ -330,7 +355,9 @@ class ActiveStudyService {
         mindMapsObj[topicId] = data;
       });
 
-      await eurekaBackend.saveUserSettings({
+      const sent = new Map<string, number>();
+      this.topics.forEach((t) => sent.set(t.id, t.updatedAt || 0));
+      const ok = await eurekaBackend.saveUserSettings({
         settingsJson: {
           activeTopics: Array.from(this.topics.values()),
           activeOutlines: outlinesObj,
@@ -340,6 +367,16 @@ class ActiveStudyService {
           updatedAt: Date.now()
         }
       });
+      if (ok) {
+        // El servidor ya tiene estos cuadernos: desde ahora, si desaparecen de la nube se interpretan como borrados
+        sent.forEach((v, id) => {
+          this.ackedTopics[id] = v;
+        });
+        Object.keys(this.ackedTopics).forEach((id) => {
+          if (!this.topics.has(id)) delete this.ackedTopics[id];
+        });
+        this.saveAcked();
+      }
     } catch (err) {
       console.warn('[ActiveStudyService] Cloud sync notice:', err);
     }
@@ -353,11 +390,14 @@ class ActiveStudyService {
           ? remote.settingsJson
           : remote;
         let hasChanges = false;
-        const now = Date.now();
+
+        const remoteTopicMap = new Map<string, ActiveStudyTopic>();
+        if (Array.isArray(json.activeTopics)) {
+          json.activeTopics.forEach((t: ActiveStudyTopic) => remoteTopicMap.set(t.id, t));
+        }
 
         if (Array.isArray(json.activeTopics)) {
-          const remoteMap = new Map<string, ActiveStudyTopic>();
-          json.activeTopics.forEach((t: ActiveStudyTopic) => remoteMap.set(t.id, t));
+          const remoteMap = remoteTopicMap;
 
           // 1. Añadir o actualizar temas remotos con protección de progreso
           json.activeTopics.forEach((t: ActiveStudyTopic) => {
@@ -365,26 +405,31 @@ class ActiveStudyService {
             if (!local) {
               this.topics.set(t.id, t);
               hasChanges = true;
+              this.ackedTopics[t.id] = t.updatedAt || 0;
             } else if ((t.updatedAt || 0) > (local.updatedAt || 0)) {
               // Si el tema remoto tiene un timestamp mayor, no retroceder el avance de lectura
               const preservedIndex = Math.max(local.currentChunkIndex || 0, t.currentChunkIndex || 0);
               t.currentChunkIndex = preservedIndex;
               this.topics.set(t.id, t);
+              this.ackedTopics[t.id] = t.updatedAt || 0;
               hasChanges = true;
+            } else if ((t.updatedAt || 0) === (local.updatedAt || 0)) {
+              this.ackedTopics[t.id] = t.updatedAt || 0;
             }
           });
 
-          // 2. Eliminar temas locales borrados en otro dispositivo
+          // 2. Eliminar temas locales borrados en otro dispositivo: solo los que el servidor ya había confirmado
+          //    y que no se han editado desde entonces. Lo que nunca llegó a la nube se conserva y se vuelve a subir.
           if (json.activeTopics.length > 0) {
             Array.from(this.topics.values()).forEach((local) => {
-              if (!remoteMap.has(local.id)) {
-                const isRecent = (now - (local.createdAt || 0)) < 30000;
-                if (!isRecent) {
-                  this.topics.delete(local.id);
-                  this.outlineNodes.delete(local.id);
-                  this.mindMaps.delete(local.id);
-                  hasChanges = true;
-                }
+              if (remoteMap.has(local.id)) return;
+              const acked = this.ackedTopics[local.id];
+              if (acked !== undefined && acked === (local.updatedAt || 0)) {
+                this.topics.delete(local.id);
+                this.outlineNodes.delete(local.id);
+                this.mindMaps.delete(local.id);
+                delete this.ackedTopics[local.id];
+                hasChanges = true;
               }
             });
           }
@@ -392,7 +437,13 @@ class ActiveStudyService {
 
         if (json.activeOutlines && typeof json.activeOutlines === 'object') {
           Object.entries(json.activeOutlines).forEach(([tid, nodes]) => {
-            if (Array.isArray(nodes)) {
+            if (!Array.isArray(nodes)) return;
+            // El esquema de la nube solo gana si el cuaderno es nuevo aquí o si su versión es más reciente:
+            // antes un esquema viejo del servidor pisaba lo que acababas de escribir.
+            const lt = this.topics.get(tid);
+            const rt = remoteTopicMap.get(tid);
+            const remoteNewer = rt && lt && (rt.updatedAt || 0) > (lt.updatedAt || 0);
+            if (!this.outlineNodes.has(tid) || !lt || remoteNewer) {
               this.outlineNodes.set(tid, nodes as OutlineNode[]);
               hasChanges = true;
             }
@@ -401,7 +452,11 @@ class ActiveStudyService {
 
         if (json.activeMindMaps && typeof json.activeMindMaps === 'object') {
           Object.entries(json.activeMindMaps).forEach(([tid, data]) => {
-            if (data) {
+            if (!data) return;
+            const local = this.mindMaps.get(tid);
+            const remoteAt = (data as any).updatedAt || 0;
+            const localAt = (local && local.updatedAt) || 0;
+            if (!local || remoteAt > localAt) {
               this.mindMaps.set(tid, data);
               hasChanges = true;
             }
@@ -416,6 +471,10 @@ class ActiveStudyService {
         if (hasChanges) {
           this.saveToStorage();
         }
+        this.saveAcked();
+        // Lo que solo existe aquí (creado sin conexión) se sube ahora
+        const unsynced = Array.from(this.topics.values()).some((t) => this.ackedTopics[t.id] !== (t.updatedAt || 0));
+        if (unsynced) this.scheduleCloudSync(600);
       } else if (this.topics.size > 0 || this.mindMaps.size > 0) {
         this.syncCloudState();
       }

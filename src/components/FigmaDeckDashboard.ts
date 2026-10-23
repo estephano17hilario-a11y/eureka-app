@@ -153,7 +153,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
               </button>
             </div>
             <div class="figma-card-title-bold" style="font-size:0.96rem; font-weight:700; color:#ffffff; line-height:1.45;">
-              ${katexService.parseAndRender(c.front)}
+              ${(c.type === 'cloze' ? katexService.renderCloze(c.front, false) : katexService.parseAndRender(c.front))}
             </div>
           `
               : isOcclusion
@@ -172,13 +172,15 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
               </button>
             </div>
             <div class="figma-card-title-bold" style="font-size:0.96rem; font-weight:700; color:#ffffff; line-height:1.45;">
-              ${katexService.parseAndRender(c.front)}
+              ${(c.type === 'cloze' ? katexService.renderCloze(c.front, false) : katexService.parseAndRender(c.front))}
             </div>
           `
               : `
             <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+              ${c.type === 'cloze' ? '<span title="Tarjeta de huecos" style="flex-shrink:0; font-size:0.95rem;">🕳️</span>' : ''}
+              ${c.frontImage ? `<img src="${c.frontImage}" alt="" loading="lazy" decoding="async" style="width:48px; height:48px; object-fit:cover; border-radius:10px; flex-shrink:0;" />` : ''}
               <div class="figma-card-title-bold" style="font-size:0.96rem; font-weight:700; color:#ffffff; line-height:1.45; flex:1;">
-                ${katexService.parseAndRender(c.front)}
+                ${(c.type === 'cloze' ? katexService.renderCloze(c.front, false) : katexService.parseAndRender(c.front))}
               </div>
               <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1; flex-shrink:0; margin-top:-2px;" title="Opciones de tarjeta">
                 ⋮

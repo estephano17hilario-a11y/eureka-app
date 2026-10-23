@@ -5,7 +5,11 @@
  */
 
 import './mindmap.css';
+import './scenes.css';
 import { MindMapEngine } from './engine';
+import { MapSetupWizard } from './MapSetupWizard';
+import { MapTour } from './MapTour';
+import { openImageLibrary, queryFromCardText } from '../components/ImageLibrarySheet';
 import { MindMapStore, DEFAULT_SETTINGS, type MapDoc, type SaveState } from './store';
 import { NodeEditor, type NextAction } from './editor';
 import { Inspector, type InspectorTab } from './inspector';
@@ -98,7 +102,10 @@ export class MindMapStudio {
   private destroyed = false;
   private pendingFirstFit = true;
   private cleanups: (() => void)[] = [];
-  private isBrandNew = false;
+  /** El mapa se acaba de crear (no había copia guardada): se muestra el asistente de creación */
+  private needsSetup = false;
+  private wizard: MapSetupWizard | null = null;
+  private tour: MapTour | null = null;
   private hasInitialData = false;
   private ready = false;
   private lastZoomText = '';
@@ -186,6 +193,7 @@ export class MindMapStudio {
       <div class="mmx-body">
         <div class="mmx-stage">
           <div class="mmx-pattern"></div>
+          <div class="mmx-scene" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div class="mmx-canvas"></div>
           <div class="mmx-vignette"></div>
           <div class="mmx-grain"></div>
@@ -237,13 +245,13 @@ export class MindMapStudio {
     const initialData = this.opts.initialData && !isLegacyDemoTree(this.opts.initialData.root || this.opts.initialData) ? this.opts.initialData : null;
     this.hasInitialData = Boolean(initialData);
 
+    this.needsSetup = !doc;
     if (!doc) {
       const fromInit = initialData ? docFromImport(initialData) : null;
       if (fromInit) {
         doc = fromInit;
       } else {
         doc = docFromTemplate('blank', this.opts.topicTitle || 'Mi mapa mental');
-        this.isBrandNew = true;
       }
     }
     doc.root = normalizeTree(doc.root);
@@ -311,23 +319,116 @@ export class MindMapStudio {
       if (this.pendingFirstFit || !this.engine.isTreeInView()) this.engine.fit(false);
       if (this.pendingFirstFit && !this.getSelection().length) {
         const r = this.engine.getRoot();
-        if (r && !this.isBrandNew) this.engine.selectNode(r);
+        if (r && !this.needsSetup) this.engine.selectNode(r);
       }
       this.pendingFirstFit = false;
       this.scheduleOverlays();
-      window.setTimeout(() => {
-        // Una nueva instancia guarda el mapa solo si se llegó a tocar o si es la primera vez
-        this.ready = true;
-        if (this.isBrandNew || this.hasInitialData) this.scheduleSave();
-      }, 250);
+      // Un mapa nuevo no se guarda hasta terminar el asistente (si se sale antes, volverá a aparecer)
+      if (!this.needsSetup) {
+        window.setTimeout(() => {
+          this.ready = true;
+        }, 250);
+      }
     });
-    if (this.isBrandNew && !this.hasInitialData) {
+    if (this.needsSetup) {
       window.setTimeout(() => {
-        if (!this.destroyed) this.openTemplateGallery(true);
-      }, 450);
+        if (!this.destroyed) this.startSetup(true);
+      }, 420);
     } else {
       this.maybeShowHint();
     }
+  }
+
+  /* ===================================================================== */
+  /*  Asistente de creación y recorrido                                     */
+  /* ===================================================================== */
+  private isFirstTimeEver(): boolean {
+    try {
+      return !localStorage.getItem('eureka_mm_onboarded_v1');
+    } catch {
+      return false;
+    }
+  }
+
+  /** Abre el asistente paso a paso. creating = mapa recién creado (incluye el punto de partida y se guarda al terminar). */
+  public startSetup(creating: boolean): void {
+    if (this.destroyed || this.wizard || !this.engine?.mm) return;
+    this.editor?.close(true);
+    this.engine.clearSelection();
+    this.hideOverlays();
+    this.closeMenu();
+    const firstTime = creating && this.isFirstTimeEver();
+    this.wizard = new MapSetupWizard({
+      engine: this.engine,
+      host: this.root,
+      title: this.opts.topicTitle || 'Mi mapa',
+      firstTime,
+      hasOutline: this.hasInitialData,
+      includeStart: creating,
+      onTemplate: (id, keepLayout) => {
+        const doc = docFromTemplate(id, this.opts.topicTitle || 'Mi mapa mental');
+        this.replaceMap(doc.root, keepLayout ? undefined : doc.settings.layout);
+      },
+      onFinish: () => {
+        this.wizard = null;
+        try {
+          localStorage.setItem('eureka_mm_onboarded_v1', '1');
+        } catch {
+          /* ignore */
+        }
+        this.ready = true;
+        this.needsSetup = false;
+        this.scheduleSave();
+        this.engine.nextRender(700).then(() => {
+          if (this.destroyed) return;
+          this.engine.fit(true);
+          this.inspector?.render();
+          if (firstTime) window.setTimeout(() => this.startTour(), 500);
+          else if (creating) this.toast('Tu mapa está listo · toca una idea para empezar', 2800);
+        });
+      }
+    });
+    this.wizard.open();
+  }
+
+  /** Recorrido por las zonas clave de la pantalla (primera vez o desde el menú). */
+  public startTour(): void {
+    if (this.destroyed || this.tour || !this.engine?.mm) return;
+    const rootNode = this.engine.getRoot();
+    const rect = (sel: string) => () => (this.root.querySelector(sel) as HTMLElement | null)?.getBoundingClientRect() || null;
+    const steps = [
+      {
+        title: 'Esta es tu idea central',
+        text: this.mobile ? 'Toca una idea para seleccionarla y vuelve a tocarla para escribir en ella.' : 'Haz doble clic (o pulsa F2) para escribir. Si empiezas a teclear con ella seleccionada, también edita.',
+        before: () => rootNode && this.engine.selectNode(rootNode),
+        target: () => (rootNode ? this.engine.nodeScreenRect(rootNode) : null)
+      },
+      {
+        title: 'Haz crecer el mapa',
+        text: 'El botón + añade una idea hija. Con el teclado: Tab crea una hija y Enter una hermana.',
+        target: rect('.mmx-handle-child')
+      },
+      {
+        title: 'Hazlo tuyo',
+        text: 'Colores, fotos, emojis, notas, temas y diseños viven aquí. Incluso puedes buscar imágenes gratis.',
+        target: this.mobile ? rect('.mmx-dock-btn[data-act="style"], .mmx-dock-btn') : rect('[data-act="toggle-panel"]')
+      },
+      {
+        title: 'Estúdialo',
+        text: 'El modo estudio oculta las ideas para que las recuerdes. Y con «Flashcards» conviertes ramas en tarjetas.',
+        target: this.mobile ? rect('[data-act="more"]') : rect('[data-act="study"]')
+      },
+      {
+        title: '¡Todo listo!',
+        text: 'Tu mapa se guarda solo. Ctrl+Z deshace cualquier cosa, y en «⋯ → Ver tutorial» puedes repetir esta guía.',
+        target: () => null
+      }
+    ];
+    this.tour = new MapTour(this.root, steps, () => {
+      this.tour = null;
+      this.engine.clearSelection();
+    });
+    this.tour.start();
   }
 
   private maybeShowHint(): void {
@@ -1262,6 +1363,7 @@ export class MindMapStudio {
       { label: 'Flashcards de todo el mapa…', icon: 'card', onClick: () => this.pickDeck((id, name) => this.createAllCards(id, name)) },
       { sep: true },
       { label: 'Guardar ahora', icon: 'save', kbd: 'Ctrl+S', onClick: () => void this.saveNow().then(() => this.toast('Mapa guardado')) },
+      { label: 'Asistente de estilo…', icon: 'sparkle', onClick: () => this.startSetup(false) },
       { label: 'Plantillas…', icon: 'template', onClick: () => this.openTemplateGallery(false) },
       { label: 'Importar archivo…', icon: 'import', onClick: () => this.importInput.click() },
       { label: 'Pegar un esquema…', icon: 'outline', onClick: () => this.openPasteOutline() },
@@ -1271,6 +1373,7 @@ export class MindMapStudio {
       { label: 'Contraer a nivel 1', icon: 'collapse', onClick: () => this.engine.collapseToLevel(1) },
       { label: 'Contraer a nivel 2', icon: 'collapse', onClick: () => this.engine.collapseToLevel(2) },
       { sep: true },
+      { label: 'Ver tutorial', icon: 'eye', onClick: () => this.startTour() },
       { label: 'Atajos de teclado', icon: 'keyboard', onClick: () => this.openShortcuts() }
     );
     return items;
@@ -1291,7 +1394,7 @@ export class MindMapStudio {
       { label: 'Relacionar con otra idea', icon: 'relation', onClick: () => this.startRelation() },
       { label: hasKids ? (expanded ? 'Contraer rama' : 'Expandir rama') : 'Contraer rama', icon: expanded ? 'collapse' : 'expand', disabled: !hasKids, onClick: () => this.engine.toggleExpand(node) },
       { sep: true },
-      { label: 'Foto…', icon: 'image', onClick: () => this.pickImage() },
+      { label: 'Foto…', icon: 'image', onClick: () => this.openImageMenu(this.menuAnchorEl()) },
       { label: 'Nota…', icon: 'note', onClick: () => { this.openInspector('node'); this.inspector.focusField('note'); } },
       { label: this.engine.isFocused() ? 'Salir del enfoque' : 'Enfocar esta rama', icon: 'focus', onClick: () => this.engine.focusBranch(this.engine.isFocused() ? null : node) },
       { label: 'Crear flashcard…', icon: 'card', onClick: () => this.openFlashcardMenu(node) },
@@ -1395,7 +1498,8 @@ export class MindMapStudio {
     const n = this.getSelection()[0];
     const has = Boolean(n?.nodeData?.data?.image);
     this.openMenu(anchor, [
-      { label: has ? 'Cambiar foto…' : 'Elegir una foto…', icon: 'image', onClick: () => this.pickImage() },
+      { label: 'Buscar en la biblioteca…', icon: 'search', onClick: () => this.openImageSearch() },
+      { label: has ? 'Cambiar foto…' : 'Subir una foto…', icon: 'image', onClick: () => this.pickImage() },
       { label: 'Tomar foto…', icon: 'camera', onClick: () => this.cameraInput.click() },
       { label: 'Desde un enlace…', icon: 'link', onClick: () => this.promptImageUrl() },
       ...(has ? ([{ sep: true }, { label: 'Quitar foto', icon: 'trash', danger: true, onClick: () => this.removeImage() }] as MenuItem[]) : [])
@@ -1426,6 +1530,32 @@ export class MindMapStudio {
     }
     this.fileInput.value = '';
     this.fileInput.click();
+  }
+
+  /** Busca fotos y diagramas gratuitos para la idea seleccionada */
+  public openImageSearch(): void {
+    const sel = this.getSelection();
+    if (!sel.length) {
+      this.toast('Selecciona una idea para añadir la foto');
+      return;
+    }
+    const text = stripToPlain(String(sel[0].nodeData?.data?.text || ''));
+    openImageLibrary({
+      title: 'Foto para la idea',
+      initialQuery: queryFromCardText(text),
+      onPick: async (dataUrl) => {
+        try {
+          const { processImageSource } = await import('./images');
+          const img = await processImageSource(dataUrl);
+          const size = fitImageSize(img.width, img.height, IMAGE_PRESETS.medium.w, IMAGE_PRESETS.medium.h);
+          this.engine.applyData(this.getSelection().length ? this.getSelection() : sel, { image: img.dataUrl, imageSize: size, imageLost: null }, { relayout: true });
+          this.inspector.render();
+          this.scheduleOverlays();
+        } catch {
+          this.toast('No se pudo usar esa imagen');
+        }
+      }
+    });
   }
 
   public pickCamera(): void {
@@ -1552,6 +1682,10 @@ export class MindMapStudio {
       { label: 'De esta idea', icon: 'card', onClick: () => this.pickDeck((id, name) => this.createCardsFrom(node, 'this', id, name)) },
       { label: 'De cada una de sus ramas', icon: 'grid', disabled: !hasKids, onClick: () => this.pickDeck((id, name) => this.createCardsFrom(node, 'children', id, name)) }
     ]);
+  }
+
+  private menuAnchorEl(): HTMLElement {
+    return (this.root.querySelector('.mmx-ntb [data-act="image-pop"]') as HTMLElement | null) || (this.root.querySelector('.mmx-top') as HTMLElement);
   }
 
   private menuAnchor(): { x: number; y: number } {
@@ -2021,6 +2155,8 @@ export class MindMapStudio {
       /* ignore */
     }
     this.destroyed = true;
+    this.wizard?.destroy();
+    this.tour?.end();
     window.clearTimeout(this.toastTimer);
     window.clearTimeout(this.viewSaveTimer);
     window.clearTimeout(this.searchTimer);

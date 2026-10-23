@@ -32,6 +32,9 @@ export class FigmaStudySession {
   private onExitCallback: () => void;
   private onEditCardCallback?: (cardId: string) => void;
   private historyStack: { cardIndex: number; isFlipped: boolean }[] = [];
+  /** Calificaciones deshacibles: estado previo de la tarjeta y qué se tocó en la cola y las cifras */
+  private undoStack: { snapshot: Flashcard; index: number; rating: StudyRating; requeued: boolean }[] = [];
+  private animate: 'enter' | 'flip' | null = 'enter';
   private sessionStats = {
     startTime: Date.now(),
     againCount: 0,
@@ -112,9 +115,16 @@ export class FigmaStudySession {
               </div>
             </div>
 
-            <button class="cupertino-icon-square" id="btn-study-audio" title="Pronunciación TTS">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-            </button>
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+              ${
+                this.isPreviewMode
+                  ? ''
+                  : `<button class="sx-undo" id="btn-study-undo" title="Deshacer la última calificación (Z)" ${this.undoStack.length ? '' : 'disabled'}>↩ <span>Deshacer</span></button>`
+              }
+              <button class="cupertino-icon-square" id="btn-study-audio" title="Pronunciación TTS">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+            </div>
           </div>
 
           <!-- Progress track -->
@@ -133,8 +143,10 @@ export class FigmaStudySession {
             ‹
           </button>
 
-          <div class="cupertino-flashcard-box" id="f-study-scene" style="cursor:pointer;">
-            
+          <div class="cupertino-flashcard-box ${this.animate === 'enter' ? 'sx-enter' : this.animate === 'flip' ? 'sx-flip' : ''}" id="f-study-scene" style="cursor:pointer; position:relative; touch-action:pan-y;">
+            <span class="sx-swipe-hint left" id="sx-hint-left">De nuevo</span>
+            <span class="sx-swipe-hint right" id="sx-hint-right">Bien</span>
+
             <!-- Top 3-dots icon for Card Actions / Editing -->
             <div class="cupertino-card-top-action">
               <button class="cupertino-btn-card-menu" id="btn-card-more-action" title="Editar o gestionar tarjeta">⋮</button>
@@ -235,6 +247,7 @@ export class FigmaStudySession {
       </div>
     `;
 
+    this.animate = null;
     this.bindEvents(container);
   }
 
@@ -296,7 +309,7 @@ export class FigmaStudySession {
       <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; width:100%;">
         ${mediaHtml}
         <div class="cupertino-card-main-title">
-          ${katexService.parseAndRender(card.front)}
+          ${card.type === 'cloze' ? katexService.renderCloze(card.front, false) : katexService.parseAndRender(card.front)}
         </div>
         ${typeAnswerInputHtml}
       </div>
@@ -380,13 +393,27 @@ export class FigmaStudySession {
       `;
     }
 
+    const credit = card.imageCredit ? `<div class="sx-credit">📷 ${card.imageCredit.replace(/</g, '&lt;')}</div>` : '';
+
+    if (card.type === 'cloze') {
+      // En los huecos la respuesta es la propia frase con el hueco resaltado; lo extra va debajo
+      return `
+        <div style="display:flex; flex-direction:column; align-items:center; text-align:center; width:100%;">
+          ${mediaHtml}
+          <div class="cupertino-card-main-title">${katexService.renderCloze(card.front, true)}</div>
+          ${card.back.trim() ? `<div class="cupertino-card-divider"></div><div class="cupertino-card-answer-text">${katexService.parseAndRender(card.back)}</div>` : ''}
+          ${credit}
+        </div>
+      `;
+    }
+
     return `
       <div style="display:flex; flex-direction:column; align-items:center; text-align:center; width:100%;">
         ${mediaHtml}
         <div class="cupertino-card-main-title" style="color:var(--f-text-secondary); font-size:1.15rem;">
           ${katexService.parseAndRender(card.front)}
         </div>
-        
+
         <div class="cupertino-card-divider"></div>
 
         ${typedComparisonHtml}
@@ -394,6 +421,7 @@ export class FigmaStudySession {
         <div class="cupertino-card-answer-text">
           ${katexService.parseAndRender(card.back)}
         </div>
+        ${credit}
       </div>
     `;
   }
@@ -612,6 +640,7 @@ export class FigmaStudySession {
         }
         this.historyStack.push({ cardIndex: this.currentCardIndex, isFlipped: false });
         this.isFlipped = true;
+        this.animate = 'flip';
         this.render(container);
       }
     };
@@ -679,6 +708,64 @@ export class FigmaStudySession {
       ttsService.speak(text, currentCard.audioLang || this.deck.settings.ttsVoiceLang);
     });
 
+    document.getElementById('btn-study-undo')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.undoLast(container);
+    });
+
+    // Deslizar la tarjeta: derecha = Bien, izquierda = De nuevo (solo con la respuesta a la vista)
+    const scene = document.getElementById('f-study-scene');
+    if (scene) {
+      let sx = 0;
+      let sy = 0;
+      let dx = 0;
+      let tracking = false;
+      const hintL = document.getElementById('sx-hint-left');
+      const hintR = document.getElementById('sx-hint-right');
+      scene.addEventListener(
+        'touchstart',
+        (e) => {
+          if (!this.isFlipped || e.touches.length !== 1) return;
+          const target = e.target as HTMLElement;
+          if (target.closest('math-field, input, textarea, button')) return;
+          sx = e.touches[0].clientX;
+          sy = e.touches[0].clientY;
+          dx = 0;
+          tracking = true;
+        },
+        { passive: true }
+      );
+      scene.addEventListener(
+        'touchmove',
+        (e) => {
+          if (!tracking) return;
+          dx = e.touches[0].clientX - sx;
+          const dy = e.touches[0].clientY - sy;
+          if (Math.abs(dy) > Math.abs(dx) * 1.2) return;
+          scene.style.transform = `translateX(${dx * 0.5}px) rotate(${dx / 40}deg)`;
+          const k = Math.min(1, Math.abs(dx) / 90);
+          if (hintL) hintL.style.opacity = dx < 0 ? String(k) : '0';
+          if (hintR) hintR.style.opacity = dx > 0 ? String(k) : '0';
+        },
+        { passive: true }
+      );
+      const endSwipe = () => {
+        if (!tracking) return;
+        tracking = false;
+        const fired = Math.abs(dx) > 90;
+        scene.style.transform = '';
+        if (hintL) hintL.style.opacity = '0';
+        if (hintR) hintR.style.opacity = '0';
+        if (fired) {
+          // El clic fantasma que sigue al gesto no debe voltear la siguiente tarjeta
+          scene.addEventListener('click', (ev) => ev.stopPropagation(), { once: true, capture: true });
+          this.handleRating(dx > 0 ? 'good' : 'again', container);
+        }
+      };
+      scene.addEventListener('touchend', endSwipe);
+      scene.addEventListener('touchcancel', endSwipe);
+    }
+
     // Rating buttons with clean, reliable onclick handlers (Solo activos al voltear)
     if (this.isFlipped) {
       const bindRating = (id: string, rating: StudyRating) => {
@@ -740,6 +827,12 @@ export class FigmaStudySession {
 
       if (isInputActive) return;
 
+      if ((e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
+        e.preventDefault();
+        this.undoLast(container);
+        return;
+      }
+
       const isSpaceOrEnter = e.code === 'Space' || e.key === ' ' || e.code === 'Enter' || e.key === 'Enter';
 
       // Si la tarjeta NO ha sido volteada, solo se permite voltear
@@ -782,7 +875,11 @@ export class FigmaStudySession {
       } catch {}
 
       const currentCard = this.queue[this.currentCardIndex];
+      let requeued = false;
       if (currentCard) {
+        const before = deckService.getCardById(currentCard.id);
+        if (before) this.undoStack.push({ snapshot: { ...before }, index: this.currentCardIndex, rating, requeued: false });
+        if (this.undoStack.length > 30) this.undoStack.shift();
         deckService.reviewCard(currentCard.id, rating);
       }
 
@@ -791,8 +888,10 @@ export class FigmaStudySession {
         this.sessionStats.againCount++;
         if (!this.isSingleCardMode && currentCard) {
           this.queue.push(currentCard);
+          requeued = true;
         }
-      } else if (rating === 'hard') {
+      }
+      if (this.undoStack.length) this.undoStack[this.undoStack.length - 1].requeued = requeued; else if (rating === 'hard') {
         this.sessionStats.hardCount++;
       } else if (rating === 'good') {
         this.sessionStats.goodCount++;
@@ -803,6 +902,7 @@ export class FigmaStudySession {
       this.currentCardIndex++;
       this.isFlipped = false;
       this.typedAnswer = '';
+      this.animate = 'enter';
 
       // Check if Neuro-Ergonomic Micro-Game break is enabled and interval reached
       const interval = this.deck.settings.microGameInterval !== undefined ? this.deck.settings.microGameInterval : 5;
@@ -828,6 +928,31 @@ export class FigmaStudySession {
       this.isHandlingRating = false;
     }
 
+    this.render(container);
+  }
+
+  /** Deshace la última calificación: devuelve la tarjeta a su estado anterior y la muestra otra vez para calificarla. */
+  private undoLast(container: HTMLElement): void {
+    const last = this.undoStack.pop();
+    if (!last || this.isHandlingRating) return;
+    deckService.restoreCardState(last.snapshot);
+    if (last.requeued) this.queue.pop();
+
+    const s = this.sessionStats;
+    s.totalReviewed = Math.max(0, s.totalReviewed - 1);
+    if (last.rating === 'again') s.againCount = Math.max(0, s.againCount - 1);
+    else if (last.rating === 'hard') s.hardCount = Math.max(0, s.hardCount - 1);
+    else if (last.rating === 'good') s.goodCount = Math.max(0, s.goodCount - 1);
+    else s.easyCount = Math.max(0, s.easyCount - 1);
+
+    this.currentCardIndex = last.index;
+    this.isFlipped = true;
+    this.animate = 'enter';
+    try {
+      nativeService.triggerHaptics('light');
+    } catch {
+      /* ignore */
+    }
     this.render(container);
   }
 

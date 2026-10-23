@@ -1,0 +1,46 @@
+/* ==========================================================================
+   MODO LIGERO (html[data-perf="lite"])
+   Se activa solo en equipos modestos o cuando el usuario lo elige. Mantiene colores, tipografía y
+   composición; quita lo que más cuesta a la GPU: desenfoques de fondo, animaciones decorativas
+   continuas y sombras difusas enormes.
+   ========================================================================== */
+
+html[data-perf="lite"] *,
+html[data-perf="lite"] *::before,
+html[data-perf="lite"] *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Animaciones decorativas que corren sin parar (los microjuegos y spinners no se tocan) */
+html[data-perf="lite"] .study-canvas-slot-dot,
+html[data-perf="lite"] .lock-pulsing-glow,
+html[data-perf="lite"] .figma-timer-capsule .clock-dot {
+  animation: none !important;
+}
+html[data-perf="lite"] .lock-pulsing-glow { filter: none !important; }
+
+/* La capa de atmósfera fija detrás de toda la app no necesita repintarse al desplazarse */
+html[data-perf="lite"] body::before { will-change: auto; }
+
+/* Listas largas: el navegador se salta lo que no se ve */
+.figma-card-item,
+.figma-subdeck-row,
+.apple-list-row,
+.outliner-node-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 72px;
+}
+
+/* Transiciones largas de entrada: más cortas en equipos lentos */
+html[data-perf="lite"] .apple-modal-overlay,
+html[data-perf="lite"] .apple-modal-content {
+  transition-duration: 0.12s !important;
+  animation-duration: 0.14s !important;
+}
+
+/* Desplazamiento más fluido en pantallas táctiles */
+.ios-content-scroll,
+.figma-main-content {
+  -webkit-overflow-scrolling: touch;
+}

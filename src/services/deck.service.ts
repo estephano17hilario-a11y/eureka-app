@@ -2,6 +2,38 @@ import type { Deck, Flashcard, DeckStats, StudyRating, DeckSettings, CardType, O
 import { getInitialDemoDecks } from './demo-data';
 import { srsService } from './srs.service';
 import { eurekaBackend } from './backend.service';
+import { idbGet, idbSet, lsGet, lsSet, lsRemove, requestPersistentStorage } from './storage.service';
+
+/** Qué versión de cada elemento ya confirmó el servidor, y qué borrados siguen pendientes de enviar. */
+interface SyncMeta {
+  decks: Record<string, number>;
+  cards: Record<string, number>;
+  delDecks: string[];
+  delCards: string[];
+}
+
+interface CoreSnapshot {
+  decks: Deck[];
+  cards: Flashcard[];
+  savedAt: number;
+}
+
+/** Id corto y único (evita colisiones al crear cientos de tarjetas en el mismo milisegundo). */
+let idCounter = 0;
+function makeId(prefix: string): string {
+  idCounter = (idCounter + 1) % 1679616;
+  return `${prefix}-${Date.now().toString(36)}-${idCounter.toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+}
+
+/** Copia de las tarjetas sin imágenes (cabe en localStorage aunque haya muchas fotos). */
+function stripCardImages(cards: Flashcard[]): Flashcard[] {
+  return cards.map((c) => {
+    if (!c.frontImage && !c.backImage && !c.occlusionImage) return c;
+    return { ...c, frontImage: undefined, backImage: undefined, occlusionImage: undefined };
+  });
+}
+
+const LS_CARDS_BUDGET = 2_600_000; // caracteres: por encima, localStorage guarda la copia ligera y IndexedDB la completa
 
 export class DeckService {
   private static instance: DeckService;
@@ -9,17 +41,35 @@ export class DeckService {
   private decks: Deck[] = [];
   private cards: Flashcard[] = [];
   private listeners: Array<() => void> = [];
+  private meta: SyncMeta = { decks: {}, cards: {}, delDecks: [], delCards: [] };
+
+  // Cachés de lectura (se invalidan con cada cambio)
+  private rev = 0;
+  private hierarchyCache = new Map<string, string[]>();
+  private cardsCache = new Map<string, Flashcard[]>();
+  private statsCache = new Map<string, DeckStats>();
+  private statsAt = 0;
+
+  private saveTimer: number | null = null;
+  private idbTimer: number | null = null;
+  private pushTimer: number | null = null;
+  private pushing = false;
+  private pushAgain = false;
+  private syncing = false;
+  private dirty = false;
 
   private constructor() {
     this.currentUserId = eurekaBackend.getUserId();
     this.loadFromStorage();
-    this.syncWithCloud();
+    requestPersistentStorage();
+    void this.hydrateFromIdb().then(() => {
+      this.seedDemoIfEmpty();
+      return this.syncWithCloud();
+    });
 
     if (typeof window !== 'undefined') {
       const persistState = () => {
-        this.saveToStorage();
-        eurekaBackend.syncDecks(this.decks);
-        eurekaBackend.syncCards(this.cards);
+        this.flushSave();
       };
 
       window.addEventListener('beforeunload', persistState);
@@ -28,8 +78,14 @@ export class DeckService {
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
           persistState();
+          this.schedulePush(0);
         }
       });
+      window.addEventListener('online', () => this.schedulePush(300));
+      // Reintento periódico de lo que no llegó al servidor (sin conexión, servidor reiniciándose…)
+      window.setInterval(() => {
+        if (document.visibilityState === 'visible') this.schedulePush(0);
+      }, 60000);
     }
   }
 
@@ -40,9 +96,10 @@ export class DeckService {
     return DeckService.instance;
   }
 
-  private cloudSyncTimer: any = null;
-
   public async setUser(userId: string): Promise<void> {
+    // Lo pendiente del usuario anterior se guarda antes de cambiar de cuenta
+    this.flushSave();
+
     const resolvedId = (!userId || userId === 'guest' || userId === 'default')
       ? eurekaBackend.getUserId()
       : userId;
@@ -51,6 +108,8 @@ export class DeckService {
     this.decks = [];
     this.cards = [];
     this.loadFromStorage();
+    await this.hydrateFromIdb();
+    this.seedDemoIfEmpty();
     await this.syncWithCloud();
     this.notify();
   }
@@ -62,33 +121,68 @@ export class DeckService {
     };
   }
 
+  /** Cada cambio invalida cachés, programa el guardado y avisa a la interfaz. */
   private notify(): void {
-    this.saveToStorage();
-    this.listeners.forEach(fn => fn());
+    this.invalidate();
+    this.scheduleSave();
+    this.schedulePush();
+    this.emitChange();
   }
 
+  /** Agrupa los avisos: varias altas seguidas (importar 200 tarjetas) provocan un solo repintado. */
+  private emitQueued = false;
+  private emitChange(): void {
+    if (this.emitQueued) return;
+    this.emitQueued = true;
+    queueMicrotask(() => {
+      this.emitQueued = false;
+      this.listeners.forEach(fn => fn());
+    });
+  }
+
+  private invalidate(): void {
+    this.rev++;
+    this.hierarchyCache.clear();
+    this.cardsCache.clear();
+    this.statsCache.clear();
+  }
+
+  // --- CLAVES ---
+
+  private uid(): string {
+    return this.currentUserId || eurekaBackend.getUserId() || 'default';
+  }
   private getDecksStorageKey(): string {
-    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
-    return `eureka_decks_user_${uid}`;
+    return `eureka_decks_user_${this.uid()}`;
+  }
+  private getCardsStorageKey(): string {
+    return `eureka_cards_user_${this.uid()}`;
+  }
+  private getMetaKey(): string {
+    return `eureka_syncmeta_user_${this.uid()}`;
+  }
+  private getCoreMetaKey(): string {
+    return `eureka_coremeta_user_${this.uid()}`;
+  }
+  private getIdbKey(): string {
+    return `core:${this.uid()}`;
   }
 
-  private getCardsStorageKey(): string {
-    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
-    return `eureka_cards_user_${uid}`;
-  }
+  // --- CARGA ---
 
   private loadFromStorage(): void {
     try {
       this.decks = [];
       this.cards = [];
+      this.meta = { decks: {}, cards: {}, delDecks: [], delCards: [] };
 
-      let storedDecks = localStorage.getItem(this.getDecksStorageKey());
-      let storedCards = localStorage.getItem(this.getCardsStorageKey());
+      let storedDecks = lsGet(this.getDecksStorageKey());
+      let storedCards = lsGet(this.getCardsStorageKey());
 
       // Respaldo de recuperación infalible si la clave actual estuviera vacía
       if (!storedDecks) {
-        const backupDecks = localStorage.getItem('eureka_decks_backup_latest');
-        const backupCards = localStorage.getItem('eureka_cards_backup_latest');
+        const backupDecks = lsGet('eureka_decks_backup_latest');
+        const backupCards = lsGet('eureka_cards_backup_latest');
         if (backupDecks) {
           storedDecks = backupDecks;
           storedCards = backupCards;
@@ -110,192 +204,408 @@ export class DeckService {
 
       if (storedDecks) {
         this.decks = JSON.parse(storedDecks);
-        // Normalizar carpetas y mazos
-        this.decks.forEach(d => {
-          if (d.id === 'deck-mates-sub') {
-            d.isFolder = false;
-            d.icon = 'deck';
-          } else if (d.id === 'deck-mates' || d.id === 'deck-idioma' || d.id === 'deck-humans' || d.id === 'deck-tools') {
-            d.isFolder = true;
-            if (d.id === 'deck-tools') {
-              d.icon = 'briefcase';
-            } else {
-              d.icon = 'folder';
-            }
-          } else if (d.icon === 'folder' || d.icon === 'folder-sub' || d.icon === 'briefcase') {
-            d.isFolder = true;
-          } else if (d.isFolder === undefined) {
-            d.isFolder = false;
-          }
-        });
+        this.normalizeDecks();
       }
 
       if (storedCards) {
         this.cards = JSON.parse(storedCards);
       }
 
-      // Si es un usuario invitado nuevo sin datos, inicializar con mazos demo
-      const isGuest = !this.currentUserId || this.currentUserId.startsWith('guest_') || this.currentUserId === 'default';
-      if (this.decks.length === 0 && isGuest) {
-        const initial = getInitialDemoDecks();
-        this.decks = initial.decks;
-        this.cards = initial.cards;
-        this.saveToStorage();
+      try {
+        const rawMeta = lsGet(this.getMetaKey());
+        if (rawMeta) {
+          const m = JSON.parse(rawMeta);
+          this.meta = {
+            decks: m.decks || {},
+            cards: m.cards || {},
+            delDecks: Array.isArray(m.delDecks) ? m.delDecks : [],
+            delCards: Array.isArray(m.delCards) ? m.delCards : []
+          };
+        }
+      } catch {
+        /* meta corrupta: se reconstruye en la próxima sincronización */
       }
+
+      this.invalidate();
     } catch (err) {
       console.warn('[DECK SERVICE] Error leyendo almacenamiento local:', err);
     }
   }
 
-  private saveToStorage(): void {
-    try {
-      const decksJson = JSON.stringify(this.decks);
-      const cardsJson = JSON.stringify(this.cards);
-      localStorage.setItem(this.getDecksStorageKey(), decksJson);
-      localStorage.setItem(this.getCardsStorageKey(), cardsJson);
+  /**
+   * Un invitado nuevo, sin nada en localStorage NI en IndexedDB, recibe los mazos de ejemplo (solo una vez).
+   * Se hace después de leer IndexedDB: si no, un localStorage vacío haría que el ejemplo pisara datos reales.
+   */
+  private seedDemoIfEmpty(): void {
+    const isGuest = !this.currentUserId || this.currentUserId.startsWith('guest_') || this.currentUserId === 'default';
+    if (!isGuest || this.decks.length > 0 || this.cards.length > 0) return;
+    const flagKey = `eureka_demo_seeded_${this.uid()}`;
+    if (lsGet(flagKey)) return;
+    const initial = getInitialDemoDecks();
+    this.decks = initial.decks;
+    this.cards = initial.cards;
+    lsSet(flagKey, '1');
+    this.invalidate();
+    this.saveNow();
+    this.listeners.forEach(fn => fn());
+  }
 
-      // Respaldo global persistente
-      if (this.decks.length > 0) {
-        localStorage.setItem('eureka_decks_backup_latest', decksJson);
-        localStorage.setItem('eureka_cards_backup_latest', cardsJson);
+  private normalizeDecks(): void {
+    this.decks.forEach(d => {
+      if (d.id === 'deck-mates-sub') {
+        d.isFolder = false;
+        d.icon = 'deck';
+      } else if (d.id === 'deck-mates' || d.id === 'deck-idioma' || d.id === 'deck-humans' || d.id === 'deck-tools') {
+        d.isFolder = true;
+        d.icon = d.id === 'deck-tools' ? 'briefcase' : 'folder';
+      } else if (d.icon === 'folder' || d.icon === 'folder-sub' || d.icon === 'briefcase') {
+        d.isFolder = true;
+      } else if (d.isFolder === undefined) {
+        d.isFolder = false;
       }
-      
-      // Sincronización a VPS con debounce de 250ms
-      if (this.cloudSyncTimer) clearTimeout(this.cloudSyncTimer);
-      this.cloudSyncTimer = setTimeout(() => {
-        eurekaBackend.syncDecks(this.decks);
-        eurekaBackend.syncCards(this.cards);
-      }, 250);
-    } catch (err: any) {
-      if (err?.name === 'QuotaExceededError' || err?.code === 22) {
-        try {
-          localStorage.removeItem('eureka_decks_backup_latest');
-          localStorage.removeItem('eureka_cards_backup_latest');
-          localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
-          localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
-        } catch (e2) {
-          console.warn('[DECK SERVICE] Almacenamiento lleno incluso tras depuración:', e2);
+    });
+  }
+
+  /**
+   * Segunda lectura, asíncrona, desde IndexedDB: guarda la copia completa (con fotos) y sobrevive aunque
+   * localStorage esté lleno o el navegador lo haya limpiado. Se usa la copia más reciente.
+   */
+  private async hydrateFromIdb(): Promise<void> {
+    const forUser = this.uid();
+    try {
+      const snap = await idbGet<CoreSnapshot>(this.getIdbKey());
+      if (!snap || !Array.isArray(snap.decks) || !Array.isArray(snap.cards)) return;
+      if (forUser !== this.uid()) return; // cambió la cuenta mientras leíamos
+
+      let lsMeta: { savedAt?: number; slim?: boolean } = {};
+      try {
+        lsMeta = JSON.parse(lsGet(this.getCoreMetaKey()) || '{}');
+      } catch {
+        /* ignore */
+      }
+      const lsAt = lsMeta.savedAt || 0;
+      let changed = false;
+
+      if (this.decks.length === 0 || snap.savedAt > lsAt) {
+        // IndexedDB tiene datos más nuevos (o localStorage está vacío)
+        if (snap.decks.length > 0 || this.decks.length === 0) {
+          this.decks = snap.decks;
+          this.cards = snap.cards;
+          this.normalizeDecks();
+          changed = true;
         }
+      } else if (lsMeta.slim) {
+        // localStorage guardó la copia ligera: se recuperan las fotos desde IndexedDB
+        const byId = new Map(snap.cards.map(c => [c.id, c]));
+        this.cards = this.cards.map(c => {
+          const full = byId.get(c.id);
+          if (!full) return c;
+          if (c.frontImage || c.backImage || c.occlusionImage) return c;
+          if (!full.frontImage && !full.backImage && !full.occlusionImage) return c;
+          changed = true;
+          return { ...c, frontImage: full.frontImage, backImage: full.backImage, occlusionImage: full.occlusionImage };
+        });
       }
-      console.warn('Error guardando en almacenamiento:', err);
+
+      if (changed) {
+        this.invalidate();
+        this.listeners.forEach(fn => fn());
+      }
+    } catch (err) {
+      console.warn('[DECK SERVICE] No se pudo leer IndexedDB:', err);
     }
   }
 
+  // --- GUARDADO ---
+
+  private scheduleSave(): void {
+    this.dirty = true;
+    if (this.saveTimer !== null) return;
+    this.saveTimer = window.setTimeout(() => {
+      this.saveTimer = null;
+      this.saveNow();
+    }, 220);
+  }
+
+  /** Guarda ya lo pendiente (al ocultar la app o cambiar de cuenta). */
+  private flushSave(): void {
+    if (this.saveTimer !== null) {
+      window.clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    if (this.dirty) this.saveNow();
+  }
+
+  private saveNow(): void {
+    this.dirty = false;
+    const savedAt = Date.now();
+    try {
+      const decksJson = JSON.stringify(this.decks);
+
+      // Si las fotos ya van a desbordar localStorage, se salta serializar la copia completa (es lo más caro)
+      let imgChars = 0;
+      for (const c of this.cards) imgChars += (c.frontImage?.length || 0) + (c.backImage?.length || 0) + (c.occlusionImage?.length || 0);
+      const mustSlim = imgChars > LS_CARDS_BUDGET * 0.7;
+      const cardsJson = mustSlim ? '' : JSON.stringify(this.cards);
+      const fits = !mustSlim && cardsJson.length <= LS_CARDS_BUDGET;
+
+      lsSet(this.getDecksStorageKey(), decksJson);
+      let slim = false;
+      if (fits) {
+        if (!lsSet(this.getCardsStorageKey(), cardsJson)) slim = true;
+      } else {
+        slim = true;
+      }
+      if (slim) {
+        // Demasiado grande para localStorage: copia ligera aquí, completa en IndexedDB
+        const slimJson = JSON.stringify(stripCardImages(this.cards));
+        if (!lsSet(this.getCardsStorageKey(), slimJson)) {
+          lsRemove('eureka_cards_backup_latest');
+          lsRemove('eureka_decks_backup_latest');
+          lsSet(this.getCardsStorageKey(), slimJson);
+        }
+      }
+      lsSet(this.getCoreMetaKey(), JSON.stringify({ savedAt, slim }));
+
+      // Respaldo global persistente (solo si cabe; nunca a costa del guardado principal)
+      if (this.decks.length > 0 && !slim) {
+        lsSet('eureka_decks_backup_latest', decksJson);
+        lsSet('eureka_cards_backup_latest', cardsJson);
+      } else if (slim) {
+        lsRemove('eureka_cards_backup_latest');
+        lsRemove('eureka_decks_backup_latest');
+      }
+    } catch (err) {
+      console.warn('Error guardando en almacenamiento:', err);
+    }
+    this.scheduleIdb(savedAt);
+  }
+
+  private scheduleIdb(savedAt: number): void {
+    if (this.idbTimer !== null) window.clearTimeout(this.idbTimer);
+    this.idbTimer = window.setTimeout(() => {
+      this.idbTimer = null;
+      const snap: CoreSnapshot = { decks: this.decks, cards: this.cards, savedAt };
+      void idbSet(this.getIdbKey(), snap);
+    }, 500);
+  }
+
+  private saveMeta(): void {
+    lsSet(this.getMetaKey(), JSON.stringify(this.meta));
+  }
+
+  // --- SINCRONIZACIÓN ---
+
+  private schedulePush(delay: number = 1400): void {
+    if (this.pushTimer !== null) window.clearTimeout(this.pushTimer);
+    this.pushTimer = window.setTimeout(() => {
+      this.pushTimer = null;
+      void this.pushDirty();
+    }, delay);
+  }
+
+  /** Sube solo lo que cambió desde la última confirmación del servidor, y reintenta los borrados pendientes. */
+  private async pushDirty(): Promise<void> {
+    if (this.pushing) {
+      this.pushAgain = true;
+      return;
+    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    this.pushing = true;
+    try {
+      // 1) Borrados pendientes
+      if (this.meta.delCards.length > 0) {
+        const ids = this.meta.delCards.slice();
+        if (await eurekaBackend.deleteCardsFromCloud(ids)) {
+          const done = new Set(ids);
+          this.meta.delCards = this.meta.delCards.filter(id => !done.has(id));
+        }
+      }
+      if (this.meta.delDecks.length > 0) {
+        const ids = this.meta.delDecks.slice();
+        if (await eurekaBackend.deleteDecksFromCloud(ids)) {
+          const done = new Set(ids);
+          this.meta.delDecks = this.meta.delDecks.filter(id => !done.has(id));
+        }
+      }
+
+      // 2) Mazos modificados (siempre antes que las tarjetas)
+      const dirtyDecks = this.decks.filter(d => this.meta.decks[d.id] !== d.updatedAt);
+      const sentDecks = new Map(dirtyDecks.map(d => [d.id, d.updatedAt]));
+      let decksOk = true;
+      if (dirtyDecks.length > 0) {
+        const acked = await eurekaBackend.syncDecks(dirtyDecks);
+        acked.forEach(id => {
+          this.meta.decks[id] = sentDecks.get(id) as number;
+        });
+        decksOk = acked.length === dirtyDecks.length;
+      }
+
+      // 3) Tarjetas modificadas
+      if (decksOk) {
+        const dirtyCards = this.cards.filter(c => this.meta.cards[c.id] !== c.updatedAt);
+        if (dirtyCards.length > 0) {
+          const sentCards = new Map(dirtyCards.map(c => [c.id, c.updatedAt]));
+          const acked = await eurekaBackend.syncCards(dirtyCards);
+          acked.forEach(id => {
+            this.meta.cards[id] = sentCards.get(id) as number;
+          });
+        }
+      }
+      this.saveMeta();
+    } catch (err) {
+      console.warn('[EUREKA SYNC] Error subiendo cambios:', err);
+    } finally {
+      this.pushing = false;
+      if (this.pushAgain) {
+        this.pushAgain = false;
+        this.schedulePush(400);
+      }
+    }
+  }
+
+  /**
+   * Fusiona lo del servidor con lo local sin perder nada:
+   *  - gana la versión más reciente de cada elemento;
+   *  - lo que el servidor nunca llegó a recibir se conserva y se sube;
+   *  - solo se borra localmente lo que el servidor tenía confirmado y luego dejó de tener (borrado en otro dispositivo).
+   */
   public async syncWithCloud(): Promise<void> {
+    if (this.syncing) return;
+    this.syncing = true;
     try {
       const [remoteDecks, remoteCards] = await Promise.all([
         eurekaBackend.fetchDecks(),
         eurekaBackend.fetchCards()
       ]);
+      // Sin respuesta fiable no se toca nada
+      if (remoteDecks === null || remoteCards === null) return;
 
-      let hasChanges = false;
-      const now = Date.now();
+      let changed = false;
+      const pendingDelDecks = new Set(this.meta.delDecks);
+      const pendingDelCards = new Set(this.meta.delCards);
 
-      // Sincronización fidedigna de mazos
-      if (remoteDecks !== null) {
-        const remoteDeckMap = new Map<string, Deck>();
-        remoteDecks.forEach(d => remoteDeckMap.set(d.id, d));
+      // Un servidor vacío con datos previamente confirmados es un servidor reiniciado: se vuelve a subir todo
+      if (remoteDecks.length === 0 && remoteCards.length === 0 && (Object.keys(this.meta.decks).length > 0 || Object.keys(this.meta.cards).length > 0)) {
+        this.meta.decks = {};
+        this.meta.cards = {};
+      }
 
-        const finalDecks: Deck[] = [];
-        const localDeckMap = new Map<string, Deck>();
-        this.decks.forEach(d => localDeckMap.set(d.id, d));
+      // Mazos
+      {
+        const remoteMap = new Map(remoteDecks.map(d => [d.id, d]));
+        const localMap = new Map(this.decks.map(d => [d.id, d]));
+        const merged: Deck[] = [];
 
-        // 1. Procesar elementos del servidor
         remoteDecks.forEach(remote => {
-          const local = localDeckMap.get(remote.id);
+          if (pendingDelDecks.has(remote.id)) return;
+          const local = localMap.get(remote.id);
           if (!local) {
-            finalDecks.push(remote);
-            hasChanges = true;
-          } else if ((remote.updatedAt || 0) >= (local.updatedAt || 0)) {
-            finalDecks.push({ ...local, ...remote });
-            if (remote.updatedAt !== local.updatedAt) hasChanges = true;
+            merged.push(remote);
+            this.meta.decks[remote.id] = remote.updatedAt;
+            changed = true;
+          } else if ((remote.updatedAt || 0) > (local.updatedAt || 0)) {
+            merged.push({ ...local, ...remote });
+            this.meta.decks[remote.id] = remote.updatedAt;
+            changed = true;
           } else {
-            // El cambio local es más reciente: conservarlo y enviarlo al servidor
-            finalDecks.push(local);
-            hasChanges = true;
+            merged.push(local);
+            if ((remote.updatedAt || 0) === (local.updatedAt || 0)) this.meta.decks[remote.id] = local.updatedAt;
           }
         });
 
-        // 2. Comprobar si hay elementos creados localmente de manera reciente (últimos 30s) que aún no están en la nube
         this.decks.forEach(local => {
-          if (!remoteDeckMap.has(local.id)) {
-            const isRecent = (now - (local.createdAt || 0)) < 30000;
-            if (isRecent || remoteDecks.length === 0) {
-              finalDecks.push(local);
-              hasChanges = true;
-            } else {
-              // El elemento fue borrado en otro dispositivo/navegador: eliminarlo localmente
-              hasChanges = true;
-            }
-          }
-        });
-
-        if (finalDecks.length > 0 || remoteDecks.length > 0) {
-          this.decks = finalDecks;
-        }
-      }
-
-      // Sincronización fidedigna de tarjetas
-      if (remoteCards !== null) {
-        const remoteCardMap = new Map<string, Flashcard>();
-        remoteCards.forEach(c => remoteCardMap.set(c.id, c));
-
-        const finalCards: Flashcard[] = [];
-        const localCardMap = new Map<string, Flashcard>();
-        this.cards.forEach(c => localCardMap.set(c.id, c));
-
-        // 1. Procesar tarjetas del servidor
-        remoteCards.forEach(remote => {
-          const local = localCardMap.get(remote.id);
-          if (!local) {
-            finalCards.push(remote);
-            hasChanges = true;
-          } else if ((remote.updatedAt || 0) >= (local.updatedAt || 0)) {
-            finalCards.push({ ...local, ...remote });
-            if (remote.updatedAt !== local.updatedAt) hasChanges = true;
+          if (remoteMap.has(local.id)) return;
+          const confirmedBefore = this.meta.decks[local.id] !== undefined;
+          const editedSince = this.meta.decks[local.id] !== local.updatedAt;
+          if (confirmedBefore && !editedSince) {
+            // Borrado en otro dispositivo
+            delete this.meta.decks[local.id];
+            changed = true;
           } else {
-            finalCards.push(local);
-            hasChanges = true;
+            merged.push(local);
           }
         });
 
-        // 2. Comprobar si hay tarjetas creadas localmente recientemente que aún no están en la nube
+        if (changed) this.decks = merged;
+      }
+
+      // Tarjetas
+      {
+        let cardsChanged = false;
+        const remoteMap = new Map(remoteCards.map(c => [c.id, c]));
+        const localMap = new Map(this.cards.map(c => [c.id, c]));
+        const merged: Flashcard[] = [];
+
+        remoteCards.forEach(remote => {
+          if (pendingDelCards.has(remote.id)) return;
+          const local = localMap.get(remote.id);
+          if (!local) {
+            merged.push(remote);
+            this.meta.cards[remote.id] = remote.updatedAt;
+            cardsChanged = true;
+          } else if ((remote.updatedAt || 0) > (local.updatedAt || 0)) {
+            merged.push({ ...local, ...remote });
+            this.meta.cards[remote.id] = remote.updatedAt;
+            cardsChanged = true;
+          } else {
+            merged.push(local);
+            if ((remote.updatedAt || 0) === (local.updatedAt || 0)) this.meta.cards[remote.id] = local.updatedAt;
+          }
+        });
+
         this.cards.forEach(local => {
-          if (!remoteCardMap.has(local.id)) {
-            const isRecent = (now - (local.createdAt || 0)) < 30000;
-            if (isRecent || remoteCards.length === 0) {
-              finalCards.push(local);
-              hasChanges = true;
-            } else {
-              // La tarjeta fue eliminada en otro navegador/dispositivo: eliminarla localmente
-              hasChanges = true;
-            }
+          if (remoteMap.has(local.id)) return;
+          const confirmedBefore = this.meta.cards[local.id] !== undefined;
+          const editedSince = this.meta.cards[local.id] !== local.updatedAt;
+          if (confirmedBefore && !editedSince) {
+            delete this.meta.cards[local.id];
+            cardsChanged = true;
+          } else {
+            merged.push(local);
           }
         });
 
-        if (finalCards.length > 0 || remoteCards.length > 0) {
-          this.cards = finalCards;
+        if (cardsChanged) {
+          this.cards = merged;
+          changed = true;
         }
       }
 
-      if (hasChanges) {
-        localStorage.setItem(this.getDecksStorageKey(), JSON.stringify(this.decks));
-        localStorage.setItem(this.getCardsStorageKey(), JSON.stringify(this.cards));
+      this.saveMeta();
+      if (changed) {
+        this.invalidate();
+        this.scheduleSave();
         this.listeners.forEach(fn => fn());
       }
-
-      // Asegurar que cualquier elemento nuevo local se transmita al servidor
-      const unsyncedDecks = this.decks.filter(d => (now - (d.updatedAt || 0)) < 10000);
-      if (unsyncedDecks.length > 0) {
-        eurekaBackend.syncDecks(this.decks);
-      }
-      const unsyncedCards = this.cards.filter(c => (now - (c.updatedAt || 0)) < 10000);
-      if (unsyncedCards.length > 0) {
-        eurekaBackend.syncCards(this.cards);
-      }
+      // Lo que solo existe aquí (creado sin conexión, por ejemplo) se sube ahora
+      this.schedulePush(150);
     } catch (err) {
       console.warn('[EUREKA SYNC] Error sincronizando con la nube:', err);
+    } finally {
+      this.syncing = false;
     }
+  }
+
+  /** Marca borrados para que se envíen (con reintentos) y no reaparezcan al sincronizar. */
+  private queueDeletes(deckIds: string[], cardIds: string[]): void {
+    if (deckIds.length) {
+      const set = new Set(this.meta.delDecks);
+      deckIds.forEach(id => {
+        set.add(id);
+        delete this.meta.decks[id];
+      });
+      this.meta.delDecks = Array.from(set);
+    }
+    if (cardIds.length) {
+      const set = new Set(this.meta.delCards);
+      cardIds.forEach(id => {
+        set.add(id);
+        delete this.meta.cards[id];
+      });
+      this.meta.delCards = Array.from(set);
+    }
+    this.saveMeta();
   }
 
   // --- GESTIÓN DE MAZOS Y SUBMAZOS ---
@@ -341,11 +651,14 @@ export class DeckService {
   }
 
   public getDeckHierarchyIds(deckId: string): string[] {
+    const cached = this.hierarchyCache.get(deckId);
+    if (cached) return cached;
     const ids = [deckId];
     const directChildren = this.getSubdecks(deckId);
     for (const child of directChildren) {
       ids.push(...this.getDeckHierarchyIds(child.id));
     }
+    this.hierarchyCache.set(deckId, ids);
     return ids;
   }
 
@@ -376,7 +689,7 @@ export class DeckService {
     };
 
     const newDeck: Deck = {
-      id: `deck-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      id: makeId('deck'),
       parentId: params.parentId || null,
       name: params.name.trim(),
       description: params.description?.trim() || '',
@@ -425,22 +738,20 @@ export class DeckService {
     });
 
     const originalCards = this.getCardsByDeck(deckId, false);
-    originalCards.forEach(c => {
-      this.createCard({
-        deckId: newDeck.id,
-        type: c.type,
-        front: c.front,
-        back: c.back,
-        frontImage: c.frontImage,
-        backImage: c.backImage,
-        occlusionImage: c.occlusionImage,
-        occlusionMasks: c.occlusionMasks ? [...c.occlusionMasks] : undefined,
-        activeMaskId: c.activeMaskId,
-        occlusionMode: c.occlusionMode,
-        audioLang: c.audioLang,
-        audioText: c.audioText
-      });
-    });
+    this.createCards(originalCards.map(c => ({
+      deckId: newDeck.id,
+      type: c.type,
+      front: c.front,
+      back: c.back,
+      frontImage: c.frontImage,
+      backImage: c.backImage,
+      occlusionImage: c.occlusionImage,
+      occlusionMasks: c.occlusionMasks ? [...c.occlusionMasks] : undefined,
+      activeMaskId: c.activeMaskId,
+      occlusionMode: c.occlusionMode,
+      audioLang: c.audioLang,
+      audioText: c.audioText
+    })));
 
     return newDeck;
   }
@@ -479,28 +790,41 @@ export class DeckService {
 
   public deleteDeck(deckId: string): void {
     const allIdsToDelete = this.getDeckHierarchyIds(deckId);
-    const cardsToDelete = this.cards.filter(c => allIdsToDelete.includes(c.deckId)).map(c => c.id);
-    this.decks = this.decks.filter(d => !allIdsToDelete.includes(d.id));
-    this.cards = this.cards.filter(c => !allIdsToDelete.includes(c.deckId));
+    const delSet = new Set(allIdsToDelete);
+    const cardsToDelete = this.cards.filter(c => delSet.has(c.deckId)).map(c => c.id);
+    const deckSet = new Set(allIdsToDelete);
+    this.decks = this.decks.filter(d => !deckSet.has(d.id));
+    this.cards = this.cards.filter(c => !deckSet.has(c.deckId));
+    this.queueDeletes(allIdsToDelete, cardsToDelete);
     this.notify();
-    eurekaBackend.deleteDecksFromCloud(allIdsToDelete);
-    if (cardsToDelete.length > 0) {
-      eurekaBackend.deleteCardsFromCloud(cardsToDelete);
-    }
   }
 
   // --- GESTIÓN DE TARJETAS (ORDENADAS DE MÁS RECIENTE A MÁS VIEJA) ---
 
   public getCardsByDeck(deckId: string, includeSubdecks: boolean = true): Flashcard[] {
+    const key = `${deckId}|${includeSubdecks ? 1 : 0}`;
+    const cached = this.cardsCache.get(key);
+    if (cached) return cached.slice();
+
     let list: Flashcard[];
     if (!includeSubdecks) {
       list = this.cards.filter(c => c.deckId === deckId);
     } else {
-      const deckIds = this.getDeckHierarchyIds(deckId);
-      list = this.cards.filter(c => deckIds.includes(c.deckId));
+      const deckIds = new Set(this.getDeckHierarchyIds(deckId));
+      list = this.cards.filter(c => deckIds.has(c.deckId));
     }
     // Ordenar de más reciente a más vieja
-    return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    this.cardsCache.set(key, list);
+    return list.slice();
+  }
+
+  /** ¿Ya existe una tarjeta con el mismo anverso en el mazo? (para avisar de duplicados al crear) */
+  public findDuplicateCard(deckId: string, front: string, ignoreId?: string): Flashcard | undefined {
+    const norm = (t: string) => t.toLowerCase().replace(/\s+/g, ' ').trim();
+    const target = norm(front);
+    if (target.length < 3) return undefined;
+    return this.cards.find(c => c.deckId === deckId && c.id !== ignoreId && norm(c.front) === target);
   }
 
   public searchCardsInDeck(deckId: string, query: string): Flashcard[] {
@@ -528,21 +852,17 @@ export class DeckService {
     return this.cards.filter(c => c.groupId === groupId);
   }
 
-  public createCard(
+  private buildCard(
     params: Omit<Flashcard, 'id' | 'createdAt' | 'updatedAt' | 'state' | 'stepIndex' | 'intervalMinutes' | 'easeFactor' | 'lapses' | 'reps' | 'dueDate'>,
-    createInvertedPair: boolean = false
+    now: number,
+    offset = 0
   ): Flashcard {
     const deck = this.getDeckById(params.deckId);
     const steps = deck?.settings.learningSteps || [4, 1440, 2880, 7200];
-    const now = Date.now();
-    const groupId = createInvertedPair ? `grp-inv-${now}-${Math.random().toString(36).substr(2, 4)}` : params.groupId;
-
-    const newCard: Flashcard = {
+    return {
       ...params,
-      id: `card-${now}-${Math.random().toString(36).substr(2, 4)}`,
-      groupId,
-      groupTitle: createInvertedPair ? 'Par Invertido' : params.groupTitle,
-      isInverted: false,
+      id: makeId('card'),
+      isInverted: params.isInverted ?? false,
       state: 'new',
       stepIndex: 0,
       intervalMinutes: steps[0] || 4,
@@ -550,39 +870,100 @@ export class DeckService {
       lapses: 0,
       reps: 0,
       dueDate: now,
-      createdAt: now,
-      updatedAt: now
+      createdAt: now + offset,
+      updatedAt: now + offset
     };
+  }
 
+  public createCard(
+    params: Omit<Flashcard, 'id' | 'createdAt' | 'updatedAt' | 'state' | 'stepIndex' | 'intervalMinutes' | 'easeFactor' | 'lapses' | 'reps' | 'dueDate'>,
+    createInvertedPair: boolean = false
+  ): Flashcard {
+    const now = Date.now();
+    const groupId = createInvertedPair ? makeId('grp-inv') : params.groupId;
+
+    const newCard = this.buildCard(
+      { ...params, groupId, groupTitle: createInvertedPair ? 'Par Invertido' : params.groupTitle, isInverted: false },
+      now
+    );
     this.cards.push(newCard);
 
     // Si está activada la opción de Tarjetas Invertidas, crear la segunda tarjeta inversa (Reverso -> Anverso)
     if (createInvertedPair && params.type !== 'image_occlusion') {
-      const invertedCard: Flashcard = {
-        ...params,
-        id: `card-${now}-inv-${Math.random().toString(36).substr(2, 4)}`,
-        groupId,
-        groupTitle: 'Par Invertido',
-        front: params.back,
-        back: params.front,
-        frontImage: params.backImage,
-        backImage: params.frontImage,
-        isInverted: true,
-        state: 'new',
-        stepIndex: 0,
-        intervalMinutes: steps[0] || 4,
-        easeFactor: 2.50,
-        lapses: 0,
-        reps: 0,
-        dueDate: now,
-        createdAt: now + 1,
-        updatedAt: now + 1
-      };
-      this.cards.push(invertedCard);
+      this.cards.push(
+        this.buildCard(
+          {
+            ...params,
+            groupId,
+            groupTitle: 'Par Invertido',
+            front: params.back,
+            back: params.front,
+            frontImage: params.backImage,
+            backImage: params.frontImage,
+            isInverted: true
+          },
+          now,
+          1
+        )
+      );
     }
 
     this.notify();
     return newCard;
+  }
+
+  /** Crea muchas tarjetas de una vez con un solo guardado y un solo repintado (importaciones, copias, mapas). */
+  public createCards(
+    list: Array<Omit<Flashcard, 'id' | 'createdAt' | 'updatedAt' | 'state' | 'stepIndex' | 'intervalMinutes' | 'easeFactor' | 'lapses' | 'reps' | 'dueDate'>>
+  ): Flashcard[] {
+    if (list.length === 0) return [];
+    const now = Date.now();
+    const created = list.map((p, i) => this.buildCard(p, now, i));
+    this.cards.push(...created);
+    this.notify();
+    return created;
+  }
+
+  /**
+   * Tarjetas de huecos (cloze): cada `{{c1::respuesta}}` distinto genera una tarjeta propia en la que solo
+   * ese hueco está oculto. Cada tarjeta lleva su único hueco marcado como `{{c::respuesta}}`.
+   */
+  public createClozeCards(
+    deckId: string,
+    text: string,
+    extra: string = '',
+    chunkId?: string,
+    images?: { frontImage?: string; backImage?: string; imageCredit?: string },
+    onlyIndexes?: number[]
+  ): Flashcard[] {
+    const pattern = '\\{\\{c(\\d+)::([\\s\\S]*?)(?:::([\\s\\S]*?))?\\}\\}';
+    const indexes = new Set<number>();
+    const scan = new RegExp(pattern, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = scan.exec(text)) !== null) indexes.add(Number(m[1]));
+    if (indexes.size === 0) return [];
+
+    const groupId = makeId('grp-cloze');
+    const sorted = Array.from(indexes).sort((x, y) => x - y);
+    const targets = onlyIndexes ? sorted.filter((i) => onlyIndexes.includes(i)) : sorted;
+    const params = targets.map((idx) => {
+      const front = text.replace(new RegExp(pattern, 'g'), (_all: string, n: string, ans: string, hint?: string) =>
+        Number(n) === idx ? `{{c::${ans}${hint ? '::' + hint : ''}}}` : ans
+      );
+      return {
+        deckId,
+        type: 'cloze' as CardType,
+        front,
+        back: extra,
+        chunkId,
+        groupId,
+        groupTitle: `Huecos (${sorted.length})`,
+        frontImage: images?.frontImage,
+        backImage: images?.backImage,
+        imageCredit: images?.imageCredit
+      };
+    });
+    return this.createCards(params);
   }
 
   /**
@@ -599,11 +980,11 @@ export class DeckService {
     const deck = this.getDeckById(deckId);
     const steps = deck?.settings.learningSteps || [4, 1440, 2880, 7200];
     const now = Date.now();
-    const groupId = `occ-grp-${now}-${Math.random().toString(36).substr(2, 4)}`;
+    const groupId = makeId('occ-grp');
 
     masks.forEach((mask, index) => {
       const card: Flashcard = {
-        id: `card-occ-${now}-${index}-${Math.random().toString(36).substr(2, 4)}`,
+        id: makeId('card-occ'),
         deckId,
         groupId,
         groupTitle: `Oclusión (${masks.length} máscaras)`,
@@ -652,7 +1033,7 @@ export class DeckService {
     const steps = deck?.settings.learningSteps || [4, 1440, 2880, 7200];
     const now = Date.now();
 
-    const groupId = existingCard.groupId || `occ-grp-${now}-${Math.random().toString(36).substr(2, 4)}`;
+    const groupId = existingCard.groupId || makeId('occ-grp');
     const groupCards = existingCard.groupId ? this.getCardsByGroupId(groupId) : [existingCard];
 
     // 1. Actualizar o crear tarjetas para cada máscara
@@ -677,7 +1058,7 @@ export class DeckService {
         });
       } else {
         const newCard: Flashcard = {
-          id: `card-occ-${now}-${index}-${Math.random().toString(36).substr(2, 4)}`,
+          id: makeId('card-occ'),
           deckId,
           groupId,
           groupTitle: `Oclusión (${masks.length} máscaras)`,
@@ -708,7 +1089,7 @@ export class DeckService {
       const cardsToDelete = groupCards.slice(masks.length).map(c => c.id);
       const deleteSet = new Set(cardsToDelete);
       this.cards = this.cards.filter(c => !deleteSet.has(c.id));
-      eurekaBackend.deleteCardsFromCloud(cardsToDelete);
+      this.queueDeletes([], cardsToDelete);
     }
 
     this.notify();
@@ -830,14 +1211,7 @@ export class DeckService {
 
   public importBatchCards(deckId: string, rawText: string, options?: BatchParseOptions): number {
     const cards = this.parseBatchCards(rawText, options);
-    for (const card of cards) {
-      this.createCard({
-        deckId,
-        type: card.type,
-        front: card.front,
-        back: card.back
-      });
-    }
+    this.createCards(cards.map(card => ({ deckId, type: card.type, front: card.front, back: card.back })));
     return cards.length;
   }
 
@@ -857,17 +1231,15 @@ export class DeckService {
 
   public deleteCard(cardId: string): void {
     this.cards = this.cards.filter(c => c.id !== cardId);
+    this.queueDeletes([], [cardId]);
     this.notify();
-    eurekaBackend.deleteCardFromCloud(cardId);
   }
 
   public deleteCardGroup(groupId: string): void {
     const cardsToDelete = this.cards.filter(c => c.groupId === groupId).map(c => c.id);
     this.cards = this.cards.filter(c => c.groupId !== groupId);
+    this.queueDeletes([], cardsToDelete);
     this.notify();
-    if (cardsToDelete.length > 0) {
-      eurekaBackend.deleteCardsFromCloud(cardsToDelete);
-    }
   }
 
   /**
@@ -911,8 +1283,8 @@ export class DeckService {
   public deleteCards(cardIds: string[]): void {
     const idSet = new Set(cardIds);
     this.cards = this.cards.filter(c => !idSet.has(c.id));
+    this.queueDeletes([], cardIds);
     this.notify();
-    eurekaBackend.deleteCardsFromCloud(cardIds);
   }
 
   public resetCardsProgress(cardIds: string[]): void {
@@ -1014,8 +1386,17 @@ export class DeckService {
   }
 
   public getDeckStats(deckId: string): DeckStats {
+    // Las estadísticas se reutilizan hasta el próximo cambio (y como máximo 20 s, porque dependen de la hora)
+    const nowTs = Date.now();
+    if (nowTs - this.statsAt > 20000) {
+      this.statsCache.clear();
+      this.statsAt = nowTs;
+    }
+    const hit = this.statsCache.get(deckId);
+    if (hit) return hit;
+
     const cards = this.getCardsByDeck(deckId, true);
-    const now = Date.now();
+    const now = nowTs;
 
     let newCards = 0;
     let learningCards = 0;
@@ -1038,13 +1419,20 @@ export class DeckService {
       }
     });
 
-    return {
+    const stats: DeckStats = {
       totalCards: cards.length,
       newCards,
       learningCards,
       dueCards,
       masteredCards
     };
+    this.statsCache.set(deckId, stats);
+    return stats;
+  }
+
+  /** Devuelve una tarjeta a un estado anterior (deshacer una calificación). */
+  public restoreCardState(snapshot: Flashcard): Flashcard | undefined {
+    return this.updateCard(snapshot.id, { ...snapshot });
   }
 
   public resetAllToDemo(): void {

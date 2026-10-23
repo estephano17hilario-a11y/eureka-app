@@ -119,13 +119,15 @@
   height: 100%;
 }
 
+/* El patrón se desplaza con transform (compositor) y solo se repinta al cambiar el zoom */
 .mmx-pattern {
+  --sz: var(--mm-sz, 24px);
   position: absolute;
-  inset: 0;
+  inset: calc(var(--sz) * -1);
   z-index: 1;
   pointer-events: none;
-  --sz: max(12px, calc(var(--mm-pattern-size, 24px) * var(--mm-s, 1)));
-  background-position: var(--mm-x, 0px) var(--mm-y, 0px);
+  will-change: transform;
+  transform: translate3d(var(--mm-tx, 0px), var(--mm-ty, 0px), 0);
 }
 
 .mmx-stage[data-pattern='dots'] .mmx-pattern {
@@ -2435,3 +2437,42 @@ path.mmx-faded,
   width: 20px;
   height: 20px;
 }
+
+/* ---------------------- Asistente de estilo (panel) ---------------------- */
+.mmx-wizard-cta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 2px 0 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  text-align: left;
+  color: var(--ui-fg);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--mmx-accent) 22%, transparent), color-mix(in srgb, #a855f7 16%, transparent));
+  border: 1px solid color-mix(in srgb, var(--mmx-accent) 45%, transparent);
+  cursor: pointer;
+}
+.mmx-wizard-cta > span:nth-child(2) { flex: 1; display: flex; flex-direction: column; }
+.mmx-wizard-cta b { font-size: 13.5px; }
+.mmx-wizard-cta small { font-size: 11.5px; color: var(--ui-fg2); }
+.mmx-wizard-ic { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: var(--mmx-accent); color: #fff; flex-shrink: 0; }
+
+/* ----------------------- Rendimiento del lienzo ------------------------- */
+/* Mientras se mueve el mapa: sin sombras difusas ni degradados caros (se restauran al soltar) */
+html[data-perf='lite'] .mmx-stage.is-moving .mmx-node {
+  box-shadow: none !important;
+  filter: none !important;
+}
+html[data-perf='lite'] .mmx-grain { display: none; }
+html[data-perf='lite'] .mmx-menu,
+html[data-perf='lite'] .mmx-top,
+html[data-perf='lite'] .mmx-dock,
+html[data-perf='lite'] .mmx-inspector,
+html[data-perf='lite'] .mmx-zoom,
+html[data-perf='lite'] .mmx-modal,
+html[data-perf='lite'] .mmx-modal-card {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-perf='lite'] .mmx-ui { --ui-bg: var(--ui-solid); }

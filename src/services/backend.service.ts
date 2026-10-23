@@ -448,56 +448,58 @@ class EurekaBackendService {
   }
 
   // --- SINCRONIZACIÓN DE MAZOS CON EL VPS ---
-  public async syncDecks(decks: Deck[]): Promise<void> {
+  /** Envía los mazos dados y devuelve los ids que el servidor confirmó (para reintentar solo lo que falló). */
+  public async syncDecks(decks: Deck[]): Promise<string[]> {
     const activeUserId = this.getUserId();
-    if (!decks.length) return;
+    if (!decks.length) return [];
+    const acked: string[] = [];
     try {
-      const payload = decks.map(d => ({
-        id: d.id,
-        user_id: activeUserId,
-        parent_id: d.parentId || null,
-        name: d.name,
-        description: d.description || '',
-        icon: d.icon || 'deck',
-        is_folder: Boolean(d.isFolder),
-        color: d.color || '#10b981',
-        settings: d.settings || {},
-        is_archived: Boolean(d.isArchived),
-        created_at: Number(d.createdAt) || Date.now(),
-        updated_at: Number(d.updatedAt) || Date.now()
-      }));
+      for (let i = 0; i < decks.length; i += 60) {
+        const slice = decks.slice(i, i + 60);
+        const payload = slice.map(d => ({
+          id: d.id,
+          user_id: activeUserId,
+          parent_id: d.parentId || null,
+          name: d.name,
+          description: d.description || '',
+          icon: d.icon || 'deck',
+          is_folder: Boolean(d.isFolder),
+          color: d.color || '#10b981',
+          settings: d.settings || {},
+          is_archived: Boolean(d.isArchived),
+          created_at: Number(d.createdAt) || Date.now(),
+          updated_at: Number(d.updatedAt) || Date.now()
+        }));
 
-      await apiFetch('/api/decks/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: activeUserId, decks: payload })
-      });
+        const res = await apiFetch('/api/decks/sync', {
+          method: 'POST',
+          body: JSON.stringify({ userId: activeUserId, decks: payload })
+        }, 15000);
+        if (!res.ok) break;
+        slice.forEach(d => acked.push(d.id));
+      }
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error syncDecks:', err);
     }
+    return acked;
   }
 
-  public async deleteDeckFromCloud(deckId: string): Promise<void> {
-    const activeUserId = this.getUserId();
-    try {
-      await apiFetch(`/api/decks/${encodeURIComponent(deckId)}`, {
-        method: 'DELETE',
-        body: JSON.stringify({ userId: activeUserId })
-      });
-    } catch (err) {
-      console.warn('[EUREKA VPS BACKEND] Error deleteDeckFromCloud:', err);
-    }
+  public async deleteDeckFromCloud(deckId: string): Promise<boolean> {
+    return this.deleteDecksFromCloud([deckId]);
   }
 
-  public async deleteDecksFromCloud(deckIds: string[]): Promise<void> {
+  public async deleteDecksFromCloud(deckIds: string[]): Promise<boolean> {
     const activeUserId = this.getUserId();
-    if (!deckIds.length) return;
+    if (!deckIds.length) return true;
     try {
-      await apiFetch('/api/decks/batch-delete', {
+      const res = await apiFetch('/api/decks/batch-delete', {
         method: 'POST',
         body: JSON.stringify({ userId: activeUserId, deckIds })
       });
+      return res.ok;
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error deleteDecksFromCloud:', err);
+      return false;
     }
   }
 
@@ -526,72 +528,91 @@ class EurekaBackendService {
   }
 
   // --- SINCRONIZACIÓN DE TARJETAS (FLASHCARDS) CON EL VPS ---
-  public async syncCards(cards: Flashcard[]): Promise<void> {
+  /** Envía las tarjetas por lotes pequeños (las fotos pesan) y devuelve los ids confirmados por el servidor. */
+  public async syncCards(cards: Flashcard[]): Promise<string[]> {
     const activeUserId = this.getUserId();
-    if (!cards.length) return;
+    if (!cards.length) return [];
+    const acked: string[] = [];
     try {
-      const payload = cards.map(c => ({
-        id: c.id,
-        deck_id: c.deckId,
-        user_id: activeUserId,
-        type: c.type || 'standard',
-        front: c.front,
-        back: c.back,
-        front_image: c.frontImage || null,
-        back_image: c.backImage || null,
-        occlusion_image: c.occlusionImage || null,
-        occlusion_masks: c.occlusionMasks || null,
-        active_mask_id: c.activeMaskId || null,
-        occlusion_mode: c.occlusionMode || null,
-        audio_lang: c.audioLang || null,
-        audio_text: c.audioText || null,
-        is_inverted: Boolean(c.isInverted),
-        group_id: c.groupId || null,
-        group_title: c.groupTitle || null,
-        group_role: c.chunkId ? `chunk:${c.chunkId}` : (c.groupRole || null),
-        state: c.state || 'new',
-        step_index: c.stepIndex || 0,
-        interval_minutes: c.intervalMinutes || 0,
-        ease_factor: c.easeFactor || 2.5,
-        lapses: c.lapses || 0,
-        reps: c.reps || 0,
-        due_date: Number(c.dueDate) || Date.now(),
-        last_review_date: c.lastReviewDate ? Number(c.lastReviewDate) : null,
-        created_at: Number(c.createdAt) || Date.now(),
-        updated_at: Number(c.updatedAt) || Date.now()
-      }));
+      let batch: Flashcard[] = [];
+      let weight = 0;
+      const flush = async (): Promise<boolean> => {
+        if (!batch.length) return true;
+        const slice = batch;
+        batch = [];
+        weight = 0;
+        const payload = slice.map(c => ({
+          id: c.id,
+          deck_id: c.deckId,
+          user_id: activeUserId,
+          type: c.type || 'standard',
+          front: c.front,
+          back: c.back,
+          front_image: c.frontImage || null,
+          back_image: c.backImage || null,
+          occlusion_image: c.occlusionImage || null,
+          occlusion_masks: c.occlusionMasks || null,
+          active_mask_id: c.activeMaskId || null,
+          occlusion_mode: c.occlusionMode || null,
+          audio_lang: c.audioLang || null,
+          audio_text: c.audioText || null,
+          is_inverted: Boolean(c.isInverted),
+          group_id: c.groupId || null,
+          group_title: c.groupTitle || null,
+          group_role: c.chunkId ? `chunk:${c.chunkId}` : (c.groupRole || null),
+          state: c.state || 'new',
+          step_index: c.stepIndex || 0,
+          interval_minutes: c.intervalMinutes || 0,
+          ease_factor: c.easeFactor || 2.5,
+          lapses: c.lapses || 0,
+          reps: c.reps || 0,
+          due_date: Number(c.dueDate) || Date.now(),
+          last_review_date: c.lastReviewDate ? Number(c.lastReviewDate) : null,
+          created_at: Number(c.createdAt) || Date.now(),
+          updated_at: Number(c.updatedAt) || Date.now()
+        }));
 
-      await apiFetch('/api/cards/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: activeUserId, cards: payload })
-      });
+        const res = await apiFetch('/api/cards/sync', {
+          method: 'POST',
+          body: JSON.stringify({ userId: activeUserId, cards: payload })
+        }, 30000);
+        if (!res.ok) return false;
+        slice.forEach(c => acked.push(c.id));
+        return true;
+      };
+
+      for (const c of cards) {
+        const w = 400 + (c.frontImage?.length || 0) + (c.backImage?.length || 0) + (c.occlusionImage?.length || 0) + c.front.length + c.back.length;
+        // Lotes de hasta 40 tarjetas o ~2 MB, lo que ocurra primero
+        if (batch.length >= 40 || (batch.length > 0 && weight + w > 2000000)) {
+          if (!(await flush())) return acked;
+        }
+        batch.push(c);
+        weight += w;
+      }
+      await flush();
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error syncCards:', err);
     }
+    return acked;
   }
 
-  public async deleteCardFromCloud(cardId: string): Promise<void> {
-    const activeUserId = this.getUserId();
-    try {
-      await apiFetch(`/api/cards/${encodeURIComponent(cardId)}`, {
-        method: 'DELETE',
-        body: JSON.stringify({ userId: activeUserId })
-      });
-    } catch (err) {
-      console.warn('[EUREKA VPS BACKEND] Error deleteCardFromCloud:', err);
-    }
+  public async deleteCardFromCloud(cardId: string): Promise<boolean> {
+    return this.deleteCardsFromCloud([cardId]);
   }
 
-  public async deleteCardsFromCloud(cardIds: string[]): Promise<void> {
+  public async deleteCardsFromCloud(cardIds: string[]): Promise<boolean> {
     const activeUserId = this.getUserId();
-    if (!cardIds.length) return;
+    if (!cardIds.length) return true;
     try {
-      await apiFetch('/api/cards/batch-delete', {
+      const res = await apiFetch('/api/cards/batch-delete', {
         method: 'POST',
         body: JSON.stringify({ userId: activeUserId, cardIds })
       });
+      return res.ok;
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error deleteCardsFromCloud:', err);
+      return false;
     }
   }
 
@@ -610,23 +631,24 @@ class EurekaBackendService {
           role = c.group_role;
         }
 
+        const lastReview = c.last_review_date ?? c.lastReviewDate;
         return {
           id: c.id,
           deckId: c.deck_id,
           type: c.type || 'standard',
-          front: c.front,
-          back: c.back,
-          frontImage: c.front_image,
-          backImage: c.back_image,
-          occlusionImage: c.occlusion_image,
-          occlusionMasks: c.occlusion_masks,
-          activeMaskId: c.active_mask_id,
-          occlusionMode: c.occlusion_mode,
-          audioLang: c.audio_lang,
-          audioText: c.audio_text,
-          isInverted: c.is_inverted,
-          groupId: c.group_id,
-          groupTitle: c.group_title,
+          front: c.front ?? '',
+          back: c.back ?? '',
+          frontImage: c.front_image || undefined,
+          backImage: c.back_image || undefined,
+          occlusionImage: c.occlusion_image || undefined,
+          occlusionMasks: c.occlusion_masks || undefined,
+          activeMaskId: c.active_mask_id || undefined,
+          occlusionMode: c.occlusion_mode || undefined,
+          audioLang: c.audio_lang || undefined,
+          audioText: c.audio_text || undefined,
+          isInverted: Boolean(c.is_inverted),
+          groupId: c.group_id || undefined,
+          groupTitle: c.group_title || undefined,
           groupRole: role,
           chunkId,
           state: c.state,
@@ -636,7 +658,7 @@ class EurekaBackendService {
           lapses: c.lapses,
           reps: c.reps,
           dueDate: Number(c.due_date),
-          lastReviewDate: c.lastReviewDate ? Number(c.lastReviewDate) : undefined,
+          lastReviewDate: lastReview ? Number(lastReview) : undefined,
           createdAt: Number(c.created_at),
           updatedAt: Number(c.updated_at)
         };
@@ -675,15 +697,22 @@ class EurekaBackendService {
   }
 
   // --- AJUSTES DE USUARIO Y CONFIGURACIÓN ---
-  public async saveUserSettings(settings: Record<string, any>): Promise<void> {
+  public async saveUserSettings(settings: Record<string, any>): Promise<boolean> {
     const activeUserId = this.getUserId();
     try {
       localStorage.setItem(`eureka_settings_user_${activeUserId}`, JSON.stringify(settings));
-      await apiFetch('/api/settings', {
+    } catch {
+      /* sin espacio local: el envío al servidor sigue adelante */
+    }
+    try {
+      const res = await apiFetch('/api/settings', {
         method: 'POST',
         body: JSON.stringify({ userId: activeUserId, settings, updatedAt: Date.now() })
-      });
-    } catch {}
+      }, 20000);
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 
   public async fetchUserSettings(): Promise<Record<string, any> | null> {

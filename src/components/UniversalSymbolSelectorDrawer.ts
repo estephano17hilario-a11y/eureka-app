@@ -1,5 +1,5 @@
 import katex from 'katex';
-import 'katex/dist/contrib/mhchem.js';
+import 'katex/dist/contrib/mhchem.mjs';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import {
   SCIENCE_SYMBOLS_CATALOG,

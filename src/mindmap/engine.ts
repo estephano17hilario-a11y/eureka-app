@@ -23,6 +23,7 @@ import { formatNodeText, stripToPlain } from './richText';
 import { MAP_THEMES, THEME_BY_ID, FONT_CHOICES, resolveLook, themeForAppEnvironment, type MapTheme, type ResolvedNodeStyle, type CanvasPattern } from './themes';
 import { DEFAULT_SETTINGS, type MapSettings, type MapDoc } from './store';
 import { withAlpha, readableOn, lighten, darken, isTransparent, luminance } from './color';
+import { perfService } from '../services/perf.service';
 
 // Plugins (se registran una sola vez para toda la app)
 MindMap.usePlugin(Drag).usePlugin(Select).usePlugin(AssociativeLine).usePlugin(Demonstrate).usePlugin(OuterFrame);
@@ -385,20 +386,33 @@ export class MindMapEngine {
     s.dataset.pattern = pattern;
     s.style.setProperty('--mm-pattern-color', color);
     s.style.setProperty('--mm-pattern-size', `${size}px`);
+    this.lastPatternSize = '';
   }
 
   private patternEl: HTMLElement | null = null;
 
   /** La posición/escala del patrón de fondo se escribe solo en su capa (no invalida el estilo de los nodos) */
+  private lastPatternSize = '';
+
   public updatePatternVars(): void {
     if (!this.mm?.view) return;
     if (!this.patternEl || !this.patternEl.isConnected) this.patternEl = this.stage.querySelector<HTMLElement>('.mmx-pattern');
     const el = this.patternEl;
     if (!el) return;
     const v = this.mm.view;
-    el.style.setProperty('--mm-x', `${v.x.toFixed(1)}px`);
-    el.style.setProperty('--mm-y', `${v.y.toFixed(1)}px`);
-    el.style.setProperty('--mm-s', v.scale.toFixed(4));
+    // La capa del patrón mide un "cuadro" más que la pantalla por cada lado: al desplazar solo se mueve (transform)
+    // el resto de la cuadrícula módulo su tamaño. Solo el zoom obliga a repintarla.
+    const base = this.getEffectivePattern().size;
+    const sz = Math.max(12, base * v.scale);
+    const szText = `${sz.toFixed(2)}px`;
+    if (szText !== this.lastPatternSize) {
+      this.lastPatternSize = szText;
+      el.style.setProperty('--mm-sz', szText);
+    }
+    const tx = ((v.x % sz) + sz) % sz;
+    const ty = ((v.y % sz) + sz) % sz;
+    el.style.setProperty('--mm-tx', `${tx.toFixed(1)}px`);
+    el.style.setProperty('--mm-ty', `${ty.toFixed(1)}px`);
   }
 
   /** Cambia el color del lienzo (personalizado) */
@@ -1095,7 +1109,8 @@ export class MindMapEngine {
     const root = mm?.renderer?.root;
     if (!mm || !root || this.destroyed || this.suspendCull) return;
 
-    const enable = this.nodeCount > 110;
+    const lite = perfService.isLite();
+    const enable = this.nodeCount > (lite ? 40 : 110);
     if (!enable) {
       if (this.culled) this.setAllVisible(root);
       this.culled = false;
@@ -1106,7 +1121,7 @@ export class MindMapEngine {
     const v = mm.view;
     const w = this.stage.clientWidth || 1200;
     const h = this.stage.clientHeight || 800;
-    const m = 260;
+    const m = lite ? 140 : 260;
     const x0 = (-v.x - m) / v.scale;
     const y0 = (-v.y - m) / v.scale;
     const x1 = (w - v.x + m) / v.scale;
@@ -1510,9 +1525,18 @@ export class MindMapEngine {
 
   private requestLiveRender(node: any, immediate: boolean): void {
     this.liveNode = node;
-    void immediate;
-    // Sincrónico: el recuadro del nodo crece/encoge en el mismo instante en que se escribe
-    this.runLiveRender();
+    // Mapas pequeños: sincrónico, el recuadro crece en el mismo instante en que se escribe.
+    // Mapas grandes o equipos lentos: un solo reacomodo por fotograma aunque se escriba muy rápido.
+    const heavy = this.nodeCount > 120 || (perfService.isLite() && this.nodeCount > 50);
+    if (!heavy || immediate) {
+      this.runLiveRender();
+      return;
+    }
+    if (this.liveRaf) return;
+    this.liveRaf = requestAnimationFrame(() => {
+      this.liveRaf = 0;
+      this.runLiveRender();
+    });
   }
 
   private runLiveRender(): void {

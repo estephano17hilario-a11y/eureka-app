@@ -1,5 +1,5 @@
 import katex from 'katex';
-import 'katex/dist/contrib/mhchem.js';
+import 'katex/dist/contrib/mhchem.mjs';
 import 'katex/dist/katex.min.css';
 import 'mathlive';
 import 'mathlive/static.css';

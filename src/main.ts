@@ -3,11 +3,10 @@ import './ui/styles/workspace.css';
 import './ui/styles/environments.css';
 import './ui/styles/surfaces.css';
 import './ui/styles/custom.css';
+import './ui/styles/perf.css';
 import katex from 'katex';
-import 'katex/dist/contrib/mhchem.js';
+import 'katex/dist/contrib/mhchem.mjs';
 import 'katex/dist/katex.min.css';
-import 'mathlive';
-import 'mathlive/static.css';
 
 (window as any).katex = katex;
 
@@ -43,10 +42,12 @@ import {
   openCreateStudyFolder
 } from './components/ActiveStudyView';
 import { openCreateHub, type CreateHubChoice, type CreateHubContext } from './components/CreateHubSheet';
-import { MindMapStudio } from './mindmap/MindMapStudio';
+import type { MindMapStudio } from './mindmap/MindMapStudio';
 import { treeFromOutline } from './mindmap/templates';
 import { activeStudyService } from './services/active-study.service';
 import { feynmanLlmService } from './services/feynman-llm.service';
+import { whenIdle } from './services/storage.service';
+import { perfService } from './services/perf.service';
 import { openFeynmanDiagnosticModal } from './components/FeynmanDiagnosticModal';
 
 type AppView =
@@ -86,8 +87,15 @@ class EurekaFigmaApp {
   }
 
   public async init(): Promise<void> {
+    perfService.init();
     themeService.applyTheme();
     await nativeService.initialize();
+
+    // El teclado matemático solo se usa al responder escribiendo: se carga cuando el navegador está libre
+    whenIdle(() => {
+      void import('mathlive');
+      void import('mathlive/static.css');
+    }, 4000);
 
     // Hub de creación: cualquier vista puede pedir crear algo emitiendo este evento
     window.addEventListener('eureka:create', (e) => {
@@ -110,7 +118,7 @@ class EurekaFigmaApp {
 
     // Suscribirse a cambios en los mazos y tarjetas
     deckService.subscribe(() => {
-      if (this.currentView !== 'study') {
+      if (this.currentView !== 'study' && this.currentView !== 'editor') {
         this.render();
       }
     });
@@ -210,7 +218,7 @@ class EurekaFigmaApp {
       });
       setInterval(() => {
         pollRemoteSync(false);
-      }, 5000);
+      }, 10000);
     }
   }
 
@@ -332,7 +340,7 @@ class EurekaFigmaApp {
     });
   }
 
-  public openMindMap(topicId?: string): void {
+  public async openMindMap(topicId?: string): Promise<void> {
     nativeService.triggerHaptics('medium');
     if (this.cleanupActiveStudyEvents) {
       this.cleanupActiveStudyEvents();
@@ -370,7 +378,13 @@ class EurekaFigmaApp {
     mount.id = 'eureka-mindmap-fullscreen-mount';
     document.body.appendChild(mount);
 
-    this.activeMindMapInstance = new MindMapStudio(mount, {
+    // El motor del mapa (librería + editor) pesa bastante: solo se descarga al abrir un mapa
+    mount.style.cssText = 'position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;background:#0b0d14;color:#cbd5e1;font:600 15px Inter,system-ui,sans-serif';
+    mount.textContent = 'Preparando tu mapa…';
+    const { MindMapStudio: Studio } = await import('./mindmap/MindMapStudio');
+    mount.removeAttribute('style');
+    mount.textContent = '';
+    this.activeMindMapInstance = new Studio(mount, {
       topicId: resolvedTopicId,
       topicTitle,
       initialData,

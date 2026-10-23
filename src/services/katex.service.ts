@@ -1,5 +1,5 @@
 import katex from 'katex';
-import 'katex/dist/contrib/mhchem.js';
+import 'katex/dist/contrib/mhchem.mjs';
 import 'katex/dist/katex.min.css';
 
 export class KatexService {
@@ -105,6 +105,41 @@ export class KatexService {
    */
   public parseAndRender(content: string): string {
     if (!content) return '';
+    const hit = this.renderCache.get(content);
+    if (hit !== undefined) return hit;
+    const html = this.parseAndRenderUncached(content);
+    // Caché LRU sencilla: renderizar KaTeX es lo más caro al voltear o repintar tarjetas
+    if (this.renderCache.size >= 600) this.renderCache.delete(this.renderCache.keys().next().value as string);
+    this.renderCache.set(content, html);
+    return html;
+  }
+
+  private renderCache = new Map<string, string>();
+
+  /**
+   * Tarjetas de huecos: `{{c1::respuesta::pista}}` se pinta como hueco (pregunta) o como respuesta resaltada.
+   */
+  public renderCloze(content: string, reveal: boolean): string {
+    if (!content) return '';
+    const answers: string[] = [];
+    const hints: string[] = [];
+    const text = content.replace(/\{\{c\d*::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g, (_m, ans: string, hint?: string) => {
+      answers.push(ans);
+      hints.push(hint || '');
+      return '\uE200' + (answers.length - 1) + '\uE201';
+    });
+    const html = this.parseAndRender(text);
+    return html.replace(/\uE200(\d+)\uE201/g, (_m, i: string) => {
+      const idx = Number(i);
+      if (reveal) {
+        const inner = this.parseAndRender(answers[idx]).replace(/^\s*<p[^>]*>([\s\S]*)<\/p>\s*$/, '$1');
+        return '<span class="cloze-answer">' + inner + '</span>';
+      }
+      return '<span class="cloze-blank">' + (hints[idx] ? this.escapeHtml(hints[idx]) : '…') + '</span>';
+    });
+  }
+
+  private parseAndRenderUncached(content: string): string {
 
     const placeholders: { id: string; html: string }[] = [];
     let pCount = 0;

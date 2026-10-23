@@ -1,4 +1,4 @@
-export type CardType = 'standard' | 'latex' | 'image_occlusion' | 'tts_audio';
+export type CardType = 'standard' | 'latex' | 'cloze' | 'image_occlusion' | 'tts_audio';
 
 export type StudyRating = 'again' | 'hard' | 'good' | 'easy';
 
@@ -25,6 +25,8 @@ export interface Flashcard {
   back: string;
   frontImage?: string;
   backImage?: string;
+  /** Atribución de la foto si vino de la biblioteca gratuita (autor · licencia) */
+  imageCredit?: string;
   occlusionImage?: string;
   occlusionMasks?: OcclusionMask[];
   activeMaskId?: string;

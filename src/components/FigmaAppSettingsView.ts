@@ -1,6 +1,7 @@
 import { themeService, type AppCustomizationTheme, type BgThemeType } from '../services/theme.service';
 import { openStyleStudio } from './StyleStudio';
 import { nativeService, type VibrationIntensity } from '../services/native.service';
+import { perfService, type PerfMode } from '../services/perf.service';
 
 export interface FigmaAppSettingsViewCallbacks {
   onBack: () => void;
@@ -76,6 +77,35 @@ export function renderFigmaAppSettingsView(): string {
         <div>
           <h2 style="font-size:1.8rem; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Ajustes de la Aplicación</h2>
           <p style="font-size:0.92rem; color:var(--f-text-secondary); margin-top:4px;">Control de vibración, notificaciones y atmósfera visual</p>
+        </div>
+
+        <!-- 0. RENDIMIENTO -->
+        <div class="apple-card-grouped" style="padding:22px;">
+          <div style="margin-bottom:14px;">
+            <div style="font-size:1.1rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+              <span>⚡</span> Rendimiento
+            </div>
+            <div style="font-size:0.85rem; color:var(--f-text-secondary); margin-top:2px;">
+              El modo ligero quita desenfoques y animaciones de fondo. Se ve igual de bien y va más fluido en celulares y equipos modestos.
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;" id="perf-mode-row">
+            ${(
+              [
+                ['auto', '✨ Automático'],
+                ['lite', '🪶 Ligero'],
+                ['full', '🎬 Completo']
+              ] as [PerfMode, string][]
+            )
+              .map(
+                ([id, label]) =>
+                  `<button class="apple-btn-outline-pill ${perfService.getMode() === id ? 'active-pill' : ''}" data-perf-mode="${id}" style="padding:12px 8px; font-weight:800; text-align:center;">${label}</button>`
+              )
+              .join('')}
+          </div>
+          <div style="font-size:0.78rem; color:var(--f-text-muted); margin-top:10px;" id="perf-mode-note">
+            Ahora: ${perfService.isLite() ? 'modo ligero activo' : 'modo completo activo'}
+          </div>
         </div>
 
         <!-- 1. VIBRACIÓN Y RESPUESTA HÁPTICA -->
@@ -266,6 +296,16 @@ export function bindFigmaAppSettingsViewEvents(
 ): void {
   container.querySelector('#btn-app-settings-back')?.addEventListener('click', () => callbacks.onBack());
   container.querySelector('#btn-open-style-studio')?.addEventListener('click', () => openStyleStudio());
+
+  // Rendimiento
+  container.querySelectorAll<HTMLElement>('[data-perf-mode]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      perfService.setMode((btn.dataset.perfMode as PerfMode) || 'auto');
+      container.querySelectorAll<HTMLElement>('[data-perf-mode]').forEach((b) => b.classList.toggle('active-pill', b === btn));
+      const note = container.querySelector('#perf-mode-note');
+      if (note) note.textContent = `Ahora: ${perfService.isLite() ? 'modo ligero activo' : 'modo completo activo'}`;
+    });
+  });
 
   // Vibration toggle
   const toggleVib = container.querySelector<HTMLInputElement>('#toggle-vibration');

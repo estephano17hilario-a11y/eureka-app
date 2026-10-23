@@ -10,6 +10,7 @@ import { TEMPLATES } from './templates';
 import { stripToPlain } from './richText';
 import { IMAGE_PRESETS, type ImagePresetId } from './images';
 import { hexOf } from './color';
+import { perfService } from '../services/perf.service';
 
 export type InspectorTab = 'node' | 'map' | 'templates';
 
@@ -311,7 +312,14 @@ export class Inspector {
 
     const bgSw = BG_SWATCHES.map((c) => `<button class="mmx-sw ${s.bgColor.toLowerCase() === c ? 'on' : ''}" data-bg="${c}" style="--c:${c}" aria-label="${c}"></button>`).join('');
 
+    const perf = perfService.getMode();
     return `
+      <button class="mmx-wizard-cta" data-i="wizard">
+        <span class="mmx-wizard-ic">${icon('sparkle', 22)}</span>
+        <span><b>Asistente de estilo</b><small>Fondo, líneas, letra y más, paso a paso</small></span>
+        ${icon('caretR', 16)}
+      </button>
+
       <section class="mmx-sec" data-sec="layouts">
         <h5>Diseño</h5>
         <div class="mmx-card-grid">${layouts}</div>
@@ -373,6 +381,13 @@ export class Inspector {
           <button class="mmx-action" data-i="fit">${icon('fit', 18)}<span>Ajustar</span></button>
           <button class="mmx-action" data-i="expand-all">${icon('expand', 18)}<span>Expandir</span></button>
           <button class="mmx-action" data-i="collapse-1">${icon('collapse', 18)}<span>Contraer</span></button>
+        </div>
+        <div class="mmx-field">
+          <div class="mmx-field-label">Rendimiento</div>
+          <div class="mmx-chips">
+            ${[['auto', 'Automático'], ['lite', 'Ligero'], ['full', 'Completo']].map(([v, l]) => `<button class="mmx-chip-btn ${perf === v ? 'on' : ''}" data-perf="${v}">${l}</button>`).join('')}
+          </div>
+          <p class="mmx-hint">Ligero quita desenfoques y animaciones de fondo: ideal para celulares y equipos modestos.</p>
         </div>
       </section>`;
   }
@@ -438,6 +453,13 @@ export class Inspector {
 
     const tab = t.closest('[data-tab]') as HTMLElement | null;
     if (tab) return this.setTab(tab.dataset.tab as InspectorTab);
+
+    const perfBtn = t.closest('[data-perf]') as HTMLElement | null;
+    if (perfBtn) {
+      perfService.setMode((perfBtn.dataset.perf as 'auto' | 'lite' | 'full') || 'auto');
+      this.render(true);
+      return;
+    }
 
     const emoji = t.closest('[data-emoji]') as HTMLElement | null;
     if (emoji) {
@@ -510,6 +532,9 @@ export class Inspector {
     const node = sel[0];
     const d: Record<string, any> = node?.nodeData?.data || {};
     switch (b.dataset.i) {
+      case 'wizard':
+        s.startSetup(false);
+        return;
       case 'bold': {
         const bold = Number(e.computeStyle(node).fontWeight) >= 700;
         s.applyStyle({ fontWeight: bold ? 500 : 800 }, true);
