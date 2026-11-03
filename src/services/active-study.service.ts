@@ -25,6 +25,14 @@ class ActiveStudyService {
   private cloudSyncTimer: any = null;
   /** Versión (updatedAt) de cada cuaderno que el servidor ya confirmó: solo esos pueden borrarse si desaparecen de la nube */
   private ackedTopics: Record<string, number> = {};
+  /** Sube con cada cambio de cuenta: lo que llegue de la red de una época anterior se descarta. */
+  private epoch = 0;
+
+  /** Respaldo de recuperación de ESTA cuenta (antes era global y mezclaba cuentas). */
+  private backupKey(kind: 'topics' | 'outlines' | 'locks' | 'mindmaps'): string {
+    const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
+    return `eureka_active_study_${kind}_v1_backup_${uid}`;
+  }
 
   private getAckedKey(): string {
     const uid = this.currentUserId || eurekaBackend.getUserId() || 'default';
@@ -49,6 +57,7 @@ class ActiveStudyService {
 
   private constructor() {
     this.currentUserId = eurekaBackend.getUserId();
+    ['topics', 'outlines', 'locks', 'mindmaps'].forEach((k) => localStorage.removeItem(`eureka_active_study_${k}_v1_backup`));
     this.loadFromStorage();
     this.initAntiCheatTime();
     this.syncWithCloud();
@@ -87,6 +96,20 @@ class ActiveStudyService {
       ? eurekaBackend.getUserId()
       : userId;
 
+    if (resolvedId === this.currentUserId && this.epoch > 0) {
+      // Misma cuenta (aviso de sesión repetido): no se recarga nada
+      await this.syncWithCloud();
+      return;
+    }
+
+    // Lo pendiente de la cuenta anterior se envía YA y con SU id (carga útil y usuario quedan fijados al llamar)
+    if (this.cloudSyncTimer) {
+      clearTimeout(this.cloudSyncTimer);
+      this.cloudSyncTimer = null;
+      void this.syncCloudState();
+    }
+
+    this.epoch++;
     this.currentUserId = resolvedId;
     this.topics.clear();
     this.outlineNodes.clear();
@@ -123,6 +146,7 @@ class ActiveStudyService {
   }
 
   private async loadFromStorage(): Promise<void> {
+    const loadingFor = this.currentUserId;
     try {
       this.topics.clear();
       this.outlineNodes.clear();
@@ -139,29 +163,14 @@ class ActiveStudyService {
       let rawLocks = localStorage.getItem(this.getLocksKey());
       let rawMindMaps = localStorage.getItem(this.getMindMapsKey());
 
-      // Respaldo de recuperación infalible si la clave scoped actual estuviera vacía al recargar
+      // Respaldo de ESTA cuenta si su clave principal estuviera vacía. Jamás se toma nada de otra cuenta:
+      // antes se copiaba un respaldo global o la primera clave de cuadernos que apareciera, y eso mezclaba cuentas.
       if (!rawTopics) {
-        const backupTopics = localStorage.getItem('eureka_active_study_topics_v1_backup');
-        if (backupTopics) {
-          rawTopics = backupTopics;
-          rawOutlines = localStorage.getItem('eureka_active_study_outlines_v1_backup');
-          rawLocks = localStorage.getItem('eureka_active_study_locks_v1_backup');
-          rawMindMaps = localStorage.getItem('eureka_active_study_mindmaps_v1_backup');
-        } else {
-          // Escanear otras claves de cuadernos en localStorage
-          for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (k && k.startsWith(BASE_TOPICS_STORAGE_KEY + '_')) {
-              const val = localStorage.getItem(k);
-              if (val && val.length > 5) {
-                rawTopics = val;
-                rawOutlines = localStorage.getItem(k.replace(BASE_TOPICS_STORAGE_KEY, BASE_OUTLINES_STORAGE_KEY));
-                rawLocks = localStorage.getItem(k.replace(BASE_TOPICS_STORAGE_KEY, BASE_LOCKS_STORAGE_KEY));
-                rawMindMaps = localStorage.getItem(k.replace(BASE_TOPICS_STORAGE_KEY, BASE_MINDMAPS_STORAGE_KEY));
-                break;
-              }
-            }
-          }
+        rawTopics = localStorage.getItem(this.backupKey('topics'));
+        if (rawTopics) {
+          rawOutlines = localStorage.getItem(this.backupKey('outlines'));
+          rawLocks = localStorage.getItem(this.backupKey('locks'));
+          rawMindMaps = localStorage.getItem(this.backupKey('mindmaps'));
         }
       }
 
@@ -198,6 +207,9 @@ class ActiveStudyService {
         Preferences.get({ key: this.getCoinsKey() }).catch(() => ({ value: null })),
         Preferences.get({ key: this.getMindMapsKey() }).catch(() => ({ value: null }))
       ]);
+
+      // Si se cambió de cuenta mientras leíamos, estos datos son de la anterior: no se mezclan
+      if (loadingFor !== this.currentUserId) return;
 
       if (prefTopics?.value) {
         const parsed: ActiveStudyTopic[] = JSON.parse(prefTopics.value);
@@ -290,15 +302,15 @@ class ActiveStudyService {
         localStorage.setItem(mindMapsKey, mindMapsJson);
       } else {
         localStorage.removeItem(mindMapsKey);
-        localStorage.removeItem('eureka_active_study_mindmaps_v1_backup');
+        localStorage.removeItem(this.backupKey('mindmaps'));
       }
 
-      // Respaldo global persistente
+      // Respaldo persistente de esta cuenta
       if (this.topics.size > 0) {
-        localStorage.setItem('eureka_active_study_topics_v1_backup', topicsJson);
-        localStorage.setItem('eureka_active_study_outlines_v1_backup', outlinesJson);
-        if (mindMapsFitInLocal) localStorage.setItem('eureka_active_study_mindmaps_v1_backup', mindMapsJson);
-        localStorage.setItem('eureka_active_study_locks_v1_backup', locksJson);
+        localStorage.setItem(this.backupKey('topics'), topicsJson);
+        localStorage.setItem(this.backupKey('outlines'), outlinesJson);
+        if (mindMapsFitInLocal) localStorage.setItem(this.backupKey('mindmaps'), mindMapsJson);
+        localStorage.setItem(this.backupKey('locks'), locksJson);
       }
 
       // Persistencia reactiva en Capacitor Preferences
@@ -315,10 +327,10 @@ class ActiveStudyService {
     } catch (e: any) {
       if (e?.name === 'QuotaExceededError' || e?.code === 22) {
         try {
-          localStorage.removeItem('eureka_active_study_topics_v1_backup');
-          localStorage.removeItem('eureka_active_study_outlines_v1_backup');
-          localStorage.removeItem('eureka_active_study_mindmaps_v1_backup');
-          localStorage.removeItem('eureka_active_study_locks_v1_backup');
+          localStorage.removeItem(this.backupKey('topics'));
+          localStorage.removeItem(this.backupKey('outlines'));
+          localStorage.removeItem(this.backupKey('mindmaps'));
+          localStorage.removeItem(this.backupKey('locks'));
           localStorage.setItem(this.getCoinsKey(), this.userCoins.toString());
           localStorage.setItem(this.getTopicsKey(), JSON.stringify(Array.from(this.topics.values())));
         } catch (e2) {
@@ -339,6 +351,8 @@ class ActiveStudyService {
   }
 
   private async syncCloudState(): Promise<void> {
+    // Cuenta y carga útil quedan fijadas AHORA: si se cambia de cuenta a mitad, esto sigue siendo de la anterior
+    const uid = this.currentUserId || eurekaBackend.getUserId();
     try {
       const outlinesObj: Record<string, OutlineNode[]> = {};
       this.outlineNodes.forEach((nodes, topicId) => {
@@ -366,8 +380,8 @@ class ActiveStudyService {
           userCoins: this.userCoins,
           updatedAt: Date.now()
         }
-      });
-      if (ok) {
+      }, uid);
+      if (ok && uid === (this.currentUserId || eurekaBackend.getUserId())) {
         // El servidor ya tiene estos cuadernos: desde ahora, si desaparecen de la nube se interpretan como borrados
         sent.forEach((v, id) => {
           this.ackedTopics[id] = v;
@@ -383,8 +397,12 @@ class ActiveStudyService {
   }
 
   public async syncWithCloud(): Promise<void> {
+    const uid = this.currentUserId || eurekaBackend.getUserId();
+    const epoch = this.epoch;
     try {
-      const remote = await eurekaBackend.fetchUserSettings();
+      const remote = await eurekaBackend.fetchUserSettings(uid);
+      // Si se cambió de cuenta mientras esperábamos, lo recibido es de otra cuenta y se descarta
+      if (epoch !== this.epoch) return;
       if (remote) {
         const json = (remote.settingsJson && typeof remote.settingsJson === 'object' && ('activeTopics' in remote.settingsJson || 'activeMindMaps' in remote.settingsJson))
           ? remote.settingsJson

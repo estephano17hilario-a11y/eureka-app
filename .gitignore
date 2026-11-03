@@ -10,3 +10,7 @@ android/local.properties
 Thumbs.db
 
 .vercel
+
+.vps-build
+server/.env
+server/data/

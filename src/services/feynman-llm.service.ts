@@ -41,6 +41,13 @@ export class FeynmanLlmService {
       return;
     }
 
+    // Lo pendiente de la cuenta anterior se envía YA y con SU id (usuario y carga útil se fijan al llamar)
+    if (this.cloudSyncTimer) {
+      clearTimeout(this.cloudSyncTimer);
+      this.cloudSyncTimer = null;
+      void this.syncCloudState();
+    }
+
     this.currentUserId = resolvedId;
     this.savedGuides.clear();
     await this.loadFromStorage();
@@ -107,6 +114,7 @@ export class FeynmanLlmService {
   }
 
   private async syncCloudState(): Promise<void> {
+    const uid = this.currentUserId || eurekaBackend.getUserId();
     try {
       const arr = Array.from(this.savedGuides.values());
       await eurekaBackend.saveUserSettings({
@@ -114,15 +122,18 @@ export class FeynmanLlmService {
           feynmanGuides: arr,
           updatedAt: Date.now()
         }
-      });
+      }, uid);
     } catch (err) {
       console.warn('[FeynmanLlmService] Cloud sync error:', err);
     }
   }
 
   public async syncWithCloud(): Promise<void> {
+    const uid = this.currentUserId || eurekaBackend.getUserId();
     try {
-      const userSettings = await eurekaBackend.fetchUserSettings();
+      const userSettings = await eurekaBackend.fetchUserSettings(uid);
+      // Si se cambió de cuenta mientras esperábamos, lo recibido es de otra cuenta y se descarta
+      if (uid !== (this.currentUserId || eurekaBackend.getUserId())) return;
       if (userSettings?.settingsJson?.feynmanGuides && Array.isArray(userSettings.settingsJson.feynmanGuides)) {
         let hasChanges = false;
         userSettings.settingsJson.feynmanGuides.forEach((g: FeynmanStudyGuide) => {
@@ -135,7 +146,6 @@ export class FeynmanLlmService {
           const arr = Array.from(this.savedGuides.values());
           const str = JSON.stringify(arr);
           localStorage.setItem(this.getGuidesKey(), str);
-          localStorage.setItem(BASE_FEYNMAN_STORAGE_KEY, str);
         }
       }
     } catch (err) {

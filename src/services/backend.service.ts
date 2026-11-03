@@ -1,7 +1,7 @@
 import type { Deck, Flashcard, StudyRating } from '../types/flashcard';
 import { Preferences } from '@capacitor/preferences';
 
-export const REMOTE_VPS_URL = ((import.meta as any)?.env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
+export const REMOTE_VPS_URL = ((import.meta as any).env?.VITE_API_BASE_URL || 'http://89.117.73.97').trim().replace(/\/+$/, '');
 export const API_BASE_URL = REMOTE_VPS_URL;
 
 const AUTH_STORAGE_KEY = 'eureka_auth_session_v1';
@@ -173,8 +173,8 @@ class EurekaBackendService {
     return this.currentUser;
   }
 
-  public async fetchSyncVersion(): Promise<{ decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number } | null> {
-    const activeUserId = this.getUserId();
+  public async fetchSyncVersion(uid?: string): Promise<{ decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number } | null> {
+    const activeUserId = uid || this.getUserId();
     try {
       const res = await apiFetch<{ decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number }>(
         `/api/sync/version?userId=${encodeURIComponent(activeUserId)}`
@@ -449,8 +449,8 @@ class EurekaBackendService {
 
   // --- SINCRONIZACIÓN DE MAZOS CON EL VPS ---
   /** Envía los mazos dados y devuelve los ids que el servidor confirmó (para reintentar solo lo que falló). */
-  public async syncDecks(decks: Deck[]): Promise<string[]> {
-    const activeUserId = this.getUserId();
+  public async syncDecks(decks: Deck[], uid?: string): Promise<string[]> {
+    const activeUserId = uid || this.getUserId();
     if (!decks.length) return [];
     const acked: string[] = [];
     try {
@@ -476,7 +476,9 @@ class EurekaBackendService {
           body: JSON.stringify({ userId: activeUserId, decks: payload })
         }, 15000);
         if (!res.ok) break;
-        slice.forEach(d => acked.push(d.id));
+        // Solo se confirma lo que el servidor realmente guardó (failedIds = filas que rechazó)
+        const rejected = new Set<string>(Array.isArray(res.data?.failedIds) ? res.data.failedIds : []);
+        slice.forEach(d => { if (!rejected.has(d.id)) acked.push(d.id); });
       }
     } catch (err) {
       console.warn('[EUREKA VPS BACKEND] Error syncDecks:', err);
@@ -484,12 +486,12 @@ class EurekaBackendService {
     return acked;
   }
 
-  public async deleteDeckFromCloud(deckId: string): Promise<boolean> {
-    return this.deleteDecksFromCloud([deckId]);
+  public async deleteDeckFromCloud(deckId: string, uid?: string): Promise<boolean> {
+    return this.deleteDecksFromCloud([deckId], uid);
   }
 
-  public async deleteDecksFromCloud(deckIds: string[]): Promise<boolean> {
-    const activeUserId = this.getUserId();
+  public async deleteDecksFromCloud(deckIds: string[], uid?: string): Promise<boolean> {
+    const activeUserId = uid || this.getUserId();
     if (!deckIds.length) return true;
     try {
       const res = await apiFetch('/api/decks/batch-delete', {
@@ -503,8 +505,8 @@ class EurekaBackendService {
     }
   }
 
-  public async fetchDecks(): Promise<Deck[] | null> {
-    const activeUserId = this.getUserId();
+  public async fetchDecks(uid?: string): Promise<Deck[] | null> {
+    const activeUserId = uid || this.getUserId();
     try {
       const res = await apiFetch<any[]>(`/api/decks?userId=${encodeURIComponent(activeUserId)}`);
       if (!res.ok || !Array.isArray(res.data)) return null;
@@ -529,8 +531,8 @@ class EurekaBackendService {
 
   // --- SINCRONIZACIÓN DE TARJETAS (FLASHCARDS) CON EL VPS ---
   /** Envía las tarjetas por lotes pequeños (las fotos pesan) y devuelve los ids confirmados por el servidor. */
-  public async syncCards(cards: Flashcard[]): Promise<string[]> {
-    const activeUserId = this.getUserId();
+  public async syncCards(cards: Flashcard[], uid?: string): Promise<string[]> {
+    const activeUserId = uid || this.getUserId();
     if (!cards.length) return [];
     const acked: string[] = [];
     try {
@@ -577,7 +579,8 @@ class EurekaBackendService {
           body: JSON.stringify({ userId: activeUserId, cards: payload })
         }, 30000);
         if (!res.ok) return false;
-        slice.forEach(c => acked.push(c.id));
+        const rejected = new Set<string>(Array.isArray(res.data?.failedIds) ? res.data.failedIds : []);
+        slice.forEach(c => { if (!rejected.has(c.id)) acked.push(c.id); });
         return true;
       };
 
@@ -597,12 +600,12 @@ class EurekaBackendService {
     return acked;
   }
 
-  public async deleteCardFromCloud(cardId: string): Promise<boolean> {
-    return this.deleteCardsFromCloud([cardId]);
+  public async deleteCardFromCloud(cardId: string, uid?: string): Promise<boolean> {
+    return this.deleteCardsFromCloud([cardId], uid);
   }
 
-  public async deleteCardsFromCloud(cardIds: string[]): Promise<boolean> {
-    const activeUserId = this.getUserId();
+  public async deleteCardsFromCloud(cardIds: string[], uid?: string): Promise<boolean> {
+    const activeUserId = uid || this.getUserId();
     if (!cardIds.length) return true;
     try {
       const res = await apiFetch('/api/cards/batch-delete', {
@@ -616,8 +619,8 @@ class EurekaBackendService {
     }
   }
 
-  public async fetchCards(): Promise<Flashcard[] | null> {
-    const activeUserId = this.getUserId();
+  public async fetchCards(uid?: string): Promise<Flashcard[] | null> {
+    const activeUserId = uid || this.getUserId();
     try {
       const res = await apiFetch<any[]>(`/api/cards?userId=${encodeURIComponent(activeUserId)}`);
       if (!res.ok || !Array.isArray(res.data)) return null;
@@ -668,6 +671,23 @@ class EurekaBackendService {
     }
   }
 
+  /**
+   * De los ids dados (aún sin confirmar por el servidor para esta cuenta), devuelve los que pertenecen a OTRA cuenta.
+   * Devuelve null si no se pudo comprobar (sin conexión): en ese caso no se debe subir ni borrar nada.
+   */
+  public async fetchForeignIds(uid: string, deckIds: string[], cardIds: string[]): Promise<{ deckIds: string[]; cardIds: string[] } | null> {
+    try {
+      const res = await apiFetch<{ checked?: boolean; deckIds?: string[]; cardIds?: string[] }>('/api/ids/foreign', {
+        method: 'POST',
+        body: JSON.stringify({ userId: uid, deckIds, cardIds })
+      }, 20000);
+      if (!res.ok || !res.data || res.data.checked !== true) return null;
+      return { deckIds: res.data.deckIds || [], cardIds: res.data.cardIds || [] };
+    } catch {
+      return null;
+    }
+  }
+
   // --- REGISTRO DE REPASOS (STUDY LOGS) ---
   public async logStudyReview(entry: {
     cardId: string;
@@ -697,8 +717,8 @@ class EurekaBackendService {
   }
 
   // --- AJUSTES DE USUARIO Y CONFIGURACIÓN ---
-  public async saveUserSettings(settings: Record<string, any>): Promise<boolean> {
-    const activeUserId = this.getUserId();
+  public async saveUserSettings(settings: Record<string, any>, uid?: string): Promise<boolean> {
+    const activeUserId = uid || this.getUserId();
     try {
       localStorage.setItem(`eureka_settings_user_${activeUserId}`, JSON.stringify(settings));
     } catch {
@@ -715,8 +735,8 @@ class EurekaBackendService {
     }
   }
 
-  public async fetchUserSettings(): Promise<Record<string, any> | null> {
-    const activeUserId = this.getUserId();
+  public async fetchUserSettings(uid?: string): Promise<Record<string, any> | null> {
+    const activeUserId = uid || this.getUserId();
     try {
       const res = await apiFetch<{ settings?: Record<string, any> }>(`/api/settings?userId=${encodeURIComponent(activeUserId)}`);
       if (res.ok && res.data?.settings) {

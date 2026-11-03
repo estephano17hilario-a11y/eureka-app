@@ -33,6 +33,10 @@ function stripCardImages(cards: Flashcard[]): Flashcard[] {
   });
 }
 
+/** Mazos y tarjetas de plantilla que recibe cualquier cuenta nueva: nunca se consideran "de otra cuenta". */
+const DEMO_DECK_IDS = new Set(['deck-mates', 'deck-mates-sub', 'deck-idioma', 'deck-humans', 'deck-tools']);
+const DEMO_CARD_IDS = new Set(['card-figma-1', 'card-figma-2', 'card-figma-3', 'card-figma-4', 'card-figma-humans-1']);
+
 const LS_CARDS_BUDGET = 2_600_000; // caracteres: por encima, localStorage guarda la copia ligera y IndexedDB la completa
 
 export class DeckService {
@@ -56,10 +60,18 @@ export class DeckService {
   private pushing = false;
   private pushAgain = false;
   private syncing = false;
+  private syncAgain = false;
   private dirty = false;
+  /** Sube con cada cambio de cuenta: toda respuesta de red que llegue de una época anterior se descarta. */
+  private epoch = 0;
+  private suspendEmit = 0;
+  private repairPromises = new Map<string, Promise<boolean>>();
 
   private constructor() {
     this.currentUserId = eurekaBackend.getUserId();
+    // Respaldos globales de versiones anteriores: mezclaban datos de unas cuentas con otras
+    lsRemove('eureka_decks_backup_latest');
+    lsRemove('eureka_cards_backup_latest');
     this.loadFromStorage();
     requestPersistentStorage();
     void this.hydrateFromIdb().then(() => {
@@ -96,21 +108,55 @@ export class DeckService {
     return DeckService.instance;
   }
 
-  public async setUser(userId: string): Promise<void> {
-    // Lo pendiente del usuario anterior se guarda antes de cambiar de cuenta
-    this.flushSave();
-
+  /**
+   * Cambia de cuenta. Lo local se carga y se pinta al instante; la nube se espera como mucho 6 s
+   * (si la cuenta no tiene nada en este dispositivo se espera para no enseñar una pantalla vacía).
+   */
+  public async setUser(userId: string, opts: { waitForCloud?: boolean } = {}): Promise<void> {
+    const waitForCloud = opts.waitForCloud !== false;
     const resolvedId = (!userId || userId === 'guest' || userId === 'default')
       ? eurekaBackend.getUserId()
       : userId;
+    if (resolvedId === this.currentUserId && this.epoch > 0) {
+      // Misma cuenta (p. ej. aviso de sesión repetido): no se recarga ni se pierde nada
+      if (waitForCloud) await Promise.race([this.syncWithCloud(), new Promise<void>(r => window.setTimeout(r, 6000))]);
+      return;
+    }
 
+    // Lo pendiente de la cuenta anterior se guarda y se intenta subir CON SU id antes de cambiar
+    this.flushSave();
+    void this.pushDirty();
+
+    this.epoch++;
+    if (this.pushTimer !== null) {
+      window.clearTimeout(this.pushTimer);
+      this.pushTimer = null;
+    }
     this.currentUserId = resolvedId;
     this.decks = [];
     this.cards = [];
-    this.loadFromStorage();
-    await this.hydrateFromIdb();
-    this.seedDemoIfEmpty();
-    await this.syncWithCloud();
+    this.meta = { decks: {}, cards: {}, delDecks: [], delCards: [] };
+
+    const epoch = this.epoch;
+    this.suspendEmit++;
+    try {
+      this.loadFromStorage();
+      await this.hydrateFromIdb();
+      this.seedDemoIfEmpty();
+    } finally {
+      this.suspendEmit--;
+    }
+    if (epoch !== this.epoch) return; // otra cuenta tomó el relevo mientras cargábamos
+
+    const hadLocal = this.decks.length > 0 || this.cards.length > 0;
+    this.invalidate();
+    if (hadLocal) this.fireListeners(); // pinta ya lo que hay en este dispositivo
+
+    const sync = this.syncWithCloud();
+    if (waitForCloud || !hadLocal) {
+      await Promise.race([sync, new Promise<void>(r => window.setTimeout(r, 6000))]);
+    }
+    if (epoch !== this.epoch) return;
     this.notify();
   }
 
@@ -136,8 +182,14 @@ export class DeckService {
     this.emitQueued = true;
     queueMicrotask(() => {
       this.emitQueued = false;
-      this.listeners.forEach(fn => fn());
+      this.fireListeners();
     });
+  }
+
+  /** Avisa a la interfaz; durante la carga de una cuenta se silencia y se avisa una sola vez al terminar. */
+  private fireListeners(): void {
+    if (this.suspendEmit > 0) return;
+    this.listeners.forEach(fn => fn());
   }
 
   private invalidate(): void {
@@ -161,6 +213,9 @@ export class DeckService {
   private getMetaKey(): string {
     return `eureka_syncmeta_user_${this.uid()}`;
   }
+  private getBackupKeys(): { decks: string; cards: string } {
+    return { decks: `eureka_decks_backup_${this.uid()}`, cards: `eureka_cards_backup_${this.uid()}` };
+  }
   private getCoreMetaKey(): string {
     return `eureka_coremeta_user_${this.uid()}`;
   }
@@ -179,26 +234,14 @@ export class DeckService {
       let storedDecks = lsGet(this.getDecksStorageKey());
       let storedCards = lsGet(this.getCardsStorageKey());
 
-      // Respaldo de recuperación infalible si la clave actual estuviera vacía
+      // Respaldo de ESTA cuenta si su clave principal estuviera vacía. Jamás se toma nada de otra cuenta:
+      // antes se copiaba el "último respaldo" o cualquier eureka_decks_user_*, y eso mezclaba cuentas.
       if (!storedDecks) {
-        const backupDecks = lsGet('eureka_decks_backup_latest');
-        const backupCards = lsGet('eureka_cards_backup_latest');
+        const keys = this.getBackupKeys();
+        const backupDecks = lsGet(keys.decks);
         if (backupDecks) {
           storedDecks = backupDecks;
-          storedCards = backupCards;
-        } else {
-          // Escanear cualquier clave previa de mazos en localStorage
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('eureka_decks_user_')) {
-              const cand = localStorage.getItem(key);
-              if (cand && cand.length > 10) {
-                storedDecks = cand;
-                storedCards = localStorage.getItem(key.replace('eureka_decks_user_', 'eureka_cards_user_'));
-                break;
-              }
-            }
-          }
+          storedCards = lsGet(keys.cards);
         }
       }
 
@@ -247,7 +290,7 @@ export class DeckService {
     lsSet(flagKey, '1');
     this.invalidate();
     this.saveNow();
-    this.listeners.forEach(fn => fn());
+    this.fireListeners();
   }
 
   private normalizeDecks(): void {
@@ -309,7 +352,7 @@ export class DeckService {
 
       if (changed) {
         this.invalidate();
-        this.listeners.forEach(fn => fn());
+        this.fireListeners();
       }
     } catch (err) {
       console.warn('[DECK SERVICE] No se pudo leer IndexedDB:', err);
@@ -360,20 +403,22 @@ export class DeckService {
         // Demasiado grande para localStorage: copia ligera aquí, completa en IndexedDB
         const slimJson = JSON.stringify(stripCardImages(this.cards));
         if (!lsSet(this.getCardsStorageKey(), slimJson)) {
-          lsRemove('eureka_cards_backup_latest');
-          lsRemove('eureka_decks_backup_latest');
+          const bk = this.getBackupKeys();
+          lsRemove(bk.cards);
+          lsRemove(bk.decks);
           lsSet(this.getCardsStorageKey(), slimJson);
         }
       }
       lsSet(this.getCoreMetaKey(), JSON.stringify({ savedAt, slim }));
 
-      // Respaldo global persistente (solo si cabe; nunca a costa del guardado principal)
+      // Respaldo de esta cuenta (solo si cabe; nunca a costa del guardado principal)
+      const bk = this.getBackupKeys();
       if (this.decks.length > 0 && !slim) {
-        lsSet('eureka_decks_backup_latest', decksJson);
-        lsSet('eureka_cards_backup_latest', cardsJson);
+        lsSet(bk.decks, decksJson);
+        lsSet(bk.cards, cardsJson);
       } else if (slim) {
-        lsRemove('eureka_cards_backup_latest');
-        lsRemove('eureka_decks_backup_latest');
+        lsRemove(bk.cards);
+        lsRemove(bk.decks);
       }
     } catch (err) {
       console.warn('Error guardando en almacenamiento:', err);
@@ -391,7 +436,12 @@ export class DeckService {
   }
 
   private saveMeta(): void {
-    lsSet(this.getMetaKey(), JSON.stringify(this.meta));
+    this.saveMetaFor(this.uid(), this.meta);
+  }
+
+  /** Guarda el meta bajo el id de la cuenta que lo generó (aunque ya se haya cambiado de cuenta). */
+  private saveMetaFor(uid: string, meta: SyncMeta): void {
+    lsSet(`eureka_syncmeta_user_${uid}`, JSON.stringify(meta));
   }
 
   // --- SINCRONIZACIÓN ---
@@ -412,47 +462,62 @@ export class DeckService {
     }
     if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
     this.pushing = true;
+
+    // La cuenta que sube queda fijada al empezar: todo lo que sigue se envía y se confirma como de ESTA cuenta,
+    // aunque a mitad se cambie de cuenta (antes se enviaba con el usuario de ese instante y se mezclaban datos).
+    const uid = this.uid();
+    const snapDecks = this.decks;
+    const snapCards = this.cards;
+    const snapMeta = this.meta;
+    const same = () => this.uid() === uid;
+    const curDecks = () => (same() ? this.decks : snapDecks);
+    const curCards = () => (same() ? this.cards : snapCards);
+    const curMeta = () => (same() ? this.meta : snapMeta);
+
     try {
+      // Antes de subir nada se comprueba que no haya datos ajenos arrastrados a esta cuenta
+      if (!(await this.ensureRepaired(uid))) return;
+
       // 1) Borrados pendientes
-      if (this.meta.delCards.length > 0) {
-        const ids = this.meta.delCards.slice();
-        if (await eurekaBackend.deleteCardsFromCloud(ids)) {
+      if (curMeta().delCards.length > 0) {
+        const ids = curMeta().delCards.slice();
+        if (await eurekaBackend.deleteCardsFromCloud(ids, uid)) {
           const done = new Set(ids);
-          this.meta.delCards = this.meta.delCards.filter(id => !done.has(id));
+          curMeta().delCards = curMeta().delCards.filter(id => !done.has(id));
         }
       }
-      if (this.meta.delDecks.length > 0) {
-        const ids = this.meta.delDecks.slice();
-        if (await eurekaBackend.deleteDecksFromCloud(ids)) {
+      if (curMeta().delDecks.length > 0) {
+        const ids = curMeta().delDecks.slice();
+        if (await eurekaBackend.deleteDecksFromCloud(ids, uid)) {
           const done = new Set(ids);
-          this.meta.delDecks = this.meta.delDecks.filter(id => !done.has(id));
+          curMeta().delDecks = curMeta().delDecks.filter(id => !done.has(id));
         }
       }
 
       // 2) Mazos modificados (siempre antes que las tarjetas)
-      const dirtyDecks = this.decks.filter(d => this.meta.decks[d.id] !== d.updatedAt);
+      const dirtyDecks = curDecks().filter(d => curMeta().decks[d.id] !== d.updatedAt);
       const sentDecks = new Map(dirtyDecks.map(d => [d.id, d.updatedAt]));
       let decksOk = true;
       if (dirtyDecks.length > 0) {
-        const acked = await eurekaBackend.syncDecks(dirtyDecks);
+        const acked = await eurekaBackend.syncDecks(dirtyDecks, uid);
         acked.forEach(id => {
-          this.meta.decks[id] = sentDecks.get(id) as number;
+          curMeta().decks[id] = sentDecks.get(id) as number;
         });
         decksOk = acked.length === dirtyDecks.length;
       }
 
       // 3) Tarjetas modificadas
       if (decksOk) {
-        const dirtyCards = this.cards.filter(c => this.meta.cards[c.id] !== c.updatedAt);
+        const dirtyCards = curCards().filter(c => curMeta().cards[c.id] !== c.updatedAt);
         if (dirtyCards.length > 0) {
           const sentCards = new Map(dirtyCards.map(c => [c.id, c.updatedAt]));
-          const acked = await eurekaBackend.syncCards(dirtyCards);
+          const acked = await eurekaBackend.syncCards(dirtyCards, uid);
           acked.forEach(id => {
-            this.meta.cards[id] = sentCards.get(id) as number;
+            curMeta().cards[id] = sentCards.get(id) as number;
           });
         }
       }
-      this.saveMeta();
+      this.saveMetaFor(uid, curMeta());
     } catch (err) {
       console.warn('[EUREKA SYNC] Error subiendo cambios:', err);
     } finally {
@@ -470,16 +535,43 @@ export class DeckService {
    *  - lo que el servidor nunca llegó a recibir se conserva y se sube;
    *  - solo se borra localmente lo que el servidor tenía confirmado y luego dejó de tener (borrado en otro dispositivo).
    */
-  public async syncWithCloud(): Promise<void> {
-    if (this.syncing) return;
+  private syncDone: Promise<void> = Promise.resolve();
+
+  public syncWithCloud(): Promise<void> {
+    // Si ya hay una sincronización en curso (quizá de la cuenta anterior) se encadena otra para la cuenta actual
+    if (this.syncing) {
+      this.syncAgain = true;
+      return this.syncDone;
+    }
     this.syncing = true;
+    this.syncDone = (async () => {
+      try {
+        do {
+          this.syncAgain = false;
+          await this.syncOnce();
+        } while (this.syncAgain);
+      } finally {
+        this.syncing = false;
+      }
+    })();
+    return this.syncDone;
+  }
+
+  private async syncOnce(): Promise<void> {
+    // La cuenta y la época quedan fijadas al empezar: lo que llegue de la red solo se aplica si seguimos en la misma
+    const uid = this.uid();
+    const epoch = this.epoch;
     try {
+      if (!(await this.ensureRepaired(uid))) return;
+      if (epoch !== this.epoch) return;
+
       const [remoteDecks, remoteCards] = await Promise.all([
-        eurekaBackend.fetchDecks(),
-        eurekaBackend.fetchCards()
+        eurekaBackend.fetchDecks(uid),
+        eurekaBackend.fetchCards(uid)
       ]);
-      // Sin respuesta fiable no se toca nada
+      // Sin respuesta fiable no se toca nada; si se cambió de cuenta, estos datos son de otra y se descartan
       if (remoteDecks === null || remoteCards === null) return;
+      if (epoch !== this.epoch) return;
 
       let changed = false;
       const pendingDelDecks = new Set(this.meta.delDecks);
@@ -582,9 +674,58 @@ export class DeckService {
       this.schedulePush(150);
     } catch (err) {
       console.warn('[EUREKA SYNC] Error sincronizando con la nube:', err);
-    } finally {
-      this.syncing = false;
     }
+  }
+
+  // --- DATOS AJENOS ---
+
+  /** Solo se repara la cuenta activa; para cualquier otra se mira únicamente si ya estaba reparada. */
+  private ensureRepaired(uid: string): Promise<boolean> {
+    if (!uid || uid === 'default' || lsGet(`eureka_repair_v2_${uid}`)) return Promise.resolve(true);
+    if (uid !== this.uid()) return Promise.resolve(false);
+    let p = this.repairPromises.get(uid);
+    if (!p) {
+      p = this.repairForeignData(uid).finally(() => this.repairPromises.delete(uid));
+      this.repairPromises.set(uid, p);
+    }
+    return p;
+  }
+
+  /**
+   * Versiones anteriores copiaban a la cuenta activa los datos de OTRA cuenta (respaldo global, cambios de cuenta
+   * a mitad de una sincronización). Antes de subir o fusionar nada se le pregunta al servidor cuáles de los
+   * elementos aún sin confirmar son de otra cuenta; esos se APARTAN (a IndexedDB, nunca se borran) y dejan de
+   * verse aquí. Devuelve false si no se pudo comprobar: en ese caso no se sube ni se borra nada todavía.
+   */
+  private async repairForeignData(uid: string): Promise<boolean> {
+    const flag = `eureka_repair_v2_${uid}`;
+    const epoch = this.epoch;
+    const deckIds = this.decks.filter(d => this.meta.decks[d.id] === undefined && !DEMO_DECK_IDS.has(d.id)).map(d => d.id);
+    const cardIds = this.cards.filter(c => this.meta.cards[c.id] === undefined && !DEMO_CARD_IDS.has(c.id)).map(c => c.id);
+    if (deckIds.length === 0 && cardIds.length === 0) {
+      lsSet(flag, '1');
+      return true;
+    }
+
+    const foreign = await eurekaBackend.fetchForeignIds(uid, deckIds, cardIds);
+    if (!foreign) return false;
+    if (epoch !== this.epoch || uid !== this.uid()) return false;
+
+    const fd = new Set(foreign.deckIds);
+    const fc = new Set(foreign.cardIds);
+    if (fd.size > 0 || fc.size > 0) {
+      const removedDecks = this.decks.filter(d => fd.has(d.id));
+      const removedCards = this.cards.filter(c => fc.has(c.id) || fd.has(c.deckId));
+      void idbSet(`quarantine:${uid}:${Date.now()}`, { decks: removedDecks, cards: removedCards, savedAt: Date.now() } as any);
+      this.decks = this.decks.filter(d => !fd.has(d.id));
+      this.cards = this.cards.filter(c => !fc.has(c.id) && !fd.has(c.deckId));
+      console.warn(`[EUREKA] Se apartaron ${removedDecks.length} mazos y ${removedCards.length} tarjetas que pertenecían a otra cuenta.`);
+      this.invalidate();
+      this.scheduleSave();
+      this.fireListeners();
+    }
+    lsSet(flag, '1');
+    return true;
   }
 
   /** Marca borrados para que se envíen (con reintentos) y no reaparezcan al sincronizar. */

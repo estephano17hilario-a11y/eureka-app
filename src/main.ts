@@ -79,6 +79,12 @@ class EurekaFigmaApp {
   private toastTimeout: number | null = null;
   private sessionSeconds = 0;
   private sessionPaused = false;
+  private lastNavKey = '';
+  private lastMarkup = '';
+  private renderQueued = false;
+  private activeAccountId = '';
+  private activation: Promise<void> = Promise.resolve();
+  private lastVersionState = { decks: 0, cards: 0, settings: 0 };
 
   constructor() {
     const el = document.getElementById('app');
@@ -116,57 +122,29 @@ class EurekaFigmaApp {
 
     this.startSessionClock();
 
-    // Suscribirse a cambios en los mazos y tarjetas
+    // Suscribirse a cambios en los mazos y tarjetas: los repintados por datos se agrupan en un solo fotograma
     deckService.subscribe(() => {
       if (this.currentView !== 'study' && this.currentView !== 'editor') {
-        this.render();
+        this.renderSoon();
       }
     });
 
-    // Suscribirse a cambios de autenticación
-    eurekaBackend.onAuthChange(async (user) => {
-      const activeId = user?.id || eurekaBackend.getUserId();
-      await Promise.all([
-        deckService.setUser(activeId),
-        activeStudyService.setUser(activeId),
-        feynmanLlmService.setUser(activeId),
-        themeService.syncWithCloud()
-      ]);
-
-      const rootDecks = deckService.getRootDecks();
-      if (rootDecks.length > 0) {
-        this.selectedRootDeckId = rootDecks[0].id;
-        const sub = deckService.getSubdecks(rootDecks[0].id);
-        this.selectedSubdeckId = sub.length > 0 ? sub[0].id : rootDecks[0].id;
-      }
-      this.render();
+    // Suscribirse a cambios de autenticación (una sola ruta, serializada, para activar cuentas)
+    eurekaBackend.onAuthChange((user) => {
+      void this.activateAccount(user?.id || eurekaBackend.getUserId());
     });
 
-    // Conexión automática universal a la base de datos de la cuenta activa
+    // Conexión automática a la cuenta activa: primero lo local (pinta al instante) y la nube llega después
     let currentUser = eurekaBackend.getCurrentUser();
     if (!currentUser) {
       currentUser = await eurekaBackend.ensureActiveAccount();
     }
-    const activeId = currentUser?.id || eurekaBackend.getUserId();
-    await Promise.all([
-      deckService.setUser(activeId),
-      activeStudyService.setUser(activeId),
-      feynmanLlmService.setUser(activeId),
-      themeService.syncWithCloud()
-    ]);
-
-    const rootDecks = deckService.getRootDecks();
-    if (rootDecks.length > 0) {
-      this.selectedRootDeckId = rootDecks[0].id;
-      const sub = deckService.getSubdecks(rootDecks[0].id);
-      this.selectedSubdeckId = sub.length > 0 ? sub[0].id : rootDecks[0].id;
-    }
-    this.render();
+    await this.activateAccount(currentUser?.id || eurekaBackend.getUserId(), { waitForCloud: false });
+    this.render(true);
 
     // 2. Transmisión Automática entre Navegadores y Dispositivos:
     // Sincronización inteligente con comprobación de versión de bajo peso cada 5 segundos y sincronización inmediata al enfocar
     let isPolling = false;
-    let lastVersionState = { decks: 0, cards: 0, settings: 0 };
 
     const pollRemoteSync = async (force: boolean = false) => {
       if (isPolling || this.currentView === 'study' || isActivelyStudying()) return;
@@ -181,15 +159,15 @@ class EurekaFigmaApp {
         if (!force) {
           const version = await eurekaBackend.fetchSyncVersion();
           if (version) {
-            const hasNewDecks = version.decksUpdatedAt > lastVersionState.decks;
-            const hasNewCards = version.cardsUpdatedAt > lastVersionState.cards;
-            const hasNewSettings = version.settingsUpdatedAt > lastVersionState.settings;
+            const hasNewDecks = version.decksUpdatedAt > this.lastVersionState.decks;
+            const hasNewCards = version.cardsUpdatedAt > this.lastVersionState.cards;
+            const hasNewSettings = version.settingsUpdatedAt > this.lastVersionState.settings;
 
-            if (!hasNewDecks && !hasNewCards && !hasNewSettings && lastVersionState.decks > 0) {
+            if (!hasNewDecks && !hasNewCards && !hasNewSettings && this.lastVersionState.decks > 0) {
               return; // Sin cambios en el servidor, no descargar datos innecesarios
             }
 
-            lastVersionState = {
+            this.lastVersionState = {
               decks: version.decksUpdatedAt || 0,
               cards: version.cardsUpdatedAt || 0,
               settings: version.settingsUpdatedAt || 0
@@ -222,18 +200,67 @@ class EurekaFigmaApp {
     }
   }
 
+  /**
+   * Única puerta para cambiar de cuenta. Se ejecuta en cola (nunca dos cambios a la vez) y es idempotente:
+   * varios avisos de la misma cuenta (inicio de sesión + evento de auth + menú) cargan los datos UNA vez.
+   */
+  private activateAccount(userId: string, opts: { waitForCloud?: boolean } = {}): Promise<void> {
+    const run = async () => {
+      if (!userId || userId === this.activeAccountId) return;
+      this.activeAccountId = userId;
+      this.lastVersionState = { decks: 0, cards: 0, settings: 0 };
+
+      const loads = Promise.all([
+        deckService.setUser(userId, opts),
+        activeStudyService.setUser(userId),
+        feynmanLlmService.setUser(userId),
+        themeService.syncWithCloud()
+      ]).then(() => {
+        if (this.activeAccountId !== userId) return;
+        this.selectDefaultDecks();
+        this.renderSoon();
+      });
+
+      if (opts.waitForCloud === false) {
+        // Arranque: no se espera a la red más de un instante; lo que llegue después se pinta sin parpadeos
+        await Promise.race([loads, new Promise<void>((r) => window.setTimeout(r, 350))]);
+      } else {
+        await loads;
+      }
+      if (this.activeAccountId !== userId) return;
+      this.selectDefaultDecks();
+      this.render();
+    };
+    this.activation = this.activation.then(run, run);
+    return this.activation;
+  }
+
+  private selectDefaultDecks(): void {
+    const rootDecks = deckService.getRootDecks();
+    if (rootDecks.length > 0 && !deckService.getDeckById(this.selectedRootDeckId)) {
+      this.selectedRootDeckId = rootDecks[0].id;
+      const sub = deckService.getSubdecks(rootDecks[0].id);
+      this.selectedSubdeckId = sub.length > 0 ? sub[0].id : rootDecks[0].id;
+    }
+  }
+
+  /** Repintado por cambio de datos: se agrupa en un fotograma y no toca el DOM si nada cambió. */
+  private renderSoon(): void {
+    if (this.renderQueued) return;
+    this.renderQueued = true;
+    requestAnimationFrame(() => {
+      this.renderQueued = false;
+      if (this.currentView === 'study' || this.currentView === 'editor') return;
+      this.render(true);
+    });
+  }
+
   public promptAuth(allowDismiss: boolean = true): void {
     openAuthModal({
       allowDismiss,
       onSuccess: async (user: AuthUser) => {
         this.showToast(`👋 ¡Bienvenido de nuevo, ${user.username}!`);
-        await Promise.all([
-          deckService.setUser(user.id),
-          activeStudyService.setUser(user.id),
-          feynmanLlmService.setUser(user.id),
-          themeService.syncWithCloud()
-        ]);
-        this.render();
+        await this.activateAccount(user.id);
       },
       onClose: () => {
         if (!eurekaBackend.getCurrentUser()) {
@@ -268,22 +295,12 @@ class EurekaFigmaApp {
       onAccountChanged: async (user) => {
         if (user) {
           this.showToast(`✨ Conectado como ${user.username}`);
-          await Promise.all([
-            deckService.setUser(user.id),
-            activeStudyService.setUser(user.id),
-            feynmanLlmService.setUser(user.id),
-            themeService.syncWithCloud()
-          ]);
+          await this.activateAccount(user.id);
         } else {
           this.showToast('Sesión cerrada. Espacio de datos local.');
           const guest = eurekaBackend.setGuestSession();
-          await Promise.all([
-            deckService.setUser(guest.id),
-            activeStudyService.setUser(guest.id),
-            feynmanLlmService.setUser(guest.id)
-          ]);
+          await this.activateAccount(guest.id);
         }
-        this.render();
       }
     });
   }
@@ -568,7 +585,7 @@ class EurekaFigmaApp {
     });
   }
 
-  public render(): void {
+  public render(soft: boolean = false): void {
     if (this.currentView === 'study') return;
 
     const rootDecks = deckService.getRootDecks();
@@ -631,13 +648,9 @@ class EurekaFigmaApp {
     const reading = this.currentTab === 'estudio' && isActivelyStudying();
     document.body.classList.toggle('eureka-reading', reading);
 
-    if (reading) {
-      this.appElement.innerHTML = bodyHtml;
-      this.bindEvents();
-      return;
-    }
-
-    this.appElement.innerHTML = `
+    const markup = reading
+      ? bodyHtml
+      : `
       <div class="figma-app-layout" id="main-layout-mount">
         ${showGlobalHeader ? renderFigmaHeader(this.currentTab) : ''}
         <main class="figma-main-content">
@@ -647,8 +660,23 @@ class EurekaFigmaApp {
       </div>
     `;
 
+    // Misma pantalla que la anterior (solo cambian los datos): sin animación de entrada y sin saltos de scroll.
+    const navKey = [
+      this.currentTab, this.currentView, this.selectedRootDeckId, this.selectedSubdeckId,
+      this.selectedStudyTopicId, this.editingCardId || '', reading ? 'reading' : ''
+    ].join('|');
+    const sameScreen = navKey === this.lastNavKey && this.appElement.childElementCount > 0;
+    // Repintado "suave" y el contenido es idéntico: no se toca el DOM (nada que parpadee)
+    if (soft && sameScreen && markup === this.lastMarkup) return;
+    this.lastNavKey = navKey;
+    this.lastMarkup = markup;
+
+    const scrollY = sameScreen ? window.scrollY : 0;
+    this.appElement.classList.toggle('no-enter', sameScreen);
+    this.appElement.innerHTML = markup;
     this.bindEvents();
-    this.updateSessionClock();
+    if (!reading) this.updateSessionClock();
+    if (sameScreen && scrollY > 0) window.scrollTo(0, scrollY);
   }
 
   private bindEvents(): void {

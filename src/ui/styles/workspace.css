@@ -66,6 +66,21 @@ body.theme-desk_wood::after {
   animation: deskEnter 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* Repintado de la MISMA pantalla (llegan datos, se sincroniza, se cambia de cuenta con la vista abierta):
+   las animaciones de entrada solo deben verse al navegar, si no la pantalla parpadea en cada actualización. */
+#app.no-enter .figma-main-content > *,
+#app.no-enter .fw-body,
+#app.no-enter .dash-bottom-section,
+#app.no-enter .active-study-container,
+#app.no-enter .notebooks-view-container,
+#app.no-enter .cupertino-study-container,
+#app.no-enter .ios-fullscreen-view,
+#app.no-enter .atomic-reading-card,
+#app.no-enter .feynman-sublevel-card,
+#app.no-enter .atomic-study-minimal-topbar {
+  animation: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

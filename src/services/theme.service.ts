@@ -183,9 +183,12 @@ export class ThemeService {
   }
 
   public async syncWithCloud(): Promise<void> {
+    const uid = eurekaBackend.getUserId();
     try {
       this.loadFromStorage();
-      const userSettings = await eurekaBackend.fetchUserSettings();
+      const userSettings = await eurekaBackend.fetchUserSettings(uid);
+      // Si se cambió de cuenta mientras esperábamos, ese tema es de otra cuenta
+      if (uid !== eurekaBackend.getUserId()) return;
       if (userSettings?.settingsJson?.customizationTheme) {
         this.currentTheme = { ...DEFAULT_THEME, ...userSettings.settingsJson.customizationTheme };
         this.currentTheme.advanced = { ...DEFAULT_ADVANCED, ...(this.currentTheme.advanced || {}) };
@@ -237,7 +240,11 @@ export class ThemeService {
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute('content', barColors[this.currentTheme.bgTheme] || '#0e0f14');
 
-    body.className = '';
+    // Solo se reemplazan las clases que gestiona el tema: el resto (p. ej. eureka-reading) se conserva.
+    // Antes se borraban TODAS las clases del body en cada llamada, y eso hacía parpadear la pantalla.
+    body.className = Array.from(body.classList)
+      .filter((c) => !/^(theme|radius|surface|scale|paper|adv)-/.test(c))
+      .join(' ');
     body.classList.add(`theme-${this.currentTheme.bgTheme}`);
     body.classList.add(`radius-${this.currentTheme.cardRadius}`);
     body.classList.add(`surface-${this.currentTheme.cardSurface}`);

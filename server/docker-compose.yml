@@ -4,9 +4,10 @@ services:
     container_name: eureka_api
     restart: always
     network_mode: "host"
-    environment:
-      PORT: 3050
-      DATABASE_URL: postgresql://postgres:vfZlTfp1qCDnVlngOb4FDDJsNKqUgKJb@127.0.0.1:5432/postgres
+    env_file: .env   # PORT y DATABASE_URL (ver .env.example)
+    volumes:
+      - ./server.js:/app/server.js
+      - ./data:/app/data
     logging:
       driver: "json-file"
       options:

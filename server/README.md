@@ -1,29 +1,40 @@
-# Servidor Backend Eureka (VPS Propio)
+# Servidor Backend Eureka (VPS propio)
 
-Este servidor Node.js/Express reemplaza completamente a Supabase y se conecta directamente a la base de datos PostgreSQL de tu VPS.
+API Node.js/Express que se conecta al PostgreSQL **dedicado de Eureka** (contenedor `eureka-db`, volumen `eureka_pgdata`) en tu VPS. No depende de Vercel ni de Supabase.
 
-## Credenciales y Variables de Entorno
-Por defecto toma la base de datos de tu VPS:
-- **Host**: `89.117.73.97`
-- **Puerto PostgreSQL**: `5432`
-- **Base de Datos**: `postgres`
-- **Cadena de conexión**: `postgresql://postgres:vfZlTfp1qCDnVlngOb4FDDJsNKqUgKJb@89.117.73.97:5432/postgres`
+## Despliegue actual
+- Frontend: nginx sirve `/var/www/eureka` en `https://eureka.89.117.73.97.sslip.io` (Let's Encrypt, renovación automática).
+- API: contenedor `eureka_api` en `/opt/eureka` (puerto 3050, nginx hace proxy de `/api/` y `/health`).
+- Base de datos: contenedor `eureka-db`, solo accesible desde el propio VPS (`127.0.0.1:5434`).
+- Backups: `/usr/local/bin/eureka-backup` → `/var/backups/eureka/hourly` (cada hora, 3 días) y `/daily` (03:40, 30 días); `/manual` no se borra solo. Incluyen también el JSON de respaldo de la API.
+- Protección de datos del servidor: una fila defectuosa no apaga Postgres ni aborta el resto; los UPDATE solo se aplican si la fila es del mismo usuario (los mazos de demostración comparten IDs entre invitados); los ajustes se fusionan sobre lo que ya hay en Postgres; y lo que quede solo en `data/eureka_store.json` se reconcilia con Postgres al arrancar, al recuperarse la conexión y cada 30 min (`/health` → `lastReconcile`).
+- Credenciales: `/opt/eureka/.env` (chmod 600, fuera de git). Plantilla en `.env.example`.
 
-## Cómo ejecutar en el VPS
+## Garantías de datos (cuentas separadas, nada se pierde)
+- Mazos y tarjetas se identifican por **(user_id, id)** (`migrations/002-composite-keys.sql`): cada cuenta tiene su propio espacio de IDs, así los mazos de demostración de dos cuentas no chocan.
+- **Red de seguridad en la propia base** (`migrations/003-safety-net.sql`, triggers): cada cambio de contenido en los ajustes/cuadernos guarda la versión anterior en `eureka_settings_history` (≤1 por minuto, 40 por usuario) y todo mazo/tarjeta borrado se copia a `eureka_trash` (90 días). Para recuperar: `select * from eureka_trash where user_id='…' order by deleted_at desc;`
+- `POST /api/ids/foreign` dice al cliente qué elementos sin confirmar son de otra cuenta, para apartarlos en lugar de mezclarlos.
+- Las respuestas de `/api/decks/sync` y `/api/cards/sync` incluyen `failedIds`: el cliente solo da por guardado lo que el servidor realmente guardó.
 
-### Opción A: Con PM2 (Recomendada)
+## Crear la base de datos desde cero (solo si hiciera falta)
 ```bash
-cd server
-npm install
-pm2 start server.js --name "eureka-api"
-pm2 save
+docker volume create eureka_pgdata
+docker run -d --name eureka-db --restart always \
+  -e POSTGRES_USER=eureka -e POSTGRES_DB=eureka -e POSTGRES_PASSWORD='<la de .env>' \
+  -v eureka_pgdata:/var/lib/postgresql/data -p 127.0.0.1:5434:5432 postgres:16-alpine
+```
+Las tablas (`eureka_users`, `eureka_decks`, `eureka_flashcards`, `eureka_study_logs`, `eureka_user_settings`) se restauran desde un backup `.dump`.
+
+## Desplegar cambios (desde la raíz del repo)
+```bash
+npm run deploy:vps            # frontend + API
+npm run deploy:vps -- web     # solo frontend
+npm run deploy:vps -- api     # solo server/server.js
 ```
 
-### Opción B: En segundo plano con Node / Systemd
+## Restaurar un backup
 ```bash
-cd server
-npm install
-npm start
+docker exec -i eureka-db pg_restore -U eureka -d eureka --clean --if-exists --no-owner < /var/backups/eureka/eureka-AAAAMMDD-HHMMSS.dump
 ```
 
 ## Endpoints Disponibles
