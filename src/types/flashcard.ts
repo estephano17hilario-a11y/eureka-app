@@ -95,6 +95,10 @@ export interface Deck {
   icon: string;
   isFolder?: boolean; // true para carpetas organizadoras, false para mazos de flashcards
   color: string;
+  /** Símbolo elegido por el usuario (emoji). Sin valor = icono estándar de carpeta/mazo. */
+  glyph?: string;
+  /** Posición manual entre hermanos (menor = primero). Sin valor = al final, en orden de creación. */
+  order?: number;
   settings: DeckSettings;
   createdAt: number;
   updatedAt: number;

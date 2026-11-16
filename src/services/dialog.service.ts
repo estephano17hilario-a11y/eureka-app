@@ -1,3 +1,4 @@
+import { appearanceEditorHtml, bindAppearanceEditor, type Appearance } from '../components/DeckAppearance';
 export interface IntervalPickerOptions {
   title?: string;
   subtitle?: string;
@@ -290,7 +291,7 @@ export class DialogService {
     const modal = document.createElement('div');
     modal.className = 'apple-modal-overlay';
     modal.innerHTML = `
-      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; max-height:92vh; overflow-y:auto; animation: modalPopIn 0.22s ease-out;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
           <h3 style="font-size:1.25rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">
             ${options.title}
@@ -469,7 +470,7 @@ export class DialogService {
     const modal = document.createElement('div');
     modal.className = 'apple-modal-overlay';
     modal.innerHTML = `
-      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; max-height:92vh; overflow-y:auto; animation: modalPopIn 0.22s ease-out;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
           <div>
             <h3 style="font-size:1.3rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">
@@ -534,13 +535,15 @@ export class DialogService {
   public showEditFolderModal(options: {
     initialName: string;
     initialDescription?: string;
-    onConfirm: (name: string, description: string) => void;
+    initialColor?: string;
+    initialGlyph?: string;
+    onConfirm: (name: string, description: string, appearance: Appearance) => void;
     onDelete?: () => void;
   }): void {
     const modal = document.createElement('div');
     modal.className = 'apple-modal-overlay';
     modal.innerHTML = `
-      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; max-height:92vh; overflow-y:auto; animation: modalPopIn 0.22s ease-out;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="width:36px; height:36px; border-radius:10px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; display:flex; align-items:center; justify-content:center;">
@@ -561,9 +564,10 @@ export class DialogService {
             <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">Descripción</label>
             <input type="text" id="input-edit-folder-desc" class="cupertino-dialog-input" value="${options.initialDescription || ''}" placeholder="Descripción opcional..." />
           </div>
+          ${appearanceEditorHtml({ color: options.initialColor || '#38bdf8', glyph: options.initialGlyph || '' }, true)}
         </div>
 
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
           ${
             options.onDelete
               ? `
@@ -586,6 +590,7 @@ export class DialogService {
 
     const inputName = modal.querySelector('#input-edit-folder-name') as HTMLInputElement;
     const inputDesc = modal.querySelector('#input-edit-folder-desc') as HTMLInputElement;
+    const readAppearance = bindAppearanceEditor(modal, { color: options.initialColor || '#38bdf8', glyph: options.initialGlyph || '' });
     inputName.focus();
 
     const closeModal = () => modal.remove();
@@ -598,7 +603,7 @@ export class DialogService {
       const desc = inputDesc.value.trim();
       if (name) {
         closeModal();
-        options.onConfirm(name, desc);
+        options.onConfirm(name, desc, readAppearance());
       }
     });
 
@@ -619,13 +624,16 @@ export class DialogService {
    */
   public showEditDeckModal(options: {
     initialName: string;
-    onConfirm: (name: string) => void;
+    initialDescription?: string;
+    initialColor?: string;
+    initialGlyph?: string;
+    onConfirm: (name: string, description: string, appearance: Appearance) => void;
     onDelete?: () => void;
   }): void {
     const modal = document.createElement('div');
     modal.className = 'apple-modal-overlay';
     modal.innerHTML = `
-      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; animation: modalPopIn 0.22s ease-out;">
+      <div class="apple-modal-content apple-glass-panel" style="max-width:440px; width:92%; padding:24px; max-height:92vh; overflow-y:auto; animation: modalPopIn 0.22s ease-out;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="width:36px; height:36px; border-radius:10px; background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.3); color:#a855f7; display:flex; align-items:center; justify-content:center;">
@@ -641,9 +649,14 @@ export class DialogService {
             <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">Nombre del Mazo</label>
             <input type="text" id="input-edit-deck-name" class="cupertino-dialog-input" value="${options.initialName || ''}" placeholder="Ej: Fórmulas, Verbos..." />
           </div>
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; color:var(--f-text-secondary); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">Descripción</label>
+            <input type="text" id="input-edit-deck-desc" class="cupertino-dialog-input" value="${options.initialDescription || ''}" placeholder="Descripción opcional..." />
+          </div>
+          ${appearanceEditorHtml({ color: options.initialColor || '#a855f7', glyph: options.initialGlyph || '' }, false)}
         </div>
 
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
           ${
             options.onDelete
               ? `
@@ -665,6 +678,8 @@ export class DialogService {
     document.body.appendChild(modal);
 
     const inputName = modal.querySelector('#input-edit-deck-name') as HTMLInputElement;
+    const inputDesc = modal.querySelector('#input-edit-deck-desc') as HTMLInputElement;
+    const readAppearance = bindAppearanceEditor(modal, { color: options.initialColor || '#a855f7', glyph: options.initialGlyph || '' });
     inputName.focus();
 
     const closeModal = () => modal.remove();
@@ -676,7 +691,7 @@ export class DialogService {
       const name = inputName.value.trim();
       if (name) {
         closeModal();
-        options.onConfirm(name);
+        options.onConfirm(name, inputDesc.value.trim(), readAppearance());
       }
     });
 

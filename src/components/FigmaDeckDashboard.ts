@@ -1,4 +1,4 @@
-import type { Deck } from '../types/flashcard';
+import type { Deck, Flashcard } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
 import { dialogService } from '../services/dialog.service';
@@ -50,162 +50,51 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
   const invertedGroupIds = new Set<string>();
   for (const x of cards) if (x.groupId && x.isInverted) invertedGroupIds.add(x.groupId);
 
+  // Una sola plantilla para todas las filas: cabecera (miniatura + título + ⋮), descripción y una fila de chips.
+  // El tipo (invertida / oclusión / huecos) va como chip en la fila inferior en vez de ocupar una fila entera arriba.
+  const rowHtml = (c: Flashcard, kind: 'single' | 'inverted' | 'occlusion', stacked: boolean): string => {
+    const lead =
+      kind === 'inverted'
+        ? '<span class="dk-badge kind" title="Par invertido: se estudia Anverso→Reverso y Reverso→Anverso">⇄ Invertido</span>'
+        : kind === 'occlusion'
+        ? '<span class="dk-badge kind" title="Oclusión de imagen">🖼️ Oclusión</span>'
+        : c.type === 'cloze'
+        ? '<span class="dk-badge kind" title="Tarjeta de huecos">🕳️ Huecos</span>'
+        : '';
+    const title = c.type === 'cloze' ? katexService.renderCloze(c.front, false) : katexService.parseAndRender(c.front);
+    const thumb = c.frontImage
+      ? `<img class="fc-row-thumb" src="${c.frontImage}" alt="" loading="lazy" decoding="async" />`
+      : '';
+    const back = c.back ? `<div class="figma-card-desc-preview">${katexService.parseAndRender(c.back)}</div>` : '';
+    const item = `
+        <div class="figma-card-item selectable-card-target" data-card-id="${c.id}" ${cardDataAttrs(c)}${
+          stacked ? '' : ' title="Toca para previsualizar • Mantén presionado para seleccionar"'
+        }>
+          <div class="fc-row-head">
+            ${thumb}
+            <div class="figma-card-title-bold">${title}</div>
+            <button class="btn-card-item-dots" data-card-id="${c.id}" title="Opciones de tarjeta" aria-label="Opciones de tarjeta">⋮</button>
+          </div>
+          ${back}
+          ${cardBadgesHtml(c, lead)}
+        </div>`;
+    return stacked ? `<div class="figma-card-stacked-wrapper" data-group-id="${c.groupId}">${item}</div>` : item;
+  };
+
   for (const c of cards) {
     if (c.groupId && c.type === 'image_occlusion') {
       if (renderedGroupIds.has(c.groupId)) continue;
       renderedGroupIds.add(c.groupId);
-
       const groupCards = deckService.getCardsByGroupId(c.groupId);
-      const firstCard = groupCards[0] || c;
-
-      cardItemsHtml.push(`
-        <div class="figma-card-stacked-wrapper" data-group-id="${c.groupId}">
-          <div class="figma-card-item selectable-card-target" data-card-id="${firstCard.id}" ${cardDataAttrs(firstCard)} style="cursor:pointer;">
-            
-            <!-- Top Row: Oclu + 3 dots -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                  <circle cx="9" cy="9" r="2"/>
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                </svg>
-                <span>Oclu</span>
-              </div>
-              <button class="btn-card-item-dots" data-card-id="${firstCard.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
-                ⋮
-              </button>
-            </div>
-
-            <!-- Front Title (Bold White) -->
-            <div class="figma-card-title-bold" style="font-size:0.96rem; font-weight:700; color:#ffffff; line-height:1.45;">
-              ${katexService.parseAndRender(firstCard.front)}
-            </div>
-
-            <!-- Back Description (Grey Secondary) -->
-            ${
-              firstCard.back
-                ? `
-              <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
-                ${katexService.parseAndRender(firstCard.back)}
-              </div>
-            `
-                : ''
-            }
-            ${cardBadgesHtml(firstCard)}
-          </div>
-        </div>
-      `);
+      cardItemsHtml.push(rowHtml(groupCards[0] || c, 'occlusion', true));
     } else if (c.groupId && invertedGroupIds.has(c.groupId)) {
       if (renderedGroupIds.has(c.groupId)) continue;
       renderedGroupIds.add(c.groupId);
-
       const pairCards = deckService.getCardsByGroupId(c.groupId);
-      const firstCard = pairCards[0] || c;
-
-      cardItemsHtml.push(`
-        <div class="figma-card-stacked-wrapper" data-group-id="${c.groupId}">
-          <div class="figma-card-item selectable-card-target" data-card-id="${firstCard.id}" ${cardDataAttrs(firstCard)} style="cursor:pointer;">
-            
-            <!-- Top Row: Invertido + 3 dots -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
-                <span style="font-size:0.95rem;">⇄</span>
-                <span>Invertido</span>
-              </div>
-              <button class="btn-card-item-dots" data-card-id="${firstCard.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
-                ⋮
-              </button>
-            </div>
-
-            <!-- Front Title (Bold White) -->
-            <div class="figma-card-title-bold" style="font-size:0.96rem; font-weight:700; color:#ffffff; line-height:1.45;">
-              ${katexService.parseAndRender(firstCard.front)}
-            </div>
-
-            <!-- Back Description (Grey Secondary) -->
-            ${
-              firstCard.back
-                ? `
-              <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
-                ${katexService.parseAndRender(firstCard.back)}
-              </div>
-            `
-                : ''
-            }
-            ${cardBadgesHtml(firstCard)}
-          </div>
-        </div>
-      `);
+      cardItemsHtml.push(rowHtml(pairCards[0] || c, 'inverted', true));
     } else {
       // Tarjeta individual (sin grupo, o de un grupo que no se apila: huecos, etc.)
-      const isInverted = c.isInverted;
-      const isOcclusion = c.type === 'image_occlusion';
-
-      cardItemsHtml.push(`
-        <div class="figma-card-item selectable-card-target" data-card-id="${c.id}" ${cardDataAttrs(c)} title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; margin-bottom:10px;">
-          
-          ${
-            isInverted
-              ? `
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
-                <span style="font-size:0.95rem;">⇄</span>
-                <span>Invertido</span>
-              </div>
-              <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
-                ⋮
-              </button>
-            </div>
-            <div class="figma-card-title-bold" style="font-size:0.96rem; font-weight:700; color:#ffffff; line-height:1.45;">
-              ${(c.type === 'cloze' ? katexService.renderCloze(c.front, false) : katexService.parseAndRender(c.front))}
-            </div>
-          `
-              : isOcclusion
-              ? `
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:6px; color:var(--f-text-secondary); font-size:0.82rem; font-weight:600;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                  <circle cx="9" cy="9" r="2"/>
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                </svg>
-                <span>Oclu</span>
-              </div>
-              <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1;" title="Opciones de tarjeta">
-                ⋮
-              </button>
-            </div>
-            <div class="figma-card-title-bold" style="font-size:0.96rem; font-weight:700; color:#ffffff; line-height:1.45;">
-              ${(c.type === 'cloze' ? katexService.renderCloze(c.front, false) : katexService.parseAndRender(c.front))}
-            </div>
-          `
-              : `
-            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
-              ${c.type === 'cloze' ? '<span title="Tarjeta de huecos" style="flex-shrink:0; font-size:0.95rem;">🕳️</span>' : ''}
-              ${c.frontImage ? `<img src="${c.frontImage}" alt="" loading="lazy" decoding="async" style="width:48px; height:48px; object-fit:cover; border-radius:10px; flex-shrink:0;" />` : ''}
-              <div class="figma-card-title-bold" style="font-size:0.96rem; font-weight:700; color:#ffffff; line-height:1.45; flex:1;">
-                ${(c.type === 'cloze' ? katexService.renderCloze(c.front, false) : katexService.parseAndRender(c.front))}
-              </div>
-              <button class="btn-card-item-dots" data-card-id="${c.id}" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.35rem; cursor:pointer; padding:0 4px; line-height:1; flex-shrink:0; margin-top:-2px;" title="Opciones de tarjeta">
-                ⋮
-              </button>
-            </div>
-          `
-          }
-
-          ${
-            c.back
-              ? `
-            <div class="figma-card-desc-preview" style="color:var(--f-text-secondary); font-size:0.86rem; line-height:1.45; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
-              ${katexService.parseAndRender(c.back)}
-            </div>
-          `
-              : ''
-          }
-          ${cardBadgesHtml(c)}
-        </div>
-      `);
+      cardItemsHtml.push(rowHtml(c, c.type === 'image_occlusion' ? 'occlusion' : c.isInverted ? 'inverted' : 'single', false));
     }
   }
 

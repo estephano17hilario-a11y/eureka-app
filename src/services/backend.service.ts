@@ -465,7 +465,8 @@ class EurekaBackendService {
           icon: d.icon || 'deck',
           is_folder: Boolean(d.isFolder),
           color: d.color || '#10b981',
-          settings: d.settings || {},
+          // glyph/order viajan dentro de settings._ui: el servidor guarda settings como JSON, así sincronizan sin migración
+          settings: { ...(d.settings || {}), ...(d.glyph !== undefined || d.order !== undefined ? { _ui: { ...(d.glyph !== undefined ? { glyph: d.glyph } : {}), ...(d.order !== undefined ? { order: d.order } : {}) } } : {}) },
           is_archived: Boolean(d.isArchived),
           created_at: Number(d.createdAt) || Date.now(),
           updated_at: Number(d.updatedAt) || Date.now()
@@ -511,7 +512,9 @@ class EurekaBackendService {
       const res = await apiFetch<any[]>(`/api/decks?userId=${encodeURIComponent(activeUserId)}`);
       if (!res.ok || !Array.isArray(res.data)) return null;
 
-      return res.data.map((d: any) => ({
+      return res.data.map((d: any) => {
+        const { _ui, ...settings } = (d.settings && typeof d.settings === 'object' ? d.settings : {}) as any;
+        const deck: Deck = {
         id: d.id,
         parentId: d.parent_id,
         name: d.name,
@@ -519,11 +522,15 @@ class EurekaBackendService {
         icon: d.icon,
         isFolder: d.is_folder,
         color: d.color,
-        settings: d.settings,
+        settings,
         isArchived: d.is_archived,
         createdAt: Number(d.created_at) || Date.now(),
         updatedAt: Number(d.updated_at) || Date.now()
-      }));
+        };
+        if (_ui && typeof _ui.glyph === 'string') deck.glyph = _ui.glyph;
+        if (_ui && typeof _ui.order === 'number') deck.order = _ui.order;
+        return deck;
+      });
     } catch {
       return null;
     }

@@ -785,12 +785,33 @@ export class DeckService {
     return this.decks.filter(d => !d.isArchived && this.isFolder(d));
   }
 
+  /** Orden manual (Deck.order); lo que aún no tiene posición queda al final en su orden de creación. */
+  private sortSiblings(list: Deck[]): Deck[] {
+    return list
+      .map((d, i) => ({ d, i }))
+      .sort((a, b) => (a.d.order ?? Infinity) - (b.d.order ?? Infinity) || a.i - b.i)
+      .map(x => x.d);
+  }
+
   public getRootDecks(): Deck[] {
-    return this.decks.filter(d => !d.parentId && !d.isArchived);
+    return this.sortSiblings(this.decks.filter(d => !d.parentId && !d.isArchived));
   }
 
   public getSubdecks(parentId: string): Deck[] {
-    return this.decks.filter(d => d.parentId === parentId && !d.isArchived);
+    return this.sortSiblings(this.decks.filter(d => d.parentId === parentId && !d.isArchived));
+  }
+
+  /** Guarda el orden manual de una lista de hermanos (ids en el orden deseado). */
+  public reorderDecks(orderedIds: string[]): void {
+    let changed = false;
+    const now = Date.now();
+    orderedIds.forEach((id, pos) => {
+      const i = this.decks.findIndex(d => d.id === id);
+      if (i === -1 || this.decks[i].order === pos) return;
+      this.decks[i] = { ...this.decks[i], order: pos, updatedAt: now };
+      changed = true;
+    });
+    if (changed) this.notify();
   }
 
   public getDeckById(deckId: string): Deck | undefined {

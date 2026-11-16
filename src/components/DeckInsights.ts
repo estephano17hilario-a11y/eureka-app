@@ -45,11 +45,11 @@ export function cardDataAttrs(c: Flashcard): string {
   return `data-st="${stateOf(c)}" data-due="${c.dueDate}" data-created="${c.createdAt}" data-lapses="${c.lapses || 0}" data-ease="${c.easeFactor || 2.5}" data-star="${c.starred ? 1 : 0}" data-susp="${c.suspended ? 1 : 0}" data-arch="${c.archived ? 1 : 0}" data-hard="${isHardCard(c) ? 1 : 0}" data-buried="${c.buriedUntil && c.buriedUntil > Date.now() ? 1 : 0}" data-tags="|${esc(tags)}|"`;
 }
 
-export function cardBadgesHtml(c: Flashcard): string {
+export function cardBadgesHtml(c: Flashcard, lead = ''): string {
   const now = Date.now();
   const st = stateOf(c);
   const due = c.dueDate <= now && !c.suspended && st !== 'new';
-  const bits: string[] = [];
+  const bits: string[] = lead ? [lead] : [];
   bits.push(`<span class="dk-badge st-${c.suspended ? 'susp' : due ? 'due' : st}">${dueLabel(c, now)}</span>`);
   if (c.starred) bits.push('<span class="dk-badge star" title="Favorita">⭐</span>');
   if (isHardCard(c)) bits.push(`<span class="dk-badge hard" title="Fallada ${c.lapses || 0} veces">🔥 Difícil</span>`);

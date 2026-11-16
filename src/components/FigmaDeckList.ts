@@ -1,6 +1,8 @@
 import { deckService } from '../services/deck.service';
 import { dialogService } from '../services/dialog.service';
 import { nativeService } from '../services/native.service';
+import { deckGlyphHtml } from './DeckAppearance';
+import { bindReorder, DRAG_HANDLE_HTML, isReorderMode, reorderToggleHtml, setReorderMode } from './DeckReorder';
 
 export interface FigmaDeckListCallbacks {
   onSelectDeck: (deckId: string) => void;
@@ -45,6 +47,7 @@ export function renderFigmaDeckList(): string {
     `;
   }
 
+  const reorder = isReorderMode();
   return `
     <div>
       <!-- Responsive Action Header -->
@@ -52,6 +55,7 @@ export function renderFigmaDeckList(): string {
         <h2 class="figma-view-title">Mis mazos</h2>
 
         <div class="figma-header-actions-group">
+          ${rootDecks.length > 1 ? reorderToggleHtml(reorder) : ''}
           <button class="figma-btn-white-pill" id="btn-main-add" style="display:flex; align-items:center; gap:6px; font-weight:700;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             <span>Agregar</span>
@@ -59,19 +63,16 @@ export function renderFigmaDeckList(): string {
         </div>
       </div>
 
+      ${reorder ? '<p class="dk-reorder-hint">Arrastra el asa <b>⠿</b> de cada fila para cambiar su posición.</p>' : ''}
       <!-- Main Deck List Container -->
       <div class="figma-card-container apple-glass-panel">
         ${rootDecks
           .map(
             (d) => `
-          <div class="figma-deck-row" data-deck-id="${d.id}" title="Mantén presionado para editar">
+          <div class="figma-deck-row${reorder ? ' dk-reorder' : ''}" data-reorder-row data-deck-id="${d.id}" title="${reorder ? 'Arrastra para ordenar' : 'Mantén presionado para editar'}">
             <div class="figma-deck-left">
               <div class="figma-deck-folder-icon" style="background:${d.color}15; border-color:${d.color}; color:${d.color};">
-                ${
-                  d.icon === 'deck'
-                    ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>`
-                    : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`
-                }
+                ${deckGlyphHtml(d, d.icon !== 'deck', 22)}
               </div>
               <div class="figma-deck-info-wrap">
                 <span class="figma-deck-title">${d.name}</span>
@@ -80,7 +81,7 @@ export function renderFigmaDeckList(): string {
             </div>
 
             <div style="display:flex; align-items:center; gap:8px;">
-              <span class="figma-chevron">›</span>
+              ${reorder ? DRAG_HANDLE_HTML : '<span class="figma-chevron">›</span>'}
             </div>
           </div>
         `
@@ -92,6 +93,17 @@ export function renderFigmaDeckList(): string {
 }
 
 export function bindFigmaDeckListEvents(container: HTMLElement, callbacks: FigmaDeckListCallbacks): void {
+  container.querySelector('#btn-main-add')?.addEventListener('click', () => callbacks.onAdd());
+  container.querySelector('#btn-create-first-deck')?.addEventListener('click', () => callbacks.onAdd());
+  container.querySelector('#btn-toggle-reorder')?.addEventListener('click', () => {
+    setReorderMode(!isReorderMode());
+    callbacks.onRefresh?.();
+  });
+  if (isReorderMode()) {
+    bindReorder(Array.from(container.querySelectorAll<HTMLElement>('.figma-deck-row')), (r) => r.dataset.deckId, (ids) => deckService.reorderDecks(ids));
+    return;
+  }
+
   container.querySelectorAll<HTMLElement>('.figma-deck-row').forEach((card) => {
     let pressTimer: number | null = null;
     let isLongPress = false;
@@ -115,8 +127,10 @@ export function bindFigmaDeckListEvents(container: HTMLElement, callbacks: Figma
         dialogService.showEditFolderModal({
           initialName: target.name,
           initialDescription: target.description || '',
-          onConfirm: (name, description) => {
-            deckService.updateDeck(target.id, { name, description });
+          initialColor: target.color,
+          initialGlyph: target.glyph || '',
+          onConfirm: (name, description, ap) => {
+            deckService.updateDeck(target.id, { name, description, color: ap.color, glyph: ap.glyph });
             callbacks.onRefresh?.();
           },
           onDelete: () => {
@@ -135,8 +149,11 @@ export function bindFigmaDeckListEvents(container: HTMLElement, callbacks: Figma
       } else {
         dialogService.showEditDeckModal({
           initialName: target.name,
-          onConfirm: (name) => {
-            deckService.updateDeck(target.id, { name });
+          initialDescription: target.description || '',
+          initialColor: target.color,
+          initialGlyph: target.glyph || '',
+          onConfirm: (name, description, ap) => {
+            deckService.updateDeck(target.id, { name, description, color: ap.color, glyph: ap.glyph });
             callbacks.onRefresh?.();
           },
           onDelete: () => {
@@ -182,7 +199,4 @@ export function bindFigmaDeckListEvents(container: HTMLElement, callbacks: Figma
       if (id) callbacks.onSelectDeck(id);
     });
   });
-
-  container.querySelector('#btn-main-add')?.addEventListener('click', () => callbacks.onAdd());
-  container.querySelector('#btn-create-first-deck')?.addEventListener('click', () => callbacks.onAdd());
 }

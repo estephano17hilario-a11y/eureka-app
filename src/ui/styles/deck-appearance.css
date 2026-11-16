@@ -1,0 +1,57 @@
+/* ==========================================================================
+   Aspecto de mazos/carpetas (icono + color) y modo "Ordenar"
+   ========================================================================== */
+
+/* ---- Editor de aspecto dentro de los diálogos de edición ---- */
+.dk-ap { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+.dk-ap-head { display: flex; align-items: center; gap: 12px; }
+.dk-ap-preview {
+  width: 46px; height: 46px; border-radius: 14px; border: 2px solid; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.dk-ap-head-txt { font-weight: 800; font-size: 0.95rem; color: var(--txt-hi, #fff); display: flex; flex-direction: column; line-height: 1.2; }
+.dk-ap-head-txt small { font-weight: 600; font-size: 0.74rem; color: var(--f-text-secondary, #9da3af); }
+.dk-ap-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--f-text-secondary, #9da3af); margin-top: 4px; }
+.dk-ap-colors, .dk-ap-glyphs { display: flex; flex-wrap: wrap; gap: 8px; }
+.dk-ap-color {
+  width: 30px; height: 30px; min-height: 0 !important; padding: 0; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.25); transition: transform 0.12s, border-color 0.12s;
+}
+.dk-ap-color.on { border-color: #fff; transform: scale(1.14); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25); }
+.dk-ap-custom {
+  position: relative; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; cursor: pointer;
+  border: 2px dashed var(--f-border-highlight, rgba(255, 255, 255, 0.35)); display: inline-flex; align-items: center; justify-content: center;
+  color: var(--f-text-secondary, #9da3af); font-weight: 800;
+}
+.dk-ap-custom input { position: absolute; inset: -6px; opacity: 0; cursor: pointer; width: 150%; height: 150%; }
+.dk-ap-glyph {
+  width: 38px; height: 38px; min-height: 0 !important; padding: 0; border-radius: 11px; cursor: pointer; font-size: 1.15rem;
+  display: inline-flex; align-items: center; justify-content: center; color: var(--f-text-secondary, #9da3af);
+  background: rgba(255, 255, 255, 0.06); border: 1px solid var(--f-border, rgba(255, 255, 255, 0.12)); transition: background 0.12s, border-color 0.12s;
+}
+.dk-ap-glyph:hover { background: rgba(255, 255, 255, 0.12); }
+.dk-ap-glyph.on { border-color: var(--f-blue, #38bdf8); background: color-mix(in srgb, var(--f-blue, #38bdf8) 22%, transparent); }
+
+/* ---- Modo Ordenar ---- */
+.dk-reorder-toggle.on { background: var(--f-blue, #38bdf8) !important; color: #07080a !important; }
+.dk-reorder-hint { margin: 0 2px 10px; font-size: 0.82rem; color: var(--f-text-secondary, #9da3af); }
+.dk-reorder-hint b { color: var(--f-blue, #38bdf8); }
+
+.figma-deck-row.dk-reorder { cursor: default; }
+.dk-drag-handle {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-right: -6px; border-radius: 12px;
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; color: var(--f-text-secondary, #9da3af);
+}
+.dk-drag-handle:hover { background: rgba(255, 255, 255, 0.08); color: var(--f-blue, #38bdf8); }
+.dk-drag-handle:active { cursor: grabbing; }
+
+.figma-deck-row.dk-dragging {
+  position: relative; z-index: 5; transform: scale(1.015);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 0 2px var(--f-blue, #38bdf8) !important;
+  background: var(--row-bg, var(--f-surface-subtle, #1d2030)) !important; border-radius: var(--row-radius, 14px);
+}
+
+@media (max-width: 480px) {
+  .dk-reorder-toggle:not(.on) .dk-rt-label { display: none; }
+  .dk-reorder-toggle:not(.on) { padding-left: 14px; padding-right: 14px; }
+}
