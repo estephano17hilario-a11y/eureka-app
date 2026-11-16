@@ -3,6 +3,7 @@ import { getInitialDemoDecks } from './demo-data';
 import { srsService } from './srs.service';
 import { eurekaBackend } from './backend.service';
 import { idbGet, idbSet, lsGet, lsSet, lsRemove, requestPersistentStorage } from './storage.service';
+import { studyStats } from './study-stats.service';
 
 /** Qué versión de cada elemento ya confirmó el servidor, y qué borrados siguen pendientes de enviar. */
 interface SyncMeta {
@@ -23,6 +24,11 @@ let idCounter = 0;
 function makeId(prefix: string): string {
   idCounter = (idCounter + 1) % 1679616;
   return `${prefix}-${Date.now().toString(36)}-${idCounter.toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+}
+
+/** Etiqueta normalizada: minúsculas, sin «#» ni espacios sobrantes, máx. 32 caracteres */
+export function normalizeTag(raw: string): string {
+  return raw.replace(/^#+/, '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[,;]/g, '').slice(0, 32);
 }
 
 /** Copia de las tarjetas sin imágenes (cabe en localStorage aunque haya muchas fotos). */
@@ -982,7 +988,12 @@ export class DeckService {
   public getDueCardsByDeck(deckId: string, includeSubdecks: boolean = true): Flashcard[] {
     const allCards = this.getCardsByDeck(deckId, includeSubdecks);
     const now = Date.now();
-    return allCards.filter(c => c.dueDate <= now);
+    return allCards.filter(c => c.dueDate <= now && this.isStudyable(c, now));
+  }
+
+  /** Una tarjeta pausada o pospuesta no entra en los repasos programados */
+  public isStudyable(card: Flashcard, now: number = Date.now()): boolean {
+    return !card.suspended && !(card.buriedUntil && card.buriedUntil > now);
   }
 
   public getCardById(cardId: string): Flashcard | undefined {
@@ -1474,6 +1485,68 @@ export class DeckService {
     this.notify();
   }
 
+  /** Cambia marcas de varias tarjetas a la vez (favorita, pausada) con un solo guardado */
+  public setCardsFlags(cardIds: string[], flags: { starred?: boolean; suspended?: boolean }): void {
+    const idSet = new Set(cardIds);
+    const now = Date.now();
+    this.cards = this.cards.map(c => (idSet.has(c.id) ? { ...c, ...flags, updatedAt: now } : c));
+    this.notify();
+  }
+
+  /** Aplica los mismos cambios a varias tarjetas con un solo guardado */
+  public patchCards(cardIds: string[], patch: Partial<Flashcard>): void {
+    if (!cardIds.length) return;
+    const idSet = new Set(cardIds);
+    const now = Date.now();
+    this.cards = this.cards.map(c => (idSet.has(c.id) ? { ...c, ...patch, updatedAt: now } : c));
+    this.notify();
+  }
+
+  /** Añade o quita una etiqueta en varias tarjetas */
+  public tagCards(cardIds: string[], tag: string, remove: boolean = false): void {
+    const clean = normalizeTag(tag);
+    if (!clean) return;
+    const idSet = new Set(cardIds);
+    const now = Date.now();
+    this.cards = this.cards.map(c => {
+      if (!idSet.has(c.id)) return c;
+      const tags = (c.tags || []).filter(t => t !== clean);
+      if (!remove) tags.push(clean);
+      return { ...c, tags: tags.length ? tags : undefined, updatedAt: now };
+    });
+    this.notify();
+  }
+
+  /** Etiquetas usadas en un mazo (y sus submazos), de más a menos frecuente */
+  public getDeckTags(deckId: string): Array<{ tag: string; count: number }> {
+    const counts = new Map<string, number>();
+    this.getCardsByDeck(deckId, true).forEach(c => (c.tags || []).forEach(t => counts.set(t, (counts.get(t) || 0) + 1)));
+    return Array.from(counts, ([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+  }
+
+  /** Copia tarjetas como nuevas (sin progreso) en el mismo mazo */
+  public duplicateCards(cardIds: string[]): Flashcard[] {
+    const now = Date.now();
+    const copies: Flashcard[] = [];
+    cardIds.forEach((id, i) => {
+      const c = this.getCardById(id);
+      if (!c) return;
+      const { id: _id, createdAt: _c, updatedAt: _u, state: _s, stepIndex: _si, intervalMinutes: _im, easeFactor: _ef, lapses: _l, reps: _r, dueDate: _d, lastReviewDate: _lr, groupId: _g, groupTitle: _gt, groupRole: _gr, buriedUntil: _b, ...rest } = c;
+      copies.push(this.buildCard(rest, now, i + 1));
+    });
+    this.cards.push(...copies);
+    this.notify();
+    return copies;
+  }
+
+  /** Pospone una tarjeta hasta mañana (a las 4:00) sin tocar su progreso */
+  public buryCard(cardId: string): Flashcard | undefined {
+    const t = new Date();
+    t.setDate(t.getDate() + 1);
+    t.setHours(4, 0, 0, 0);
+    return this.updateCard(cardId, { buriedUntil: t.getTime() });
+  }
+
   public resetCardProgress(cardId: string): Flashcard | undefined {
     const card = this.getCardById(cardId);
     if (!card) return undefined;
@@ -1510,6 +1583,7 @@ export class DeckService {
     };
 
     const nextState = srsService.calculateNextState(card, rating, settings);
+    studyStats.record(rating);
 
     // Registrar analítica de estudio en Eureka VPS
     eurekaBackend.logStudyReview({
@@ -1554,8 +1628,8 @@ export class DeckService {
         masteredCards++;
       }
 
-      // Estrictamente pendientes para hoy (dueDate <= now)
-      if (c.dueDate <= now) {
+      // Estrictamente pendientes para hoy (dueDate <= now), sin contar pausadas ni pospuestas
+      if (c.dueDate <= now && this.isStudyable(c, now)) {
         dueCards++;
       }
     });

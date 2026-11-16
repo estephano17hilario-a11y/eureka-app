@@ -1,4 +1,5 @@
 import { katexService } from '../services/katex.service';
+import { parseSegments } from '../symbols/RichField';
 
 /**
  * Formatea el texto de un nodo a HTML seguro:
@@ -41,6 +42,20 @@ export function stripToPlain(text: string): string {
 
 export function hasMath(text: string): boolean {
   return /\$[^$]+\$/.test(text) || /\\(frac|sqrt|sum|int|alpha|beta|theta|pi|ce|mathbb)\b/.test(text);
+}
+
+/**
+ * Texto de una idea mientras se edita: las fórmulas se ven ya renderizadas (igual que en el cuadro de escritura)
+ * y el resto se deja tal cual, para que la caja de la idea y el cuadro midan lo mismo.
+ */
+export function formatEditingText(raw: string): string {
+  return parseSegments(raw)
+    .map((seg) =>
+      seg.math
+        ? `<span class="rf-m${seg.block ? ' rf-block' : ''}">${katexService.renderMath(seg.latex || '', !!seg.block)}</span>`
+        : escapeHtml(seg.s)
+    )
+    .join('');
 }
 
 export function formatNodeText(raw: string): string {

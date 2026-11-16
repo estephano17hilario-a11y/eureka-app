@@ -19,7 +19,7 @@ import OuterFrame from 'simple-mind-map/src/plugins/OuterFrame.js';
 
 import { AdaptiveSplineEngine, type Point2D } from '../engine/geometry/AdaptiveSplineEngine';
 import { TouchGestureEngine } from '../engine/gestures/TouchGestureEngine';
-import { formatNodeText, stripToPlain } from './richText';
+import { formatEditingText, formatNodeText, stripToPlain } from './richText';
 import { MAP_THEMES, THEME_BY_ID, FONT_CHOICES, resolveLook, themeForAppEnvironment, type MapTheme, type ResolvedNodeStyle, type CanvasPattern } from './themes';
 import { DEFAULT_SETTINGS, type MapSettings, type MapDoc } from './store';
 import { withAlpha, readableOn, lighten, darken, isTransparent, luminance } from './color';
@@ -697,7 +697,7 @@ export class MindMapEngine {
       // En edición se muestra el texto crudo (lo mismo que ve el cuadro de escritura) para que ambos midan igual
       textEl.classList.add('is-editing');
       textEl.style.whiteSpace = 'pre-wrap';
-      textEl.textContent = rawText.length ? rawText + (rawText.endsWith('\n') ? '​' : '') : '​';
+      textEl.innerHTML = rawText.length ? formatEditingText(rawText) + (rawText.endsWith('\n') ? '​' : '') : '​';
     } else if (!plain.trim() && !d.image) {
       textEl.innerHTML = '<span class="mmx-placeholder">Escribe aquí…</span>';
     } else if (plain.trim()) {

@@ -2476,3 +2476,6 @@ html[data-perf='lite'] .mmx-modal-card {
   backdrop-filter: none !important;
 }
 html[data-perf='lite'] .mmx-ui { --ui-bg: var(--ui-solid); }
+
+/* Botón de símbolos y fórmulas en la barra de edición móvil */
+.mmx-edit-bar button.sym { color: #7dd3fc; font-weight: 800; font-size: 1.05rem; }

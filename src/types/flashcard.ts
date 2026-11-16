@@ -41,6 +41,18 @@ export interface Flashcard {
   groupTitle?: string;
   groupRole?: 'parent' | 'child';
 
+  // Organización y ayudas de estudio
+  /** Etiquetas para filtrar y estudiar por temas */
+  tags?: string[];
+  /** Marcada como favorita / importante */
+  starred?: boolean;
+  /** Pausada: no entra en los repasos hasta reactivarla */
+  suspended?: boolean;
+  /** Pista opcional que se puede pedir antes de ver la respuesta */
+  hint?: string;
+  /** Pospuesta: no vuelve a salir hasta esta fecha (ms) */
+  buriedUntil?: number;
+
   // SRS Properties
   state: CardReviewState;
   stepIndex: number;

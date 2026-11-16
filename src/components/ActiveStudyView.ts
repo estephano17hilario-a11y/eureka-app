@@ -4,7 +4,8 @@ import { activeStudyService, UNLOCK_COST } from '../services/active-study.servic
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
 import { dialogService } from '../services/dialog.service';
-import { openScientificFormulaAssistant } from './ScientificFormulaAssistant';
+import { textareaHost } from '../symbols/host';
+import { openSymbolStudioLazy } from '../symbols/autocomplete';
 import { nativeService } from '../services/native.service';
 import Sortable from 'sortablejs';
 import { openFeynmanGuideViewerModal } from './FeynmanGuideViewerModal';
@@ -1533,27 +1534,11 @@ function openAddFlashcardModal(
   inputBack.addEventListener('input', updateCardPreview);
 
   modal.querySelector('#btn-formula-for-front')?.addEventListener('click', () => {
-    openScientificFormulaAssistant({
-      initialLatex: inputFront.value,
-      onInsert: (formula) => {
-        const cur = inputFront.value;
-        const pos = inputFront.selectionStart ?? cur.length;
-        inputFront.value = `${cur.slice(0, pos)} ${formula} ${cur.slice(pos)}`.trim();
-        updateCardPreview();
-      }
-    });
+    void openSymbolStudioLazy({ host: textareaHost(() => inputFront, updateCardPreview) });
   });
 
   modal.querySelector('#btn-formula-for-back')?.addEventListener('click', () => {
-    openScientificFormulaAssistant({
-      initialLatex: inputBack.value,
-      onInsert: (formula) => {
-        const cur = inputBack.value;
-        const pos = inputBack.selectionStart ?? cur.length;
-        inputBack.value = `${cur.slice(0, pos)} ${formula} ${cur.slice(pos)}`.trim();
-        updateCardPreview();
-      }
-    });
+    void openSymbolStudioLazy({ host: textareaHost(() => inputBack, updateCardPreview) });
   });
 
   const closeModal = () => modal.remove();

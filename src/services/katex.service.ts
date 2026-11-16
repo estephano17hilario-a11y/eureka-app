@@ -325,6 +325,7 @@ export class KatexService {
     text = text.replace(/\*\*([\s\S]+?)\*\*/g, '<strong style="font-weight:800; color:#fff;">$1</strong>');
     text = text.replace(/__([\s\S]+?)__/g, '<strong style="font-weight:800; color:#fff;">$1</strong>');
     text = text.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em style="font-style:italic; color:#e2e8f0;">$1</em>');
+    text = text.replace(/==([^=\n][^\n]*?)==/g, '<mark class="eureka-mark">$1</mark>');
     text = text.replace(/~~([\s\S]+?)~~/g, '<del style="text-decoration:line-through; opacity:0.75;">$1</del>');
     text = text.replace(/<u>([\s\S]+?)<\/u>/g, '<u style="text-decoration:underline; text-underline-offset:3px;">$1</u>');
     text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#38bdf8; font-weight:700; text-decoration:underline;">$1</a>');

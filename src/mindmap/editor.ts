@@ -5,6 +5,9 @@
  */
 
 import type { MindMapEngine } from './engine';
+import { textareaHost } from '../symbols/host';
+import { createRichField, type FormulaInfo } from '../symbols/RichField';
+import { attachSymbolAutocomplete, openSymbolStudioLazy } from '../symbols/autocomplete';
 
 export type NextAction = 'child' | 'sibling' | undefined;
 
@@ -26,11 +29,15 @@ interface EditState {
   bar: HTMLElement | null;
   mobile: boolean;
   closing: boolean;
+  /** Desmonta el autocompletado de símbolos (\nombre) */
+  detachAc: () => void;
 }
 
 export class NodeEditor {
   private st: EditState | null = null;
   private vvHandler: (() => void) | null = null;
+  /** Mientras el panel de símbolos está abierto, perder el foco no cierra la edición */
+  private symbolsOpen = false;
   private rafPos = 0;
 
   constructor(private engine: MindMapEngine, private host: EditorHost) {
@@ -58,18 +65,19 @@ export class NodeEditor {
 
     this.engine.beginEdit(node, original);
 
-    const ta = document.createElement('textarea');
-    ta.className = 'mmx-edit-input';
-    ta.value = original;
-    ta.rows = 1;
-    ta.spellcheck = true;
-    ta.setAttribute('autocomplete', 'off');
-    ta.setAttribute('autocapitalize', 'sentences');
+    // Cuadro de escritura con las fórmulas ya renderizadas; se pulsan para editarlas
+    const ta = createRichField({
+      className: 'mmx-edit-input',
+      value: original,
+      label: 'Texto de la idea',
+      onFormula: (f) => this.openSymbols(true, f)
+    }) as unknown as HTMLTextAreaElement;
     ta.setAttribute('enterkeyhint', 'done');
-    ta.setAttribute('aria-label', 'Texto de la idea');
 
     const wrap = document.createElement('div');
-    this.st = { uid, node, original, isInserting: Boolean(opts.isInserting), ta, wrap, bar: null, mobile, closing: false };
+    // El autocompletado va antes que los atajos del editor: con la lista abierta, Tab inserta el símbolo
+    const detachAc = attachSymbolAutocomplete(ta);
+    this.st = { uid, node, original, isInserting: Boolean(opts.isInserting), ta, wrap, bar: null, mobile, closing: false, detachAc };
 
     // Se escribe siempre dentro del propio recuadro de la idea; en móvil se añade una barra de atajos sobre el teclado
     wrap.className = 'mmx-inline-editor mmx-ui';
@@ -87,6 +95,8 @@ export class NodeEditor {
       // En móvil los botones de la hoja gestionan el cierre; en escritorio, salir del cuadro confirma
       window.setTimeout(() => {
         if (!this.st || this.st.closing) return;
+        // Con el panel de símbolos abierto se sigue editando esta idea aunque el foco esté en el panel
+        if (this.symbolsOpen || document.querySelector('.symac')) return;
         if (this.st.mobile) {
           const active = document.activeElement;
           if (active && this.st.wrap.contains(active)) return;
@@ -142,9 +152,33 @@ export class NodeEditor {
       e.preventDefault();
       this.wrapSelection('*');
     } else if (mod && (key === 'm' || key === 'M')) {
+      // Ctrl+M: símbolos y fórmulas (con texto seleccionado, lo convierte en fórmula editable)
       e.preventDefault();
-      this.wrapSelection('$');
+      this.openSymbols(true);
     }
+  }
+
+  /** Abre el teclado de símbolos y fórmulas para la idea que se está editando */
+  public openSymbols(compose = false, edit?: FormulaInfo): void {
+    const st = this.st;
+    if (!st) return;
+    this.symbolsOpen = true;
+    if (st.mobile) {
+      st.ta.blur();
+      this.engine.ensureNodeVisible(this.currentNode(), Math.round(window.innerHeight * 0.64));
+    }
+    void openSymbolStudioLazy({
+      host: textareaHost(() => this.st?.ta || null, undefined, edit),
+      mode: compose ? 'compose' : undefined,
+      initialLatex: edit?.latex,
+      editing: !!edit,
+      onClose: () => {
+        this.symbolsOpen = false;
+        this.st?.ta.focus({ preventScroll: true });
+      }
+    }).catch(() => {
+      this.symbolsOpen = false;
+    });
   }
 
   /** Envuelve (o desenvuelve) la selección con un marcador de formato */
@@ -200,6 +234,7 @@ export class NodeEditor {
     const node = this.currentNode();
 
     this.trackKeyboard(false);
+    st.detachAc();
     st.wrap.remove();
     st.bar?.remove();
     this.st = null;
@@ -276,7 +311,7 @@ export class NodeEditor {
     bar.innerHTML = `
       <button type="button" data-ed="bold" aria-label="Negrita"><b>B</b></button>
       <button type="button" data-ed="italic" aria-label="Cursiva"><i>I</i></button>
-      <button type="button" data-ed="math" aria-label="Fórmula">∑</button>
+      <button type="button" data-ed="symbols" class="sym" aria-label="Símbolos y fórmulas">Ω</button>
       <button type="button" data-ed="br" aria-label="Salto de línea">↵</button>
       <span class="mmx-edit-bar-sep"></span>
       <button type="button" data-ed="sibling" class="wide">+ Hermana</button>
@@ -312,8 +347,8 @@ export class NodeEditor {
         case 'italic':
           this.wrapSelection('*');
           break;
-        case 'math':
-          this.wrapSelection('$');
+        case 'symbols':
+          this.openSymbols();
           break;
         case 'br':
           this.insertAtCursor('\n');
@@ -373,6 +408,7 @@ export class NodeEditor {
   public destroy(): void {
     if (this.st) {
       this.st.closing = true;
+      this.st.detachAc();
       this.st.wrap.remove();
       this.st.bar?.remove();
       try {

@@ -2,11 +2,12 @@ import type { Deck } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
 import { dialogService } from '../services/dialog.service';
+import { askTag, bindDeckFilters, cardBadgesHtml, cardDataAttrs, deckFilterBarHtml, openDeckStats, openStudyLauncher, type StudyLaunch } from './DeckInsights';
 
 export interface FigmaDashboardCallbacks {
   onBackToSubdecks: () => void;
   onBackToRoot: () => void;
-  onStudy: (deckId: string) => void;
+  onStudy: (deckId: string, launch?: StudyLaunch) => void;
   onStudySpecificCard: (deckId: string, cardId: string) => void;
   onAddCard: (deckId: string) => void;
   onConfigureDeck: (deckId: string) => void;
@@ -55,7 +56,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
       cardItemsHtml.push(`
         <div class="figma-card-stacked-wrapper" data-group-id="${c.groupId}">
-          <div class="figma-card-item selectable-card-target" data-card-id="${firstCard.id}" style="cursor:pointer;">
+          <div class="figma-card-item selectable-card-target" data-card-id="${firstCard.id}" ${cardDataAttrs(firstCard)} style="cursor:pointer;">
             
             <!-- Top Row: Oclu + 3 dots -->
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
@@ -87,7 +88,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
             `
                 : ''
             }
-
+            ${cardBadgesHtml(firstCard)}
           </div>
         </div>
       `);
@@ -100,7 +101,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
       cardItemsHtml.push(`
         <div class="figma-card-stacked-wrapper" data-group-id="${c.groupId}">
-          <div class="figma-card-item selectable-card-target" data-card-id="${firstCard.id}" style="cursor:pointer;">
+          <div class="figma-card-item selectable-card-target" data-card-id="${firstCard.id}" ${cardDataAttrs(firstCard)} style="cursor:pointer;">
             
             <!-- Top Row: Invertido + 3 dots -->
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
@@ -128,7 +129,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
             `
                 : ''
             }
-
+            ${cardBadgesHtml(firstCard)}
           </div>
         </div>
       `);
@@ -138,7 +139,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
       const isOcclusion = c.type === 'image_occlusion';
 
       cardItemsHtml.push(`
-        <div class="figma-card-item selectable-card-target" data-card-id="${c.id}" title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; margin-bottom:10px;">
+        <div class="figma-card-item selectable-card-target" data-card-id="${c.id}" ${cardDataAttrs(c)} title="Toca para previsualizar • Mantén presionado para seleccionar" style="cursor:pointer; margin-bottom:10px;">
           
           ${
             isInverted
@@ -198,7 +199,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           `
               : ''
           }
-
+          ${cardBadgesHtml(c)}
         </div>
       `);
     }
@@ -279,6 +280,10 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
         <button class="figma-btn-study-large" id="btn-study-cards-main">
           ${dueCount > 0 ? 'Estudiar tarjetas' : '✨ Repasar mazo'}
         </button>
+        <div class="dk-hero-actions">
+          <button type="button" class="dk-hero-btn" id="btn-study-modes" title="Elegir qué, cómo y cuánto estudiar">🎯 Modos de estudio</button>
+          <button type="button" class="dk-hero-btn" id="btn-deck-stats" title="Racha, actividad y previsión de repasos">📊 Estadísticas</button>
+        </div>
       </div>
 
       <!-- Bottom Board: Sección de Tarjetas -->
@@ -331,6 +336,8 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
             </button>
           </div>
 
+          ${deckFilterBarHtml(deck)}
+
           <!-- Cards List Container with Accordions and Long-Press Multi-Selection -->
           <div id="dash-cards-list-mount" style="margin-top:18px;">
             ${cardItemsHtml.length > 0 ? cardItemsHtml.join('') : `
@@ -355,6 +362,18 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           </button>
           <button class="batch-action-btn btn-batch-move" id="btn-batch-move-action" title="Mover a otra carpeta/mazo">
             📁 Mover
+          </button>
+          <button class="batch-action-btn" id="btn-batch-star-action" title="Marcar o desmarcar como favoritas">
+            ⭐ Favorita
+          </button>
+          <button class="batch-action-btn" id="btn-batch-tag-action" title="Añadir o quitar una etiqueta">
+            🏷️ Etiquetar
+          </button>
+          <button class="batch-action-btn" id="btn-batch-suspend-action" title="Pausar o reactivar: las pausadas no entran en los repasos">
+            ⏸ Pausar
+          </button>
+          <button class="batch-action-btn" id="btn-batch-dup-action" title="Duplicar como tarjetas nuevas">
+            ⧉ Duplicar
           </button>
           <button class="batch-action-btn btn-batch-invert" id="btn-batch-invert-action" title="Revertir o desrevertir">
             ⇄ Revertir
@@ -394,6 +413,8 @@ export function bindFigmaDashboardEvents(
 
   container.querySelector('#btn-study-cards-main')?.addEventListener('click', () => callbacks.onStudy(deck.id));
   container.querySelector('#btn-dash-add-card')?.addEventListener('click', () => callbacks.onAddCard(deck.id));
+  container.querySelector('#btn-study-modes')?.addEventListener('click', () => openStudyLauncher(deck, (launch) => callbacks.onStudy(deck.id, launch)));
+  container.querySelector('#btn-deck-stats')?.addEventListener('click', () => openDeckStats(deck));
 
   // Open Settings View
   container.querySelector('#btn-dash-menu')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
@@ -441,18 +462,42 @@ export function bindFigmaDashboardEvents(
     });
   };
 
-  // Filtro de búsqueda en tiempo real
-  const searchInput = container.querySelector('#dash-search-input') as HTMLInputElement | null;
-  searchInput?.addEventListener('input', (e) => {
-    const q = (e.target as HTMLInputElement).value.toLowerCase().trim();
-    container.querySelectorAll<HTMLElement>('.selectable-card-target, .figma-card-stacked-wrapper').forEach((el) => {
-      if (!q) {
-        el.style.display = '';
-        return;
-      }
-      const text = el.textContent?.toLowerCase() || '';
-      el.style.display = text.includes(q) ? '' : 'none';
+  // Búsqueda, filtros por estado/etiqueta y orden (se recuerdan mientras sigas en la app)
+  bindDeckFilters(container, deck);
+
+  // Acciones por lote: favoritas, etiquetas, pausar y duplicar
+  const selectedList = () => Array.from(selectedCards);
+  const afterBatch = () => {
+    selectedCards.clear();
+    updateBatchDock();
+  };
+  container.querySelector('#btn-batch-star-action')?.addEventListener('click', () => {
+    const ids = selectedList();
+    if (!ids.length) return;
+    const allStarred = ids.every((id) => deckService.getCardById(id)?.starred);
+    deckService.setCardsFlags(ids, { starred: !allStarred });
+    afterBatch();
+  });
+  container.querySelector('#btn-batch-suspend-action')?.addEventListener('click', () => {
+    const ids = selectedList();
+    if (!ids.length) return;
+    const allSuspended = ids.every((id) => deckService.getCardById(id)?.suspended);
+    deckService.setCardsFlags(ids, { suspended: !allSuspended });
+    afterBatch();
+  });
+  container.querySelector('#btn-batch-tag-action')?.addEventListener('click', () => {
+    const ids = selectedList();
+    if (!ids.length) return;
+    askTag(deck, (tag, remove) => {
+      deckService.tagCards(ids, tag, remove);
+      afterBatch();
     });
+  });
+  container.querySelector('#btn-batch-dup-action')?.addEventListener('click', () => {
+    const ids = selectedList();
+    if (!ids.length) return;
+    deckService.duplicateCards(ids);
+    afterBatch();
   });
 
   // Edit single card from batch selection
@@ -760,6 +805,12 @@ export function bindFigmaDashboardEvents(
                 </div>
               </button>
 
+              <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+                <button class="menu-action-item-btn" id="btn-cmenu-star" style="padding:10px 6px; border-radius:12px; background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.3); color:#fbbf24; font-weight:700; font-size:0.82rem; cursor:pointer;">${targetCard.starred ? '★ Quitar favorita' : '☆ Favorita'}</button>
+                <button class="menu-action-item-btn" id="btn-cmenu-suspend" style="padding:10px 6px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; font-size:0.82rem; cursor:pointer;">${targetCard.suspended ? '▶ Reactivar' : '⏸ Pausar'}</button>
+                <button class="menu-action-item-btn" id="btn-cmenu-dup" style="padding:10px 6px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; font-size:0.82rem; cursor:pointer;">⧉ Duplicar</button>
+              </div>
+
               <button class="menu-action-item-btn" id="btn-cmenu-reset" style="display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:left;">
                 <span style="font-size:1.2rem;">🔄</span>
                 <div>
@@ -794,6 +845,19 @@ export function bindFigmaDashboardEvents(
         modal.querySelector('#btn-cmenu-edit')?.addEventListener('click', () => {
           closeModal();
           callbacks.onEditCard(targetCard.id);
+        });
+
+        modal.querySelector('#btn-cmenu-star')?.addEventListener('click', () => {
+          closeModal();
+          deckService.setCardsFlags([targetCard.id], { starred: !targetCard.starred });
+        });
+        modal.querySelector('#btn-cmenu-suspend')?.addEventListener('click', () => {
+          closeModal();
+          deckService.setCardsFlags([targetCard.id], { suspended: !targetCard.suspended });
+        });
+        modal.querySelector('#btn-cmenu-dup')?.addEventListener('click', () => {
+          closeModal();
+          deckService.duplicateCards([targetCard.id]);
         });
 
         modal.querySelector('#btn-cmenu-reset')?.addEventListener('click', () => {

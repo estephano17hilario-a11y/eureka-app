@@ -8,12 +8,25 @@ import { dialogService } from '../services/dialog.service';
 import { openMicroGameModal } from './MicroGameModal';
 import { setupMathVirtualKeyboard, validateMathAnswer, evaluateDetailedMathAnswer } from '../services/math-engine.service';
 import { nativeService } from '../services/native.service';
+import { studyStats, formatDuration } from '../services/study-stats.service';
+import type { StudyLaunch } from './DeckInsights';
+import '../ui/styles/deck-insights.css';
+
+const escHtml = (t: string): string => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const clock = (ms: number): string => {
+  const total = Math.floor(ms / 1000);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+};
+/** Respuesta de un hueco: «La {{c::mitocondria}} produce ATP» → «mitocondria» */
+const clozeAnswer = (front: string): string => /\{\{c\d*::([\s\S]*?)(?:::[\s\S]*?)?\}\}/.exec(front)?.[1]?.trim() || '';
 
 export interface FigmaStudyOptions {
   deckId: string;
   specificCardId?: string;
   forceAllCards?: boolean;
   isPreviewMode?: boolean;
+  /** Sesión a medida: qué tarjetas, con qué método y si cuenta para el repaso espaciado */
+  launch?: StudyLaunch;
   onExit: () => void;
   onEditCard?: (cardId: string) => void;
 }
@@ -35,6 +48,21 @@ export class FigmaStudySession {
   /** Calificaciones deshacibles: estado previo de la tarjeta y qué se tocó en la cola y las cifras */
   private undoStack: { snapshot: Flashcard; index: number; rating: StudyRating; requeued: boolean }[] = [];
   private animate: 'enter' | 'flip' | null = 'enter';
+  private method: 'flip' | 'quiz' | 'type' = 'flip';
+  /** Práctica libre: no se toca el calendario de repasos */
+  private practice = false;
+  private sessionLabel = '';
+  private cardShownAt = Date.now();
+  private studiedMs = 0;
+  private timerId = 0;
+  private combo = 0;
+  private bestCombo = 0;
+  private hintLevel = 0;
+  private quizCardId = '';
+  private quizOptions: { text: string; correct: boolean }[] | null = null;
+  /** Opción elegida (-1 = «no lo sé») */
+  private quizChoice: number | null = null;
+  private missed = new Map<string, Flashcard>();
   private sessionStats = {
     startTime: Date.now(),
     againCount: 0,
@@ -52,7 +80,13 @@ export class FigmaStudySession {
     this.onEditCardCallback = options.onEditCard;
     this.isPreviewMode = !!options.isPreviewMode;
 
-    if (options.specificCardId) {
+    if (options.launch) {
+      this.queue = options.launch.cardIds.map((id) => deckService.getCardById(id)).filter((c): c is Flashcard => !!c);
+      this.method = options.launch.method;
+      this.practice = options.launch.practice;
+      this.sessionLabel = options.launch.label;
+      this.isTypeAnswerMode = this.method === 'type';
+    } else if (options.specificCardId) {
       const allCards = deckService.getCardsByDeck(options.deckId, true);
       const targetIdx = allCards.findIndex((c) => c.id === options.specificCardId);
       if (targetIdx !== -1) {
@@ -69,7 +103,7 @@ export class FigmaStudySession {
     } else {
       let dueCards = deckService.getDueCardsByDeck(options.deckId, true);
       if (dueCards.length === 0) {
-        dueCards = deckService.getCardsByDeck(options.deckId, true);
+        dueCards = deckService.getCardsByDeck(options.deckId, true).filter((c) => !c.suspended);
       }
       this.queue = deck.settings.mixCards ? [...dueCards].sort(() => Math.random() - 0.5) : [...dueCards];
     }
@@ -91,6 +125,8 @@ export class FigmaStudySession {
     const currentNum = this.currentCardIndex + 1;
     const progressPercent = totalCount > 0 ? Math.round((currentNum / totalCount) * 100) : 0;
     const intervalProjections = srsService.projectIntervals(currentCard, this.deck.settings);
+    this.buildQuiz(currentCard);
+    this.startTimer();
 
     if (this.deck.settings.autoPlayAudio && !this.isFlipped) {
       const text = currentCard.audioText || currentCard.front;
@@ -121,6 +157,8 @@ export class FigmaStudySession {
                   ? ''
                   : `<button class="sx-undo" id="btn-study-undo" title="Deshacer la última calificación (Z)" ${this.undoStack.length ? '' : 'disabled'}>↩ <span>Deshacer</span></button>`
               }
+              <button class="cupertino-icon-square ${currentCard.starred ? 'sx-icon-on' : ''}" id="btn-study-star" title="Marcar como favorita (F)" aria-label="Favorita">${currentCard.starred ? '★' : '☆'}</button>
+              ${!this.isFlipped && !this.isPreviewMode ? '<button class="cupertino-icon-square" id="btn-study-hint" title="Pedir una pista (H)" aria-label="Pista">💡</button>' : ''}
               <button class="cupertino-icon-square" id="btn-study-audio" title="Pronunciación TTS">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
               </button>
@@ -135,6 +173,7 @@ export class FigmaStudySession {
               <div class="cupertino-track-thumb" style="left: ${progressPercent}%;"></div>
             </div>
           </div>
+          ${this.metaRowHtml(currentCard)}
         </div>
 
         <!-- Main Card Canvas with Lateral Navigation Arrows -->
@@ -165,7 +204,7 @@ export class FigmaStudySession {
               !this.isFlipped && !this.isTypeAnswerMode
                 ? `
               <div class="cupertino-card-hint-text">
-                Toca la tarjeta o presiona Espacio para ver respuesta
+                ${this.quizOptions ? 'Elige una opción (teclas A–D) · H pista · ? atajos' : 'Toca la tarjeta o presiona Espacio para ver respuesta · H pista · ? atajos'}
               </div>
             `
                 : this.isFlipped
@@ -206,7 +245,7 @@ export class FigmaStudySession {
                   </button>
 
                   <button class="cupertino-btn-show-answer" id="btn-f-show-answer">
-                    ${this.isTypeAnswerMode ? 'Comprobar respuesta' : '👁️ Mostrar respuesta (Espacio)'}
+                    ${this.isTypeAnswerMode ? 'Comprobar respuesta' : this.quizOptions ? '🤷 No lo sé · ver respuesta' : '👁️ Mostrar respuesta (Espacio)'}
                   </button>
                 </div>
               `
@@ -312,8 +351,152 @@ export class FigmaStudySession {
           ${card.type === 'cloze' ? katexService.renderCloze(card.front, false) : katexService.parseAndRender(card.front)}
         </div>
         ${typeAnswerInputHtml}
+        ${this.hintHtml(card)}
+        ${this.quizFrontHtml()}
       </div>
     `;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Barra de sesión, pistas y opción múltiple                           */
+  /* ------------------------------------------------------------------ */
+  private startTimer(): void {
+    if (this.timerId || this.isPreviewMode) return;
+    this.timerId = window.setInterval(() => {
+      const el = document.getElementById('sx-timer');
+      if (el) el.textContent = `⏱ ${clock(Date.now() - this.sessionStats.startTime)}`;
+      else if (!document.querySelector('.cupertino-study-container')) this.stopTimer();
+    }, 1000);
+  }
+
+  private stopTimer(): void {
+    window.clearInterval(this.timerId);
+    this.timerId = 0;
+  }
+
+  private metaRowHtml(card: Flashcard): string {
+    if (this.isPreviewMode) return '';
+    const s = this.sessionStats;
+    const pills: string[] = [];
+    if (this.sessionLabel) pills.push(`<span class="sx-pill">🎯 ${escHtml(this.sessionLabel)}</span>`);
+    if (this.practice) pills.push('<span class="sx-pill practice" title="Las respuestas no cambian tu calendario de repasos">Práctica libre</span>');
+    pills.push(`<span class="sx-pill" id="sx-timer">⏱ ${clock(Date.now() - s.startTime)}</span>`);
+    if (s.totalReviewed) pills.push(`<span class="sx-pill ok">✓ ${s.goodCount + s.easyCount}/${s.totalReviewed}</span>`);
+    if (this.combo >= 3) pills.push(`<span class="sx-pill combo">🔥 ×${this.combo}</span>`);
+    (card.tags || []).slice(0, 3).forEach((t) => pills.push(`<span class="sx-pill">#${escHtml(t)}</span>`));
+    return `<div class="sx-meta">${pills.join('')}</div>`;
+  }
+
+  /** Respuesta en texto plano (para pistas progresivas) */
+  private plainAnswer(card: Flashcard): string {
+    const raw = card.type === 'cloze' ? clozeAnswer(card.front) : card.back;
+    return raw
+      .replace(/\$\$?([^$]*)\$\$?/g, '$1')
+      .replace(/[*_`#>~=]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private hintHtml(card: Flashcard): string {
+    if (!this.hintLevel || this.isFlipped) return '';
+    const parts: string[] = [];
+    if (card.hint) parts.push(`<div><b>💡 Pista:</b>${escHtml(card.hint)}</div>`);
+    const letters = card.hint ? this.hintLevel - 1 : this.hintLevel;
+    const answer = this.plainAnswer(card);
+    if (letters > 0 && answer) {
+      const chars = [...answer].slice(0, 48);
+      const shown = chars.map((ch, i) => (i < letters || /[\s.,;:()\-]/.test(ch) ? ch : '•')).join('');
+      parts.push(`<div><b>Empieza por:</b><code>${escHtml(shown)}</code></div>`);
+    } else if (!card.hint) {
+      parts.push('<div>Esta tarjeta no tiene pista ni texto en la respuesta.</div>');
+    }
+    return `<div class="sx-hint">${parts.join('')}</div>`;
+  }
+
+  /** Prepara las opciones del cuestionario: la respuesta correcta + hasta 3 respuestas de otras tarjetas del mazo */
+  private buildQuiz(card: Flashcard): void {
+    if (this.quizCardId === card.id) return;
+    this.quizCardId = card.id;
+    this.quizChoice = null;
+    this.quizOptions = null;
+    if (this.method !== 'quiz' || this.isPreviewMode || card.type === 'image_occlusion') return;
+    const answerOf = (c: Flashcard): string => (c.type === 'cloze' ? clozeAnswer(c.front) : c.back.trim());
+    const correct = answerOf(card);
+    if (!correct || correct.length > 240) return;
+    const norm = (t: string) => t.toLowerCase().replace(/\s+/g, ' ').trim();
+    const seen = new Set([norm(correct)]);
+    const pool = deckService
+      .getCardsByDeck(this.deck.id, true)
+      .filter((c) => c.id !== card.id && c.type !== 'image_occlusion')
+      .sort(() => Math.random() - 0.5);
+    const candidates: string[] = [];
+    for (const c of pool) {
+      const a = answerOf(c);
+      if (!a || a.length > 240 || seen.has(norm(a))) continue;
+      seen.add(norm(a));
+      candidates.push(a);
+      if (candidates.length >= 14) break;
+    }
+    // Con menos de dos distractores no hay cuestionario posible: esa tarjeta se estudia volteando
+    if (candidates.length < 2) return;
+    candidates.sort((x, y) => Math.abs(x.length - correct.length) - Math.abs(y.length - correct.length));
+    this.quizOptions = [{ text: correct, correct: true }, ...candidates.slice(0, 3).map((text) => ({ text, correct: false }))].sort(() => Math.random() - 0.5);
+  }
+
+  private quizFrontHtml(): string {
+    if (!this.quizOptions || this.isFlipped) return '';
+    return `<div class="sx-quiz">${this.quizOptions
+      .map((o, i) => `<button type="button" class="sx-opt" data-opt="${i}"><kbd>${'ABCD'[i]}</kbd><span>${katexService.parseAndRender(o.text)}</span></button>`)
+      .join('')}</div>`;
+  }
+
+  private quizBackHtml(): string {
+    if (!this.quizOptions || this.quizChoice === null) return '';
+    const right = this.quizChoice >= 0 && this.quizOptions[this.quizChoice]?.correct;
+    const verdict = right ? '<div class="sx-verdict ok">✓ ¡Correcto!</div>' : `<div class="sx-verdict ko">${this.quizChoice < 0 ? 'Esta era la respuesta' : '✗ No era esa'}</div>`;
+    const opts = this.quizOptions
+      .map((o, i) => `<div class="sx-opt ${o.correct ? 'correct' : i === this.quizChoice ? 'wrong' : 'dim'}"><kbd>${o.correct ? '✓' : i === this.quizChoice ? '✗' : 'ABCD'[i]}</kbd><span>${katexService.parseAndRender(o.text)}</span></div>`)
+      .join('');
+    return `${verdict}<div class="sx-quiz" style="margin:0 0 14px;">${opts}</div>`;
+  }
+
+  private openShortcuts(): void {
+    const modal = document.createElement('div');
+    modal.className = 'apple-modal-overlay';
+    modal.innerHTML = `
+      <div class="apple-modal-content apple-glass-panel" style="max-width:420px; width:92%; padding:22px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <h3 style="font-size:1.15rem; font-weight:800; color:#fff; margin:0;">⌨️ Atajos de la sesión</h3>
+          <button id="btn-close-keys" style="background:none; border:none; color:var(--f-text-secondary); font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+        <div class="sx-keys">
+          <kbd>Espacio</kbd><span>Ver la respuesta · calificar «Bien»</span>
+          <kbd>1 · 2 · 3 · 4</kbd><span>De nuevo · Difícil · Bien · Fácil</span>
+          <kbd>A – D</kbd><span>Elegir opción (opción múltiple)</span>
+          <kbd>H</kbd><span>Pedir una pista (cada vez revela más)</span>
+          <kbd>F</kbd><span>Marcar como favorita</span>
+          <kbd>E</kbd><span>Editar la tarjeta</span>
+          <kbd>B</kbd><span>Posponer la tarjeta a mañana</span>
+          <kbd>Z</kbd><span>Deshacer la última calificación</span>
+          <kbd>← →</kbd><span>Tarjeta anterior / siguiente</span>
+          <kbd>Deslizar</kbd><span>Derecha = Bien · Izquierda = De nuevo</span>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    const close = () => modal.remove();
+    modal.querySelector('#btn-close-keys')?.addEventListener('click', close);
+    modal.addEventListener('click', (e) => e.target === modal && close());
+  }
+
+  /** Quita la tarjeta actual de la cola (pausada, pospuesta o eliminada) y sigue con la siguiente */
+  private dropCurrentCard(container: HTMLElement): void {
+    const id = this.queue[this.currentCardIndex]?.id;
+    this.queue = this.queue.filter((c, i) => i < this.currentCardIndex || c.id !== id);
+    this.isFlipped = false;
+    this.hintLevel = 0;
+    this.animate = 'enter';
+    this.cardShownAt = Date.now();
+    this.render(container);
   }
 
   private renderBackContent(card: Flashcard): string {
@@ -395,11 +578,14 @@ export class FigmaStudySession {
 
     const credit = card.imageCredit ? `<div class="sx-credit">📷 ${card.imageCredit.replace(/</g, '&lt;')}</div>` : '';
 
+    const quizHtml = this.quizBackHtml();
+
     if (card.type === 'cloze') {
       // En los huecos la respuesta es la propia frase con el hueco resaltado; lo extra va debajo
       return `
         <div style="display:flex; flex-direction:column; align-items:center; text-align:center; width:100%;">
           ${mediaHtml}
+          ${quizHtml}
           <div class="cupertino-card-main-title">${katexService.renderCloze(card.front, true)}</div>
           ${card.back.trim() ? `<div class="cupertino-card-divider"></div><div class="cupertino-card-answer-text">${katexService.parseAndRender(card.back)}</div>` : ''}
           ${credit}
@@ -417,6 +603,7 @@ export class FigmaStudySession {
         <div class="cupertino-card-divider"></div>
 
         ${typedComparisonHtml}
+        ${quizHtml}
 
         <div class="cupertino-card-answer-text">
           ${katexService.parseAndRender(card.back)}
@@ -442,6 +629,22 @@ export class FigmaStudySession {
             <div>
               <div>Editar esta tarjeta</div>
               <div style="font-size:0.75rem; color:var(--f-text-secondary); font-weight:500;">Modificar anverso, reverso o multimedia</div>
+            </div>
+          </button>
+
+          <button class="menu-action-item-btn" id="btn-menu-bury-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:left;">
+            <span style="font-size:1.2rem;">🌙</span>
+            <div>
+              <div>Posponer a mañana</div>
+              <div style="font-size:0.75rem; color:var(--f-text-secondary); font-weight:500;">Sale de la sesión sin cambiar su progreso</div>
+            </div>
+          </button>
+
+          <button class="menu-action-item-btn" id="btn-menu-suspend-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#fff; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:left;">
+            <span style="font-size:1.2rem;">⏸</span>
+            <div>
+              <div>Pausar tarjeta</div>
+              <div style="font-size:0.75rem; color:var(--f-text-secondary); font-weight:500;">No volverá a salir hasta que la reactives en el mazo</div>
             </div>
           </button>
 
@@ -478,6 +681,18 @@ export class FigmaStudySession {
       if (this.onEditCardCallback) {
         this.onEditCardCallback(currentCard.id);
       }
+    });
+
+    modal.querySelector('#btn-menu-bury-card')?.addEventListener('click', () => {
+      closeModal();
+      deckService.buryCard(currentCard.id);
+      this.dropCurrentCard(container);
+    });
+
+    modal.querySelector('#btn-menu-suspend-card')?.addEventListener('click', () => {
+      closeModal();
+      deckService.setCardsFlags([currentCard.id], { suspended: true });
+      this.dropCurrentCard(container);
     });
 
     modal.querySelector('#btn-menu-reset-card')?.addEventListener('click', () => {
@@ -523,8 +738,25 @@ export class FigmaStudySession {
 
     document.getElementById('btn-study-exit')?.addEventListener('click', () => {
       window.onkeydown = null;
+      this.stopTimer();
       ttsService.stop();
       this.onExitCallback();
+    });
+
+    // Favorita: se guarda al instante y la tarjeta de la cola se actualiza para reflejarlo
+    document.getElementById('btn-study-star')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const starred = !currentCard.starred;
+      deckService.setCardsFlags([currentCard.id], { starred });
+      this.queue = this.queue.map((c) => (c.id === currentCard.id ? { ...c, starred } : c));
+      this.render(container);
+    });
+
+    // Pista: cada pulsación revela un poco más
+    document.getElementById('btn-study-hint')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.hintLevel++;
+      this.render(container);
     });
 
     // Top 3-dots Card Menu (Solicitud #3)
@@ -633,6 +865,8 @@ export class FigmaStudySession {
 
     const triggerFlip = () => {
       if (!this.isFlipped) {
+        // En opción múltiple, ver la respuesta sin elegir cuenta como «no lo sé»
+        if (this.quizOptions && this.quizChoice === null) this.quizChoice = -1;
         // Extraer la respuesta del estudiante en formato LaTeX estándar mediante la propiedad reactiva mathfield.value
         const mathField = document.getElementById('exam-input') as (HTMLElement & { value: string }) | null;
         if (mathField && mathField.value !== undefined) {
@@ -644,6 +878,29 @@ export class FigmaStudySession {
         this.render(container);
       }
     };
+
+    // Opción múltiple: elegir una respuesta revela el resultado
+    container.querySelectorAll<HTMLElement>('button.sx-opt').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.quizChoice = Number(btn.dataset.opt);
+        triggerFlip();
+      });
+    });
+
+    // Tras responder un cuestionario se continúa con un solo botón: acierto = «Bien», fallo = «De nuevo»
+    const quizAnswered = this.isFlipped && !!this.quizOptions && this.quizChoice !== null;
+    const quizRating = (): StudyRating => (this.quizChoice !== null && this.quizChoice >= 0 && this.quizOptions?.[this.quizChoice]?.correct ? 'good' : 'again');
+    if (quizAnswered) {
+      const row = container.querySelector('.cupertino-rating-row');
+      if (row) {
+        row.outerHTML = '<button type="button" class="sx-continue" id="btn-quiz-continue">Continuar (Espacio)</button>';
+        document.getElementById('btn-quiz-continue')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.handleRating(quizRating(), container);
+        });
+      }
+    }
 
     // Toggle Type Answer Mode Button (Solicitud #5)
     document.getElementById('btn-toggle-type-mode')?.addEventListener('click', () => {
@@ -662,12 +919,13 @@ export class FigmaStudySession {
       if (
         target.id === 'btn-card-more-action' ||
         target.closest('#btn-card-more-action') ||
+        target.closest('.sx-opt, .sx-hint') ||
         target.tagName === 'INPUT' ||
         target.tagName === 'BUTTON'
       ) {
         return;
       }
-      if (!this.isTypeAnswerMode) {
+      if (!this.isTypeAnswerMode && !this.quizOptions) {
         triggerFlip();
       }
     });
@@ -826,6 +1084,55 @@ export class FigmaStudySession {
       }
 
       if (isInputActive) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const lower = e.key.toLowerCase();
+      if (e.key === '?') {
+        e.preventDefault();
+        this.openShortcuts();
+        return;
+      }
+      if (lower === 'f') {
+        e.preventDefault();
+        document.getElementById('btn-study-star')?.click();
+        return;
+      }
+      if (lower === 'h' && !this.isFlipped) {
+        e.preventDefault();
+        document.getElementById('btn-study-hint')?.click();
+        return;
+      }
+      if (lower === 'e' && this.onEditCardCallback) {
+        e.preventDefault();
+        window.onkeydown = null;
+        this.stopTimer();
+        this.onEditCardCallback(currentCard.id);
+        return;
+      }
+      if (lower === 'b' && !(this.quizOptions && !this.isFlipped)) {
+        e.preventDefault();
+        deckService.buryCard(currentCard.id);
+        this.dropCurrentCard(container);
+        return;
+      }
+
+      // Opción múltiple: A–D (o 1–4) eligen; después, Espacio continúa
+      if (this.quizOptions && !this.isFlipped) {
+        const idx = 'abcd'.indexOf(lower) >= 0 ? 'abcd'.indexOf(lower) : '1234'.indexOf(e.key);
+        if (idx >= 0 && idx < this.quizOptions.length) {
+          e.preventDefault();
+          this.quizChoice = idx;
+          triggerFlip();
+          return;
+        }
+      }
+      if (quizAnswered) {
+        if (e.code === 'Space' || e.key === 'Enter') {
+          e.preventDefault();
+          this.handleRating(quizRating(), container);
+        }
+        return;
+      }
 
       if ((e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
         e.preventDefault();
@@ -880,7 +1187,19 @@ export class FigmaStudySession {
         const before = deckService.getCardById(currentCard.id);
         if (before) this.undoStack.push({ snapshot: { ...before }, index: this.currentCardIndex, rating, requeued: false });
         if (this.undoStack.length > 30) this.undoStack.shift();
-        deckService.reviewCard(currentCard.id, rating);
+        // En práctica libre la respuesta cuenta para tus estadísticas, pero no mueve la fecha de repaso
+        if (this.practice) studyStats.record(rating);
+        else deckService.reviewCard(currentCard.id, rating);
+        const elapsed = Date.now() - this.cardShownAt;
+        studyStats.addTime(elapsed);
+        this.studiedMs += Math.min(elapsed, 5 * 60 * 1000);
+        if (rating === 'again') {
+          this.combo = 0;
+          this.missed.set(currentCard.id, currentCard);
+        } else if (rating !== 'hard') {
+          this.combo++;
+          this.bestCombo = Math.max(this.bestCombo, this.combo);
+        }
       }
 
       this.sessionStats.totalReviewed++;
@@ -891,7 +1210,8 @@ export class FigmaStudySession {
           requeued = true;
         }
       }
-      if (this.undoStack.length) this.undoStack[this.undoStack.length - 1].requeued = requeued; else if (rating === 'hard') {
+      if (this.undoStack.length) this.undoStack[this.undoStack.length - 1].requeued = requeued;
+      if (rating === 'hard') {
         this.sessionStats.hardCount++;
       } else if (rating === 'good') {
         this.sessionStats.goodCount++;
@@ -903,6 +1223,8 @@ export class FigmaStudySession {
       this.isFlipped = false;
       this.typedAnswer = '';
       this.animate = 'enter';
+      this.hintLevel = 0;
+      this.cardShownAt = Date.now();
 
       // Check if Neuro-Ergonomic Micro-Game break is enabled and interval reached
       const interval = this.deck.settings.microGameInterval !== undefined ? this.deck.settings.microGameInterval : 5;
@@ -936,7 +1258,15 @@ export class FigmaStudySession {
     const last = this.undoStack.pop();
     if (!last || this.isHandlingRating) return;
     deckService.restoreCardState(last.snapshot);
+    studyStats.unrecord(last.rating);
     if (last.requeued) this.queue.pop();
+    this.combo = 0;
+    this.hintLevel = 0;
+    this.cardShownAt = Date.now();
+    // En opción múltiple la tarjeta vuelve para calificarla a mano
+    this.quizCardId = last.snapshot.id;
+    this.quizOptions = null;
+    this.quizChoice = null;
 
     const s = this.sessionStats;
     s.totalReviewed = Math.max(0, s.totalReviewed - 1);
@@ -962,44 +1292,79 @@ export class FigmaStudySession {
       confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
     } catch {}
 
-    const goodEasy = this.sessionStats.goodCount + this.sessionStats.easyCount;
-    const accuracy = this.sessionStats.totalReviewed > 0 ? Math.round((goodEasy / this.sessionStats.totalReviewed) * 100) : 100;
+    this.stopTimer();
+    const st = this.sessionStats;
+    const goodEasy = st.goodCount + st.easyCount;
+    const accuracy = st.totalReviewed > 0 ? Math.round((goodEasy / st.totalReviewed) * 100) : 100;
+    const perCard = st.totalReviewed ? Math.round(this.studiedMs / st.totalReviewed / 1000) : 0;
+    const streak = studyStats.streak();
+    const missed = Array.from(this.missed.values());
+    const plain = (c: Flashcard) => (c.type === 'cloze' ? c.front.replace(/\{\{c\d*::([\s\S]*?)(?:::[\s\S]*?)?\}\}/g, '$1') : c.front).replace(/[$*_#`]/g, '').slice(0, 80) || 'Tarjeta con imagen';
+    const title = accuracy >= 90 ? '¡Sesión impecable!' : accuracy >= 70 ? '¡Sesión completada!' : '¡Buen trabajo, sigue así!';
 
     container.innerHTML = `
-      <div class="cupertino-study-container" style="align-items:center; text-align:center; padding:40px 10px;">
-        <div style="font-size:3.5rem; margin-bottom:12px;">🎉</div>
-        <h2 style="font-size:2rem; font-weight:800; color:#ffffff; margin-bottom:8px;">¡Sesión Completada!</h2>
-        <p style="color:var(--f-text-secondary); margin-bottom:24px; font-size:1rem;">
-          Repasaste ${this.sessionStats.totalReviewed} tarjetas con ${accuracy}% de retención.
-        </p>
+      <div class="cupertino-study-container">
+        <div class="sx-done">
+          <div class="sx-ring" style="--p:${accuracy}"><div><b>${accuracy}%</b><small>aciertos</small></div></div>
+          <h2>${title}</h2>
+          <p style="color:var(--f-text-secondary); margin:0; font-size:0.98rem;">
+            ${st.totalReviewed} respuesta${st.totalReviewed === 1 ? '' : 's'}${this.sessionLabel ? ` · ${escHtml(this.sessionLabel)}` : ''}${this.practice ? ' · práctica libre' : ''}
+          </p>
 
-        <div class="apple-card-grouped" style="width:100%; max-width:480px; text-align:left; margin-bottom:24px;">
-          <div class="apple-list-row" style="padding:14px 20px;">
-            <span style="color:#f87171; font-weight:700;">🔴 De nuevo</span>
-            <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.againCount}</strong>
+          <div class="sx-done-grid">
+            <div class="dk-kpi"><b>${formatDuration(this.studiedMs)}</b><span>de estudio</span></div>
+            <div class="dk-kpi"><b>${perCard} s</b><span>por tarjeta</span></div>
+            <div class="dk-kpi"><b>🔥 ×${this.bestCombo}</b><span>mejor racha</span></div>
+            <div class="dk-kpi"><b>${streak.current}</b><span>día${streak.current === 1 ? '' : 's'} seguido${streak.current === 1 ? '' : 's'}</span></div>
           </div>
-          <div class="apple-list-row" style="padding:14px 20px;">
-            <span style="color:#fbbf24; font-weight:700;">🟠 Difícil</span>
-            <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.hardCount}</strong>
+
+          <div class="dk-sec" style="width:100%; text-align:left;">
+            <div class="dk-stack">
+              <b class="r-again" style="width:${(st.againCount / Math.max(1, st.totalReviewed)) * 100}%"></b><b class="r-hard" style="width:${(st.hardCount / Math.max(1, st.totalReviewed)) * 100}%"></b><b class="r-good" style="width:${(st.goodCount / Math.max(1, st.totalReviewed)) * 100}%"></b><b class="r-easy" style="width:${(st.easyCount / Math.max(1, st.totalReviewed)) * 100}%"></b>
+            </div>
+            <div class="dk-legend">
+              <span><i class="r-again"></i>${st.againCount} de nuevo</span><span><i class="r-hard"></i>${st.hardCount} difícil</span><span><i class="r-good"></i>${st.goodCount} bien</span><span><i class="r-easy"></i>${st.easyCount} fácil</span>
+            </div>
           </div>
-          <div class="apple-list-row" style="padding:14px 20px;">
-            <span style="color:#10b981; font-weight:700;">🔵 Bien</span>
-            <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.goodCount}</strong>
-          </div>
-          <div class="apple-list-row" style="padding:14px 20px;">
-            <span style="color:#38bdf8; font-weight:700;">🟢 Fácil</span>
-            <strong style="font-size:1.1rem; color:#fff;">${this.sessionStats.easyCount}</strong>
+
+          ${
+            missed.length
+              ? `<div class="dk-sec sx-missed"><h4>Para repasar otra vez (${missed.length})</h4><ol class="dk-hardest">${missed
+                  .slice(0, 6)
+                  .map((c) => `<li><span>${escHtml(plain(c))}</span></li>`)
+                  .join('')}</ol>${missed.length > 6 ? `<p class="dk-p">…y ${missed.length - 6} más</p>` : ''}</div>`
+              : ''
+          }
+
+          <div class="sx-done-btns">
+            ${missed.length ? `<button class="apple-btn-secondary" id="btn-study-retry-missed" style="padding:16px 24px; border-radius:9999px; font-weight:700;">↩️ Repasar las ${missed.length} falladas</button>` : ''}
+            <button class="figma-btn-blue-pill" id="btn-study-finish-all" style="padding:16px 32px; font-size:1.05rem;">Volver al mazo</button>
           </div>
         </div>
-
-        <button class="figma-btn-blue-pill" id="btn-study-finish-all" style="padding:16px 36px; font-size:1.05rem;">
-          Volver a Mis Mazos
-        </button>
       </div>
     `;
 
     document.getElementById('btn-study-finish-all')?.addEventListener('click', () => {
       this.onExitCallback();
+    });
+
+    document.getElementById('btn-study-retry-missed')?.addEventListener('click', () => {
+      // Segunda vuelta solo con las falladas, como práctica libre (el calendario ya quedó ajustado)
+      this.queue = missed.map((c) => deckService.getCardById(c.id) || c);
+      this.missed.clear();
+      this.undoStack = [];
+      this.currentCardIndex = 0;
+      this.isFlipped = false;
+      this.practice = true;
+      this.sessionLabel = 'Falladas';
+      this.combo = 0;
+      this.bestCombo = 0;
+      this.studiedMs = 0;
+      this.quizCardId = '';
+      this.cardShownAt = Date.now();
+      this.sessionStats = { startTime: Date.now(), againCount: 0, hardCount: 0, goodCount: 0, easyCount: 0, totalReviewed: 0 };
+      this.animate = 'enter';
+      this.render(container);
     });
   }
 

@@ -29,6 +29,7 @@ import { renderFigmaAlgorithmSelectorView, bindFigmaAlgorithmSelectorViewEvents 
 import { renderFigmaLearningPhaseView, bindFigmaLearningPhaseViewEvents } from './components/FigmaLearningPhaseView';
 import { renderFigmaAppSettingsView, bindFigmaAppSettingsViewEvents } from './components/FigmaAppSettingsView';
 import { FigmaStudySession } from './components/FigmaStudySession';
+import type { StudyLaunch } from './components/DeckInsights';
 import { dialogService } from './services/dialog.service';
 import { openFigmaBatchImportModal } from './components/FigmaBatchImportModal';
 import { openFigmaAiBuilderModal } from './components/FigmaAiBuilderModal';
@@ -305,12 +306,13 @@ class EurekaFigmaApp {
     });
   }
 
-  private startStudy(deckId: string, specificCardId?: string): void {
+  private startStudy(deckId: string, specificCardId?: string, launch?: StudyLaunch): void {
     nativeService.triggerHaptics('medium');
     this.currentView = 'study';
     this.activeStudySession = new FigmaStudySession({
       deckId,
       specificCardId,
+      launch,
       onExit: () => {
         this.activeStudySession = null;
         this.currentView = 'dashboard';
@@ -998,7 +1000,7 @@ class EurekaFigmaApp {
           this.currentView = 'root';
           this.render();
         },
-        onStudy: (id) => this.startStudy(id),
+        onStudy: (id, launch) => this.startStudy(id, undefined, launch),
         onStudySpecificCard: (deckId, cardId) => {
           this.startStudy(deckId, cardId);
         },

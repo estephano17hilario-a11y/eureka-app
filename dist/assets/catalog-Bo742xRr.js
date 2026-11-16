@@ -1,0 +1,2595 @@
+const w=/[\\{}^_]/;function k(e){var r;const d=[];for(const c of e.split(`
+`)){const f=c.trim();if(!f)continue;if(f.startsWith("@ ")){for(const E of f.slice(2).split(/\s+/)){if(!E)continue;const O=E.indexOf("~\\");O>0?d.push({c:E.slice(0,O),t:E.slice(O+1),n:E.slice(O+2)}):E[0]==="\\"&&E.length>1?d.push({t:E,n:E.slice(1)}):d.push({c:E,n:E})}continue}const t=f.split(" :: "),i=t[0].trim();let L,b;const m=/^(\S+) ~ (.+)$/.exec(i);i.startsWith("c:")?L=i.slice(2).replace(/\\u([0-9A-Fa-f]{4})/g,(E,O)=>String.fromCharCode(parseInt(O,16))):m?(L=m[1],b=m[2]):w.test(i)||i.includes("#?")?b=i:L=i;const s=(t[1]||"").trim()||(b?b.replace(/^\\/,""):L);d.push({c:L,t:b,n:s,k:((r=t[2])==null?void 0:r.trim())||void 0})}return d}const o=e=>k(String.raw(e)),a=(e,d)=>({name:e,items:d}),n=(e,d,r,c)=>({id:e,name:d,icon:r,subs:c});function S(e,d,r,c=[]){const f=[];for(let t=d;t<=r;t++){if(c.some(([L,b])=>t>=L&&t<=b))continue;const i=t.toString(16).toUpperCase().padStart(4,"0");f.push({c:String.fromCodePoint(t),n:`U+${i}`,k:i})}return{name:e,items:f}}function _(e,d){return e.split(`
+`).map(r=>r.trim()).filter(Boolean).map((r,c)=>{const f=r.indexOf(" ");return f===-1?d(r,"",c):d(r.slice(0,f),r.slice(f+1).trim(),c)})}function N(e){return e.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")}const K=e=>e.t||e.c||e.n,A2=e=>!!e.t&&e.t.includes("#?"),z="ABCDEFGHIJKLMNOPQRSTUVWXYZ",j="abcdefghijklmnopqrstuvwxyz",Y="0123456789",W=[{cmd:"mathbb",label:"Pizarra",upper:120120,ex:{C:"ℂ",H:"ℍ",N:"ℕ",P:"ℙ",Q:"ℚ",R:"ℝ",Z:"ℤ"},sets:"U"},{cmd:"mathcal",label:"Caligráfica",upper:119964,ex:{B:"ℬ",E:"ℰ",F:"ℱ",H:"ℋ",I:"ℐ",L:"ℒ",M:"ℳ",R:"ℛ"},sets:"U"},{cmd:"mathscr",label:"Manuscrita",sets:"U"},{cmd:"mathfrak",label:"Gótica",upper:120068,lower:120094,ex:{C:"ℭ",H:"ℌ",I:"ℑ",R:"ℜ",Z:"ℨ"},sets:"UL"},{cmd:"mathbf",label:"Negrita",upper:119808,lower:119834,digit:120782,sets:"ULD"},{cmd:"mathit",label:"Cursiva",upper:119860,lower:119886,ex:{h:"ℎ"},sets:"UL"},{cmd:"mathsf",label:"Palo seco",upper:120224,lower:120250,digit:120802,sets:"ULD"},{cmd:"mathtt",label:"Monoespaciada",upper:120432,lower:120458,digit:120822,sets:"ULD"}];function Z(){return W.map(e=>{const d=[],r=(c,f,t)=>{[...c].forEach((i,L)=>{var m;const b=((m=e.ex)==null?void 0:m[i])||(f?String.fromCodePoint(f+L):void 0);d.push({c:b,t:`\\${e.cmd}{${i}}`,n:`${i} ${e.label.toLowerCase()}`,k:`${e.cmd} ${t} ${i}`})})};return e.sets.includes("U")&&r(z,e.upper,"mayuscula"),e.sets.includes("L")&&r(j,e.lower,"minuscula"),e.sets.includes("D")&&r(Y,e.digit,"numero digito"),{name:e.label,items:d}})}const X=[n("arit","Aritmética","➕",[a("Operaciones",o`
+      + :: Más :: suma adicion plus
+      − ~ - :: Menos :: resta sustraccion minus
+      × ~ \times :: Por :: multiplicar producto times cruz
+      ÷ ~ \div :: Entre :: dividir division
+      · ~ \cdot :: Punto de producto :: multiplicar dot
+      ± ~ \pm :: Más menos :: plus minus
+      ∓ ~ \mp :: Menos más :: minus plus
+      = :: Igual :: equals
+      ≠ ~ \ne :: Distinto :: diferente no igual neq
+      ≈ ~ \approx :: Aproximadamente :: casi aprox
+      / :: Barra de división :: slash
+      ∗ ~ \ast :: Asterisco :: estrella
+      ∶ ~ \colon :: Razón :: proporcion dos puntos
+      ∷ :: Proporción :: como
+      % ~ \% :: Por ciento :: porcentaje
+      ‰ :: Por mil :: permil
+      ‱ :: Por diez mil :: basis point
+      √ ~ \surd :: Radical :: raiz
+      ∞ ~ \infty :: Infinito
+    `),a("Fracciones y potencias",o`
+      \frac{#?}{#?} :: Fracción :: quebrado division numerador denominador
+      #?\frac{#?}{#?} :: Fracción mixta :: numero mixto
+      \dfrac{#?}{#?} :: Fracción grande :: display
+      \tfrac{#?}{#?} :: Fracción pequeña :: texto
+      \cfrac{#?}{#?+\cfrac{#?}{#?}} :: Fracción continua
+      #?/#? :: Fracción en línea :: slash
+      #?^{2} :: Al cuadrado :: potencia exponente
+      #?^{3} :: Al cubo :: potencia exponente
+      #?^{#?} :: Potencia :: exponente elevado superindice
+      #?^{-1} :: Inverso :: reciproco
+      #?_{#?} :: Subíndice :: indice
+      #?_{#?}^{#?} :: Subíndice y superíndice
+      \sqrt{#?} :: Raíz cuadrada :: radical sqrt
+      \sqrt[3]{#?} :: Raíz cúbica
+      \sqrt[#?]{#?} :: Raíz n-ésima :: indice
+      #?\times10^{#?} :: Notación científica :: potencia de diez
+      \left|#?\right| :: Valor absoluto :: modulo
+      #?\% :: Porcentaje
+      #?! :: Factorial
+      #?:#? :: Razón
+    `),a("Comparación",o`
+      < :: Menor que
+      > :: Mayor que
+      ≤ ~ \le :: Menor o igual
+      ≥ ~ \ge :: Mayor o igual
+      ≪ ~ \ll :: Mucho menor
+      ≫ ~ \gg :: Mucho mayor
+      ≡ ~ \equiv :: Idéntico :: equivalente congruente
+      ≅ ~ \cong :: Congruente
+      ∼ ~ \sim :: Semejante :: similar
+      ∝ ~ \propto :: Proporcional
+      ≟ :: ¿Igual? :: pregunta
+      ≜ ~ \triangleq :: Igual por definición
+      ≔ ~ \coloneqq :: Se define como :: asignacion
+    `),a("Fracciones Unicode",o`
+      ½ :: Un medio :: 1/2
+      ⅓ :: Un tercio :: 1/3
+      ⅔ :: Dos tercios :: 2/3
+      ¼ :: Un cuarto :: 1/4
+      ¾ :: Tres cuartos :: 3/4
+      ⅕ :: Un quinto :: 1/5
+      ⅖ :: Dos quintos :: 2/5
+      ⅗ :: Tres quintos :: 3/5
+      ⅘ :: Cuatro quintos :: 4/5
+      ⅙ :: Un sexto :: 1/6
+      ⅚ :: Cinco sextos :: 5/6
+      ⅐ :: Un séptimo :: 1/7
+      ⅛ :: Un octavo :: 1/8
+      ⅜ :: Tres octavos :: 3/8
+      ⅝ :: Cinco octavos :: 5/8
+      ⅞ :: Siete octavos :: 7/8
+      ⅑ :: Un noveno :: 1/9
+      ⅒ :: Un décimo :: 1/10
+      ↉ :: Cero tercios :: 0/3
+      ⅟ :: Numerador uno
+      ⁄ :: Barra de fracción
+    `),a("Superíndices y subíndices",o`
+      @ ⁰ ¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ⁺ ⁻ ⁼ ⁽ ⁾ ⁿ ⁱ ᵃ ᵇ ᶜ ᵈ ᵉ ᶠ ᵍ ʰ ʲ ᵏ ˡ ᵐ ᵒ ᵖ ʳ ˢ ᵗ ᵘ ᵛ ʷ ˣ ʸ ᶻ
+      @ ₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉ ₊ ₋ ₌ ₍ ₎ ₐ ₑ ₕ ᵢ ⱼ ₖ ₗ ₘ ₙ ₒ ₚ ᵣ ₛ ₜ ᵤ ᵥ ₓ
+    `),a("Números romanos",o`
+      @ Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ Ⅵ Ⅶ Ⅷ Ⅸ Ⅹ Ⅺ Ⅻ Ⅼ Ⅽ Ⅾ Ⅿ ⅰ ⅱ ⅲ ⅳ ⅴ ⅵ ⅶ ⅷ ⅸ ⅹ ⅺ ⅻ ⅼ ⅽ ⅾ ⅿ ↀ ↁ ↂ
+    `)]),n("alg","Álgebra","📐",[a("Estructuras",o`
+      \frac{#?}{#?} :: Fracción
+      #?^{#?} :: Potencia
+      #?_{#?} :: Subíndice
+      \sqrt{#?} :: Raíz
+      \sqrt[#?]{#?} :: Raíz n-ésima
+      \left(#?\right) :: Paréntesis
+      \left[#?\right] :: Corchetes
+      \left\{#?\right\} :: Llaves
+      \left|#?\right| :: Valor absoluto
+      \log_{#?}{#?} :: Logaritmo base b
+      \ln{#?} :: Logaritmo natural
+      \log{#?} :: Logaritmo decimal
+      e^{#?} :: Exponencial
+      \sum_{#?}^{#?}#? :: Sumatoria
+      \prod_{#?}^{#?}#? :: Productoria
+      \binom{#?}{#?} :: Coeficiente binomial :: combinatoria
+      \begin{cases}#? & #?\\#? & #?\end{cases} :: Función a trozos :: casos sistema
+      \begin{cases}#?\\#?\end{cases} :: Sistema de ecuaciones :: llave
+      \begin{aligned}#? &= #?\\ &= #?\end{aligned} :: Pasos alineados :: desarrollo igualdad
+    `),a("Identidades y fórmulas",o`
+      x=\frac{-b\pm\sqrt{b^2-4ac}}{2a} :: Fórmula general :: cuadratica bhaskara
+      \Delta=b^2-4ac :: Discriminante
+      (a+b)^2=a^2+2ab+b^2 :: Cuadrado de un binomio
+      (a-b)^2=a^2-2ab+b^2 :: Cuadrado de una diferencia
+      a^2-b^2=(a+b)(a-b) :: Diferencia de cuadrados
+      (a+b)^3=a^3+3a^2b+3ab^2+b^3 :: Cubo de un binomio
+      a^3+b^3=(a+b)(a^2-ab+b^2) :: Suma de cubos
+      a^3-b^3=(a-b)(a^2+ab+b^2) :: Diferencia de cubos
+      (a+b)^n=\sum_{k=0}^{n}\binom{n}{k}a^{n-k}b^k :: Binomio de Newton
+      a^m\cdot a^n=a^{m+n} :: Producto de potencias
+      \frac{a^m}{a^n}=a^{m-n} :: Cociente de potencias
+      (a^m)^n=a^{mn} :: Potencia de potencia
+      a^{-n}=\frac{1}{a^n} :: Exponente negativo
+      a^{\frac{m}{n}}=\sqrt[n]{a^m} :: Exponente fraccionario
+      \log_b(xy)=\log_b x+\log_b y :: Logaritmo de un producto
+      \log_b\frac{x}{y}=\log_b x-\log_b y :: Logaritmo de un cociente
+      \log_b x^n=n\log_b x :: Logaritmo de una potencia
+      \log_b x=\frac{\log_a x}{\log_a b} :: Cambio de base
+      y=mx+b :: Recta pendiente-ordenada
+      m=\frac{y_2-y_1}{x_2-x_1} :: Pendiente
+      a_n=a_1+(n-1)d :: Progresión aritmética
+      a_n=a_1r^{n-1} :: Progresión geométrica
+      S_n=\frac{n(a_1+a_n)}{2} :: Suma aritmética
+      S_n=a_1\frac{1-r^n}{1-r} :: Suma geométrica
+    `),a("Conjuntos numéricos",o`
+      ℕ ~ \mathbb{N} :: Naturales
+      ℤ ~ \mathbb{Z} :: Enteros
+      ℚ ~ \mathbb{Q} :: Racionales
+      ℝ ~ \mathbb{R} :: Reales
+      ℂ ~ \mathbb{C} :: Complejos
+      𝕀 ~ \mathbb{I} :: Irracionales
+      ℙ ~ \mathbb{P} :: Primos
+      ℍ ~ \mathbb{H} :: Cuaterniones
+      𝔽 ~ \mathbb{F} :: Cuerpo finito
+      𝕂 ~ \mathbb{K} :: Cuerpo
+      \mathbb{R}^{+} :: Reales positivos
+      \mathbb{R}^{n} :: Espacio n-dimensional
+      \mathbb{Z}^{+} :: Enteros positivos
+      \mathbb{N}_0 :: Naturales con cero
+      \mathbb{Z}_n :: Enteros módulo n
+      \mathbb{R}\setminus\{0\} :: Reales sin el cero
+    `),a("Complejos",o`
+      i :: Unidad imaginaria
+      a+bi :: Forma binómica
+      \overline{z} :: Conjugado
+      |z| :: Módulo
+      \Re(z) :: Parte real
+      \Im(z) :: Parte imaginaria
+      \arg(z) :: Argumento
+      re^{i\theta} :: Forma exponencial
+      r(\cos\theta+i\sin\theta) :: Forma polar
+      e^{i\pi}+1=0 :: Identidad de Euler
+      e^{i\theta}=\cos\theta+i\sin\theta :: Fórmula de Euler
+      i^2=-1 :: Definición de i
+    `),a("Combinatoria",o`
+      n! :: Factorial
+      \binom{n}{k} :: Combinaciones
+      \binom{n}{k}=\frac{n!}{k!(n-k)!} :: Fórmula de combinaciones
+      P(n,k)=\frac{n!}{(n-k)!} :: Variaciones
+      {}_{n}C_{k} :: nCk
+      {}_{n}P_{k} :: nPk
+      n!! :: Doble factorial
+      \left\langle{n\atop k}\right\rangle :: Número euleriano
+      \left\{{n\atop k}\right\} :: Stirling de segunda especie
+      \dbinom{#?}{#?} :: Binomial grande
+    `),a("Teoría de números",o`
+      ∣ ~ \mid :: Divide a
+      ∤ ~ \nmid :: No divide a
+      a\equiv b\pmod{n} :: Congruencia módulo n
+      #?\bmod#? :: Módulo (operación) :: resto
+      \pmod{#?} :: (mod n)
+      \gcd(#?,#?) :: Máximo común divisor :: mcd
+      \operatorname{mcm}(#?,#?) :: Mínimo común múltiplo :: lcm
+      \operatorname{mcd}(#?,#?) :: mcd
+      \lfloor #?\rfloor :: Suelo :: parte entera floor
+      \lceil #?\rceil :: Techo :: ceil
+      \varphi(n) :: Función phi de Euler
+      \pi(x) :: Contador de primos
+      \zeta(s) :: Función zeta
+      \mu(n) :: Función de Möbius
+      \sigma(n) :: Suma de divisores
+      \left(\frac{a}{p}\right) :: Símbolo de Legendre
+    `)]),n("linalg","Matrices y vectores","🔢",[a("Matrices",o`
+      \begin{pmatrix}#? & #?\\#? & #?\end{pmatrix} :: Matriz 2×2 ( )
+      \begin{pmatrix}#? & #? & #?\\#? & #? & #?\\#? & #? & #?\end{pmatrix} :: Matriz 3×3 ( )
+      \begin{bmatrix}#? & #?\\#? & #?\end{bmatrix} :: Matriz 2×2 [ ]
+      \begin{bmatrix}#? & #? & #?\\#? & #? & #?\\#? & #? & #?\end{bmatrix} :: Matriz 3×3 [ ]
+      \begin{vmatrix}#? & #?\\#? & #?\end{vmatrix} :: Determinante 2×2
+      \begin{vmatrix}#? & #? & #?\\#? & #? & #?\\#? & #? & #?\end{vmatrix} :: Determinante 3×3
+      \begin{Vmatrix}#? & #?\\#? & #?\end{Vmatrix} :: Norma matricial ‖ ‖
+      \begin{Bmatrix}#? & #?\\#? & #?\end{Bmatrix} :: Matriz { }
+      \begin{matrix}#? & #?\\#? & #?\end{matrix} :: Matriz sin bordes
+      \begin{pmatrix}#? & #? & #? & #?\\#? & #? & #? & #?\\#? & #? & #? & #?\\#? & #? & #? & #?\end{pmatrix} :: Matriz 4×4
+      \begin{pmatrix}#? & #? & #?\\#? & #? & #?\end{pmatrix} :: Matriz 2×3
+      \begin{pmatrix}#? & #?\\#? & #?\\#? & #?\end{pmatrix} :: Matriz 3×2
+      \begin{pmatrix}#?\\#?\end{pmatrix} :: Vector columna 2
+      \begin{pmatrix}#?\\#?\\#?\end{pmatrix} :: Vector columna 3
+      \begin{pmatrix}#? & #? & #?\end{pmatrix} :: Vector fila
+      \left(\begin{array}{cc|c}#? & #? & #?\\#? & #? & #?\end{array}\right) :: Matriz aumentada 2×3
+      \left(\begin{array}{ccc|c}#? & #? & #? & #?\\#? & #? & #? & #?\\#? & #? & #? & #?\end{array}\right) :: Matriz aumentada 3×4
+      \begin{pmatrix}a_{11} & \cdots & a_{1n}\\\vdots & \ddots & \vdots\\a_{m1} & \cdots & a_{mn}\end{pmatrix} :: Matriz general m×n
+      \begin{pmatrix}1 & 0\\0 & 1\end{pmatrix} :: Identidad 2×2
+      \begin{pmatrix}1 & 0 & 0\\0 & 1 & 0\\0 & 0 & 1\end{pmatrix} :: Identidad 3×3
+      \begin{pmatrix}\cos\theta & -\sin\theta\\\sin\theta & \cos\theta\end{pmatrix} :: Matriz de rotación
+      \begin{smallmatrix}#? & #?\\#? & #?\end{smallmatrix} :: Matriz pequeña en línea
+    `),a("Operaciones",o`
+      A^{T} :: Traspuesta
+      A^{-1} :: Inversa
+      A^{\dagger} :: Adjunta hermítica :: daga
+      A^{*} :: Conjugada
+      \det(A) :: Determinante
+      |A| :: Determinante (barras)
+      \operatorname{tr}(A) :: Traza
+      \operatorname{rg}(A) :: Rango :: rank
+      \operatorname{adj}(A) :: Adjunta
+      \ker(A) :: Núcleo :: kernel
+      \operatorname{Im}(A) :: Imagen
+      \dim(V) :: Dimensión
+      \operatorname{span}\{#?\} :: Espacio generado
+      A\vec{x}=\vec{b} :: Sistema lineal
+      A\vec{v}=\lambda\vec{v} :: Autovalores y autovectores
+      \det(A-\lambda I)=0 :: Ecuación característica
+      ⊗ ~ \otimes :: Producto tensorial :: kronecker
+      ⊕ ~ \oplus :: Suma directa
+      I_n :: Matriz identidad
+      \mathbf{0} :: Matriz nula
+      \delta_{ij} :: Delta de Kronecker
+      \varepsilon_{ijk} :: Símbolo de Levi-Civita
+    `),a("Vectores",o`
+      \vec{#?} :: Vector (flecha)
+      \overrightarrow{#?} :: Vector largo :: segmento dirigido
+      \mathbf{#?} :: Vector en negrita
+      \hat{#?} :: Vector unitario :: versor
+      \hat{\imath} :: Versor i
+      \hat{\jmath} :: Versor j
+      \hat{k} :: Versor k
+      \|#?\| :: Norma
+      \vec{a}\cdot\vec{b} :: Producto escalar :: punto
+      \vec{a}\times\vec{b} :: Producto vectorial :: cruz
+      \langle #?,#?\rangle :: Producto interno
+      \vec{a}\cdot\vec{b}=|\vec{a}||\vec{b}|\cos\theta :: Definición producto escalar
+      \vec{a}\times\vec{b}=\begin{vmatrix}\hat{\imath} & \hat{\jmath} & \hat{k}\\a_1 & a_2 & a_3\\b_1 & b_2 & b_3\end{vmatrix} :: Producto vectorial (determinante)
+      \operatorname{proy}_{\vec{b}}\vec{a} :: Proyección
+      \vec{0} :: Vector nulo
+      \vec{a}\perp\vec{b} :: Vectores perpendiculares
+      \vec{a}\parallel\vec{b} :: Vectores paralelos
+      (#?,#?) :: Par ordenado :: coordenadas punto
+      (#?,#?,#?) :: Terna :: coordenadas 3d
+    `)]),n("calc","Cálculo","📈",[a("Límites",o`
+      \lim_{#?\to#?}#? :: Límite
+      \lim_{x\to\infty}#? :: Límite al infinito
+      \lim_{x\to0}#? :: Límite en cero
+      \lim_{x\to a^{+}}#? :: Límite por la derecha :: lateral
+      \lim_{x\to a^{-}}#? :: Límite por la izquierda :: lateral
+      \lim_{h\to0}\frac{f(x+h)-f(x)}{h} :: Definición de derivada
+      \limsup_{#?\to#?}#? :: Límite superior
+      \liminf_{#?\to#?}#? :: Límite inferior
+      → ~ \to :: Tiende a
+      \lim_{x\to0}\frac{\sin x}{x}=1 :: Límite notable del seno
+      \lim_{n\to\infty}\left(1+\frac{1}{n}\right)^n=e :: Definición de e
+      \sup_{#?}#? :: Supremo
+      \inf_{#?}#? :: Ínfimo
+      \max_{#?}#? :: Máximo
+      \min_{#?}#? :: Mínimo
+    `),a("Derivadas",o`
+      \frac{d}{dx}#? :: Derivada respecto a x
+      \frac{d#?}{d#?} :: Derivada dy/dx :: leibniz
+      \frac{d^2#?}{d#?^2} :: Segunda derivada
+      \frac{d^n#?}{d#?^n} :: Derivada n-ésima
+      f'(x) :: f prima
+      f''(x) :: f segunda
+      f^{(n)}(x) :: f n-ésima
+      \dot{#?} :: Derivada temporal :: punto newton
+      \ddot{#?} :: Segunda derivada temporal
+      \frac{\partial#?}{\partial#?} :: Derivada parcial
+      \frac{\partial^2#?}{\partial#?^2} :: Segunda parcial
+      \frac{\partial^2#?}{\partial#?\,\partial#?} :: Parcial mixta
+      ∂ ~ \partial :: Parcial (símbolo) :: d redonda
+      \left.#?\right|_{#?} :: Evaluada en
+      \frac{D#?}{Dt} :: Derivada material
+      \mathrm{d}#? :: Diferencial
+      (fg)'=f'g+fg' :: Regla del producto
+      \left(\frac{f}{g}\right)'=\frac{f'g-fg'}{g^2} :: Regla del cociente
+      (f\circ g)'=(f'\circ g)\cdot g' :: Regla de la cadena
+    `),a("Integrales",o`
+      \int#?\,d#? :: Integral indefinida
+      \int_{#?}^{#?}#?\,d#? :: Integral definida
+      \iint_{#?}#?\,dA :: Integral doble
+      \iiint_{#?}#?\,dV :: Integral triple
+      \oint_{#?}#?\,d#? :: Integral de línea cerrada :: circulacion
+      \oiint_{#?}#?\,dS :: Integral de superficie cerrada
+      \int_{-\infty}^{\infty}#?\,d#? :: Integral impropia
+      \int_{0}^{\infty}#?\,d#? :: Integral de 0 a infinito
+      \left[#?\right]_{#?}^{#?} :: Regla de Barrow :: evaluar primitiva
+      \int_a^b f(x)\,dx=F(b)-F(a) :: Teorema fundamental
+      \int u\,dv=uv-\int v\,du :: Integración por partes
+      \int x^n\,dx=\frac{x^{n+1}}{n+1}+C :: Integral de potencia
+      \int\frac{1}{x}\,dx=\ln|x|+C :: Integral de 1/x
+      \int e^x\,dx=e^x+C :: Integral exponencial
+      @ ∫~\int ∬~\iint ∭~\iiint ∮~\oint ∯~\oiint ∰~\oiiint \smallint \intop
+      \int\limits_{#?}^{#?}#? :: Integral con límites arriba y abajo
+    `),a("Series y sumas",o`
+      \sum_{#?=#?}^{#?}#? :: Sumatoria
+      \sum_{n=0}^{\infty}#? :: Serie infinita
+      \sum_{i=1}^{n}#? :: Suma de 1 a n
+      \prod_{#?=#?}^{#?}#? :: Productoria
+      \sum_{k=1}^{n}k=\frac{n(n+1)}{2} :: Suma de Gauss
+      \sum_{n=0}^{\infty}ar^n=\frac{a}{1-r} :: Serie geométrica
+      f(x)=\sum_{n=0}^{\infty}\frac{f^{(n)}(a)}{n!}(x-a)^n :: Serie de Taylor
+      e^x=\sum_{n=0}^{\infty}\frac{x^n}{n!} :: Serie de e^x
+      \sum_{\substack{#?\\#?}}#? :: Suma con varias condiciones
+      \bigcup_{#?}^{#?}#? :: Unión generalizada
+      \bigcap_{#?}^{#?}#? :: Intersección generalizada
+      \coprod_{#?}^{#?}#? :: Coproducto
+      a_n :: Término general
+      \{a_n\}_{n=1}^{\infty} :: Sucesión
+    `),a("Cálculo vectorial",o`
+      ∇ ~ \nabla :: Nabla :: gradiente del
+      \nabla f :: Gradiente
+      \nabla\cdot\vec{F} :: Divergencia
+      \nabla\times\vec{F} :: Rotacional :: curl
+      \nabla^2 f :: Laplaciano
+      \Delta f :: Laplaciano (delta)
+      \Box :: D'Alembertiano
+      \oint_C\vec{F}\cdot d\vec{r} :: Circulación
+      \iint_S\vec{F}\cdot d\vec{S} :: Flujo
+      \oint_{\partial S}\vec{F}\cdot d\vec{r}=\iint_S(\nabla\times\vec{F})\cdot d\vec{S} :: Teorema de Stokes
+      \oiint_{\partial V}\vec{F}\cdot d\vec{S}=\iiint_V(\nabla\cdot\vec{F})\,dV :: Teorema de la divergencia
+      \frac{\partial(#?,#?)}{\partial(#?,#?)} :: Jacobiano
+      d\vec{r} :: Diferencial de línea
+      d\vec{S} :: Diferencial de superficie
+    `),a("Ecuaciones diferenciales y transformadas",o`
+      y'+p(x)y=q(x) :: EDO lineal de primer orden
+      ay''+by'+cy=0 :: EDO lineal de segundo orden
+      \frac{dy}{dx}=f(x,y) :: EDO de primer orden
+      \frac{\partial u}{\partial t}=\alpha\nabla^2u :: Ecuación del calor
+      \frac{\partial^2u}{\partial t^2}=c^2\nabla^2u :: Ecuación de onda
+      \mathcal{L}\{#?\} :: Transformada de Laplace
+      \mathcal{L}^{-1}\{#?\} :: Laplace inversa
+      \mathcal{F}\{#?\} :: Transformada de Fourier
+      \hat{f}(\xi)=\int_{-\infty}^{\infty}f(x)e^{-2\pi ix\xi}\,dx :: Definición de Fourier
+      F(s)=\int_0^{\infty}f(t)e^{-st}\,dt :: Definición de Laplace
+      (f*g)(t) :: Convolución
+      \delta(#?) :: Delta de Dirac
+      \Gamma(#?) :: Función gamma
+      \operatorname{erf}(#?) :: Función error
+      H(#?) :: Función escalón de Heaviside
+      O(#?) :: O grande :: orden landau
+      o(#?) :: o pequeña
+    `)]),n("geo","Geometría y trigonometría","📏",[a("Ángulos y figuras",o`
+      ∠ ~ \angle :: Ángulo
+      ∡ ~ \measuredangle :: Ángulo medido
+      ∢ ~ \sphericalangle :: Ángulo esférico
+      ° ~ ^\circ :: Grados
+      ′ ~ ' :: Minutos :: prima
+      ″ ~ '' :: Segundos :: doble prima
+      \widehat{#?} :: Ángulo ABC :: sombrero
+      \angle #?#?#? :: Ángulo con tres puntos
+      #?^\circ :: Medida en grados
+      \overline{#?} :: Segmento
+      \overrightarrow{#?} :: Semirrecta :: rayo
+      \overleftrightarrow{#?} :: Recta
+      \overset{\frown}{#?} :: Arco
+      △ ~ \triangle :: Triángulo
+      □ ~ \square :: Cuadrado
+      ▱ :: Paralelogramo
+      ▭ :: Rectángulo
+      ◯ ~ \bigcirc :: Círculo
+      ⊙ ~ \odot :: Circunferencia con centro
+      ⬠ :: Pentágono
+      ⬡ :: Hexágono
+      ◇ ~ \Diamond :: Rombo
+      ⏢ :: Trapecio
+      ⟂ ~ \perp :: Perpendicular
+      ∥ ~ \parallel :: Paralelo
+      ∦ ~ \nparallel :: No paralelo
+      ≅ ~ \cong :: Congruente
+      ∼ ~ \sim :: Semejante
+      ⌒ ~ \frown :: Arco (símbolo)
+      ∟ :: Ángulo recto
+      ⊿ :: Triángulo rectángulo
+      π ~ \pi :: Pi
+      τ ~ \tau :: Tau (2π)
+      \triangle #?#?#? :: Triángulo ABC
+      \text{rad} :: Radianes
+    `),a("Trigonometría",o`
+      \sin#? :: Seno
+      \cos#? :: Coseno
+      \tan#? :: Tangente
+      \cot#? :: Cotangente
+      \sec#? :: Secante
+      \csc#? :: Cosecante
+      \arcsin#? :: Arcoseno
+      \arccos#? :: Arcocoseno
+      \arctan#? :: Arcotangente
+      \sin^{-1}#? :: Seno inverso
+      \cos^{-1}#? :: Coseno inverso
+      \tan^{-1}#? :: Tangente inversa
+      \sin^2#? :: Seno al cuadrado
+      \cos^2#? :: Coseno al cuadrado
+      \sinh#? :: Seno hiperbólico
+      \cosh#? :: Coseno hiperbólico
+      \tanh#? :: Tangente hiperbólica
+      \coth#? :: Cotangente hiperbólica
+      \operatorname{sen}#? :: sen (español)
+      \operatorname{tg}#? :: tg (español)
+      \operatorname{arcsen}#? :: arcsen (español)
+      \operatorname{sech}#? :: Secante hiperbólica
+      \operatorname{csch}#? :: Cosecante hiperbólica
+      \operatorname{arsinh}#? :: Arcoseno hiperbólico
+    `),a("Identidades",o`
+      \sin^2\theta+\cos^2\theta=1 :: Identidad pitagórica
+      1+\tan^2\theta=\sec^2\theta :: Pitagórica de la tangente
+      \tan\theta=\frac{\sin\theta}{\cos\theta} :: Tangente como cociente
+      \sin(\alpha\pm\beta)=\sin\alpha\cos\beta\pm\cos\alpha\sin\beta :: Seno de la suma
+      \cos(\alpha\pm\beta)=\cos\alpha\cos\beta\mp\sin\alpha\sin\beta :: Coseno de la suma
+      \sin2\theta=2\sin\theta\cos\theta :: Seno del ángulo doble
+      \cos2\theta=\cos^2\theta-\sin^2\theta :: Coseno del ángulo doble
+      \sin^2\theta=\frac{1-\cos2\theta}{2} :: Reducción de potencia
+      \frac{a}{\sin A}=\frac{b}{\sin B}=\frac{c}{\sin C} :: Teorema del seno
+      c^2=a^2+b^2-2ab\cos C :: Teorema del coseno
+      a^2+b^2=c^2 :: Teorema de Pitágoras
+    `),a("Áreas, volúmenes y analítica",o`
+      A=\pi r^2 :: Área del círculo
+      C=2\pi r :: Longitud de la circunferencia
+      A=\frac{b\cdot h}{2} :: Área del triángulo
+      A=\sqrt{s(s-a)(s-b)(s-c)} :: Fórmula de Herón
+      A=\frac{(B+b)h}{2} :: Área del trapecio
+      V=\frac{4}{3}\pi r^3 :: Volumen de la esfera
+      A=4\pi r^2 :: Área de la esfera
+      V=\pi r^2h :: Volumen del cilindro
+      V=\frac{1}{3}\pi r^2h :: Volumen del cono
+      V=\frac{1}{3}A_bh :: Volumen de la pirámide
+      d=\sqrt{(x_2-x_1)^2+(y_2-y_1)^2} :: Distancia entre dos puntos
+      M=\left(\frac{x_1+x_2}{2},\frac{y_1+y_2}{2}\right) :: Punto medio
+      (x-h)^2+(y-k)^2=r^2 :: Ecuación de la circunferencia
+      \frac{x^2}{a^2}+\frac{y^2}{b^2}=1 :: Elipse
+      \frac{x^2}{a^2}-\frac{y^2}{b^2}=1 :: Hipérbola
+      y=ax^2+bx+c :: Parábola
+      Ax+By+C=0 :: Ecuación general de la recta
+      d=\frac{|Ax_0+By_0+C|}{\sqrt{A^2+B^2}} :: Distancia punto-recta
+      V-E+F=2 :: Fórmula de Euler (poliedros)
+    `)]),n("sets","Conjuntos y lógica","🧠",[a("Conjuntos",o`
+      ∈ ~ \in :: Pertenece
+      ∉ ~ \notin :: No pertenece
+      ∋ ~ \ni :: Contiene como elemento
+      ∌ ~ \notni :: No contiene
+      ⊂ ~ \subset :: Subconjunto propio
+      ⊃ ~ \supset :: Superconjunto
+      ⊆ ~ \subseteq :: Subconjunto o igual
+      ⊇ ~ \supseteq :: Superconjunto o igual
+      ⊄ ~ \not\subset :: No es subconjunto
+      ⊈ ~ \nsubseteq :: No subconjunto ni igual
+      ⊊ ~ \subsetneq :: Subconjunto estricto
+      ⊋ ~ \supsetneq :: Superconjunto estricto
+      ∪ ~ \cup :: Unión
+      ∩ ~ \cap :: Intersección
+      ∖ ~ \setminus :: Diferencia
+      △ ~ \triangle :: Diferencia simétrica
+      ∅ ~ \emptyset :: Conjunto vacío
+      ⌀ ~ \varnothing :: Vacío (variante)
+      ∁ ~ \complement :: Complemento
+      A^{c} :: Complemento (exponente)
+      \overline{A} :: Complemento (barra)
+      × ~ \times :: Producto cartesiano
+      ⊎ ~ \uplus :: Unión disjunta
+      ⊔ ~ \sqcup :: Unión cuadrada
+      ⊓ ~ \sqcap :: Intersección cuadrada
+      \{#?\} :: Conjunto por extensión
+      \{#?\mid#?\} :: Conjunto por comprensión :: tal que
+      \{x\in\mathbb{R}\mid#?\} :: Reales tales que
+      |A| :: Cardinal
+      \#A :: Cardinal (numeral)
+      \mathcal{P}(A) :: Conjunto potencia :: partes
+      ℵ ~ \aleph :: Álef
+      \aleph_0 :: Álef cero
+      (#?,#?) :: Intervalo abierto
+      [#?,#?] :: Intervalo cerrado
+      [#?,#?) :: Intervalo semiabierto derecha
+      (#?,#?] :: Intervalo semiabierto izquierda
+      (-\infty,\infty) :: Recta real
+      @ ⋃~\bigcup ⋂~\bigcap ⨆~\bigsqcup ⨄~\biguplus ⋐~\Subset ⋑~\Supset ⋒~\Cap ⋓~\Cup ⊏~\sqsubset ⊐~\sqsupset ⊑~\sqsubseteq ⊒~\sqsupseteq
+      @ \subseteqq \supseteqq \nsupseteq \nsubseteqq \nsupseteqq \subsetneqq \supsetneqq \varsubsetneq \varsupsetneq \varsubsetneqq \varsupsetneqq \smallsetminus
+    `),a("Lógica",o`
+      ∀ ~ \forall :: Para todo :: cuantificador universal
+      ∃ ~ \exists :: Existe
+      ∄ ~ \nexists :: No existe
+      \exists! :: Existe un único
+      ¬ ~ \neg :: Negación :: no
+      ∧ ~ \land :: Conjunción :: y and
+      ∨ ~ \lor :: Disyunción :: o or
+      ⊻ ~ \veebar :: Disyunción exclusiva :: xor
+      ⊕ ~ \oplus :: XOR
+      ⇒ ~ \Rightarrow :: Implica
+      ⟹ ~ \implies :: Implica (largo)
+      ⇐ ~ \Leftarrow :: Es implicado por
+      ⟸ ~ \impliedby :: Implicado por (largo)
+      ⇔ ~ \Leftrightarrow :: Si y solo si
+      ⟺ ~ \iff :: Si y solo si (largo)
+      → ~ \to :: Condicional
+      ↔ ~ \leftrightarrow :: Bicondicional
+      ⊤ ~ \top :: Verdadero :: tautologia
+      ⊥ ~ \bot :: Falso :: contradiccion
+      ∴ ~ \therefore :: Por lo tanto
+      ∵ ~ \because :: Porque
+      ⊢ ~ \vdash :: Demuestra :: deduce
+      ⊨ ~ \models :: Satisface :: modelo
+      ⊣ ~ \dashv :: Adjunto izquierdo
+      ≡ ~ \equiv :: Equivalencia lógica
+      ∎ ~ \blacksquare :: Fin de demostración :: qed
+      □ ~ \square :: QED (hueco) :: necesario modal
+      ◇ ~ \Diamond :: Posible (modal)
+      : :: Tal que
+      ∣ ~ \mid :: Tal que (barra)
+      ≔ ~ \coloneqq :: Definición
+      \overset{\text{def}}{=} :: Igual por definición
+      \text{s.t.} :: Sujeto a
+      @ ⊬~\nvdash ⊭~\nvDash ⊩~\Vdash ⊪~\Vvdash ⊮~\nVdash ⊯~\nVDash \vDash ⋀~\bigwedge ⋁~\bigvee \lnot \barwedge \doublebarwedge \curlyvee \curlywedge
+    `),a("Funciones y aplicaciones",o`
+      f\colon A\to B :: Función de A en B
+      x\mapsto#? :: Asigna :: mapsto
+      f(x) :: f de x
+      f^{-1} :: Función inversa
+      g\circ f :: Composición
+      ↦ ~ \mapsto :: Flecha de asignación
+      ↪ ~ \hookrightarrow :: Inyección :: inclusion
+      ↠ ~ \twoheadrightarrow :: Sobreyección
+      ⤖ :: Biyección
+      \operatorname{Dom}(f) :: Dominio
+      \operatorname{Ran}(f) :: Rango :: recorrido
+      \operatorname{Im}(f) :: Imagen
+      \operatorname{id} :: Identidad
+      \operatorname{sgn}(#?) :: Función signo
+      f|_{A} :: Restricción
+      \lfloor#?\rfloor :: Suelo
+      \lceil#?\rceil :: Techo
+      \max(#?,#?) :: Máximo
+      \min(#?,#?) :: Mínimo
+      \arg\max_{#?}#? :: Argumento del máximo
+      \arg\min_{#?}#? :: Argumento del mínimo
+      \cong :: Isomorfo
+      \simeq :: Homotópico :: equivalente
+    `)]),n("rel","Relaciones","⚖️",[a("Igualdad y equivalencia",o`
+      @ = ≠~\ne ≈~\approx ≡~\equiv ≢~\not\equiv ≅~\cong ≇~\ncong ≃~\simeq ∼~\sim ≁~\nsim ≊~\approxeq ≍~\asymp ≐~\doteq ≑~\Doteq ≒~\fallingdotseq ≓~\risingdotseq ≔~\coloneqq ≕~\eqqcolon ≖~\eqcirc ≗~\circeq ≜~\triangleq ≏~\bumpeq ≎~\Bumpeq ≂~\eqsim ∽~\backsim ⋍~\backsimeq ∝~\propto
+      @ \thickapprox \thicksim \varpropto \doteqdot \coloneq \Coloneq \Coloneqq \eqcolon \Eqcolon \Eqqcolon \colonapprox \Colonapprox \colonsim \Colonsim \dblcolon \vcentcolon
+      \overset{?}{=} :: ¿Igual? (por comprobar)
+      \overset{!}{=} :: Debe ser igual
+      \stackrel{#?}{=} :: Igual con anotación
+      \xlongequal{#?} :: Igual largo con texto
+    `),a("Desigualdades",o`
+      @ < > ≤~\le ≥~\ge ≦~\leqq ≧~\geqq ⩽~\leqslant ⩾~\geqslant ≪~\ll ≫~\gg ⋘~\lll ⋙~\ggg ≲~\lesssim ≳~\gtrsim ⪅~\lessapprox ⪆~\gtrapprox ≶~\lessgtr ≷~\gtrless ⋚~\lesseqgtr ⋛~\gtreqless ⪋~\lesseqqgtr ⪌~\gtreqqless ⋖~\lessdot ⋗~\gtrdot ⪕~\eqslantless ⪖~\eqslantgtr
+      @ ≮~\nless ≯~\ngtr ≰~\nleq ≱~\ngeq ⪇~\lneq ⪈~\gneq ≨~\lneqq ≩~\gneqq ⋦~\lnsim ⋧~\gnsim ⪉~\lnapprox ⪊~\gnapprox \nleqslant \ngeqslant \nleqq \ngeqq \lvertneqq \gvertneqq
+    `),a("Orden y otras",o`
+      @ ≺~\prec ≻~\succ ⪯~\preceq ⪰~\succeq ≼~\preccurlyeq ≽~\succcurlyeq ≾~\precsim ≿~\succsim ⪷~\precapprox ⪸~\succapprox ⋞~\curlyeqprec ⋟~\curlyeqsucc ⊀~\nprec ⊁~\nsucc ⋠~\npreceq ⋡~\nsucceq ⪹~\precnapprox ⪺~\succnapprox ⪵~\precneqq ⪶~\succneqq ⋨~\precnsim ⋩~\succnsim
+      @ ∣~\mid ∤~\nmid ∥~\parallel ∦~\nparallel ⟂~\perp ⋈~\bowtie ≬~\between ⋔~\pitchfork ⌣~\smile ⌢~\frown ⊸~\multimap ∍~\backepsilon \shortmid \nshortmid \shortparallel \nshortparallel \smallsmile \smallfrown \Join \owns
+      @ ⊲~\vartriangleleft ⊳~\vartriangleright ⊴~\trianglelefteq ⊵~\trianglerighteq ⋪~\ntriangleleft ⋫~\ntriangleright ⋬~\ntrianglelefteq ⋭~\ntrianglerighteq \vartriangle \lhd \rhd \unlhd \unrhd
+      \not#? :: Negar cualquier relación :: tachar
+    `)]),n("arrows","Flechas","➡️",[a("Simples",o`
+      → ~ \rightarrow :: Flecha derecha
+      ← ~ \leftarrow :: Flecha izquierda
+      ↑ ~ \uparrow :: Flecha arriba
+      ↓ ~ \downarrow :: Flecha abajo
+      ↔ ~ \leftrightarrow :: Flecha doble sentido
+      ↕ ~ \updownarrow :: Flecha arriba-abajo
+      ↗ ~ \nearrow :: Flecha noreste
+      ↘ ~ \searrow :: Flecha sureste
+      ↙ ~ \swarrow :: Flecha suroeste
+      ↖ ~ \nwarrow :: Flecha noroeste
+      ⟶ ~ \longrightarrow :: Flecha larga derecha
+      ⟵ ~ \longleftarrow :: Flecha larga izquierda
+      ⟷ ~ \longleftrightarrow :: Flecha larga doble
+      ↦ ~ \mapsto :: Asigna
+      ⟼ ~ \longmapsto :: Asigna (larga)
+      ↛ ~ \nrightarrow :: No flecha derecha
+      ↚ ~ \nleftarrow :: No flecha izquierda
+      ↮ ~ \nleftrightarrow :: No flecha doble
+    `),a("Dobles",o`
+      ⇒ ~ \Rightarrow :: Implica
+      ⇐ ~ \Leftarrow :: Implicado por
+      ⇔ ~ \Leftrightarrow :: Equivale
+      ⇑ ~ \Uparrow :: Doble arriba
+      ⇓ ~ \Downarrow :: Doble abajo
+      ⇕ ~ \Updownarrow :: Doble arriba-abajo
+      ⟹ ~ \Longrightarrow :: Implica (larga)
+      ⟸ ~ \Longleftarrow :: Implicado (larga)
+      ⟺ ~ \Longleftrightarrow :: Equivale (larga)
+      ⇏ ~ \nRightarrow :: No implica
+      ⇍ ~ \nLeftarrow :: No implicado
+      ⇎ ~ \nLeftrightarrow :: No equivale
+      ⇛ ~ \Rrightarrow :: Triple derecha
+      ⇚ ~ \Lleftarrow :: Triple izquierda
+    `),a("Arpones, ganchos y curvas",o`
+      @ ⇀~\rightharpoonup ⇁~\rightharpoondown ↼~\leftharpoonup ↽~\leftharpoondown ⇌~\rightleftharpoons ⇋~\leftrightharpoons ↾~\upharpoonright ↿~\upharpoonleft ⇂~\downharpoonright ⇃~\downharpoonleft
+      @ ↪~\hookrightarrow ↩~\hookleftarrow ↠~\twoheadrightarrow ↞~\twoheadleftarrow ↣~\rightarrowtail ↢~\leftarrowtail ↬~\looparrowright ↫~\looparrowleft ↝~\leadsto ⇝~\rightsquigarrow ↭~\leftrightsquigarrow ↷~\curvearrowright ↶~\curvearrowleft ↻~\circlearrowright ↺~\circlearrowleft ↰~\Lsh ↱~\Rsh
+      @ ⇉~\rightrightarrows ⇇~\leftleftarrows ⇈~\upuparrows ⇊~\downdownarrows ⇄~\rightleftarrows ⇆~\leftrightarrows ⇢~\dashrightarrow ⇠~\dashleftarrow \restriction \gets \to
+    `),a("Con texto encima",o`
+      \xrightarrow{#?} :: Flecha con texto
+      \xleftarrow{#?} :: Flecha izquierda con texto
+      \xrightarrow[#?]{#?} :: Flecha con texto arriba y abajo
+      \xRightarrow{#?} :: Implica con texto
+      \xLeftarrow{#?} :: Implicado con texto
+      \xleftrightarrow{#?} :: Doble sentido con texto
+      \xLeftrightarrow{#?} :: Equivale con texto
+      \xhookrightarrow{#?} :: Inclusión con texto
+      \xhookleftarrow{#?} :: Gancho izquierdo con texto
+      \xtwoheadrightarrow{#?} :: Sobreyección con texto
+      \xtwoheadleftarrow{#?} :: Dos puntas izquierda con texto
+      \xmapsto{#?} :: Asigna con texto
+      \xrightleftharpoons{#?} :: Equilibrio con texto
+      \xleftrightharpoons{#?} :: Equilibrio inverso con texto
+      \xrightharpoonup{#?} :: Arpón derecha con texto
+      \xleftharpoonup{#?} :: Arpón izquierda con texto
+      \xrightharpoondown{#?} :: Arpón abajo con texto
+      \xleftharpoondown{#?} :: Arpón abajo izquierda con texto
+      \xtofrom{#?} :: Ida y vuelta con texto
+      \overset{#?}{\rightarrow} :: Anotación sobre flecha
+      \underset{#?}{\rightarrow} :: Anotación bajo flecha
+    `),a("Flechas de texto",o`
+      @ ← → ↑ ↓ ↔ ↕ ↖ ↗ ↘ ↙ ⇐ ⇒ ⇑ ⇓ ⇔ ⇕ ⟵ ⟶ ⟷ ⟸ ⟹ ⟺ ↩ ↪ ↰ ↱ ↲ ↳ ↴ ↵ ↶ ↷ ↺ ↻ ⇄ ⇅ ⇆ ⇦ ⇧ ⇨ ⇩ ⇪ ➔ ➘ ➙ ➚ ➛ ➜ ➝ ➞ ➟ ➠ ➡ ➢ ➣ ➤ ➥ ➦ ➧ ➨ ➩ ➪ ➫ ➬ ➭ ➮ ➯ ➱ ➲ ➳ ➴ ➵ ➶ ➷ ➸ ➹ ➺ ➻ ➼ ➽ ➾ ⬅ ⬆ ⬇ ⬈ ⬉ ⬊ ⬋ ⬌ ⬍ ⤴ ⤵ ↯ ⟲ ⟳ ⏎ ⮐ ⮑ ⭠ ⭡ ⭢ ⭣ ◀ ▶ ▲ ▼ ◁ ▷ △ ▽ ◄ ► ☚ ☛ ☜ ☝ ☞ ☟
+    `)]),n("ops","Operadores","⊗",[a("Binarios",o`
+      @ +  ×~\times ÷~\div ·~\cdot ∘~\circ ∙~\bullet ∗~\ast ⋆~\star ±~\pm ∓~\mp ⊕~\oplus ⊖~\ominus ⊗~\otimes ⊘~\oslash ⊙~\odot ⊛~\circledast ⊚~\circledcirc ⊝~\circleddash ⊞~\boxplus ⊟~\boxminus ⊠~\boxtimes ⊡~\boxdot
+      @ ∧~\wedge ∨~\vee ∩~\cap ∪~\cup ⊓~\sqcap ⊔~\sqcup ⊎~\uplus ∖~\setminus ≀~\wr ⨿~\amalg †~\dagger ‡~\ddagger ⋄~\diamond ◁~\triangleleft ▷~\triangleright △~\bigtriangleup ▽~\bigtriangledown ◯~\bigcirc
+      @ ∔~\dotplus ⋇~\divideontimes ⋉~\ltimes ⋊~\rtimes ⋋~\leftthreetimes ⋌~\rightthreetimes ⊺~\intercal ⊼~\barwedge ⊻~\veebar ⋏~\curlywedge ⋎~\curlyvee ⩞~\doublebarwedge \centerdot \cdotp \And \plusmn
+    `),a("Grandes",o`
+      \sum_{#?}^{#?} :: Sumatoria
+      \prod_{#?}^{#?} :: Productoria
+      \coprod_{#?}^{#?} :: Coproducto
+      \int_{#?}^{#?} :: Integral
+      \bigcup_{#?}^{#?} :: Unión
+      \bigcap_{#?}^{#?} :: Intersección
+      \bigoplus_{#?}^{#?} :: Suma directa
+      \bigotimes_{#?}^{#?} :: Producto tensorial
+      \bigodot_{#?}^{#?} :: Producto punto
+      \bigvee_{#?}^{#?} :: Disyunción
+      \bigwedge_{#?}^{#?} :: Conjunción
+      \bigsqcup_{#?}^{#?} :: Unión disjunta
+      \biguplus_{#?}^{#?} :: Unión múltiple
+      @ ∑~\sum ∏~\prod ∐~\coprod ⨁~\bigoplus ⨂~\bigotimes ⨀~\bigodot
+      \sum\limits_{#?}^{#?} :: Límites arriba y abajo
+      \sum\nolimits_{#?}^{#?} :: Límites al lado
+    `),a("Con nombre",o`
+      @ \sin \cos \tan \cot \sec \csc \arcsin \arccos \arctan \sinh \cosh \tanh \coth \exp \log \ln \lg \det \dim \ker \hom \deg \arg \gcd \max \min \sup \inf \lim \limsup \liminf \Pr \bmod
+      @ \arctg \arcctg \ch \cosec \cotg \ctg \cth \sh \tg \th \argmax \argmin \injlim \projlim \varinjlim \varprojlim \varliminf \varlimsup
+      \operatorname{#?} :: Operador personalizado
+      \operatorname*{#?}_{#?} :: Operador con límites
+    `)]),n("greek","Griego y letras","αβ",[a("Minúsculas",o`
+      α ~ \alpha :: alfa
+      β ~ \beta :: beta
+      γ ~ \gamma :: gamma
+      δ ~ \delta :: delta
+      ε ~ \varepsilon :: épsilon
+      ϵ ~ \epsilon :: épsilon (lunar)
+      ζ ~ \zeta :: zeta
+      η ~ \eta :: eta
+      θ ~ \theta :: theta
+      ϑ ~ \vartheta :: theta (variante)
+      ι ~ \iota :: iota
+      κ ~ \kappa :: kappa
+      ϰ ~ \varkappa :: kappa (variante)
+      λ ~ \lambda :: lambda
+      μ ~ \mu :: mu :: micro
+      ν ~ \nu :: nu
+      ξ ~ \xi :: xi
+      ο ~ o :: ómicron
+      π ~ \pi :: pi
+      ϖ ~ \varpi :: pi (variante)
+      ρ ~ \rho :: rho
+      ϱ ~ \varrho :: rho (variante)
+      σ ~ \sigma :: sigma
+      ς ~ \varsigma :: sigma final
+      τ ~ \tau :: tau
+      υ ~ \upsilon :: ípsilon
+      φ ~ \varphi :: phi :: fi
+      ϕ ~ \phi :: phi (recta) :: fi
+      χ ~ \chi :: ji :: chi
+      ψ ~ \psi :: psi
+      ω ~ \omega :: omega
+      ϝ ~ \digamma :: digamma
+    `),a("Mayúsculas",o`
+      Α ~ A :: Alfa
+      Β ~ B :: Beta
+      Γ ~ \Gamma :: Gamma
+      Δ ~ \Delta :: Delta :: incremento
+      Ε ~ E :: Épsilon
+      Ζ ~ Z :: Zeta
+      Η ~ H :: Eta
+      Θ ~ \Theta :: Theta
+      Ι ~ I :: Iota
+      Κ ~ K :: Kappa
+      Λ ~ \Lambda :: Lambda
+      Μ ~ M :: Mu
+      Ν ~ N :: Nu
+      Ξ ~ \Xi :: Xi
+      Ο ~ O :: Ómicron
+      Π ~ \Pi :: Pi
+      Ρ ~ P :: Rho
+      Σ ~ \Sigma :: Sigma
+      Τ ~ T :: Tau
+      Υ ~ \Upsilon :: Ípsilon
+      Φ ~ \Phi :: Phi :: fi
+      Χ ~ X :: Ji
+      Ψ ~ \Psi :: Psi
+      Ω ~ \Omega :: Omega :: ohmio
+      @ \varGamma \varDelta \varTheta \varLambda \varXi \varPi \varSigma \varUpsilon \varPhi \varPsi \varOmega
+    `),a("Hebreo y letras especiales",o`
+      ℵ ~ \aleph :: álef
+      ℶ ~ \beth :: bet
+      ℷ ~ \gimel :: guímel
+      ℸ ~ \daleth :: dálet
+      ℏ ~ \hbar :: h barra :: planck reducida
+      ℓ ~ \ell :: ele cursiva :: litro longitud
+      ℘ ~ \wp :: p de Weierstrass
+      ℜ ~ \Re :: Parte real
+      ℑ ~ \Im :: Parte imaginaria
+      ∂ ~ \partial :: d parcial
+      ∇ ~ \nabla :: nabla
+      ı ~ \imath :: i sin punto
+      ȷ ~ \jmath :: j sin punto
+      ð ~ \eth :: eth
+      Å ~ \text{\AA} :: ángstrom
+      ∞ ~ \infty :: infinito
+      @ \hslash \Finv \Game \Bbbk \mho \backepsilon
+      @ \text{\aa} \text{\ae} \text{\AE} \text{\oe} \text{\OE} \text{\o} \text{\O} \text{\ss} \text{\i} \text{\j}
+    `),a("Griego con acentos (texto)",o`
+      @ ά έ ή ί ό ύ ώ ϊ ϋ ΐ ΰ Ά Έ Ή Ί Ό Ύ Ώ Ϊ Ϋ ϐ ϑ ϒ ϕ ϖ Ϙ ϙ Ϛ ϛ Ϝ ϝ Ϟ ϟ Ϡ ϡ ϰ ϱ ϲ ϴ ϵ ϶
+    `)]),n("fonts","Estilos de letra","ℬ",[...Z(),a("Comandos de estilo",o`
+      \mathbb{#?} :: Pizarra (doble trazo)
+      \mathcal{#?} :: Caligráfica
+      \mathscr{#?} :: Manuscrita
+      \mathfrak{#?} :: Gótica
+      \mathbf{#?} :: Negrita recta
+      \boldsymbol{#?} :: Negrita (símbolos y griego)
+      \bm{#?} :: Negrita matemática
+      \mathit{#?} :: Cursiva
+      \mathrm{#?} :: Redonda
+      \mathsf{#?} :: Palo seco
+      \mathtt{#?} :: Monoespaciada
+      \mathnormal{#?} :: Normal matemática
+      \text{#?} :: Texto dentro de fórmula
+      \textbf{#?} :: Texto en negrita
+      \textit{#?} :: Texto en cursiva
+      \textrm{#?} :: Texto redondo
+      \textsf{#?} :: Texto palo seco
+      \texttt{#?} :: Texto monoespaciado
+      \emph{#?} :: Énfasis
+      \boldsymbol{\alpha} :: Alfa en negrita
+      \boldsymbol{\nabla} :: Nabla en negrita
+      \mathbf{v} :: Vector v en negrita
+    `),a("Tamaño y color",o`
+      \tiny #? :: Diminuto
+      \scriptsize #? :: Muy pequeño
+      \footnotesize #? :: Nota al pie
+      \small #? :: Pequeño
+      \normalsize #? :: Normal
+      \large #? :: Grande
+      \Large #? :: Más grande
+      \LARGE #? :: Muy grande
+      \huge #? :: Enorme
+      \Huge #? :: Gigante
+      \displaystyle #? :: Estilo de bloque
+      \textstyle #? :: Estilo de línea
+      \scriptstyle #? :: Estilo de índice
+      \scriptscriptstyle #? :: Estilo de subíndice doble
+      \textcolor{red}{#?} :: Rojo
+      \textcolor{blue}{#?} :: Azul
+      \textcolor{green}{#?} :: Verde
+      \textcolor{orange}{#?} :: Naranja
+      \textcolor{purple}{#?} :: Morado
+      \textcolor{teal}{#?} :: Turquesa
+      \textcolor{magenta}{#?} :: Magenta
+      \textcolor{gray}{#?} :: Gris
+      \textcolor{#38bdf8}{#?} :: Color hexadecimal
+      \colorbox{yellow}{$#?$} :: Fondo amarillo (resaltado)
+      \colorbox{pink}{$#?$} :: Fondo rosa
+      \colorbox{lightblue}{$#?$} :: Fondo azul claro
+      \fcolorbox{red}{white}{$#?$} :: Caja con borde de color
+    `)]),n("accents","Acentos y decoraciones","â",[a("Acentos",o`
+      \hat{#?} :: Sombrero :: circunflejo unitario estimador
+      \bar{#?} :: Barra :: media promedio conjugado
+      \vec{#?} :: Flecha de vector
+      \dot{#?} :: Punto :: derivada
+      \ddot{#?} :: Dos puntos :: segunda derivada
+      \tilde{#?} :: Tilde :: virgulilla
+      \check{#?} :: Anticircunflejo :: caron
+      \acute{#?} :: Acento agudo
+      \grave{#?} :: Acento grave
+      \breve{#?} :: Breve
+      \mathring{#?} :: Anillo
+      \widehat{#?} :: Sombrero ancho
+      \widetilde{#?} :: Tilde ancha
+      \widecheck{#?} :: Caron ancho
+      \overline{#?} :: Línea superior
+      \underline{#?} :: Subrayado
+      \underbar{#?} :: Barra inferior
+      \utilde{#?} :: Tilde inferior
+      #?' :: Prima
+      #?'' :: Doble prima
+      #?^{*} :: Asterisco
+      #?^{\dagger} :: Daga
+      #?^{\circ} :: Grado
+      #?^{\prime} :: Prima (comando)
+    `),a("Flechas y llaves encima/debajo",o`
+      \overrightarrow{#?} :: Flecha derecha encima
+      \overleftarrow{#?} :: Flecha izquierda encima
+      \overleftrightarrow{#?} :: Flecha doble encima
+      \underrightarrow{#?} :: Flecha derecha debajo
+      \underleftarrow{#?} :: Flecha izquierda debajo
+      \underleftrightarrow{#?} :: Flecha doble debajo
+      \overrightharpoon{#?} :: Arpón derecha encima
+      \overleftharpoon{#?} :: Arpón izquierda encima
+      \Overrightarrow{#?} :: Flecha doble trazo encima
+      \overbrace{#?} :: Llave superior
+      \underbrace{#?} :: Llave inferior
+      \overbrace{#?}^{#?} :: Llave superior con texto
+      \underbrace{#?}_{#?} :: Llave inferior con texto
+      \overgroup{#?} :: Paréntesis superior
+      \undergroup{#?} :: Paréntesis inferior
+      \overlinesegment{#?} :: Segmento encima
+      \underlinesegment{#?} :: Segmento debajo
+      \overset{#?}{#?} :: Colocar encima
+      \underset{#?}{#?} :: Colocar debajo
+      \stackrel{#?}{#?} :: Apilar
+      \overset{#?}{\underset{#?}{#?}} :: Encima y debajo
+      #?\atop#? :: Uno sobre otro (sin barra)
+      \substack{#?\\#?} :: Subíndice en varias líneas
+    `),a("Tachados, cajas y resaltes",o`
+      \cancel{#?} :: Tachar (diagonal) :: cancelar simplificar
+      \bcancel{#?} :: Tachar (diagonal inversa)
+      \xcancel{#?} :: Tachar en cruz
+      \sout{#?} :: Tachado horizontal
+      \boxed{#?} :: Recuadro :: resultado caja
+      \fbox{#?} :: Recuadro de texto
+      \colorbox{yellow}{$#?$} :: Resaltado
+      \phase{#?} :: Fasor
+      \angl{#?} :: Ángulo actuarial
+      \phantom{#?} :: Espacio invisible
+      \hphantom{#?} :: Espacio invisible horizontal
+      \vphantom{#?} :: Espacio invisible vertical
+      \not#? :: Negar símbolo
+    `)]),n("delims","Delimitadores","⟨⟩",[a("Pares",o`
+      \left(#?\right) :: Paréntesis ajustables
+      \left[#?\right] :: Corchetes ajustables
+      \left\{#?\right\} :: Llaves ajustables
+      \left|#?\right| :: Barras ajustables
+      \left\|#?\right\| :: Doble barra ajustable :: norma
+      \left\langle#?\right\rangle :: Ángulos ajustables
+      \left\lfloor#?\right\rfloor :: Suelo ajustable
+      \left\lceil#?\right\rceil :: Techo ajustable
+      \left\lgroup#?\right\rgroup :: Grupo
+      \left\lmoustache#?\right\rmoustache :: Bigote
+      \llbracket#?\rrbracket :: Corchetes dobles
+      \lBrace#?\rBrace :: Llaves dobles
+      \left(#?\middle|#?\right) :: Con barra central :: condicional
+      \left.#?\right|_{#?} :: Solo barra derecha :: evaluar
+      \left\{#?\right. :: Solo llave izquierda
+      \left[#?\right) :: Corchete y paréntesis
+      \left(#?\right] :: Paréntesis y corchete
+      \langle#?|#?\rangle :: Bra-ket
+      \lvert#?\rvert :: Barras (valor absoluto)
+      \lVert#?\rVert :: Doble barra (norma)
+      \ulcorner#?\urcorner :: Esquinas superiores
+      \llcorner#?\lrcorner :: Esquinas inferiores
+    `),a("Sueltos y tamaños",o`
+      @ ( ) [ ] \{ \} | \| \langle \rangle \lfloor \rfloor \lceil \rceil \lvert \rvert \lVert \rVert \lgroup \rgroup \lmoustache \rmoustache \ulcorner \urcorner \llcorner \lrcorner \llbracket \rrbracket \lBrace \rBrace \backslash \vert \Vert
+      \big(#?\big) :: Paréntesis grandes
+      \Big(#?\Big) :: Paréntesis más grandes
+      \bigg(#?\bigg) :: Paréntesis muy grandes
+      \Bigg(#?\Bigg) :: Paréntesis enormes
+      \big[#?\big] :: Corchetes grandes
+      \Big\{#?\Big\} :: Llaves grandes
+      \bigm| :: Barra central grande
+      \Bigm| :: Barra central más grande
+      @ ⟨ ⟩ ⟦ ⟧ ⟪ ⟫ ⌈ ⌉ ⌊ ⌋ ⦃ ⦄ ⦅ ⦆ ⦇ ⦈ ⦉ ⦊ ⦋ ⦌ ⟮ ⟯ ❨ ❩ ❪ ❫ ❬ ❭ ❮ ❯ ❰ ❱ ❲ ❳ ❴ ❵ 〈 〉 《 》 「 」 『 』 【 】 〔 〕 〖 〗
+    `)]),n("layout","Estructuras y espaciado","🧱",[a("Entornos",o`
+      \begin{aligned}#? &= #?\\#? &= #?\end{aligned} :: Ecuaciones alineadas
+      \begin{gathered}#?\\#?\end{gathered} :: Ecuaciones centradas
+      \begin{cases}#? & \text{si }#?\\#? & \text{si }#?\end{cases} :: Casos con condición
+      \begin{rcases}#?\\#?\end{rcases}#? :: Llave a la derecha
+      \begin{array}{c|c}#? & #?\\\hline#? & #?\end{array} :: Tabla con líneas
+      \begin{array}{ccc}#? & #? & #?\\#? & #? & #?\end{array} :: Tabla 2×3
+      \begin{array}{l}#?\\#?\\#?\end{array} :: Lista en columna
+      \begin{alignedat}{2}#? &= #? &\quad#? &= #?\end{alignedat} :: Alineación múltiple
+      \begin{array}{r}#?\\+\;#?\\\hline#?\end{array} :: Suma en vertical
+      \begin{array}{r}#?\\\times\;#?\\\hline#?\end{array} :: Multiplicación en vertical
+      \begin{array}{r|l}#? & #?\\\hline#? & #?\end{array} :: División / tabla en T
+      \displaystyle#? :: Forzar tamaño grande
+      \genfrac{(}{)}{0pt}{}{#?}{#?} :: Fracción generalizada
+      \\ :: Salto de línea
+      & :: Separador de columna
+    `),a("Espacios",o`
+      \, :: Espacio fino
+      \: :: Espacio medio
+      \; :: Espacio grueso
+      \! :: Espacio negativo
+      \quad :: Espacio cuadratín
+      \qquad :: Doble cuadratín
+      \enspace :: Medio cuadratín
+      ~ :: Espacio irrompible
+      \hspace{1em} :: Espacio a medida
+      \kern{1em} :: Kern
+      \thinspace :: Espacio fino (nombre)
+      \medspace :: Espacio medio (nombre)
+      \thickspace :: Espacio grueso (nombre)
+      \negthinspace :: Negativo fino
+      \negmedspace :: Negativo medio
+      \negthickspace :: Negativo grueso
+      \mathstrut :: Puntal
+      \smash{#?} :: Sin altura
+      \mathllap{#?} :: Solapar a la izquierda
+      \mathrlap{#?} :: Solapar a la derecha
+      \mathclap{#?} :: Solapar centrado
+      \raisebox{0.25em}{#?} :: Elevar
+    `),a("Puntos y símbolos sueltos",o`
+      … ~ \ldots :: Puntos suspensivos (bajos)
+      ⋯ ~ \cdots :: Puntos centrados
+      ⋮ ~ \vdots :: Puntos verticales
+      ⋱ ~ \ddots :: Puntos diagonales
+      @ \dots \dotsb \dotsc \dotsi \dotsm \dotso \mathellipsis \ldotp \cdotp
+      @ ′~\prime ‵~\backprime ∞~\infty ∅~\emptyset ∠~\angle √~\surd ⊤~\top ⊥~\bot ♭~\flat ♮~\natural ♯~\sharp ♣~\clubsuit ♢~\diamondsuit ♡~\heartsuit ♠~\spadesuit ✓~\checkmark ✠~\maltese Ⓡ~\circledR Ⓢ~\circledS ★~\bigstar ◊~\lozenge ⧫~\blacklozenge ■~\blacksquare ▲~\blacktriangle ▼~\blacktriangledown ◀~\blacktriangleleft ▶~\blacktriangleright ▽~\triangledown
+      @ \# \% \& \_ \$ \S \P \dag \ddag \pounds \yen \copyright \degree \diagup \diagdown \KaTeX \LaTeX \TeX
+    `)]),n("stats","Probabilidad y estadística","🎲",[a("Probabilidad",o`
+      P(#?) :: Probabilidad
+      P(#?\mid#?) :: Probabilidad condicional
+      P(A\cap B) :: Probabilidad de la intersección
+      P(A\cup B)=P(A)+P(B)-P(A\cap B) :: Regla de la suma
+      P(A\mid B)=\frac{P(B\mid A)P(A)}{P(B)} :: Teorema de Bayes
+      P(A\cap B)=P(A)P(B) :: Sucesos independientes
+      P(\overline{A})=1-P(A) :: Suceso contrario
+      \Omega :: Espacio muestral
+      E[#?] :: Esperanza
+      \mathbb{E}[#?] :: Esperanza (pizarra)
+      \operatorname{Var}(#?) :: Varianza
+      \operatorname{Cov}(#?,#?) :: Covarianza
+      \sigma_{#?} :: Desviación típica
+      X\sim\mathcal{N}(\mu,\sigma^2) :: Distribución normal
+      X\sim B(n,p) :: Distribución binomial
+      X\sim\operatorname{Poisson}(\lambda) :: Distribución de Poisson
+      X\sim U(a,b) :: Distribución uniforme
+      X\sim\operatorname{Exp}(\lambda) :: Distribución exponencial
+      P(X=k)=\binom{n}{k}p^k(1-p)^{n-k} :: Función binomial
+      P(X=k)=\frac{\lambda^ke^{-\lambda}}{k!} :: Función de Poisson
+      f(x)=\frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}} :: Densidad normal
+      \perp\!\!\!\perp :: Independencia
+      ⫫ :: Independiente (símbolo)
+      \Pr(#?) :: Pr
+      \chi^2 :: Ji cuadrado
+    `),a("Estadística",o`
+      \bar{x} :: Media muestral
+      \mu :: Media poblacional
+      \tilde{x} :: Mediana
+      \hat{#?} :: Estimador
+      s^2 :: Varianza muestral
+      \sigma^2 :: Varianza poblacional
+      \bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i :: Fórmula de la media
+      s=\sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2} :: Desviación típica muestral
+      \sigma=\sqrt{\frac{1}{N}\sum_{i=1}^{N}(x_i-\mu)^2} :: Desviación típica poblacional
+      z=\frac{x-\mu}{\sigma} :: Puntuación z :: tipificar
+      t=\frac{\bar{x}-\mu}{s/\sqrt{n}} :: Estadístico t
+      \bar{x}\pm z_{\alpha/2}\frac{\sigma}{\sqrt{n}} :: Intervalo de confianza
+      r=\frac{\sum(x_i-\bar{x})(y_i-\bar{y})}{\sqrt{\sum(x_i-\bar{x})^2\sum(y_i-\bar{y})^2}} :: Correlación de Pearson
+      \hat{y}=\beta_0+\beta_1x :: Recta de regresión
+      R^2 :: Coeficiente de determinación
+      H_0 :: Hipótesis nula
+      H_1 :: Hipótesis alternativa
+      \alpha :: Nivel de significación
+      p\text{-valor} :: p-valor
+      \chi^2=\sum\frac{(O_i-E_i)^2}{E_i} :: Estadístico ji cuadrado
+      Q_1 :: Primer cuartil
+      Q_3 :: Tercer cuartil
+      \operatorname{Mo} :: Moda
+      \operatorname{Me} :: Mediana
+      \operatorname{RIC} :: Rango intercuartílico
+      n :: Tamaño de muestra
+      \nu :: Grados de libertad
+      \sum x_i :: Suma de datos
+      f_i :: Frecuencia absoluta
+      \varepsilon :: Error
+    `)])],Q=["SPACE","EXCLAMATION","MARK","NUMBER","SIGN","DOLLAR","PERCENT","AMPERSAND","APOSTROPHE","LEFT","PARENTHESIS","RIGHT","ASTERISK","PLUS","COMMA","HYPHEN-MINUS","FULL","STOP","SOLIDUS","DIGIT","ZERO","ONE","TWO","THREE","FOUR","SIX","SEVEN","NINE","COLON","SEMICOLON","LESS-THAN","EQUALS","GREATER-THAN","QUESTION","COMMERCIAL","AT","LATIN","CAPITAL","LETTER","A","B","C","D","E","F","G","H","I","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","SQUARE","BRACKET","REVERSE","CIRCUMFLEX","ACCENT","LOW","LINE","GRAVE","SMALL","J","CURLY","VERTICAL","TILDE","NO-BREAK","INVERTED","CENT","POUND","CURRENCY","YEN","BROKEN","BAR","SECTION","DIAERESIS","COPYRIGHT","FEMININE","ORDINAL","INDICATOR","LEFT-POINTING","DOUBLE","ANGLE","QUOTATION","NOT","SOFT","HYPHEN","REGISTERED","MACRON","DEGREE","PLUS-MINUS","SUPERSCRIPT","ACUTE","MICRO","PILCROW","MIDDLE","DOT","CEDILLA","MASCULINE","RIGHT-POINTING","VULGAR","FRACTION","QUARTER","HALF","QUARTERS","WITH","RING","ABOVE","AE","ETH","MULTIPLICATION","STROKE","THORN","SHARP","DIVISION","BREVE","OGONEK","CARON","DOTLESS","LIGATURE","IJ","KRA","PRECEDED","BY","ENG","OE","LONG","HOOK","HORN","DENTAL","CLICK","LATERAL","ALVEOLAR","RETROFLEX","BELOW","TURNED","ALPHA","OPEN","CURL","TAIL","REVERSED","SCHWA","CLOSED","SCRIPT","GAMMA","RAMS","HENG","IOTA","BELT","LEZH","LEG","BARRED","OMEGA","PHI","FISHHOOK","ESH","AND","SQUAT","UPSILON","EZH","GLOTTAL","PHARYNGEAL","VOICED","FRICATIVE","STRETCHED","BILABIAL","CROSSED-TAIL","DZ","DIGRAPH","DEZH","TS","TESH","TC","FENG","LS","LZ","PERCUSSIVE","BIDENTAL","MODIFIER","PRIME","ARROWHEAD","UP","DOWN","TRIANGULAR","CENTRED","TACK","MINUS","RHOTIC","CROSS","EXTRA-HIGH","TONE","HIGH","MID","EXTRA-LOW","YIN","DEPARTING","YANG","VOICING","UNASPIRATED","RAISED","BEGIN","END","SHELF","ARROW","COMBINING","OVERLAY","GREEK","HETA","ARCHAIC","SAMPI","NUMERAL","LOWER","PAMPHYLIAN","DIGAMMA","YPOGEGRAMMENI","LUNATE","SIGMA","SYMBOL","DOTTED","YOT","TONOS","DIALYTIKA","ANO","TELEIA","EPSILON","ETA","OMICRON","BETA","DELTA","ZETA","THETA","KAPPA","LAMDA","MU","NU","XI","PI","RHO","TAU","CHI","PSI","FINAL","KAI","KOPPA","STIGMA","COPTIC","SHEI","FEI","KHEI","HORI","GANGIA","SHIMA","DEI","SHO","SAN","CYRILLIC","BE","VE","GHE","DE","IE","ZHE","ZE","SHORT","KA","EL","EM","EN","PE","ER","ES","TE","EF","HA","TSE","CHE","SHA","SHCHA","HARD","YERU","YU","YA","IO","DJE","GJE","UKRAINIAN","DZE","BYELORUSSIAN-UKRAINIAN","YI","JE","LJE","NJE","TSHE","KJE","DZHE","HEBREW","ALEF","BET","GIMEL","DALET","HE","VAV","ZAYIN","HET","TET","YOD","KAF","LAMED","MEM","NUN","SAMEKH","AYIN","TSADI","QOF","RESH","SHIN","TAV","AFGHANI","ARABIC","HAMZA","MADDA","WAW","YEH","BEH","TEH","MARBUTA","THEH","JEEM","HAH","KHAH","DAL","THAL","REH","ZAIN","SEEN","SHEEN","SAD","DAD","TAH","ZAH","AIN","GHAIN","TATWEEL","FEH","QAF","LAM","MEEM","NOON","HEH","MAKSURA","BENGALI","RUPEE","THAI","BAHT","RUNIC","FEHU","FEOH","FE","URUZ","UR","YR","THURISAZ","THURS","ANSUZ","OS","AC","AESC","LONG-BRANCH-OSS","SHORT-TWIG-OSS","ON","RAIDO","RAD","REID","KAUNA","CEN","KAUN","GEBO","GYFU","GAR","WUNJO","WYNN","HAGLAZ","HAEGL","LONG-BRANCH-HAGALL","SHORT-TWIG-HAGALL","NAUDIZ","NYD","NAUD","SHORT-TWIG-NAUD","DOTTED-N","ISAZ","IS","ISS","JERAN","GER","LONG-BRANCH-AR","SHORT-TWIG-AR","IWAZ","EOH","PERTHO","PEORTH","ALGIZ","EOLHX","SOWILO","SIGEL","LONG-BRANCH-SOL","SHORT-TWIG-SOL","TIWAZ","TIR","TYR","SHORT-TWIG-TYR","BERKANAN","BEORC","BJARKAN","SHORT-TWIG-BJARKAN","DOTTED-P","OPEN-P","EHWAZ","EH","MANNAZ","MAN","LONG-BRANCH-MADR","SHORT-TWIG-MADR","LAUKAZ","LAGU","LOGR","DOTTED-L","INGWAZ","ING","DAGAZ","DAEG","OTHALAN","ETHEL","EAR","IOR","CWEORTH","CALC","CEALC","STAN","LONG-BRANCH-YR","SHORT-TWIG-YR","ICELANDIC-YR","SINGLE","PUNCTUATION","MULTIPLE","ARLAUG","TVIMADUR","BELGTHOR","KHMER","RIEL","SUBSCRIPT","THIN","HAIR","WIDTH","NON-BREAKING","FIGURE","DASH","HORIZONTAL","LOW-9","HIGH-REVERSED-9","DAGGER","BULLET","LEADER","ELLIPSIS","HYPHENATION","POINT","NARROW","PER","MILLE","TEN","THOUSAND","TRIPLE","CARET","REFERENCE","INTERROBANG","OVERLINE","UNDERTIE","CHARACTER","TIE","INSERTION","ASTERISM","SLASH","QUILL","TIRONIAN","ET","BLACK","LEFTWARDS","RIGHTWARDS","CLOSE","ASTERISKS","ALIGNED","VERTICALLY","SWUNG","FLOWER","QUADRUPLE","FIVE","TRICOLON","DOTS","EIGHT","EURO-CURRENCY","CRUZEIRO","FRENCH","FRANC","LIRA","MILL","NAIRA","PESETA","WON","NEW","SHEQEL","DONG","EURO","KIP","TUGRIK","DRACHMA","GERMAN","PENNY","PESO","GUARANI","AUSTRAL","HRYVNIA","CEDI","LIVRE","TOURNOIS","SPESMILO","TENGE","INDIAN","TURKISH","NORDIC","MANAT","RUBLE","LARI","BITCOIN","SOM","ENCLOSING","CIRCLE","ACCOUNT","OF","ADDRESSED","TO","THE","SUBJECT","DOUBLE-STRUCK","CELSIUS","CENTRE","CARE","CADA","UNA","EULER","CONSTANT","SCRUPLE","FAHRENHEIT","BLACK-LETTER","PLANCK","OVER","NUMERO","SOUND","RECORDING","PRESCRIPTION","TAKE","RESPONSE","SERVICE","TELEPHONE","TRADE","VERSICLE","OUNCE","OHM","KELVIN","ANGSTROM","ESTIMATED","INFORMATION","SOURCE","ROTATED","FACSIMILE","N-ARY","SUMMATION","SANS-SERIF","ITALIC","PROPERTY","AKTIESELSKAB","FOR","SAMARITAN","SEVENTH","NINTH","TENTH","THIRD","THIRDS","FIFTH","FIFTHS","SIXTH","SIXTHS","EIGHTH","EIGHTHS","NUMERATOR","ROMAN","ELEVEN","TWELVE","FIFTY","HUNDRED","LATE","FORM","EARLY","UPWARDS","DOWNWARDS","NORTH","WEST","EAST","SOUTH","WAVE","HEADED","FROM","BASE","LOOP","ZIGZAG","TIP","CORNER","ANTICLOCKWISE","TOP","SEMICIRCLE","CLOCKWISE","HARPOON","BARB","PAIRED","ARROWS","SQUIGGLE","DASHED","WHITE","PEDESTAL","WALL","OPEN-HEADED","ALL","COMPLEMENT","PARTIAL","DIFFERENTIAL","THERE","EXISTS","DOES","EXIST","EMPTY","SET","INCREMENT","NABLA","ELEMENT","AN","CONTAINS","AS","MEMBER","CONTAIN","PROOF","PRODUCT","COPRODUCT","MINUS-OR-PLUS","OPERATOR","ROOT","CUBE","FOURTH","PROPORTIONAL","INFINITY","MEASURED","SPHERICAL","DIVIDES","DIVIDE","PARALLEL","LOGICAL","OR","INTERSECTION","UNION","INTEGRAL","CONTOUR","SURFACE","VOLUME","THEREFORE","BECAUSE","RATIO","PROPORTION","EXCESS","GEOMETRIC","HOMOTHETIC","LAZY","SINE","WREATH","ASYMPTOTICALLY","EQUAL","APPROXIMATELY","BUT","ACTUALLY","NEITHER","NOR","ALMOST","EQUIVALENT","GEOMETRICALLY","DIFFERENCE","BETWEEN","APPROACHES","LIMIT","IMAGE","IN","CORRESPONDS","ESTIMATES","EQUIANGULAR","STAR","DEFINITION","QUESTIONED","IDENTICAL","STRICTLY","MUCH","PRECEDES","SUCCEEDS","PRECEDE","SUCCEED","SUBSET","SUPERSET","MULTISET","ORIGINAL","CAP","CUP","CIRCLED","TIMES","SQUARED","ASSERTION","MODELS","TRUE","FORCES","TURNSTILE","PROVE","FORCE","NEGATED","UNDER","RELATION","NORMAL","SUBGROUP","MULTIMAP","HERMITIAN","CONJUGATE","MATRIX","INTERCALATE","XOR","NAND","ARC","TRIANGLE","DIAMOND","BOWTIE","FACTOR","SEMIDIRECT","PITCHFORK","VERY","MIDLINE","DIAGONAL","OVERBAR","UNDERBAR","STROKES","NOTATION","BAG","MEMBERSHIP","DIAMETER","ELECTRIC","HOUSE","PROJECTIVE","PERSPECTIVE","WAVY","CEILING","FLOOR","BOTTOM","CROP","LOZENGE","SEGMENT","SECTOR","RECORDER","POSITION","VIEWDATA","PLACE","INTEREST","WATCH","HOURGLASS","FROWN","SMILE","BARS","OPTION","KEY","ERASE","RECTANGLE","BOX","KEYBOARD","BENZENE","CYLINDRICITY","AROUND-PROFILE","SYMMETRY","TOTAL","RUNOUT","DIMENSION","ORIGIN","CONICAL","TAPER","SLOPE","COUNTERBORE","COUNTERSINK","APL","FUNCTIONAL","I-BEAM","SQUISH","QUAD","JOT","STILE","BACKSLASH","VANE","DEL","QUOTE","SHOE","ZILDE","CHECK","SHOULDERED","BELL","CONTINUOUS","UNDERLINE","DISCONTINUOUS","EMPHASIS","COMPOSITION","ENTER","ALTERNATIVE","HELM","NOTCH","NORTHWEST","UNDO","MONOSTABLE","HYSTERESIS","OPEN-CIRCUIT-OUTPUT","H-TYPE","L-TYPE","PASSIVE-PULL-DOWN-OUTPUT","PASSIVE-PULL-UP-OUTPUT","DIRECT","CURRENT","SOFTWARE-FUNCTION","DECIMAL","SEPARATOR","PREVIOUS","PAGE","NEXT","PRINT","SCREEN","CLEAR","UPPER","EXTENSION","PIECE","RADICAL","SCAN","LINE-1","LINE-3","LINE-7","LINE-9","DENTISTRY","LIGHT","FOOT","RETURN","EJECT","METRICAL","SHORTS","JOINED","TRISEME","TETRASEME","PENTASEME","EARTH","GROUND","FUSE","TORTOISE","SHELL","TRAPEZIUM","STRAIGHTNESS","FLATNESS","ELECTRICAL","EXPONENT","UP-POINTING","DOWN-POINTING","ALARM","CLOCK","STOPWATCH","TIMER","FLOWING","SAND","MEDIUM","RECORD","POWER","ON-OFF","SLEEP","OBSERVER","EYE","NULL","START","HEADING","TEXT","TRANSMISSION","ENQUIRY","ACKNOWLEDGE","BACKSPACE","TABULATION","FEED","CARRIAGE","SHIFT","OUT","DATA","LINK","ESCAPE","DEVICE","CONTROL","NEGATIVE","SYNCHRONOUS","IDLE","BLOCK","CANCEL","SUBSTITUTE","FILE","GROUP","UNIT","DELETE","BLANK","NEWLINE","OCR","CHAIR","FORK","BUCKLE","BOW","BRANCH","BANK","IDENTIFICATION","AMOUNT","CUSTOMER","THIRTEEN","FOURTEEN","FIFTEEN","SIXTEEN","SEVENTEEN","EIGHTEEN","NINETEEN","TWENTY","PARENTHESIZED","DRAWINGS","HEAVY","SHADE","DARK","QUADRANT","ROUNDED","CORNERS","CONTAINING","FILL","ORTHOGONAL","CROSSHATCH","PARALLELOGRAM","POINTER","FISHEYE","BULLSEYE","INVERSE","CIRCULAR","BISECTING","LARGE","SUN","RAYS","CLOUD","UMBRELLA","SNOWMAN","COMET","LIGHTNING","THUNDERSTORM","ASCENDING","NODE","DESCENDING","CONJUNCTION","OPPOSITION","BALLOT","SALTIRE","RAIN","DROPS","HOT","BEVERAGE","SHOGI","SHAMROCK","FLORAL","HEART","POINTING","INDEX","SKULL","CROSSBONES","CAUTION","RADIOACTIVE","BIOHAZARD","CADUCEUS","ANKH","ORTHODOX","LORRAINE","JERUSALEM","CRESCENT","FARSI","ADI","SHAKTI","HAMMER","SICKLE","PEACE","TRIGRAM","HEAVEN","LAKE","FIRE","THUNDER","WIND","WATER","MOUNTAIN","WHEEL","DHARMA","FROWNING","FACE","SMILING","FIRST","MOON","LAST","MERCURY","FEMALE","MALE","JUPITER","SATURN","URANUS","NEPTUNE","PLUTO","ARIES","TAURUS","GEMINI","CANCER","LEO","VIRGO","LIBRA","SCORPIUS","SAGITTARIUS","CAPRICORN","AQUARIUS","PISCES","CHESS","KING","QUEEN","ROOK","BISHOP","KNIGHT","PAWN","SPADE","SUIT","CLUB","SPRINGS","NOTE","BEAMED","NOTES","SIXTEENTH","MUSIC","FLAT","NATURAL","SYRIAC","UNIVERSAL","RECYCLING","TYPE-1","PLASTICS","TYPE-2","TYPE-3","TYPE-4","TYPE-5","TYPE-6","TYPE-7","GENERIC","MATERIALS","RECYCLED","PAPER","PARTIALLY-RECYCLED","PERMANENT","WHEELCHAIR","DIE","FACE-1","FACE-2","FACE-3","FACE-4","FACE-5","FACE-6","MONOGRAM","DIGRAM","GREATER","LESSER","FLAG","PICK","ANCHOR","CROSSED","SWORDS","STAFF","AESCULAPIUS","SCALES","ALEMBIC","GEAR","HERMES","ATOM","FLEUR-DE-LIS","OUTLINED","LINES","CONVERGING","WARNING","VOLTAGE","DOUBLED","INTERLOCKED","MARRIAGE","DIVORCE","UNMARRIED","PARTNERSHIP","COFFIN","FUNERAL","URN","NEUTER","CERES","PALLAS","JUNO","VESTA","CHIRON","LILITH","SEXTILE","SEMISEXTILE","QUINCUNX","SESQUIQUADRATE","SOCCER","BALL","BASEBALL","DRAUGHTS","WITHOUT","SNOW","BEHIND","CROSSING","LANES","DISABLED","CAR","OPHIUCHUS","SLIDING","HELMET","CHAINS","NO","ENTRY","ALTERNATE","ONE-WAY","WAY","TRAFFIC","TWO-WAY","LANE","MERGE","DRIVE","SLOW","FALLING","TRUCK","RESTRICTED","ENTRY-1","ENTRY-2","ASTRONOMICAL","PENTAGRAM","RIGHT-HANDED","INTERLACED","LEFT-HANDED","SHIELD","SHINTO","SHRINE","CHURCH","CASTLE","HISTORIC","SITE","HUB","HANDLES","MAP","LIGHTHOUSE","FOUNTAIN","HOLE","FERRY","SAILBOAT","SKIER","ICE","SKATE","PERSON","TENT","JAPANESE","HEADSTONE","GRAVEYARD","FUEL","PUMP","STRIPE","SAFETY","SCISSORS","BLADE","LOCATION","TAPE","AIRPLANE","ENVELOPE","FIST","HAND","VICTORY","WRITING","PENCIL","NIB","SHADOWED","MALTESE","DAVID","TEARDROP-SPOKED","BALLOON-SPOKED","CLUB-SPOKED","POINTED","SPARKLES","STRESS","PINWHEEL","SPOKED","RECTILINEAR","PETALLED","FLORETTE","SNOWFLAKE","TIGHT","TRIFOLIATE","CHEVRON","SPARKLE","PROPELLER","DROP-SHADOWED","ORNAMENT","CURVED","STEM","PARAGRAPH","FLATTENED","DINGBAT","WIDE-HEADED","DRAFTING","ROUND-TIPPED","TRIANGLE-HEADED","THREE-D","TOP-LIGHTED","BOTTOM-LIGHTED","CONCAVE-POINTED","RIGHT-SHADED","LEFT-SHADED","BACK-TILTED","FRONT-TILTED","RIGHT-SHADOWED","NOTCHED","WHITE-FEATHERED","BLACK-FEATHERED","TEARDROP-BARBED","TEARDROP-SHANKED","WEDGE-TAILED","OPEN-OUTLINED","DIMENSIONAL","PERPENDICULAR","S-SHAPED","DELIMITER","INSIDE","PRECEDING","MATHEMATICAL","RISING","OPENING","OUTER","JOIN","DIVIDED","RULE","CONCAVE-SIDED","TICK","GAPPED","BRAILLE","PATTERN","DOTS-1","DOTS-2","DOTS-12","DOTS-3","DOTS-13","DOTS-23","DOTS-123","DOTS-4","DOTS-14","DOTS-24","DOTS-124","DOTS-34","DOTS-134","DOTS-234","DOTS-1234","DOTS-5","DOTS-15","DOTS-25","DOTS-125","DOTS-35","DOTS-135","DOTS-235","DOTS-1235","DOTS-45","DOTS-145","DOTS-245","DOTS-1245","DOTS-345","DOTS-1345","DOTS-2345","DOTS-12345","DOTS-6","DOTS-16","DOTS-26","DOTS-126","DOTS-36","DOTS-136","DOTS-236","DOTS-1236","DOTS-46","DOTS-146","DOTS-246","DOTS-1246","DOTS-346","DOTS-1346","DOTS-2346","DOTS-12346","DOTS-56","DOTS-156","DOTS-256","DOTS-1256","DOTS-356","DOTS-1356","DOTS-2356","DOTS-12356","DOTS-456","DOTS-1456","DOTS-2456","DOTS-12456","DOTS-3456","DOTS-13456","DOTS-23456","DOTS-123456","DOTS-7","DOTS-17","DOTS-27","DOTS-127","DOTS-37","DOTS-137","DOTS-237","DOTS-1237","DOTS-47","DOTS-147","DOTS-247","DOTS-1247","DOTS-347","DOTS-1347","DOTS-2347","DOTS-12347","DOTS-57","DOTS-157","DOTS-257","DOTS-1257","DOTS-357","DOTS-1357","DOTS-2357","DOTS-12357","DOTS-457","DOTS-1457","DOTS-2457","DOTS-12457","DOTS-3457","DOTS-13457","DOTS-23457","DOTS-123457","DOTS-67","DOTS-167","DOTS-267","DOTS-1267","DOTS-367","DOTS-1367","DOTS-2367","DOTS-12367","DOTS-467","DOTS-1467","DOTS-2467","DOTS-12467","DOTS-3467","DOTS-13467","DOTS-23467","DOTS-123467","DOTS-567","DOTS-1567","DOTS-2567","DOTS-12567","DOTS-3567","DOTS-13567","DOTS-23567","DOTS-123567","DOTS-4567","DOTS-14567","DOTS-24567","DOTS-124567","DOTS-34567","DOTS-134567","DOTS-234567","DOTS-1234567","DOTS-8","DOTS-18","DOTS-28","DOTS-128","DOTS-38","DOTS-138","DOTS-238","DOTS-1238","DOTS-48","DOTS-148","DOTS-248","DOTS-1248","DOTS-348","DOTS-1348","DOTS-2348","DOTS-12348","DOTS-58","DOTS-158","DOTS-258","DOTS-1258","DOTS-358","DOTS-1358","DOTS-2358","DOTS-12358","DOTS-458","DOTS-1458","DOTS-2458","DOTS-12458","DOTS-3458","DOTS-13458","DOTS-23458","DOTS-123458","DOTS-68","DOTS-168","DOTS-268","DOTS-1268","DOTS-368","DOTS-1368","DOTS-2368","DOTS-12368","DOTS-468","DOTS-1468","DOTS-2468","DOTS-12468","DOTS-3468","DOTS-13468","DOTS-23468","DOTS-123468","DOTS-568","DOTS-1568","DOTS-2568","DOTS-12568","DOTS-3568","DOTS-13568","DOTS-23568","DOTS-123568","DOTS-4568","DOTS-14568","DOTS-24568","DOTS-124568","DOTS-34568","DOTS-134568","DOTS-234568","DOTS-1234568","DOTS-78","DOTS-178","DOTS-278","DOTS-1278","DOTS-378","DOTS-1378","DOTS-2378","DOTS-12378","DOTS-478","DOTS-1478","DOTS-2478","DOTS-12478","DOTS-3478","DOTS-13478","DOTS-23478","DOTS-123478","DOTS-578","DOTS-1578","DOTS-2578","DOTS-12578","DOTS-3578","DOTS-13578","DOTS-23578","DOTS-123578","DOTS-4578","DOTS-14578","DOTS-24578","DOTS-124578","DOTS-34578","DOTS-134578","DOTS-234578","DOTS-1234578","DOTS-678","DOTS-1678","DOTS-2678","DOTS-12678","DOTS-3678","DOTS-13678","DOTS-23678","DOTS-123678","DOTS-4678","DOTS-14678","DOTS-24678","DOTS-124678","DOTS-34678","DOTS-134678","DOTS-234678","DOTS-1234678","DOTS-5678","DOTS-15678","DOTS-25678","DOTS-125678","DOTS-35678","DOTS-135678","DOTS-235678","DOTS-1235678","DOTS-45678","DOTS-145678","DOTS-245678","DOTS-1245678","DOTS-345678","DOTS-1345678","DOTS-2345678","DOTS-12345678","TWO-HEADED","ARROW-TAIL","DIRECTLY","THEN","CURVING","RIGHT-SIDE","LEFT-SIDE","SEMICIRCULAR","THROUGH","BESIDE","HEAD","FISH","SPOT","TYPE","BINDING","FENCE","VARIANT","OBLIQUE","ARM","ENDING","SUPERIMPOSED","ANTICLOCKWISE-ROTATED","SQUARES","SERIFS","WIGGLY","INCOMPLETE","DOUBLE-ENDED","CONTOURED","OUTLINE","INCREASES","SHUFFLE","SLANTED","GLEICH","STARK","THERMODYNAMIC","ERROR-BARRED","RULE-DELAYED","BIG","TINY","MINY","MODULO","SUM","FINITE","PART","AVERAGE","CIRCULATION","FUNCTION","INTEGRATION","RECTANGULAR","PATH","AROUND","POLE","INCLUDING","QUATERNION","SCHEMA","PIPING","PROJECTION","VECTOR","SMASH","INTERIOR","RIGHTHAND","RELATIONAL","AMALGAMATION","INTERSECTING","SLOPING","OVERLAPPING","VEE","DOMAIN","ANTIRESTRICTION","RANGE","SIMILAR","CONGRUENT","CONSECUTIVE","SIGNS","APPROXIMATE","SINGLE-LINE","DOUBLE-LINE","NESTED","CURVE","SMALLER","THAN","LARGER","BUMPY","TEE","TRANSVERSAL","FORKING","NONFORKING","NEGATION","BINARY","PENTAGON","HEXAGON","ELLIPSE","BACKSLANTED","OVAL","HOOKED","BENT","OCTAGON","IDEOGRAPHIC","DITTO","ITERATION","LENTICULAR","HIRAGANA","GA","KI","GI","KU","GU","KE","GE","KO","GO","SA","ZA","SI","ZI","SU","ZU","SE","SO","ZO","TA","DA","TI","DI","TU","DU","DO","NA","NI","NE","BA","PA","HI","BI","HU","BU","PU","HO","BO","PO","MA","MI","ME","MO","YO","RA","RI","RU","RE","RO","WA","WI","WE","WO","VU","KATAKANA","VA","VI","VO","KATAKANA-HIRAGANA","PROLONGED","THIRTY","CAL","KCAL","MG","KG","HZ","KHZ","MHZ","GHZ","ML","DL","MM","CM","KM","CUBED","KPA","MPA","MV","KV","MW","KW","MEGA","CC","DB","MOL","PH","CJK","UNIFIED","IDEOGRAPH-4E00","IDEOGRAPH-4E03","IDEOGRAPH-4E07","IDEOGRAPH-4E09","IDEOGRAPH-4E0A","IDEOGRAPH-4E0B","IDEOGRAPH-4E2D","IDEOGRAPH-4E5D","IDEOGRAPH-4E8C","IDEOGRAPH-4E94","IDEOGRAPH-4EBA","IDEOGRAPH-5148","IDEOGRAPH-516B","IDEOGRAPH-516D","IDEOGRAPH-5186","IDEOGRAPH-5206","IDEOGRAPH-5341","IDEOGRAPH-5343","IDEOGRAPH-53E3","IDEOGRAPH-53F3","IDEOGRAPH-56DB","IDEOGRAPH-56FD","IDEOGRAPH-571F","IDEOGRAPH-5927","IDEOGRAPH-5929","IDEOGRAPH-5B57","IDEOGRAPH-5B66","IDEOGRAPH-5C0F","IDEOGRAPH-5C71","IDEOGRAPH-5DDD","IDEOGRAPH-5DE6","IDEOGRAPH-5E74","IDEOGRAPH-5FC3","IDEOGRAPH-624B","IDEOGRAPH-6587","IDEOGRAPH-65E5","IDEOGRAPH-6642","IDEOGRAPH-6708","IDEOGRAPH-6728","IDEOGRAPH-672C","IDEOGRAPH-6C34","IDEOGRAPH-706B","IDEOGRAPH-751F","IDEOGRAPH-767E","IDEOGRAPH-76EE","IDEOGRAPH-8033","IDEOGRAPH-8A9E","IDEOGRAPH-91D1","HANGUL","SYLLABLE","GEUL","JA","CA","HAN","RIAL","MUSICAL","BARLINE","REPEAT","SEGNO","CAPO","CODA","REPEATED","FIGURE-1","FIGURE-2","FIGURE-3","FERMATA","BREATH","CAESURA","BRACE","ONE-LINE","TWO-LINE","THREE-LINE","FOUR-LINE","FIVE-LINE","SIX-LINE","SIX-STRING","FRETBOARD","FOUR-STRING","CLEF","OTTAVA","ALTA","BASSA","DRUM","CLEF-1","CLEF-2","MEASURE","REST","COMMON","TIME","CUT","QUINDICESIMA","MULTI","WHOLE","THIRTY-SECOND","SIXTY-FOURTH","TWENTY-EIGHTH","NOTEHEAD","TRIANGLE-ROUND","VOID","CLUSTER","SPRECHGESANG","TREMOLO-1","TREMOLO-2","TREMOLO-3","FINGERED","AUGMENTATION","FLAG-1","FLAG-2","FLAG-3","FLAG-4","FLAG-5","STACCATO","TENUTO","STACCATISSIMO","MARCATO","MARCATO-STACCATO","ACCENT-STACCATO","LOURE","ARPEGGIATO","DOIT","RIP","FLIP","SMEAR","BEND","TONGUE","RINFORZANDO","SUBITO","PIANO","MEZZO","FORTE","CRESCENDO","DECRESCENDO","GRACE","TR","TURN","STROKE-1","STROKE-2","STROKE-3","STROKE-4","STROKE-5","STROKE-6","STROKE-7","STROKE-8","STROKE-9","STROKE-10","STROKE-11","HAUPTSTIMME","NEBENSTIMME","STIMME","HARMONIC","SNAP","PIZZICATO","PEDAL","GLISSANDO","FINGERNAILS","DAMP","MAXIMA","LONGA","BREVIS","SEMIBREVIS","MINIMA","SEMIMINIMA","FUSA","PERFECTA","IMPERFECTA","TEMPUS","PERFECTUM","CUM","PROLATIONE","DIMINUTION-1","IMPERFECTUM","DIMINUTION-2","DIMINUTION-3","CROIX","GREGORIAN","VIRGA","PODATUS","CLIVIS","SCANDICUS","CLIMACUS","TORCULUS","PORRECTUS","FLEXUS","RESUPINUS","PES","SUBPUNCTIS","KIEVAN","RECITATIVE","SORI","KORON","BOLD","FRAKTUR","MONOSPACE","MAHJONG","TILE","RED","DRAGON","GREEN","CHARACTERS","BAMBOOS","CIRCLES","PLUM","ORCHID","BAMBOO","CHRYSANTHEMUM","SPRING","SUMMER","AUTUMN","WINTER","JOKER","BACK","DOMINO","HORIZONTAL-00-00","HORIZONTAL-00-01","HORIZONTAL-00-02","HORIZONTAL-00-03","HORIZONTAL-00-04","HORIZONTAL-00-05","HORIZONTAL-00-06","HORIZONTAL-01-00","HORIZONTAL-01-01","HORIZONTAL-01-02","HORIZONTAL-01-03","HORIZONTAL-01-04","HORIZONTAL-01-05","HORIZONTAL-01-06","HORIZONTAL-02-00","HORIZONTAL-02-01","HORIZONTAL-02-02","HORIZONTAL-02-03","HORIZONTAL-02-04","HORIZONTAL-02-05","HORIZONTAL-02-06","HORIZONTAL-03-00","HORIZONTAL-03-01","HORIZONTAL-03-02","HORIZONTAL-03-03","HORIZONTAL-03-04","HORIZONTAL-03-05","HORIZONTAL-03-06","HORIZONTAL-04-00","HORIZONTAL-04-01","HORIZONTAL-04-02","HORIZONTAL-04-03","HORIZONTAL-04-04","HORIZONTAL-04-05","HORIZONTAL-04-06","HORIZONTAL-05-00","HORIZONTAL-05-01","HORIZONTAL-05-02","HORIZONTAL-05-03","HORIZONTAL-05-04","HORIZONTAL-05-05","HORIZONTAL-05-06","HORIZONTAL-06-00","HORIZONTAL-06-01","HORIZONTAL-06-02","HORIZONTAL-06-03","HORIZONTAL-06-04","HORIZONTAL-06-05","HORIZONTAL-06-06","VERTICAL-00-00","VERTICAL-00-01","VERTICAL-00-02","VERTICAL-00-03","VERTICAL-00-04","VERTICAL-00-05","VERTICAL-00-06","VERTICAL-01-00","VERTICAL-01-01","VERTICAL-01-02","VERTICAL-01-03","VERTICAL-01-04","VERTICAL-01-05","VERTICAL-01-06","VERTICAL-02-00","VERTICAL-02-01","VERTICAL-02-02","VERTICAL-02-03","VERTICAL-02-04","VERTICAL-02-05","VERTICAL-02-06","VERTICAL-03-00","VERTICAL-03-01","VERTICAL-03-02","VERTICAL-03-03","VERTICAL-03-04","VERTICAL-03-05","VERTICAL-03-06","VERTICAL-04-00","VERTICAL-04-01","VERTICAL-04-02","VERTICAL-04-03","VERTICAL-04-04","VERTICAL-04-05","VERTICAL-04-06","VERTICAL-05-00","VERTICAL-05-01","VERTICAL-05-02","VERTICAL-05-03","VERTICAL-05-04","VERTICAL-05-05","VERTICAL-05-06","VERTICAL-06-00","VERTICAL-06-01","VERTICAL-06-02","VERTICAL-06-03","VERTICAL-06-04","VERTICAL-06-05","VERTICAL-06-06","PLAYING","CARD","ACE","SPADES","JACK","HEARTS","DIAMONDS","CLUBS","FOOL","TRUMP-1","TRUMP-2","TRUMP-3","TRUMP-4","TRUMP-5","TRUMP-6","TRUMP-7","TRUMP-8","TRUMP-9","TRUMP-10","TRUMP-11","TRUMP-12","TRUMP-13","TRUMP-14","TRUMP-15","TRUMP-16","TRUMP-17","TRUMP-18","TRUMP-19","TRUMP-20","TRUMP-21","COPYLEFT","RAINBOW","VOLCANO","MILKY","GLOBE","EUROPE-AFRICA","AMERICAS","ASIA-AUSTRALIA","WAXING","GIBBOUS","WANING","GLOWING","SHOOTING","THERMOMETER","TORNADO","FOG","SEEDLING","HERB","LEAF","FLUTTERING","GRADUATION","STUDIO","MICROPHONE","LEVEL","SLIDER","KNOBS","HEADPHONE","ARTIST","PALETTE","CLAPPER","BOARD","PERFORMING","ARTS","HIT","GAME","CARDS","SAXOPHONE","GUITAR","TRUMPET","VIOLIN","SCORE","BASKETBALL","HOOP","TROPHY","CAPPED","CLASSICAL","BUILDING","DESERT","ISLAND","SCHOOL","WAVING","LABEL","AMPHORA","PAW","PRINTS","EYES","BACKHAND","THUMBS","CLAPPING","HANDS","CROWN","SYRINGE","PILL","BULB","DROPLET","FLEXED","BICEPS","DIZZY","SPEECH","BALLOON","THOUGHT","POINTS","MONEY","PERSONAL","COMPUTER","FOLDER","CALENDAR","CHART","TREND","PUSHPIN","ROUND","PAPERCLIP","STRAIGHT","RULER","BOOKMARK","TABS","LEDGER","NOTEBOOK","DECORATIVE","COVER","BOOK","BLUE","ORANGE","BOOKS","SCROLL","MEMO","POSTAL","MOBILE","PHONE","BATTERY","PLUG","MAGNIFYING","GLASS","LOCK","MICROSCOPE","TELESCOPE","OM","DOVE","BALLPOINT","PEN","CRAYON","DESKTOP","DIVIDERS","SPIRAL","PAD","KNIFE","SPEAKING","SILHOUETTE","WORLD","MOYAI","GRINNING","MOUTH","COLD","SWEAT","SLEEPING","RAISING","BOTH","CELEBRATION","ROCKET","POST","SATELLITE","ALCHEMICAL","QUINTESSENCE","AIR","AQUAFORTIS","AQUA","REGIA","REGIA-2","VITAE","VITAE-2","VINEGAR","VINEGAR-2","VINEGAR-3","SULFUR","PHILOSOPHERS","SUBLIMATE","SUBLIMATE-2","SUBLIMATE-3","CINNABAR","SALT","NITRE","VITRIOL","VITRIOL-2","ROCK","SALT-2","GOLD","SILVER","IRON","ORE","ORE-2","CROCUS","REGULUS","COPPER","IRON-COPPER","COPPER-2","ANTIMONIATE","VERDIGRIS","TIN","LEAD","ANTIMONY","ANTIMONY-2","REGULUS-2","REGULUS-3","REGULUS-4","ALKALI","ALKALI-2","MARCASITE","SAL-AMMONIAC","ARSENIC","REALGAR","REALGAR-2","AURIPIGMENT","BISMUTH","TARTAR","TARTAR-2","QUICK","LIME","BORAX","BORAX-2","BORAX-3","ALUM","OIL","SPIRIT","TINCTURE","GUM","WAX","POWDER","CALX","TUTTY","CAPUT","MORTUUM","SCEPTER","JOVE","TRIDENT","STARRED","LODESTONE","SOAP","URINE","HORSE","DUNG","ASHES","POT","BRICK","POWDERED","AMALGAM","STRATUM","SUPER","STRATUM-2","SUBLIMATION","PRECIPITATE","DISTILL","DISSOLVE","DISSOLVE-2","PURIFY","PUTREFACTION","CRUCIBLE","CRUCIBLE-2","CRUCIBLE-3","CRUCIBLE-4","CRUCIBLE-5","BATH","MARY","VAPOURS","RETORT","HOUR","NIGHT","DAY-NIGHT","MONTH","DRAM","ISOSCELES","SLIGHTLY","EXTREMELY","TARGET","THINKING","SHOCKED","EXPLODING","DRUMSTICKS","MEDAL","PARTY","HAT","MICROBE","BONE","TOOTH","BRAIN","TEST","TUBE","PETRI","DISH","DNA","HELIX","COMPASS","ABACUS","DROP","BLOOD","STETHOSCOPE","FLUTE","RINGED","PLANET","BANJO","ACCORDION","ANATOMICAL","LUNGS"],$="20:Zs:0;21:Po:1,2;23:Po:3,4;24:Sc:5,4;25:Po:6,4;26:Po:7;27:Po:8;28:Ps:9,a;29:Pe:b,a;2a:Po:c;2b:Sm:d,4;2c:Po:e;2d:Pd:f;2e:Po:10,11;2f:Po:12;30:Nd:13,14;31:Nd:13,15;32:Nd:13,16;33:Nd:13,17;34:Nd:13,18;36:Nd:13,19;37:Nd:13,1a;39:Nd:13,1b;3a:Po:1c;3b:Po:1d;3c:Sm:1e,4;3d:Sm:1f,4;3e:Sm:20,4;3f:Po:21,2;40:Po:22,23;41:Lu:24,25,26,27;42:Lu:24,25,26,28;43:Lu:24,25,26,29;44:Lu:24,25,26,2a;45:Lu:24,25,26,2b;46:Lu:24,25,26,2c;47:Lu:24,25,26,2d;48:Lu:24,25,26,2e;49:Lu:24,25,26,2f;4b:Lu:24,25,26,30;4c:Lu:24,25,26,31;4d:Lu:24,25,26,32;4e:Lu:24,25,26,33;4f:Lu:24,25,26,34;50:Lu:24,25,26,35;51:Lu:24,25,26,36;52:Lu:24,25,26,37;53:Lu:24,25,26,38;54:Lu:24,25,26,39;55:Lu:24,25,26,3a;56:Lu:24,25,26,3b;57:Lu:24,25,26,3c;58:Lu:24,25,26,3d;59:Lu:24,25,26,3e;5a:Lu:24,25,26,3f;5b:Ps:9,40,41;5c:Po:42,12;5d:Pe:b,40,41;5e:Sk:43,44;5f:Pc:45,46;60:Sk:47,44;61:Ll:24,48,26,27;62:Ll:24,48,26,28;63:Ll:24,48,26,29;64:Ll:24,48,26,2a;65:Ll:24,48,26,2b;66:Ll:24,48,26,2c;67:Ll:24,48,26,2d;68:Ll:24,48,26,2e;69:Ll:24,48,26,2f;6a:Ll:24,48,26,49;6b:Ll:24,48,26,30;6c:Ll:24,48,26,31;6d:Ll:24,48,26,32;6e:Ll:24,48,26,33;6f:Ll:24,48,26,34;70:Ll:24,48,26,35;71:Ll:24,48,26,36;72:Ll:24,48,26,37;73:Ll:24,48,26,38;74:Ll:24,48,26,39;75:Ll:24,48,26,3a;76:Ll:24,48,26,3b;77:Ll:24,48,26,3c;78:Ll:24,48,26,3d;79:Ll:24,48,26,3e;7a:Ll:24,48,26,3f;7b:Ps:9,4a,41;7c:Sm:4b,46;7d:Pe:b,4a,41;7e:Sm:4c;a0:Zs:4d,0;a1:Po:4e,1,2;a2:Sc:4f,4;a3:Sc:50,4;a4:Sc:51,4;a5:Sc:52,4;a6:So:53,54;a7:Po:55,4;a8:Sk:56;a9:So:57,4;aa:Lo:58,59,5a;ab:Pi:5b,5c,5d,5e,2;ac:Sm:5f,4;ad:Cf:60,61;ae:So:62,4;af:Sk:63;b0:So:64,4;b1:Sm:65,4;b2:No:66,16;b3:No:66,17;b4:Sk:67,44;b5:Ll:68,4;b6:Po:69,4;b7:Po:6a,6b;b8:Sk:6c;b9:No:66,15;ba:Lo:6d,59,5a;bb:Pf:6e,5c,5d,5e,2;bc:No:6f,70,15,71;bd:No:6f,70,15,72;be:No:6f,70,17,73;bf:Po:4e,21,2;c0:Lu:24,25,26,27,74,47;c1:Lu:24,25,26,27,74,67;c2:Lu:24,25,26,27,74,43;c3:Lu:24,25,26,27,74,4c;c4:Lu:24,25,26,27,74,56;c5:Lu:24,25,26,27,74,75,76;c6:Lu:24,25,26,77;c7:Lu:24,25,26,29,74,6c;c8:Lu:24,25,26,2b,74,47;c9:Lu:24,25,26,2b,74,67;ca:Lu:24,25,26,2b,74,43;cb:Lu:24,25,26,2b,74,56;cc:Lu:24,25,26,2f,74,47;cd:Lu:24,25,26,2f,74,67;ce:Lu:24,25,26,2f,74,43;cf:Lu:24,25,26,2f,74,56;d0:Lu:24,25,26,78;d1:Lu:24,25,26,33,74,4c;d2:Lu:24,25,26,34,74,47;d3:Lu:24,25,26,34,74,67;d4:Lu:24,25,26,34,74,43;d5:Lu:24,25,26,34,74,4c;d6:Lu:24,25,26,34,74,56;d7:Sm:79,4;d8:Lu:24,25,26,34,74,7a;d9:Lu:24,25,26,3a,74,47;da:Lu:24,25,26,3a,74,67;db:Lu:24,25,26,3a,74,43;dc:Lu:24,25,26,3a,74,56;dd:Lu:24,25,26,3e,74,67;de:Lu:24,25,26,7b;df:Ll:24,48,26,7c,38;e0:Ll:24,48,26,27,74,47;e1:Ll:24,48,26,27,74,67;e2:Ll:24,48,26,27,74,43;e3:Ll:24,48,26,27,74,4c;e4:Ll:24,48,26,27,74,56;e5:Ll:24,48,26,27,74,75,76;e6:Ll:24,48,26,77;e7:Ll:24,48,26,29,74,6c;e8:Ll:24,48,26,2b,74,47;e9:Ll:24,48,26,2b,74,67;ea:Ll:24,48,26,2b,74,43;eb:Ll:24,48,26,2b,74,56;ec:Ll:24,48,26,2f,74,47;ed:Ll:24,48,26,2f,74,67;ee:Ll:24,48,26,2f,74,43;ef:Ll:24,48,26,2f,74,56;f0:Ll:24,48,26,78;f1:Ll:24,48,26,33,74,4c;f2:Ll:24,48,26,34,74,47;f3:Ll:24,48,26,34,74,67;f4:Ll:24,48,26,34,74,43;f5:Ll:24,48,26,34,74,4c;f6:Ll:24,48,26,34,74,56;f7:Sm:7d,4;f8:Ll:24,48,26,34,74,7a;f9:Ll:24,48,26,3a,74,47;fa:Ll:24,48,26,3a,74,67;fb:Ll:24,48,26,3a,74,43;fc:Ll:24,48,26,3a,74,56;fd:Ll:24,48,26,3e,74,67;fe:Ll:24,48,26,7b;ff:Ll:24,48,26,3e,74,56;100:Lu:24,25,26,27,74,63;101:Ll:24,48,26,27,74,63;102:Lu:24,25,26,27,74,7e;103:Ll:24,48,26,27,74,7e;104:Lu:24,25,26,27,74,7f;105:Ll:24,48,26,27,74,7f;106:Lu:24,25,26,29,74,67;107:Ll:24,48,26,29,74,67;108:Lu:24,25,26,29,74,43;109:Ll:24,48,26,29,74,43;10a:Lu:24,25,26,29,74,6b,76;10b:Ll:24,48,26,29,74,6b,76;10c:Lu:24,25,26,29,74,80;10d:Ll:24,48,26,29,74,80;10e:Lu:24,25,26,2a,74,80;10f:Ll:24,48,26,2a,74,80;110:Lu:24,25,26,2a,74,7a;111:Ll:24,48,26,2a,74,7a;112:Lu:24,25,26,2b,74,63;113:Ll:24,48,26,2b,74,63;114:Lu:24,25,26,2b,74,7e;115:Ll:24,48,26,2b,74,7e;116:Lu:24,25,26,2b,74,6b,76;117:Ll:24,48,26,2b,74,6b,76;118:Lu:24,25,26,2b,74,7f;119:Ll:24,48,26,2b,74,7f;11a:Lu:24,25,26,2b,74,80;11b:Ll:24,48,26,2b,74,80;11c:Lu:24,25,26,2d,74,43;11d:Ll:24,48,26,2d,74,43;11e:Lu:24,25,26,2d,74,7e;11f:Ll:24,48,26,2d,74,7e;120:Lu:24,25,26,2d,74,6b,76;121:Ll:24,48,26,2d,74,6b,76;122:Lu:24,25,26,2d,74,6c;123:Ll:24,48,26,2d,74,6c;124:Lu:24,25,26,2e,74,43;125:Ll:24,48,26,2e,74,43;126:Lu:24,25,26,2e,74,7a;127:Ll:24,48,26,2e,74,7a;128:Lu:24,25,26,2f,74,4c;129:Ll:24,48,26,2f,74,4c;12a:Lu:24,25,26,2f,74,63;12b:Ll:24,48,26,2f,74,63;12c:Lu:24,25,26,2f,74,7e;12d:Ll:24,48,26,2f,74,7e;12e:Lu:24,25,26,2f,74,7f;12f:Ll:24,48,26,2f,74,7f;130:Lu:24,25,26,2f,74,6b,76;131:Ll:24,48,26,81,2f;132:Lu:24,25,82,83;133:Ll:24,48,82,83;134:Lu:24,25,26,49,74,43;135:Ll:24,48,26,49,74,43;136:Lu:24,25,26,30,74,6c;137:Ll:24,48,26,30,74,6c;138:Ll:24,48,26,84;139:Lu:24,25,26,31,74,67;13a:Ll:24,48,26,31,74,67;13b:Lu:24,25,26,31,74,6c;13c:Ll:24,48,26,31,74,6c;13d:Lu:24,25,26,31,74,80;13e:Ll:24,48,26,31,74,80;13f:Lu:24,25,26,31,74,6a,6b;140:Ll:24,48,26,31,74,6a,6b;141:Lu:24,25,26,31,74,7a;142:Ll:24,48,26,31,74,7a;143:Lu:24,25,26,33,74,67;144:Ll:24,48,26,33,74,67;145:Lu:24,25,26,33,74,6c;146:Ll:24,48,26,33,74,6c;147:Lu:24,25,26,33,74,80;148:Ll:24,48,26,33,74,80;149:Ll:24,48,26,33,85,86,8;14a:Lu:24,25,26,87;14b:Ll:24,48,26,87;14c:Lu:24,25,26,34,74,63;14d:Ll:24,48,26,34,74,63;14e:Lu:24,25,26,34,74,7e;14f:Ll:24,48,26,34,74,7e;150:Lu:24,25,26,34,74,5c,67;151:Ll:24,48,26,34,74,5c,67;152:Lu:24,25,82,88;153:Ll:24,48,82,88;154:Lu:24,25,26,37,74,67;155:Ll:24,48,26,37,74,67;156:Lu:24,25,26,37,74,6c;157:Ll:24,48,26,37,74,6c;158:Lu:24,25,26,37,74,80;159:Ll:24,48,26,37,74,80;15a:Lu:24,25,26,38,74,67;15b:Ll:24,48,26,38,74,67;15c:Lu:24,25,26,38,74,43;15d:Ll:24,48,26,38,74,43;15e:Lu:24,25,26,38,74,6c;15f:Ll:24,48,26,38,74,6c;160:Lu:24,25,26,38,74,80;161:Ll:24,48,26,38,74,80;162:Lu:24,25,26,39,74,6c;163:Ll:24,48,26,39,74,6c;164:Lu:24,25,26,39,74,80;165:Ll:24,48,26,39,74,80;166:Lu:24,25,26,39,74,7a;167:Ll:24,48,26,39,74,7a;168:Lu:24,25,26,3a,74,4c;169:Ll:24,48,26,3a,74,4c;16a:Lu:24,25,26,3a,74,63;16b:Ll:24,48,26,3a,74,63;16c:Lu:24,25,26,3a,74,7e;16d:Ll:24,48,26,3a,74,7e;16e:Lu:24,25,26,3a,74,75,76;16f:Ll:24,48,26,3a,74,75,76;170:Lu:24,25,26,3a,74,5c,67;171:Ll:24,48,26,3a,74,5c,67;172:Lu:24,25,26,3a,74,7f;173:Ll:24,48,26,3a,74,7f;174:Lu:24,25,26,3c,74,43;175:Ll:24,48,26,3c,74,43;176:Lu:24,25,26,3e,74,43;177:Ll:24,48,26,3e,74,43;178:Lu:24,25,26,3e,74,56;179:Lu:24,25,26,3f,74,67;17a:Ll:24,48,26,3f,74,67;17b:Lu:24,25,26,3f,74,6b,76;17c:Ll:24,48,26,3f,74,6b,76;17d:Lu:24,25,26,3f,74,80;17e:Ll:24,48,26,3f,74,80;17f:Ll:24,48,26,89,38;192:Ll:24,48,26,2c,74,8a;1a1:Ll:24,48,26,34,74,8b;1b0:Ll:24,48,26,3a,74,8b;1c0:Lo:24,26,8c,8d;1c1:Lo:24,26,8e,8d;1c2:Lo:24,26,8f,8d;1c3:Lo:24,26,90,8d;219:Ll:24,48,26,38,74,e,91;21b:Ll:24,48,26,39,74,e,91;237:Ll:24,48,26,81,49;250:Ll:24,48,26,92,27;251:Ll:24,48,26,93;252:Ll:24,48,26,92,93;253:Ll:24,48,26,28,74,8a;254:Ll:24,48,26,94,34;255:Ll:24,48,26,29,74,95;256:Ll:24,48,26,2a,74,96;257:Ll:24,48,26,2a,74,8a;258:Ll:24,48,26,97,2b;259:Ll:24,48,26,98;25a:Ll:24,48,26,98,74,8a;25b:Ll:24,48,26,94,2b;25c:Ll:24,48,26,97,94,2b;25d:Ll:24,48,26,97,94,2b,74,8a;25e:Ll:24,48,26,99,97,94,2b;25f:Ll:24,48,26,81,49,74,7a;260:Ll:24,48,26,2d,74,8a;261:Ll:24,48,26,9a,2d;262:Ll:24,26,48,25,2d;263:Ll:24,48,26,9b;264:Ll:24,48,26,9c,8b;265:Ll:24,48,26,92,2e;266:Ll:24,48,26,2e,74,8a;267:Ll:24,48,26,9d,74,8a;268:Ll:24,48,26,2f,74,7a;269:Ll:24,48,26,9e;26a:Ll:24,26,48,25,2f;26b:Ll:24,48,26,31,74,6a,4c;26c:Ll:24,48,26,31,74,9f;26d:Ll:24,48,26,31,74,90,8a;26e:Ll:24,48,26,a0;26f:Ll:24,48,26,92,32;270:Ll:24,48,26,92,32,74,89,a1;271:Ll:24,48,26,32,74,8a;272:Ll:24,48,26,33,74,9,8a;273:Ll:24,48,26,33,74,90,8a;274:Ll:24,26,48,25,33;275:Ll:24,48,26,a2,34;276:Ll:24,26,48,25,88;277:Ll:24,48,26,99,a3;278:Ll:24,48,26,a4;279:Ll:24,48,26,92,37;27a:Ll:24,48,26,92,37,74,89,a1;27b:Ll:24,48,26,92,37,74,8a;27c:Ll:24,48,26,37,74,89,a1;27d:Ll:24,48,26,37,74,96;27e:Ll:24,48,26,37,74,a5;27f:Ll:24,48,26,97,37,74,a5;280:Ll:24,26,48,25,37;281:Ll:24,26,48,25,4e,37;282:Ll:24,48,26,38,74,8a;283:Ll:24,48,26,a6;284:Ll:24,48,26,81,49,74,7a,a7,8a;285:Ll:24,48,26,a8,97,a6;286:Ll:24,48,26,a6,74,95;287:Ll:24,48,26,92,39;288:Ll:24,48,26,39,74,90,8a;289:Ll:24,48,26,3a,54;28a:Ll:24,48,26,a9;28b:Ll:24,48,26,3b,74,8a;28c:Ll:24,48,26,92,3b;28d:Ll:24,48,26,92,3c;28e:Ll:24,48,26,92,3e;28f:Ll:24,26,48,25,3e;290:Ll:24,48,26,3f,74,90,8a;291:Ll:24,48,26,3f,74,95;292:Ll:24,48,26,aa;293:Ll:24,48,26,aa,74,95;294:Lo:24,26,ab,11;295:Ll:24,26,ac,ad,ae;296:Ll:24,26,4e,ab,11;297:Ll:24,26,af,29;298:Ll:24,26,b0,8d;299:Ll:24,26,48,25,28;29a:Ll:24,48,26,99,94,2b;29b:Ll:24,26,48,25,2d,74,8a;29c:Ll:24,26,48,25,2e;29d:Ll:24,48,26,49,74,b1;29e:Ll:24,48,26,92,30;29f:Ll:24,26,48,25,31;2a0:Ll:24,48,26,36,74,8a;2a1:Ll:24,26,ab,11,74,7a;2a2:Ll:24,26,97,ab,11,74,7a;2a3:Ll:24,48,26,b2,b3;2a4:Ll:24,48,26,b4,b3;2a5:Ll:24,48,26,b2,b3,74,95;2a6:Ll:24,48,26,b5,b3;2a7:Ll:24,48,26,b6,b3;2a8:Ll:24,48,26,b7,b3,74,95;2a9:Ll:24,48,26,b8,b3;2aa:Ll:24,48,26,b9,b3;2ab:Ll:24,48,26,ba,b3;2ac:Ll:24,26,b0,bb;2ad:Ll:24,26,bc,bb;2ae:Ll:24,48,26,92,2e,74,a5;2af:Ll:24,48,26,92,2e,74,a5,a7,96;2b0:Lm:bd,26,48,2e;2b1:Lm:bd,26,48,2e,74,8a;2b2:Lm:bd,26,48,49;2b3:Lm:bd,26,48,37;2b4:Lm:bd,26,48,92,37;2b5:Lm:bd,26,48,92,37,74,8a;2b6:Lm:bd,26,48,25,4e,37;2b7:Lm:bd,26,48,3c;2b8:Lm:bd,26,48,3e;2b9:Lm:bd,26,be;2ba:Lm:bd,26,5c,be;2bb:Lm:bd,26,92,e;2bc:Lm:bd,26,8;2bd:Lm:bd,26,97,e;2be:Lm:bd,26,b,72,75;2bf:Lm:bd,26,9,72,75;2c0:Lm:bd,26,ab,11;2c1:Lm:bd,26,97,ab,11;2c2:Sk:bd,26,9,bf;2c3:Sk:bd,26,b,bf;2c4:Sk:bd,26,c0,bf;2c5:Sk:bd,26,c1,bf;2c6:Lm:bd,26,43,44;2c7:Lm:80;2c8:Lm:bd,26,4b,46;2c9:Lm:bd,26,63;2ca:Lm:bd,26,67,44;2cb:Lm:bd,26,47,44;2cc:Lm:bd,26,45,4b,46;2cd:Lm:bd,26,45,63;2ce:Lm:bd,26,45,47,44;2cf:Lm:bd,26,45,67,44;2d0:Lm:bd,26,c2,1c;2d1:Lm:bd,26,72,c2,1c;2d2:Sk:bd,26,c3,b,72,75;2d3:Sk:bd,26,c3,9,72,75;2d4:Sk:bd,26,c0,c4;2d5:Sk:bd,26,c1,c4;2d6:Sk:bd,26,d,4;2d7:Sk:bd,26,c5,4;2d8:Sk:7e;2d9:Sk:6b,76;2da:Sk:75,76;2db:Sk:7f;2dc:Sk:48,4c;2dd:Sk:5c,67,44;2de:Sk:bd,26,c6,8a;2df:Sk:bd,26,c7,44;2e0:Lm:bd,26,48,9b;2e1:Lm:bd,26,48,31;2e2:Lm:bd,26,48,38;2e3:Lm:bd,26,48,3d;2e4:Lm:bd,26,48,97,ab,11;2e5:Sk:bd,26,c8,c9,54;2e6:Sk:bd,26,ca,c9,54;2e7:Sk:bd,26,cb,c9,54;2e8:Sk:bd,26,45,c9,54;2e9:Sk:bd,26,cc,c9,54;2ea:Sk:bd,26,cd,ce,c9,2;2eb:Sk:bd,26,cf,ce,c9,2;2ec:Lm:bd,26,d0;2ed:Sk:bd,26,d1;2ee:Lm:bd,26,5c,8;2ef:Sk:bd,26,45,c1,bf;2f0:Sk:bd,26,45,c0,bf;2f1:Sk:bd,26,45,9,bf;2f2:Sk:bd,26,45,b,bf;2f3:Sk:bd,26,45,75;2f4:Sk:bd,26,6a,47,44;2f5:Sk:bd,26,6a,5c,47,44;2f6:Sk:bd,26,6a,5c,67,44;2f7:Sk:bd,26,45,4c;2f8:Sk:bd,26,d2,1c;2f9:Sk:bd,26,d3,ca,c9;2fa:Sk:bd,26,d4,ca,c9;2fb:Sk:bd,26,d3,45,c9;2fc:Sk:bd,26,d4,45,c9;2fd:Sk:bd,26,d5;2fe:Sk:bd,26,94,d5;2ff:Sk:bd,26,45,9,d6;300:Mn:d7,47,44;301:Mn:d7,67,44;302:Mn:d7,43,44;303:Mn:d7,4c;304:Mn:d7,63;306:Mn:d7,7e;307:Mn:d7,6b,76;308:Mn:d7,56;30a:Mn:d7,75,76;30b:Mn:d7,5c,67,44;30c:Mn:d7,80;323:Mn:d7,6b,91;324:Mn:d7,56,91;325:Mn:d7,75,91;327:Mn:d7,6c;328:Mn:d7,7f;329:Mn:d7,4b,46,91;32c:Mn:d7,80,91;32f:Mn:d7,4e,7e,91;330:Mn:d7,4c,91;331:Mn:d7,63,91;332:Mn:d7,45,46;336:Mn:d7,89,7a,d8;338:Mn:d7,89,12,d8;361:Mn:d7,5c,4e,7e;370:Lu:d9,25,26,da;371:Ll:d9,48,26,da;372:Lu:d9,25,26,db,dc;373:Ll:d9,48,26,db,dc;374:Lm:d9,dd,4;375:Sk:d9,de,dd,4;376:Lu:d9,25,26,df,e0;377:Ll:d9,48,26,df,e0;37a:Lm:d9,e1;37b:Ll:d9,48,97,e2,e3,e4;37c:Ll:d9,48,e5,e2,e3,e4;37d:Ll:d9,48,97,e5,e2,e3,e4;37e:Po:d9,21,2;37f:Lu:d9,25,26,e6;384:Sk:d9,e7;385:Sk:d9,e8,e7;386:Lu:d9,25,26,93,74,e7;387:Po:d9,e9,ea;388:Lu:d9,25,26,eb,74,e7;389:Lu:d9,25,26,ec,74,e7;38a:Lu:d9,25,26,9e,74,e7;38c:Lu:d9,25,26,ed,74,e7;38e:Lu:d9,25,26,a9,74,e7;38f:Lu:d9,25,26,a3,74,e7;390:Ll:d9,48,26,9e,74,e8,a7,e7;391:Lu:d9,25,26,93;392:Lu:d9,25,26,ee;393:Lu:d9,25,26,9b;394:Lu:d9,25,26,ef;395:Lu:d9,25,26,eb;396:Lu:d9,25,26,f0;397:Lu:d9,25,26,ec;398:Lu:d9,25,26,f1;399:Lu:d9,25,26,9e;39a:Lu:d9,25,26,f2;39b:Lu:d9,25,26,f3;39c:Lu:d9,25,26,f4;39d:Lu:d9,25,26,f5;39e:Lu:d9,25,26,f6;39f:Lu:d9,25,26,ed;3a0:Lu:d9,25,26,f7;3a1:Lu:d9,25,26,f8;3a3:Lu:d9,25,26,e3;3a4:Lu:d9,25,26,f9;3a5:Lu:d9,25,26,a9;3a6:Lu:d9,25,26,a4;3a7:Lu:d9,25,26,fa;3a8:Lu:d9,25,26,fb;3a9:Lu:d9,25,26,a3;3aa:Lu:d9,25,26,9e,74,e8;3ab:Lu:d9,25,26,a9,74,e8;3ac:Ll:d9,48,26,93,74,e7;3ad:Ll:d9,48,26,eb,74,e7;3ae:Ll:d9,48,26,ec,74,e7;3af:Ll:d9,48,26,9e,74,e7;3b0:Ll:d9,48,26,a9,74,e8,a7,e7;3b1:Ll:d9,48,26,93;3b2:Ll:d9,48,26,ee;3b3:Ll:d9,48,26,9b;3b4:Ll:d9,48,26,ef;3b5:Ll:d9,48,26,eb;3b6:Ll:d9,48,26,f0;3b7:Ll:d9,48,26,ec;3b8:Ll:d9,48,26,f1;3b9:Ll:d9,48,26,9e;3ba:Ll:d9,48,26,f2;3bb:Ll:d9,48,26,f3;3bc:Ll:d9,48,26,f4;3bd:Ll:d9,48,26,f5;3be:Ll:d9,48,26,f6;3bf:Ll:d9,48,26,ed;3c0:Ll:d9,48,26,f7;3c1:Ll:d9,48,26,f8;3c2:Ll:d9,48,26,fc,e3;3c3:Ll:d9,48,26,e3;3c4:Ll:d9,48,26,f9;3c5:Ll:d9,48,26,a9;3c6:Ll:d9,48,26,a4;3c7:Ll:d9,48,26,fa;3c8:Ll:d9,48,26,fb;3c9:Ll:d9,48,26,a3;3ca:Ll:d9,48,26,9e,74,e8;3cb:Ll:d9,48,26,a9,74,e8;3cc:Ll:d9,48,26,ed,74,e7;3cd:Ll:d9,48,26,a9,74,e7;3ce:Ll:d9,48,26,a3,74,e7;3cf:Lu:d9,25,fd,e4;3d0:Ll:d9,ee,e4;3d1:Ll:d9,f1,e4;3d2:Lu:d9,a9,74,8a,e4;3d3:Lu:d9,a9,74,67,a7,8a,e4;3d4:Lu:d9,a9,74,56,a7,8a,e4;3d5:Ll:d9,a4,e4;3d6:Ll:d9,f7,e4;3d7:Ll:d9,fd,e4;3d8:Lu:d9,26,db,fe;3d9:Ll:d9,48,26,db,fe;3da:Lu:d9,26,ff;3db:Ll:d9,48,26,ff;3dc:Lu:d9,26,e0;3dd:Ll:d9,48,26,e0;3de:Lu:d9,26,fe;3df:Ll:d9,48,26,fe;3e0:Lu:d9,26,dc;3e1:Ll:d9,48,26,dc;3e2:Lu:100,25,26,101;3e3:Ll:100,48,26,101;3e4:Lu:100,25,26,102;3e5:Ll:100,48,26,102;3e6:Lu:100,25,26,103;3e7:Ll:100,48,26,103;3e8:Lu:100,25,26,104;3e9:Ll:100,48,26,104;3ea:Lu:100,25,26,105;3eb:Ll:100,48,26,105;3ec:Lu:100,25,26,106;3ed:Ll:100,48,26,106;3ee:Lu:100,25,26,107;3ef:Ll:100,48,26,107;3f0:Ll:d9,f2,e4;3f1:Ll:d9,f8,e4;3f2:Ll:d9,e2,e3,e4;3f3:Ll:d9,26,e6;3f4:Lu:d9,25,f1,e4;3f5:Ll:d9,e2,eb,e4;3f6:Sm:d9,97,e2,eb,e4;3f7:Lu:d9,25,26,108;3f8:Ll:d9,48,26,108;3f9:Lu:d9,25,e2,e3,e4;3fa:Lu:d9,25,26,109;3fb:Ll:d9,48,26,109;3fc:Ll:d9,f8,74,7a,e4;3fd:Lu:d9,25,97,e2,e3,e4;3fe:Lu:d9,25,e5,e2,e3,e4;3ff:Lu:d9,25,97,e5,e2,e3,e4;410:Lu:10a,25,26,27;411:Lu:10a,25,26,10b;412:Lu:10a,25,26,10c;413:Lu:10a,25,26,10d;414:Lu:10a,25,26,10e;415:Lu:10a,25,26,10f;416:Lu:10a,25,26,110;417:Lu:10a,25,26,111;418:Lu:10a,25,26,2f;419:Lu:10a,25,26,112,2f;41a:Lu:10a,25,26,113;41b:Lu:10a,25,26,114;41c:Lu:10a,25,26,115;41d:Lu:10a,25,26,116;41e:Lu:10a,25,26,34;41f:Lu:10a,25,26,117;420:Lu:10a,25,26,118;421:Lu:10a,25,26,119;422:Lu:10a,25,26,11a;423:Lu:10a,25,26,3a;424:Lu:10a,25,26,11b;425:Lu:10a,25,26,11c;426:Lu:10a,25,26,11d;427:Lu:10a,25,26,11e;428:Lu:10a,25,26,11f;429:Lu:10a,25,26,120;42a:Lu:10a,25,26,121,4;42b:Lu:10a,25,26,122;42c:Lu:10a,25,26,60,4;42d:Lu:10a,25,26,2b;42e:Lu:10a,25,26,123;42f:Lu:10a,25,26,124;430:Ll:10a,48,26,27;431:Ll:10a,48,26,10b;432:Ll:10a,48,26,10c;433:Ll:10a,48,26,10d;434:Ll:10a,48,26,10e;435:Ll:10a,48,26,10f;436:Ll:10a,48,26,110;437:Ll:10a,48,26,111;438:Ll:10a,48,26,2f;439:Ll:10a,48,26,112,2f;43a:Ll:10a,48,26,113;43b:Ll:10a,48,26,114;43c:Ll:10a,48,26,115;43d:Ll:10a,48,26,116;43e:Ll:10a,48,26,34;43f:Ll:10a,48,26,117;440:Ll:10a,48,26,118;441:Ll:10a,48,26,119;442:Ll:10a,48,26,11a;443:Ll:10a,48,26,3a;444:Ll:10a,48,26,11b;445:Ll:10a,48,26,11c;446:Ll:10a,48,26,11d;447:Ll:10a,48,26,11e;448:Ll:10a,48,26,11f;449:Ll:10a,48,26,120;44a:Ll:10a,48,26,121,4;44b:Ll:10a,48,26,122;44c:Ll:10a,48,26,60,4;44d:Ll:10a,48,26,2b;44e:Ll:10a,48,26,123;44f:Ll:10a,48,26,124;451:Ll:10a,48,26,125;452:Ll:10a,48,26,126;453:Ll:10a,48,26,127;454:Ll:10a,48,26,128,10f;455:Ll:10a,48,26,129;456:Ll:10a,48,26,12a,2f;457:Ll:10a,48,26,12b;458:Ll:10a,48,26,12c;459:Ll:10a,48,26,12d;45a:Ll:10a,48,26,12e;45b:Ll:10a,48,26,12f;45c:Ll:10a,48,26,130;45e:Ll:10a,48,26,112,3a;45f:Ll:10a,48,26,131;5d0:Lo:132,26,133;5d1:Lo:132,26,134;5d2:Lo:132,26,135;5d3:Lo:132,26,136;5d4:Lo:132,26,137;5d5:Lo:132,26,138;5d6:Lo:132,26,139;5d7:Lo:132,26,13a;5d8:Lo:132,26,13b;5d9:Lo:132,26,13c;5da:Lo:132,26,fc,13d;5db:Lo:132,26,13d;5dc:Lo:132,26,13e;5dd:Lo:132,26,fc,13f;5de:Lo:132,26,13f;5df:Lo:132,26,fc,140;5e0:Lo:132,26,140;5e1:Lo:132,26,141;5e2:Lo:132,26,142;5e3:Lo:132,26,fc,117;5e4:Lo:132,26,117;5e5:Lo:132,26,fc,143;5e6:Lo:132,26,143;5e7:Lo:132,26,144;5e8:Lo:132,26,145;5e9:Lo:132,26,146;5ea:Lo:132,26,147;60b:Sc:148,4;621:Lo:149,26,14a;622:Lo:149,26,133,74,14b,76;623:Lo:149,26,133,74,14a,76;624:Lo:149,26,14c,74,14a,76;625:Lo:149,26,133,74,14a,91;626:Lo:149,26,14d,74,14a,76;627:Lo:149,26,133;628:Lo:149,26,14e;629:Lo:149,26,14f,150;62a:Lo:149,26,14f;62b:Lo:149,26,151;62c:Lo:149,26,152;62d:Lo:149,26,153;62e:Lo:149,26,154;62f:Lo:149,26,155;630:Lo:149,26,156;631:Lo:149,26,157;632:Lo:149,26,158;633:Lo:149,26,159;634:Lo:149,26,15a;635:Lo:149,26,15b;636:Lo:149,26,15c;637:Lo:149,26,15d;638:Lo:149,26,15e;639:Lo:149,26,15f;63a:Lo:149,26,160;640:Lm:149,161;641:Lo:149,26,162;642:Lo:149,26,163;643:Lo:149,26,13d;644:Lo:149,26,164;645:Lo:149,26,165;646:Lo:149,26,166;647:Lo:149,26,167;648:Lo:149,26,14c;649:Lo:149,26,133,168;64a:Lo:149,26,14d;9f3:Sc:169,16a,4;e3f:Sc:16b,51,e4,16c;16a0:Lo:16d,26,16e,16f,170,2c;16a1:Lo:16d,26,3b;16a2:Lo:16d,26,171,172,3a;16a3:Lo:16d,26,173;16a4:Lo:16d,26,3e;16a5:Lo:16d,26,3c;16a6:Lo:16d,26,174,175,7b;16a7:Lo:16d,26,78;16a8:Lo:16d,26,176,27;16a9:Lo:16d,26,177,34;16aa:Lo:16d,26,178,27;16ab:Lo:16d,26,179;16ac:Lo:16d,26,17a,34;16ad:Lo:16d,26,17b,34;16ae:Lo:16d,26,34;16af:Lo:16d,26,88;16b0:Lo:16d,26,17c;16b1:Lo:16d,26,17d,17e,17f,37;16b2:Lo:16d,26,180;16b3:Lo:16d,26,181;16b4:Lo:16d,26,182,30;16b5:Lo:16d,26,2d;16b6:Lo:16d,26,87;16b7:Lo:16d,26,183,184,2d;16b8:Lo:16d,26,185;16b9:Lo:16d,26,186,187,3c;16ba:Lo:16d,26,188,2e;16bb:Lo:16d,26,189,2e;16bc:Lo:16d,26,18a,2e;16bd:Lo:16d,26,18b,2e;16be:Lo:16d,26,18c,18d,18e,33;16bf:Lo:16d,26,18f,33;16c0:Lo:16d,26,190;16c1:Lo:16d,26,191,192,193,2f;16c2:Lo:16d,26,2b;16c3:Lo:16d,26,194,49;16c4:Lo:16d,26,195;16c5:Lo:16d,26,196,77;16c6:Lo:16d,26,197,27;16c7:Lo:16d,26,198,199;16c8:Lo:16d,26,19a,19b,35;16c9:Lo:16d,26,19c,19d;16ca:Lo:16d,26,19e,38;16cb:Lo:16d,26,19f,1a0,38;16cc:Lo:16d,26,1a1,38;16cd:Lo:16d,26,29;16ce:Lo:16d,26,3f;16cf:Lo:16d,26,1a2,1a3,1a4,39;16d0:Lo:16d,26,1a5,39;16d1:Lo:16d,26,2a;16d2:Lo:16d,26,1a6,1a7,1a8,28;16d3:Lo:16d,26,1a9,28;16d4:Lo:16d,26,1aa;16d5:Lo:16d,26,1ab;16d6:Lo:16d,26,1ac,1ad,2b;16d7:Lo:16d,26,1ae,1af,32;16d8:Lo:16d,26,1b0,32;16d9:Lo:16d,26,1b1,32;16da:Lo:16d,26,1b2,1b3,1b4,31;16db:Lo:16d,26,1b5;16dc:Lo:16d,26,1b6;16dd:Lo:16d,26,1b7;16de:Lo:16d,26,1b8,1b9,2a;16df:Lo:16d,26,1ba,1bb,34;16e0:Lo:16d,26,1bc;16e1:Lo:16d,26,1bd;16e2:Lo:16d,26,1be;16e3:Lo:16d,26,1bf;16e4:Lo:16d,26,1c0;16e5:Lo:16d,26,1c1;16e6:Lo:16d,26,1c2;16e7:Lo:16d,26,1c3;16e8:Lo:16d,26,1c4;16e9:Lo:16d,26,36;16ea:Lo:16d,26,3d;16eb:Po:16d,1c5,1c6;16ec:Po:16d,1c7,1c6;16ed:Po:16d,c7,1c6;16ee:Nl:16d,1c8,e4;16ef:Nl:16d,1c9,e4;16f0:Nl:16d,1ca,e4;17db:Sc:1cb,51,e4,1cc;1d43:Lm:bd,26,48,27;1d47:Lm:bd,26,48,28;1d48:Lm:bd,26,48,2a;1d49:Lm:bd,26,48,2b;1d4d:Lm:bd,26,48,2d;1d4f:Lm:bd,26,48,30;1d50:Lm:bd,26,48,32;1d52:Lm:bd,26,48,34;1d56:Lm:bd,26,48,35;1d57:Lm:bd,26,48,39;1d58:Lm:bd,26,48,3a;1d5b:Lm:bd,26,48,3b;1d62:Lm:24,1cd,48,26,2f;1d63:Lm:24,1cd,48,26,37;1d64:Lm:24,1cd,48,26,3a;1d65:Lm:24,1cd,48,26,3b;1d9c:Lm:bd,26,48,29;1da0:Lm:bd,26,48,2c;1dbb:Lm:bd,26,48,3f;1e9e:Lu:24,25,26,7c,38;1ea1:Ll:24,48,26,27,74,6b,91;1ea3:Ll:24,48,26,27,74,8a,76;1ea5:Ll:24,48,26,27,74,43,a7,67;1ea7:Ll:24,48,26,27,74,43,a7,47;1ea9:Ll:24,48,26,27,74,43,a7,8a,76;1eab:Ll:24,48,26,27,74,43,a7,4c;1ead:Ll:24,48,26,27,74,43,a7,6b,91;1eaf:Ll:24,48,26,27,74,7e,a7,67;1eb1:Ll:24,48,26,27,74,7e,a7,47;1eb3:Ll:24,48,26,27,74,7e,a7,8a,76;1eb5:Ll:24,48,26,27,74,7e,a7,4c;1eb7:Ll:24,48,26,27,74,7e,a7,6b,91;1eb9:Ll:24,48,26,2b,74,6b,91;1ebb:Ll:24,48,26,2b,74,8a,76;1ebd:Ll:24,48,26,2b,74,4c;1ebf:Ll:24,48,26,2b,74,43,a7,67;1ec1:Ll:24,48,26,2b,74,43,a7,47;1ec3:Ll:24,48,26,2b,74,43,a7,8a,76;1ec5:Ll:24,48,26,2b,74,43,a7,4c;1ec7:Ll:24,48,26,2b,74,43,a7,6b,91;1ec9:Ll:24,48,26,2f,74,8a,76;1ecb:Ll:24,48,26,2f,74,6b,91;1ecd:Ll:24,48,26,34,74,6b,91;1ecf:Ll:24,48,26,34,74,8a,76;1ed1:Ll:24,48,26,34,74,43,a7,67;1ed3:Ll:24,48,26,34,74,43,a7,47;1ed5:Ll:24,48,26,34,74,43,a7,8a,76;1ed7:Ll:24,48,26,34,74,43,a7,4c;1ed9:Ll:24,48,26,34,74,43,a7,6b,91;1edb:Ll:24,48,26,34,74,8b,a7,67;1edd:Ll:24,48,26,34,74,8b,a7,47;1edf:Ll:24,48,26,34,74,8b,a7,8a,76;1ee1:Ll:24,48,26,34,74,8b,a7,4c;1ee3:Ll:24,48,26,34,74,8b,a7,6b,91;1ee5:Ll:24,48,26,3a,74,6b,91;1ee7:Ll:24,48,26,3a,74,8a,76;1ee9:Ll:24,48,26,3a,74,8b,a7,67;1eeb:Ll:24,48,26,3a,74,8b,a7,47;1eed:Ll:24,48,26,3a,74,8b,a7,8a,76;1eef:Ll:24,48,26,3a,74,8b,a7,4c;1ef1:Ll:24,48,26,3a,74,8b,a7,6b,91;1ef3:Ll:24,48,26,3e,74,47;1ef5:Ll:24,48,26,3e,74,6b,91;1ef7:Ll:24,48,26,3e,74,8a,76;1ef9:Ll:24,48,26,3e,74,4c;2002:Zs:116,0;2003:Zs:115,0;2009:Zs:1ce,0;200a:Zs:1cf,0;200b:Cf:14,1d0,0;2010:Pd:61;2011:Pd:1d1,61;2012:Pd:1d2,1d3;2013:Pd:116,1d3;2014:Pd:115,1d3;2015:Pd:1d4,54;2016:Po:5c,4b,46;2017:Po:5c,45,46;2018:Pi:9,1c5,5e,2;2019:Pf:b,1c5,5e,2;201a:Ps:1c5,1d5,5e,2;201b:Pi:1c5,1d6,5e,2;201c:Pi:9,5c,5e,2;201d:Pf:b,5c,5e,2;201e:Ps:5c,1d5,5e,2;201f:Pi:5c,1d6,5e,2;2020:Po:1d7;2021:Po:5c,1d7;2022:Po:1d8;2023:Po:c2,1d8;2024:Po:15,6b,1d9;2025:Po:16,6b,1d9;2026:Po:1d4,1da;2027:Po:1db,1dc;202f:Zs:1dd,4d,0;2030:Po:1de,1df,4;2031:Po:1de,1e0,1e1,4;2032:Po:be;2033:Po:5c,be;2034:Po:1e2,be;2035:Po:97,be;2036:Po:97,5c,be;2037:Po:97,1e2,be;2038:Po:1e3;2039:Pi:1c5,5b,5d,5e,2;203a:Pf:1c5,6e,5d,5e,2;203b:Po:1e4,2;203c:Po:5c,1,2;203d:Po:1e5;203e:Po:1e6;203f:Pc:1e7;2040:Pc:1e8,1e9;2041:Po:1e3,1ea,1dc;2042:Po:1eb;2043:Po:61,1d8;2044:Sm:70,1ec;2045:Ps:9,40,41,74,1ed;2046:Pe:b,40,41,74,1ed;2047:Po:5c,21,2;2048:Po:21,1,2;2049:Po:1,21,2;204a:Po:1ee,4,1ef;204b:Po:97,69,4;204c:Po:1f0,1f1,1d8;204d:Po:1f0,1f2,1d8;204e:Po:45,c;204f:Po:97,1d;2050:Po:1f3,c0;2051:Po:16,1f4,1f5,1f6;2052:Sm:22,c5,4;2053:Po:1f7,1d3;2054:Pc:4e,1e7;2055:Po:1f8,1c6,2;2056:Po:17,6b,1c6;2057:Po:1f9,be;2058:Po:18,6b,1c6;2059:Po:1fa,6b,1c6;205a:Po:16,6b,1c6;205b:Po:18,6b,2;205c:Po:e5,c7;205d:Po:1fb;205e:Po:4b,18,1fc;2070:No:66,14;2071:Lm:66,24,48,26,2f;2074:No:66,18;2075:No:66,1fa;2076:No:66,19;2077:No:66,1a;2078:No:66,1fd;2079:No:66,1b;207a:Sm:66,d,4;207b:Sm:66,c5;207c:Sm:66,1f,4;207d:Ps:66,9,a;207e:Pe:66,b,a;207f:Lm:66,24,48,26,33;2080:No:1cd,14;2081:No:1cd,15;2082:No:1cd,16;2083:No:1cd,17;2084:No:1cd,18;2085:No:1cd,1fa;2086:No:1cd,19;2087:No:1cd,1a;2088:No:1cd,1fd;2089:No:1cd,1b;208a:Sm:1cd,d,4;208b:Sm:1cd,c5;208c:Sm:1cd,1f,4;208d:Ps:1cd,9,a;208e:Pe:1cd,b,a;2090:Lm:24,1cd,48,26,27;2091:Lm:24,1cd,48,26,2b;2092:Lm:24,1cd,48,26,34;2093:Lm:24,1cd,48,26,3d;2094:Lm:24,1cd,48,26,98;2095:Lm:24,1cd,48,26,2e;2096:Lm:24,1cd,48,26,30;2097:Lm:24,1cd,48,26,31;2098:Lm:24,1cd,48,26,32;2099:Lm:24,1cd,48,26,33;209a:Lm:24,1cd,48,26,35;209b:Lm:24,1cd,48,26,38;209c:Lm:24,1cd,48,26,39;20a0:Sc:1fe,4;20a1:Sc:1c,4;20a2:Sc:1ff,4;20a3:Sc:200,201,4;20a4:Sc:202,4;20a5:Sc:203,4;20a6:Sc:204,4;20a7:Sc:205,4;20a8:Sc:16a,4;20a9:Sc:206,4;20aa:Sc:207,208,4;20ab:Sc:209,4;20ac:Sc:20a,4;20ad:Sc:20b,4;20ae:Sc:20c,4;20af:Sc:20d,4;20b0:Sc:20e,20f,4;20b1:Sc:210,4;20b2:Sc:211,4;20b3:Sc:212,4;20b4:Sc:213,4;20b5:Sc:214,4;20b6:Sc:215,216,4;20b7:Sc:217,4;20b8:Sc:218,4;20b9:Sc:219,16a,4;20ba:Sc:21a,202,4;20bb:Sc:21b,2,4;20bc:Sc:21c,4;20bd:Sc:21d,4;20be:Sc:21e,4;20bf:Sc:21f,4;20c0:Sc:220,4;20d7:Mn:d7,b,d6,76;20dd:Me:d7,221,222;2100:So:223,224;2101:So:225,226,227,228;2102:Lu:229,25,29;2103:So:64,22a;2104:So:22b,46,e4;2105:So:22c,224;2106:So:22d,22e;2107:Lu:22f,230;2108:So:231;2109:So:64,232;210a:Ll:9a,48,2d;210b:Lu:9a,25,2e;210c:Lu:233,25,2e;210d:Lu:229,25,2e;210e:Ll:234,230;210f:Ll:234,230,235,16,f7;2110:Lu:9a,25,2f;2111:Lu:233,25,2f;2112:Lu:9a,25,31;2113:Ll:9a,48,31;2114:So:31,28,54,e4;2115:Lu:229,25,33;2116:So:236,4;2117:So:237,238,57;2118:Sm:9a,25,35;2119:Lu:229,25,35;211a:Lu:229,25,36;211b:Lu:9a,25,37;211c:Lu:233,25,37;211d:Lu:229,25,37;211e:So:239,23a;211f:So:23b;2120:So:23c,2;2121:So:23d,4;2122:So:23e,2,4;2123:So:23f;2124:Lu:229,25,3f;2125:So:240,4;2126:Lu:241,4;2127:So:4e,241,4;2128:Lu:233,25,3f;2129:So:92,d9,48,26,9e;212a:Lu:242,4;212b:Lu:243,4;212c:Lu:9a,25,28;212d:Lu:233,25,29;212e:So:244,e4;212f:Ll:9a,48,2b;2130:Lu:9a,25,2b;2131:Lu:9a,25,2c;2132:Lu:92,25,2c;2133:Lu:9a,25,32;2134:Ll:9a,48,34;2135:Lo:133,e4;2136:Lo:134,e4;2137:Lo:135,e4;2138:Lo:136,e4;2139:Ll:245,246;213a:So:247,25,36;213b:So:248,4;213c:Ll:229,48,f7;213d:Ll:229,48,9b;213e:Lu:229,25,9b;213f:Lu:229,25,f7;2140:Sm:229,249,24a;2141:Sm:92,24b,25,2d;2142:Sm:92,24b,25,31;2143:Sm:97,24b,25,31;2144:Sm:92,24b,25,3e;2145:Lu:229,24c,25,2a;2146:Ll:229,24c,48,2a;2147:Ll:229,24c,48,2b;2148:Ll:229,24c,48,2f;2149:Ll:229,24c,48,49;214a:So:24d,46;214b:Sm:92,7;214c:So:1de,4;214d:So:24e;214e:Ll:92,48,2c;214f:So:e4,24f,250,246;2150:No:6f,70,15,251;2151:No:6f,70,15,252;2152:No:6f,70,15,253;2153:No:6f,70,15,254;2154:No:6f,70,16,255;2155:No:6f,70,15,256;2156:No:6f,70,16,257;2157:No:6f,70,17,257;2158:No:6f,70,18,257;2159:No:6f,70,15,258;215a:No:6f,70,1fa,259;215b:No:6f,70,15,25a;215c:No:6f,70,17,25b;215d:No:6f,70,1fa,25b;215e:No:6f,70,1a,25b;215f:No:70,25c,15;2160:Nl:25d,dd,15;2161:Nl:25d,dd,16;2162:Nl:25d,dd,17;2163:Nl:25d,dd,18;2164:Nl:25d,dd,1fa;2165:Nl:25d,dd,19;2166:Nl:25d,dd,1a;2167:Nl:25d,dd,1fd;2168:Nl:25d,dd,1b;2169:Nl:25d,dd,1e0;216a:Nl:25d,dd,25e;216b:Nl:25d,dd,25f;216c:Nl:25d,dd,260;216d:Nl:25d,dd,15,261;216e:Nl:25d,dd,1fa,261;216f:Nl:25d,dd,15,1e1;2170:Nl:48,25d,dd,15;2171:Nl:48,25d,dd,16;2172:Nl:48,25d,dd,17;2173:Nl:48,25d,dd,18;2174:Nl:48,25d,dd,1fa;2175:Nl:48,25d,dd,19;2176:Nl:48,25d,dd,1a;2177:Nl:48,25d,dd,1fd;2178:Nl:48,25d,dd,1b;2179:Nl:48,25d,dd,1e0;217a:Nl:48,25d,dd,25e;217b:Nl:48,25d,dd,25f;217c:Nl:48,25d,dd,260;217d:Nl:48,25d,dd,15,261;217e:Nl:48,25d,dd,1fa,261;217f:Nl:48,25d,dd,15,1e1;2180:Nl:25d,dd,15,1e1,29,2a;2181:Nl:25d,dd,1fa,1e1;2182:Nl:25d,dd,1e0,1e1;2183:Lu:25d,dd,97,15,261;2184:Ll:24,48,26,97,29;2185:Nl:25d,dd,19,262,263;2186:Nl:25d,dd,260,264,263;2187:Nl:25d,dd,260,1e1;2188:Nl:25d,dd,15,261,1e1;2189:No:6f,70,14,255;218a:So:92,13,16;218b:So:92,13,17;2190:Sm:1f1,d6;2191:Sm:265,d6;2192:Sm:1f2,d6;2193:Sm:266,d6;2194:Sm:9,b,d6;2195:So:c0,c1,d6;2196:So:267,268,d6;2197:So:267,269,d6;2198:So:26a,269,d6;2199:So:26a,268,d6;219a:Sm:1f1,d6,74,7a;219b:Sm:1f2,d6,74,7a;219c:So:1f1,26b,d6;219d:So:1f2,26b,d6;219e:So:1f1,16,26c,d6;219f:So:265,16,26c,d6;21a0:Sm:1f2,16,26c,d6;21a1:So:266,16,26c,d6;21a2:So:1f1,d6,74,96;21a3:Sm:1f2,d6,74,96;21a4:So:1f1,d6,26d,54;21a5:So:265,d6,26d,54;21a6:Sm:1f2,d6,26d,54;21a7:So:266,d6,26d,54;21a8:So:c0,c1,d6,74,26e;21a9:So:1f1,d6,74,8a;21aa:So:1f2,d6,74,8a;21ab:So:1f1,d6,74,26f;21ac:So:1f2,d6,74,26f;21ad:So:9,b,26b,d6;21ae:Sm:9,b,d6,74,7a;21af:So:266,270,d6;21b0:So:265,d6,74,271,1f1;21b1:So:265,d6,74,271,1f2;21b2:So:266,d6,74,271,1f1;21b3:So:266,d6,74,271,1f2;21b4:So:1f2,d6,74,272,266;21b5:So:266,d6,74,272,1f1;21b6:So:273,274,275,d6;21b7:So:276,274,275,d6;21b8:So:267,268,d6,226,89,54;21b9:So:1f1,d6,226,54,235,1f2,d6,226,54;21ba:So:273,94,222,d6;21bb:So:276,94,222,d6;21bc:So:1f1,277,74,278,265;21bd:So:1f1,277,74,278,266;21be:So:265,277,74,278,1f2;21bf:So:265,277,74,278,1f1;21c0:So:1f2,277,74,278,265;21c1:So:1f2,277,74,278,266;21c2:So:266,277,74,278,1f2;21c3:So:266,277,74,278,1f1;21c4:So:1f2,d6,235,1f1,d6;21c5:So:265,d6,1f1,224,266,d6;21c6:So:1f1,d6,235,1f2,d6;21c7:So:1f1,279,27a;21c8:So:265,279,27a;21c9:So:1f2,279,27a;21ca:So:266,279,27a;21cb:So:1f1,277,235,1f2,277;21cc:So:1f2,277,235,1f1,277;21cd:So:1f1,5c,d6,74,7a;21ce:Sm:9,b,5c,d6,74,7a;21cf:Sm:1f2,5c,d6,74,7a;21d0:So:1f1,5c,d6;21d1:So:265,5c,d6;21d2:Sm:1f2,5c,d6;21d3:So:266,5c,d6;21d4:Sm:9,b,5c,d6;21d5:So:c0,c1,5c,d6;21d6:So:267,268,5c,d6;21d7:So:267,269,5c,d6;21d8:So:26a,269,5c,d6;21d9:So:26a,268,5c,d6;21da:So:1f1,1e2,d6;21db:So:1f2,1e2,d6;21dc:So:1f1,27b,d6;21dd:So:1f2,27b,d6;21de:So:265,d6,74,5c,7a;21df:So:266,d6,74,5c,7a;21e0:So:1f1,27c,d6;21e1:So:265,27c,d6;21e2:So:1f2,27c,d6;21e3:So:266,27c,d6;21e4:So:1f1,d6,226,54;21e5:So:1f2,d6,226,54;21e6:So:1f1,27d,d6;21e7:So:265,27d,d6;21e8:So:1f2,27d,d6;21e9:So:266,27d,d6;21ea:So:265,27d,d6,26d,54;21eb:So:265,27d,d6,17c,27e;21ec:So:265,27d,d6,17c,27e,74,1d4,54;21ed:So:265,27d,d6,17c,27e,74,4b,54;21ee:So:265,27d,5c,d6;21ef:So:265,27d,5c,d6,17c,27e;21f0:So:1f2,27d,d6,26d,27f;21f1:So:267,268,d6,226,272;21f2:So:26a,269,d6,226,272;21f3:So:c0,c1,27d,d6;21f4:Sm:b,d6,74,48,222;21f5:Sm:266,d6,1f1,224,265,d6;21f6:Sm:17,1f2,27a;21f7:Sm:1f1,d6,74,4b,7a;21f8:Sm:1f2,d6,74,4b,7a;21f9:Sm:9,b,d6,74,4b,7a;21fa:Sm:1f1,d6,74,5c,4b,7a;21fb:Sm:1f2,d6,74,5c,4b,7a;21fc:Sm:9,b,d6,74,5c,4b,7a;21fd:Sm:1f1,280,d6;21fe:Sm:1f2,280,d6;21ff:Sm:9,b,280,d6;2200:Sm:24f,281;2201:Sm:282;2202:Sm:283,284;2203:Sm:285,286;2204:Sm:285,287,5f,288;2205:Sm:289,28a;2206:Sm:28b;2207:Sm:28c;2208:Sm:28d,224;2209:Sm:5f,28e,28d,224;220a:Sm:48,28d,224;220b:Sm:28f,290,291;220c:Sm:287,5f,292,290,291;220d:Sm:48,28f,290,291;220e:Sm:d4,224,293;220f:Sm:249,294;2210:Sm:249,295;2211:Sm:249,24a;2212:Sm:c5,4;2213:Sm:296,4;2214:Sm:6b,d;2215:Sm:7d,1ec;2216:Sm:28a,c5;2217:Sm:c,297;2218:Sm:75,297;2219:Sm:1d8,297;221a:Sm:40,298;221b:Sm:299,298;221c:Sm:29a,298;221d:Sm:29b,226;221e:Sm:29c;221f:Sm:b,5d;2220:Sm:5d;2221:Sm:29d,5d;2222:Sm:29e,5d;2223:Sm:29f;2224:Sm:287,5f,2a0;2225:Sm:2a1,226;2226:Sm:5f,2a1,226;2227:Sm:2a2,a7;2228:Sm:2a2,2a3;2229:Sm:2a4;222a:Sm:2a5;222b:Sm:2a6;222c:Sm:5c,2a6;222d:Sm:1e2,2a6;222e:Sm:2a7,2a6;222f:Sm:2a8,2a6;2230:Sm:2a9,2a6;2231:Sm:276,2a6;2232:Sm:276,2a7,2a6;2233:Sm:273,2a7,2a6;2234:Sm:2aa;2235:Sm:2ab;2236:Sm:2ac;2237:Sm:2ad;2238:Sm:6b,c5;2239:Sm:2ae;223a:Sm:2af,2ad;223b:Sm:2b0;223c:Sm:4c,297;223d:Sm:97,4c;223e:Sm:4e,2b1,38;223f:Sm:2b2,26b;2240:Sm:2b3,294;2241:Sm:5f,4c;2242:Sm:c5,4c;2243:Sm:2b4,2b5,226;2244:Sm:5f,2b4,2b5,226;2245:Sm:2b6,2b5,226;2246:Sm:2b6,2b7,5f,2b8,2b5,226;2247:Sm:2b9,2b6,2ba,2b8,2b5,226;2248:Sm:2bb,2b5,226;2249:Sm:5f,2bb,2b5,226;224a:Sm:2bb,2b5,2a3,2b5,226;224b:Sm:1e2,4c;224c:Sm:281,2b5,226;224d:Sm:2bc,226;224e:Sm:2bd,2bc,226;224f:Sm:2be,2bf;2250:Sm:2c0,227,2c1;2251:Sm:2bd,2b5,226;2252:Sm:2b6,2b5,226,2a3,227,2c2,224;2253:Sm:2c2,224,2a3,2b6,2b5,226;2254:Sm:1c,1f;2255:Sm:1f,1c;2256:Sm:75,2c3,2b5,226;2257:Sm:75,2b5,226;2258:Sm:2c4,226;2259:Sm:2c5;225a:Sm:2c6,226;225b:Sm:2c7,1f;225c:Sm:ef,2b5,226;225d:Sm:2b5,226,86,2c8;225e:Sm:29d,86;225f:Sm:2c9,2b5,226;2260:Sm:5f,2b5,226;2261:Sm:2ca,226;2262:Sm:5f,2ca,226;2263:Sm:2cb,2bc,226;2264:Sm:1e,2a3,2b5,226;2265:Sm:20,2a3,2b5,226;2266:Sm:1e,235,2b5,226;2267:Sm:20,235,2b5,226;2268:Sm:1e,2b7,5f,2b5,226;2269:Sm:20,2b7,5f,2b5,226;226a:Sm:2cc,1e;226b:Sm:2cc,20;226c:Sm:2bf;226d:Sm:5f,2bc,226;226e:Sm:5f,1e;226f:Sm:5f,20;2270:Sm:2b9,1e,2ba,2b5,226;2271:Sm:2b9,20,2ba,2b5,226;2272:Sm:1e,2a3,2bc,226;2273:Sm:20,2a3,2bc,226;2274:Sm:2b9,1e,2ba,2bc,226;2275:Sm:2b9,20,2ba,2bc,226;2276:Sm:1e,2a3,20;2277:Sm:20,2a3,1e;2278:Sm:2b9,1e,2ba,20;2279:Sm:2b9,20,2ba,1e;227a:Sm:2cd;227b:Sm:2ce;227c:Sm:2cd,2a3,2b5,226;227d:Sm:2ce,2a3,2b5,226;227e:Sm:2cd,2a3,2bc,226;227f:Sm:2ce,2a3,2bc,226;2280:Sm:287,5f,2cf;2281:Sm:287,5f,2d0;2282:Sm:2d1,224;2283:Sm:2d2,224;2284:Sm:5f,27,2d1,224;2285:Sm:5f,27,2d2,224;2286:Sm:2d1,224,2a3,2b5,226;2287:Sm:2d2,224,2a3,2b5,226;2288:Sm:2b9,27,2d1,224,2ba,2b5,226;2289:Sm:2b9,27,2d2,224,2ba,2b5,226;228a:Sm:2d1,224,74,5f,2b5,226;228b:Sm:2d2,224,74,5f,2b5,226;228c:Sm:2d3;228d:Sm:2d3,79;228e:Sm:2d3,2a5;228f:Sm:40,2c2,224;2290:Sm:40,2d4,224;2291:Sm:40,2c2,224,2a3,2b5,226;2292:Sm:40,2d4,224,2a3,2b5,226;2293:Sm:40,2d5;2294:Sm:40,2d6;2295:Sm:2d7,d;2296:Sm:2d7,c5;2297:Sm:2d7,2d8;2298:Sm:2d7,7d,1ec;2299:Sm:2d7,6b,297;229a:Sm:2d7,75,297;229b:Sm:2d7,c,297;229c:Sm:2d7,1f;229d:Sm:2d7,1d3;229e:Sm:2d9,d;229f:Sm:2d9,c5;22a0:Sm:2d9,2d8;22a1:Sm:2d9,6b,297;22a2:Sm:b,c4;22a3:Sm:9,c4;22a4:Sm:c1,c4;22a5:Sm:c0,c4;22a6:Sm:2da;22a7:Sm:2db;22a8:Sm:2dc;22a9:Sm:2dd;22aa:Sm:1e2,4b,54,b,2de;22ab:Sm:5c,4b,54,5c,b,2de;22ac:Sm:287,5f,2df;22ad:Sm:5f,2dc;22ae:Sm:287,5f,2e0;22af:Sm:2e1,5c,4b,54,5c,b,2de;22b0:Sm:2cd,2e2,2e3;22b1:Sm:2ce,2e2,2e3;22b2:Sm:2e4,2e5,224;22b3:Sm:28f,290,2e4,2e5;22b4:Sm:2e4,2e5,224,2a3,2b5,226;22b5:Sm:28f,290,2e4,2e5,2a3,2b5,226;22b6:Sm:2d4,224;22b7:Sm:2c2,224;22b8:Sm:2e6;22b9:Sm:2e7,2e8,2e9;22ba:Sm:2ea;22bb:Sm:2eb;22bc:Sm:2ec;22bd:Sm:2ba;22be:Sm:b,5d,74,2ed;22bf:Sm:b,2ee;22c0:Sm:249,2a2,a7;22c1:Sm:249,2a2,2a3;22c2:Sm:249,2a4;22c3:Sm:249,2a5;22c4:Sm:2ef,297;22c5:Sm:6b,297;22c6:Sm:2c7,297;22c7:Sm:7d,2d8;22c8:Sm:2f0;22c9:Sm:9,2e4,2f1,2f2,294;22ca:Sm:b,2e4,2f1,2f2,294;22cb:Sm:9,2f2,294;22cc:Sm:b,2f2,294;22cd:Sm:97,4c,1f;22ce:Sm:4a,2a2,2a3;22cf:Sm:4a,2a2,a7;22d0:Sm:5c,2d1;22d1:Sm:5c,2d2;22d2:Sm:5c,2a4;22d3:Sm:5c,2a5;22d4:Sm:2f3;22d5:Sm:2b5,a7,2a1,226;22d6:Sm:1e,74,6b;22d7:Sm:20,74,6b;22d8:Sm:2f4,2cc,1e;22d9:Sm:2f4,2cc,20;22da:Sm:1e,2b5,226,2a3,20;22db:Sm:20,2b5,226,2a3,1e;22dc:Sm:2b5,226,2a3,1e;22dd:Sm:2b5,226,2a3,20;22de:Sm:2b5,226,2a3,2cd;22df:Sm:2b5,226,2a3,2ce;22e0:Sm:287,5f,2cf,2a3,2b5;22e1:Sm:287,5f,2d0,2a3,2b5;22e2:Sm:5f,40,2c2,224,2a3,2b5,226;22e3:Sm:5f,40,2d4,224,2a3,2b5,226;22e4:Sm:40,2c2,224,2a3,5f,2b5,226;22e5:Sm:40,2d4,224,2a3,5f,2b5,226;22e6:Sm:1e,2b7,5f,2bc,226;22e7:Sm:20,2b7,5f,2bc,226;22e8:Sm:2cd,2b7,5f,2bc,226;22e9:Sm:2ce,2b7,5f,2bc,226;22ea:Sm:5f,2e4,2e5,224;22eb:Sm:287,5f,292,290,2e4,2e5;22ec:Sm:5f,2e4,2e5,224,2a3,2b5,226;22ed:Sm:287,5f,292,290,2e4,2e5,2a3,2b5;22ee:Sm:4b,1da;22ef:Sm:2f5,1d4,1da;22f0:Sm:c0,b,2f6,1da;22f1:Sm:c1,b,2f6,1da;22f2:Sm:28d,224,74,89,1d4,7a;22f3:Sm:28d,224,74,4b,54,23,d4,224,1d4,7a;22f4:Sm:48,28d,224,74,4b,54,23,d4,224,1d4,7a;22f5:Sm:28d,224,74,6b,76;22f6:Sm:28d,224,74,2f7;22f7:Sm:48,28d,224,74,2f7;22f8:Sm:28d,224,74,2f8;22f9:Sm:28d,224,74,16,1d4,2f9;22fa:Sm:28f,74,89,1d4,7a;22fb:Sm:28f,74,4b,54,23,d4,224,1d4,7a;22fc:Sm:48,28f,74,4b,54,23,d4,224,1d4,7a;22fd:Sm:28f,74,2f7;22fe:Sm:48,28f,74,2f7;22ff:Sm:3f,2fa,2fb,2fc;2300:So:2fd,4;2301:So:2fe,d6;2302:So:2ff;2303:So:c0,bf;2304:So:c1,bf;2305:So:300;2306:So:301;2307:So:302,46;2308:Ps:9,303;2309:Pe:b,303;230a:Ps:9,304;230b:Pe:b,304;230c:So:305,b,306;230d:So:305,9,306;230e:So:274,b,306;230f:So:274,9,306;2310:So:97,5f,4;2311:So:40,307;2312:So:2ed;2313:So:308;2314:So:309;2315:So:23d,30a;2316:So:30b,5a;2317:So:30c,40;2318:So:30d,224,30e,4;2319:So:92,5f,4;231a:So:30f;231b:So:310;231c:So:274,9,272;231d:So:274,b,272;231e:So:305,9,272;231f:So:305,b,272;2320:Sm:274,72,2a6;2321:Sm:305,72,2a6;2322:So:311;2323:So:312;2324:So:c0,bf,2bf,16,1d4,313;2325:So:314,315;2326:So:316,226,227,b;2327:So:3d,2c3,27,317,318;2328:So:319;2329:Ps:5b,5d,41;232a:Pe:6e,5d,41;232b:So:316,226,227,9;232c:So:31a,75;232d:So:31b;232e:So:281,31c;232f:So:31d;2330:So:31e,31f;2331:So:320,321;2332:So:322,323;2333:So:324;2334:So:325;2335:So:326;2336:So:327,328,e4,329;2337:So:327,328,e4,32a,32b;2338:So:327,328,e4,32b,2b5;2339:So:327,328,e4,32b,2a0;233a:So:327,328,e4,32b,2ef;233b:So:327,328,e4,32b,32c;233c:So:327,328,e4,32b,222;233d:So:327,328,e4,222,32d;233e:So:327,328,e4,222,32c;233f:So:327,328,e4,1ec,54;2340:So:327,328,e4,32e,54;2341:So:327,328,e4,32b,1ec;2342:So:327,328,e4,32b,32e;2343:So:327,328,e4,32b,1e;2344:So:327,328,e4,32b,20;2345:So:327,328,e4,1f1,32f;2346:So:327,328,e4,1f2,32f;2347:So:327,328,e4,32b,1f1,d6;2348:So:327,328,e4,32b,1f2,d6;2349:So:327,328,e4,222,32e;234a:So:327,328,e4,c1,c4,2f8;234b:So:327,328,e4,ef,32d;234c:So:327,328,e4,32b,c1,1e3;234d:So:327,328,e4,32b,ef;234e:So:327,328,e4,c1,c4,32c;234f:So:327,328,e4,265,32f;2350:So:327,328,e4,32b,265,d6;2351:So:327,328,e4,c0,c4,2f7;2352:So:327,328,e4,330,32d;2353:So:327,328,e4,32b,c0,1e3;2354:So:327,328,e4,32b,330;2355:So:327,328,e4,c0,c4,32c;2356:So:327,328,e4,266,32f;2357:So:327,328,e4,32b,266,d6;2358:So:327,328,e4,331,2f8;2359:So:327,328,e4,ef,2f8;235a:So:327,328,e4,2ef,2f8;235b:So:327,328,e4,32c,2f8;235c:So:327,328,e4,222,2f8;235d:So:327,328,e4,c0,332,32c;235e:So:327,328,e4,331,32b;235f:So:327,328,e4,222,2c7;2360:So:327,328,e4,32b,1c;2361:So:327,328,e4,c0,c4,56;2362:So:327,328,e4,330,56;2363:So:327,328,e4,2c7,56;2364:So:327,328,e4,32c,56;2365:So:327,328,e4,222,56;2366:So:327,328,e4,c1,332,32d;2367:So:327,328,e4,9,332,32d;2368:So:327,328,e4,4c,56;2369:So:327,328,e4,20,56;236a:So:327,328,e4,e,54;236b:So:327,328,e4,330,4c;236c:So:327,328,e4,333;236d:So:327,328,e4,32d,4c;236e:So:327,328,e4,1d,2f8;236f:So:327,328,e4,32b,5f,2b5;2370:So:327,328,e4,32b,21;2371:So:327,328,e4,c1,1e3,4c;2372:So:327,328,e4,c0,1e3,4c;2373:So:327,328,e4,9e;2374:So:327,328,e4,f8;2375:So:327,328,e4,a3;2376:So:327,328,e4,93,2f8;2377:So:327,328,e4,eb,2f8;2378:So:327,328,e4,9e,2f8;2379:So:327,328,e4,a3,2f8;237a:So:327,328,e4,93;237b:So:5f,334,2;237c:Sm:b,5d,74,266,270,d6;237d:So:335,94,318;237e:So:336,e4;237f:So:4b,46,74,6a,6b;2380:So:1ea,e4;2381:So:337,338,e4;2382:So:339,338,e4;2383:So:33a,e4;2384:So:33b,e4;2385:So:27d,40,74,22b,4b,46;2386:So:33c,e4;2387:So:33d,315,e4;2388:So:33e,e4;2389:So:2d7,1d4,54,74,33f;238a:So:2d7,2ee,c1;238b:So:53,222,74,340,d6;238c:So:341,e4;238d:So:342,e4;238e:So:343,e4;238f:So:344,345,e4;2390:So:344,346,e4;2391:So:347,e4;2392:So:348,e4;2393:So:349,34a,e4,263,16;2394:So:34b,e4;2395:So:327,328,e4,32b;2396:So:34c,34d,315,e4;2397:So:34e,34f;2398:So:350,34f;2399:So:351,352,e4;239a:So:353,352,e4;239b:Sm:9,a,354,8a;239c:Sm:9,a,355;239d:Sm:9,a,de,8a;239e:Sm:b,a,354,8a;239f:Sm:b,a,355;23a0:Sm:b,a,de,8a;23a1:Sm:9,40,41,354,272;23a2:Sm:9,40,41,355;23a3:Sm:9,40,41,de,272;23a4:Sm:b,40,41,354,272;23a5:Sm:b,40,41,355;23a6:Sm:b,40,41,de,272;23a7:Sm:9,4a,41,354,8a;23a8:Sm:9,4a,41,6a,356;23a9:Sm:9,4a,41,de,8a;23aa:Sm:4a,41,355;23ab:Sm:b,4a,41,354,8a;23ac:Sm:b,4a,41,6a,356;23ad:Sm:b,4a,41,de,8a;23ae:Sm:2a6,355;23af:Sm:1d4,46,355;23b0:Sm:354,9,2a3,de,b,4a,41,55;23b1:Sm:354,b,2a3,de,9,4a,41,55;23b2:Sm:24a,274;23b3:Sm:24a,305;23b4:So:274,40,41;23b5:So:305,40,41;23b6:So:305,40,41,235,274,40,41;23b7:So:357,e4,305;23b8:So:9,4b,318,46;23b9:So:b,4b,318,46;23ba:So:1d4,358,359;23bb:So:1d4,358,35a;23bc:So:1d4,358,35b;23bd:So:1d4,358,35c;23be:So:35d,e4,35e,4b,a7,274,b;23bf:So:35d,e4,35e,4b,a7,305,b;23c0:So:35d,e4,35e,4b,74,222;23c1:So:35d,e4,35e,c1,a7,1d4,74,222;23c2:So:35d,e4,35e,c0,a7,1d4,74,222;23c3:So:35d,e4,35e,4b,74,2ee;23c4:So:35d,e4,35e,c1,a7,1d4,74,2ee;23c5:So:35d,e4,35e,c0,a7,1d4,74,2ee;23c6:So:35d,e4,35e,4b,a7,26b;23c7:So:35d,e4,35e,c1,a7,1d4,74,26b;23c8:So:35d,e4,35e,c0,a7,1d4,74,26b;23c9:So:35d,e4,35e,c1,a7,1d4;23ca:So:35d,e4,35e,c0,a7,1d4;23cb:So:35d,e4,35e,4b,a7,274,9;23cc:So:35d,e4,35e,4b,a7,305,9;23cd:So:40,35f;23ce:So:360,e4;23cf:So:361,e4;23d0:So:4b,46,355;23d1:So:362,7e;23d2:So:362,89,235,112;23d3:So:362,112,235,89;23d4:So:362,89,235,16,363;23d5:So:362,16,363,235,89;23d6:So:362,16,363,364;23d7:So:362,365;23d8:So:362,366;23d9:So:362,367;23da:So:368,369;23db:So:36a;23dc:Sm:274,a;23dd:Sm:305,a;23de:Sm:274,4a,41;23df:Sm:305,4a,41;23e0:Sm:274,36b,36c,41;23e1:Sm:305,36b,36c,41;23e2:So:27d,36d;23e3:So:31a,75,74,222;23e4:So:36e;23e5:So:36f;23e6:So:178,34a;23e7:So:370,2a4;23e8:So:34c,371,e4;23e9:So:1f0,6e,5c,2ee;23ea:So:1f0,5b,5c,2ee;23eb:So:1f0,372,5c,2ee;23ec:So:1f0,373,5c,2ee;23ed:So:1f0,6e,5c,2ee,74,4b,54;23ee:So:1f0,5b,5c,2ee,74,4b,54;23ef:So:1f0,6e,2ee,74,5c,4b,54;23f0:So:374,375;23f1:So:376;23f2:So:377,375;23f3:So:310,74,378,379;23f4:So:1f0,37a,5b,2ee;23f5:So:1f0,37a,6e,2ee;23f6:So:1f0,37a,372,2ee;23f7:So:1f0,37a,373,2ee;23f8:So:5c,4b,54;23f9:So:1f0,40,24f,11;23fa:So:1f0,222,24f,37b;23fb:So:37c,e4;23fc:So:37c,37d,e4;23fd:So:37c,17c,e4;23fe:So:37c,37e,e4;23ff:So:37f,380,e4;2400:So:e4,24f,381;2401:So:e4,24f,382,224,383;2402:So:e4,24f,382,224,384;2403:So:e4,24f,d4,224,384;2404:So:e4,24f,d4,224,385;2405:So:e4,24f,386;2406:So:e4,24f,387;2407:So:e4,24f,336;2408:So:e4,24f,388;2409:So:e4,24f,1d4,389;240a:So:e4,24f,46,38a;240b:So:e4,24f,4b,389;240c:So:e4,24f,263,38a;240d:So:e4,24f,38b,360;240e:So:e4,24f,38c,38d;240f:So:e4,24f,38c,2c3;2410:So:e4,24f,38e,38f,390;2411:So:e4,24f,391,392,15;2412:So:e4,24f,391,392,16;2413:So:e4,24f,391,392,17;2414:So:e4,24f,391,392,18;2415:So:e4,24f,393,387;2416:So:e4,24f,394,395;2417:So:e4,24f,d4,224,385,396;2418:So:e4,24f,397;2419:So:e4,24f,d4,224,37a;241a:So:e4,24f,398;241b:So:e4,24f,390;241c:So:e4,24f,399,34d;241d:So:e4,24f,39a,34d;241e:So:e4,24f,37b,34d;241f:So:e4,24f,39b,34d;2420:So:e4,24f,0;2421:So:e4,24f,39c;2422:So:39d,e4;2423:So:94,318;2424:So:e4,24f,39e;2425:So:e4,24f,39c,263,16;2426:So:e4,24f,398,263,16;2440:So:39f,8a;2441:So:39f,3a0;2442:So:39f,3a1;2443:So:39f,4e,3a1;2444:So:39f,9f,3a2;2445:So:39f,3a3,1e9;2446:So:39f,3a4,3a5,3a6;2447:So:39f,3a7,224,334;2448:So:39f,1d3;2449:So:39f,3a8,223,3;244a:So:39f,5c,32e;2460:No:2d7,13,15;2461:No:2d7,13,16;2462:No:2d7,13,17;2463:No:2d7,13,18;2464:No:2d7,13,1fa;2465:No:2d7,13,19;2466:No:2d7,13,1a;2467:No:2d7,13,1fd;2468:No:2d7,13,1b;2469:No:2d7,3,1e0;246a:No:2d7,3,25e;246b:No:2d7,3,25f;246c:No:2d7,3,3a9;246d:No:2d7,3,3aa;246e:No:2d7,3,3ab;246f:No:2d7,3,3ac;2470:No:2d7,3,3ad;2471:No:2d7,3,3ae;2472:No:2d7,3,3af;2473:No:2d7,3,3b0;2474:No:3b1,13,15;2475:No:3b1,13,16;2476:No:3b1,13,17;2477:No:3b1,13,18;2478:No:3b1,13,1fa;2479:No:3b1,13,19;247a:No:3b1,13,1a;247b:No:3b1,13,1fd;247c:No:3b1,13,1b;247d:No:3b1,3,1e0;247e:No:3b1,3,25e;247f:No:3b1,3,25f;2480:No:3b1,3,3a9;2481:No:3b1,3,3aa;2482:No:3b1,3,3ab;2483:No:3b1,3,3ac;2484:No:3b1,3,3ad;2485:No:3b1,3,3ae;2486:No:3b1,3,3af;2487:No:3b1,3,3b0;2488:No:13,15,10,11;2489:No:13,16,10,11;248a:No:13,17,10,11;248b:No:13,18,10,11;248c:No:13,1fa,10,11;248d:No:13,19,10,11;248e:No:13,1a,10,11;248f:No:13,1fd,10,11;2490:No:13,1b,10,11;2491:No:3,1e0,10,11;2492:No:3,25e,10,11;2493:No:3,25f,10,11;2494:No:3,3a9,10,11;2495:No:3,3aa,10,11;2496:No:3,3ab,10,11;2497:No:3,3ac,10,11;2498:No:3,3ad,10,11;2499:No:3,3ae,10,11;249a:No:3,3af,10,11;249b:No:3,3b0,10,11;249c:So:3b1,24,48,26,27;249d:So:3b1,24,48,26,28;249e:So:3b1,24,48,26,29;249f:So:3b1,24,48,26,2a;24a0:So:3b1,24,48,26,2b;24a1:So:3b1,24,48,26,2c;24a2:So:3b1,24,48,26,2d;24a3:So:3b1,24,48,26,2e;24a4:So:3b1,24,48,26,2f;24a5:So:3b1,24,48,26,49;24a6:So:3b1,24,48,26,30;24a7:So:3b1,24,48,26,31;24a8:So:3b1,24,48,26,32;24a9:So:3b1,24,48,26,33;24aa:So:3b1,24,48,26,34;24ab:So:3b1,24,48,26,35;24ac:So:3b1,24,48,26,36;24ad:So:3b1,24,48,26,37;24ae:So:3b1,24,48,26,38;24af:So:3b1,24,48,26,39;24b0:So:3b1,24,48,26,3a;24b1:So:3b1,24,48,26,3b;24b2:So:3b1,24,48,26,3c;24b3:So:3b1,24,48,26,3d;24b4:So:3b1,24,48,26,3e;24b5:So:3b1,24,48,26,3f;24b6:So:2d7,24,25,26,27;24b7:So:2d7,24,25,26,28;24b8:So:2d7,24,25,26,29;24b9:So:2d7,24,25,26,2a;24ba:So:2d7,24,25,26,2b;24bb:So:2d7,24,25,26,2c;24bc:So:2d7,24,25,26,2d;24bd:So:2d7,24,25,26,2e;24be:So:2d7,24,25,26,2f;24bf:So:2d7,24,25,26,49;24c0:So:2d7,24,25,26,30;24c1:So:2d7,24,25,26,31;24c2:So:2d7,24,25,26,32;24c3:So:2d7,24,25,26,33;24c4:So:2d7,24,25,26,34;24c5:So:2d7,24,25,26,35;24c6:So:2d7,24,25,26,36;24c7:So:2d7,24,25,26,37;24c8:So:2d7,24,25,26,38;24c9:So:2d7,24,25,26,39;24ca:So:2d7,24,25,26,3a;24cb:So:2d7,24,25,26,3b;24cc:So:2d7,24,25,26,3c;24cd:So:2d7,24,25,26,3d;24ce:So:2d7,24,25,26,3e;24cf:So:2d7,24,25,26,3f;24d0:So:2d7,24,48,26,27;24d1:So:2d7,24,48,26,28;24d2:So:2d7,24,48,26,29;24d3:So:2d7,24,48,26,2a;24d4:So:2d7,24,48,26,2b;24d5:So:2d7,24,48,26,2c;24d6:So:2d7,24,48,26,2d;24d7:So:2d7,24,48,26,2e;24d8:So:2d7,24,48,26,2f;24d9:So:2d7,24,48,26,49;24da:So:2d7,24,48,26,30;24db:So:2d7,24,48,26,31;24dc:So:2d7,24,48,26,32;24dd:So:2d7,24,48,26,33;24de:So:2d7,24,48,26,34;24df:So:2d7,24,48,26,35;24e0:So:2d7,24,48,26,36;24e1:So:2d7,24,48,26,37;24e2:So:2d7,24,48,26,38;24e3:So:2d7,24,48,26,39;24e4:So:2d7,24,48,26,3a;24e5:So:2d7,24,48,26,3b;24e6:So:2d7,24,48,26,3c;24e7:So:2d7,24,48,26,3d;24e8:So:2d7,24,48,26,3e;24e9:So:2d7,24,48,26,3f;24ea:No:2d7,13,14;24eb:No:393,2d7,3,25e;24ec:No:393,2d7,3,25f;24ed:No:393,2d7,3,3a9;24ee:No:393,2d7,3,3aa;24ef:No:393,2d7,3,3ab;24f0:No:393,2d7,3,3ac;24f1:No:393,2d7,3,3ad;24f2:No:393,2d7,3,3ae;24f3:No:393,2d7,3,3af;24f4:No:393,2d7,3,3b0;24f5:No:5c,2d7,13,15;24f6:No:5c,2d7,13,16;24f7:No:5c,2d7,13,17;24f8:No:5c,2d7,13,18;24f9:No:5c,2d7,13,1fa;24fa:No:5c,2d7,13,19;24fb:No:5c,2d7,13,1a;24fc:No:5c,2d7,13,1fd;24fd:No:5c,2d7,13,1b;24fe:No:5c,2d7,3,1e0;24ff:No:393,2d7,13,14;2500:So:318,3b2,35e,1d4;2501:So:318,3b2,3b3,1d4;2502:So:318,3b2,35e,4b;2503:So:318,3b2,3b3,4b;2504:So:318,3b2,35e,1e2,1d3,1d4;2505:So:318,3b2,3b3,1e2,1d3,1d4;2506:So:318,3b2,35e,1e2,1d3,4b;2507:So:318,3b2,3b3,1e2,1d3,4b;2508:So:318,3b2,35e,1f9,1d3,1d4;2509:So:318,3b2,3b3,1f9,1d3,1d4;250a:So:318,3b2,35e,1f9,1d3,4b;250b:So:318,3b2,3b3,1f9,1d3,4b;250c:So:318,3b2,35e,c1,a7,b;250d:So:318,3b2,c1,35e,a7,b,3b3;250e:So:318,3b2,c1,3b3,a7,b,35e;250f:So:318,3b2,3b3,c1,a7,b;2510:So:318,3b2,35e,c1,a7,9;2511:So:318,3b2,c1,35e,a7,9,3b3;2512:So:318,3b2,c1,3b3,a7,9,35e;2513:So:318,3b2,3b3,c1,a7,9;2514:So:318,3b2,35e,c0,a7,b;2515:So:318,3b2,c0,35e,a7,b,3b3;2516:So:318,3b2,c0,3b3,a7,b,35e;2517:So:318,3b2,3b3,c0,a7,b;2518:So:318,3b2,35e,c0,a7,9;2519:So:318,3b2,c0,35e,a7,9,3b3;251a:So:318,3b2,c0,3b3,a7,9,35e;251b:So:318,3b2,3b3,c0,a7,9;251c:So:318,3b2,35e,4b,a7,b;251d:So:318,3b2,4b,35e,a7,b,3b3;251e:So:318,3b2,c0,3b3,a7,b,c1,35e;251f:So:318,3b2,c1,3b3,a7,b,c0,35e;2520:So:318,3b2,4b,3b3,a7,b,35e;2521:So:318,3b2,c1,35e,a7,b,c0,3b3;2522:So:318,3b2,c0,35e,a7,b,c1,3b3;2523:So:318,3b2,3b3,4b,a7,b;2524:So:318,3b2,35e,4b,a7,9;2525:So:318,3b2,4b,35e,a7,9,3b3;2526:So:318,3b2,c0,3b3,a7,9,c1,35e;2527:So:318,3b2,c1,3b3,a7,9,c0,35e;2528:So:318,3b2,4b,3b3,a7,9,35e;2529:So:318,3b2,c1,35e,a7,9,c0,3b3;252a:So:318,3b2,c0,35e,a7,9,c1,3b3;252b:So:318,3b2,3b3,4b,a7,9;252c:So:318,3b2,35e,c1,a7,1d4;252d:So:318,3b2,9,3b3,a7,b,c1,35e;252e:So:318,3b2,b,3b3,a7,9,c1,35e;252f:So:318,3b2,c1,35e,a7,1d4,3b3;2530:So:318,3b2,c1,3b3,a7,1d4,35e;2531:So:318,3b2,b,35e,a7,9,c1,3b3;2532:So:318,3b2,9,35e,a7,b,c1,3b3;2533:So:318,3b2,3b3,c1,a7,1d4;2534:So:318,3b2,35e,c0,a7,1d4;2535:So:318,3b2,9,3b3,a7,b,c0,35e;2536:So:318,3b2,b,3b3,a7,9,c0,35e;2537:So:318,3b2,c0,35e,a7,1d4,3b3;2538:So:318,3b2,c0,3b3,a7,1d4,35e;2539:So:318,3b2,b,35e,a7,9,c0,3b3;253a:So:318,3b2,9,35e,a7,b,c0,3b3;253b:So:318,3b2,3b3,c0,a7,1d4;253c:So:318,3b2,35e,4b,a7,1d4;253d:So:318,3b2,9,3b3,a7,b,4b,35e;253e:So:318,3b2,b,3b3,a7,9,4b,35e;253f:So:318,3b2,4b,35e,a7,1d4,3b3;2540:So:318,3b2,c0,3b3,a7,c1,1d4,35e;2541:So:318,3b2,c1,3b3,a7,c0,1d4,35e;2542:So:318,3b2,4b,3b3,a7,1d4,35e;2543:So:318,3b2,9,c0,3b3,a7,b,c1,35e;2544:So:318,3b2,b,c0,3b3,a7,9,c1,35e;2545:So:318,3b2,9,c1,3b3,a7,b,c0,35e;2546:So:318,3b2,b,c1,3b3,a7,9,c0,35e;2547:So:318,3b2,c1,35e,a7,c0,1d4,3b3;2548:So:318,3b2,c0,35e,a7,c1,1d4,3b3;2549:So:318,3b2,b,35e,a7,9,4b,3b3;254a:So:318,3b2,9,35e,a7,b,4b,3b3;254b:So:318,3b2,3b3,4b,a7,1d4;254c:So:318,3b2,35e,5c,1d3,1d4;254d:So:318,3b2,3b3,5c,1d3,1d4;254e:So:318,3b2,35e,5c,1d3,4b;254f:So:318,3b2,3b3,5c,1d3,4b;2550:So:318,3b2,5c,1d4;2551:So:318,3b2,5c,4b;2552:So:318,3b2,c1,1c5,a7,b,5c;2553:So:318,3b2,c1,5c,a7,b,1c5;2554:So:318,3b2,5c,c1,a7,b;2555:So:318,3b2,c1,1c5,a7,9,5c;2556:So:318,3b2,c1,5c,a7,9,1c5;2557:So:318,3b2,5c,c1,a7,9;2558:So:318,3b2,c0,1c5,a7,b,5c;2559:So:318,3b2,c0,5c,a7,b,1c5;255a:So:318,3b2,5c,c0,a7,b;255b:So:318,3b2,c0,1c5,a7,9,5c;255c:So:318,3b2,c0,5c,a7,9,1c5;255d:So:318,3b2,5c,c0,a7,9;255e:So:318,3b2,4b,1c5,a7,b,5c;255f:So:318,3b2,4b,5c,a7,b,1c5;2560:So:318,3b2,5c,4b,a7,b;2561:So:318,3b2,4b,1c5,a7,9,5c;2562:So:318,3b2,4b,5c,a7,9,1c5;2563:So:318,3b2,5c,4b,a7,9;2564:So:318,3b2,c1,1c5,a7,1d4,5c;2565:So:318,3b2,c1,5c,a7,1d4,1c5;2566:So:318,3b2,5c,c1,a7,1d4;2567:So:318,3b2,c0,1c5,a7,1d4,5c;2568:So:318,3b2,c0,5c,a7,1d4,1c5;2569:So:318,3b2,5c,c0,a7,1d4;256a:So:318,3b2,4b,1c5,a7,1d4,5c;256b:So:318,3b2,4b,5c,a7,1d4,1c5;256c:So:318,3b2,5c,4b,a7,1d4;256d:So:318,3b2,35e,2ed,c1,a7,b;256e:So:318,3b2,35e,2ed,c1,a7,9;256f:So:318,3b2,35e,2ed,c0,a7,9;2570:So:318,3b2,35e,2ed,c0,a7,b;2571:So:318,3b2,35e,2f6,354,b,226,de,9;2572:So:318,3b2,35e,2f6,354,9,226,de,b;2573:So:318,3b2,35e,2f6,c7;2574:So:318,3b2,35e,9;2575:So:318,3b2,35e,c0;2576:So:318,3b2,35e,b;2577:So:318,3b2,35e,c1;2578:So:318,3b2,3b3,9;2579:So:318,3b2,3b3,c0;257a:So:318,3b2,3b3,b;257b:So:318,3b2,3b3,c1;257c:So:318,3b2,35e,9,a7,3b3,b;257d:So:318,3b2,35e,c0,a7,3b3,c1;257e:So:318,3b2,3b3,9,a7,35e,b;257f:So:318,3b2,3b3,c0,a7,35e,c1;2580:So:354,72,396;2581:So:de,15,25a,396;2582:So:de,15,71,396;2583:So:de,17,25b,396;2584:So:de,72,396;2585:So:de,1fa,25b,396;2586:So:de,17,73,396;2587:So:de,1a,25b,396;2588:So:10,396;2589:So:9,1a,25b,396;258a:So:9,17,73,396;258b:So:9,1fa,25b,396;258c:So:9,72,396;258d:So:9,17,25b,396;258e:So:9,15,71,396;258f:So:9,15,25a,396;2590:So:b,72,396;2591:So:35e,3b4;2592:So:37a,3b4;2593:So:3b5,3b4;2594:So:354,15,25a,396;2595:So:b,15,25a,396;2596:So:3b6,de,9;2597:So:3b6,de,b;2598:So:3b6,354,9;2599:So:3b6,354,9,a7,de,9,a7,de,b;259a:So:3b6,354,9,a7,de,b;259b:So:3b6,354,9,a7,354,b,a7,de,9;259c:So:3b6,354,9,a7,354,b,a7,de,b;259d:So:3b6,354,b;259e:So:3b6,354,b,a7,de,9;259f:So:3b6,354,b,a7,de,9,a7,de,b;25a0:So:1f0,40;25a1:So:27d,40;25a2:So:27d,40,74,3b7,3b8;25a3:So:27d,40,3b9,1f0,48,40;25a4:So:40,74,1d4,3ba;25a5:So:40,74,4b,3ba;25a6:So:40,74,3bb,3bc,3ba;25a7:So:40,74,354,9,226,de,b,3ba;25a8:So:40,74,354,b,226,de,9,3ba;25a9:So:40,74,2f6,3bc,3ba;25aa:So:1f0,48,40;25ab:So:27d,48,40;25ac:So:1f0,317;25ad:So:27d,317;25ae:So:1f0,4b,317;25af:So:27d,4b,317;25b0:So:1f0,3bd;25b1:So:27d,3bd;25b2:So:1f0,372,2ee;25b3:So:27d,372,2ee;25b4:So:1f0,372,48,2ee;25b5:So:27d,372,48,2ee;25b6:So:1f0,6e,2ee;25b7:Sm:27d,6e,2ee;25b8:So:1f0,6e,48,2ee;25b9:So:27d,6e,48,2ee;25ba:So:1f0,6e,3be;25bb:So:27d,6e,3be;25bc:So:1f0,373,2ee;25bd:So:27d,373,2ee;25be:So:1f0,373,48,2ee;25bf:So:27d,373,48,2ee;25c0:So:1f0,5b,2ee;25c1:Sm:27d,5b,2ee;25c2:So:1f0,5b,48,2ee;25c3:So:27d,5b,48,2ee;25c4:So:1f0,5b,3be;25c5:So:27d,5b,3be;25c6:So:1f0,2ef;25c7:So:27d,2ef;25c8:So:27d,2ef,3b9,1f0,48,2ef;25c9:So:3bf;25ca:So:307;25cb:So:27d,222;25cc:So:e5,222;25cd:So:222,74,4b,3ba;25ce:So:3c0;25cf:So:1f0,222;25d0:So:222,74,9,72,1f0;25d1:So:222,74,b,72,1f0;25d2:So:222,74,de,72,1f0;25d3:So:222,74,354,72,1f0;25d4:So:222,74,354,b,3b6,1f0;25d5:So:222,74,281,2b7,354,9,3b6,1f0;25d6:So:9,72,1f0,222;25d7:So:b,72,1f0,222;25d8:So:3c1,1d8;25d9:So:3c1,27d,222;25da:So:354,72,3c1,27d,222;25db:So:de,72,3c1,27d,222;25dc:So:354,9,3b6,3c2,2ed;25dd:So:354,b,3b6,3c2,2ed;25de:So:de,b,3b6,3c2,2ed;25df:So:de,9,3b6,3c2,2ed;25e0:So:354,72,222;25e1:So:de,72,222;25e2:So:1f0,de,b,2ee;25e3:So:1f0,de,9,2ee;25e4:So:1f0,354,9,2ee;25e5:So:1f0,354,b,2ee;25e6:So:27d,1d8;25e7:So:40,74,9,72,1f0;25e8:So:40,74,b,72,1f0;25e9:So:40,74,354,9,2f6,72,1f0;25ea:So:40,74,de,b,2f6,72,1f0;25eb:So:27d,40,74,4b,3c3,46;25ec:So:27d,372,2ee,74,6b;25ed:So:372,2ee,74,9,72,1f0;25ee:So:372,2ee,74,b,72,1f0;25ef:So:3c4,222;25f0:So:27d,40,74,354,9,3b6;25f1:So:27d,40,74,de,9,3b6;25f2:So:27d,40,74,de,b,3b6;25f3:So:27d,40,74,354,b,3b6;25f4:So:27d,222,74,354,9,3b6;25f5:So:27d,222,74,de,9,3b6;25f6:So:27d,222,74,de,b,3b6;25f7:So:27d,222,74,354,b,3b6;25f8:Sm:354,9,2ee;25f9:Sm:354,b,2ee;25fa:Sm:de,9,2ee;25fb:Sm:27d,37a,40;25fc:Sm:1f0,37a,40;25fd:Sm:27d,37a,48,40;25fe:Sm:1f0,37a,48,40;25ff:Sm:de,b,2ee;2600:So:1f0,3c5,74,3c6;2601:So:3c7;2602:So:3c8;2603:So:3c9;2604:So:3ca;2605:So:1f0,2c7;2606:So:27d,2c7;2607:So:3cb;2608:So:3cc;2609:So:3c5;260a:So:3cd,3ce;260b:So:3cf,3ce;260c:So:3d0;260d:So:3d1;260e:So:1f0,23d;260f:So:27d,23d;2610:So:3d2,318;2611:So:3d2,318,74,334;2612:So:3d2,318,74,3d;2613:So:3d3;2614:So:3c8,74,3d4,3d5;2615:So:3d6,3d7;2616:So:27d,3d8,356;2617:So:1f0,3d8,356;2618:So:3d9;2619:So:97,247,3da,3db,1d8;261a:So:1f0,9,3dc,3dd;261b:So:1f0,b,3dc,3dd;261c:So:27d,9,3dc,3dd;261d:So:27d,c0,3dc,3dd;261e:So:27d,b,3dc,3dd;261f:So:27d,c1,3dc,3dd;2620:So:3de,a7,3df;2621:So:3e0,4;2622:So:3e1,4;2623:So:3e2,4;2624:So:3e3;2625:So:3e4;2626:So:3e5,c7;2627:So:fa,f8;2628:So:c7,224,3e6;2629:So:c7,224,3e7;262a:So:2c7,a7,3e8;262b:So:3e9,e4;262c:So:3ea,3eb;262d:So:3ec,a7,3ed;262e:So:3ee,e4;262f:So:cd,cf;2630:So:3ef,24f,3f0;2631:So:3ef,24f,3f1;2632:So:3ef,24f,3f2;2633:So:3ef,24f,3f3;2634:So:3ef,24f,3f4;2635:So:3ef,24f,3f5;2636:So:3ef,24f,3f6;2637:So:3ef,24f,368;2638:So:3f7,224,3f8;2639:So:27d,3f9,3fa;263a:So:27d,3fb,3fa;263b:So:1f0,3fb,3fa;263c:So:27d,3c5,74,3c6;263d:So:3fc,71,3fd;263e:So:3fe,71,3fd;263f:So:3ff;2640:So:400,4;2641:So:368;2642:So:401,4;2643:So:402;2644:So:403;2645:So:404;2646:So:405;2647:So:406;2648:So:407;2649:So:408;264a:So:409;264b:So:40a;264c:So:40b;264d:So:40c;264e:So:40d;264f:So:40e;2650:So:40f;2651:So:410;2652:So:411;2653:So:412;2654:So:27d,413,414;2655:So:27d,413,415;2656:So:27d,413,416;2657:So:27d,413,417;2658:So:27d,413,418;2659:So:27d,413,419;265a:So:1f0,413,414;265b:So:1f0,413,415;265c:So:1f0,413,416;265d:So:1f0,413,417;265e:So:1f0,413,418;265f:So:1f0,413,419;2660:So:1f0,41a,41b;2661:So:27d,3db,41b;2662:So:27d,2ef,41b;2663:So:1f0,41c,41b;2664:So:27d,41a,41b;2665:So:1f0,3db,41b;2666:So:1f0,2ef,41b;2667:So:27d,41c,41b;2668:So:3d6,41d;2669:So:71,41e;266a:So:25a,41e;266b:So:41f,25a,420;266c:So:41f,421,420;266d:So:422,423,4;266e:So:422,424,4;266f:Sm:422,7c,4;2670:So:268,425,c7;2671:So:269,425,c7;2672:So:426,427,e4;2673:So:427,e4,24f,428,429;2674:So:427,e4,24f,42a,429;2675:So:427,e4,24f,42b,429;2676:So:427,e4,24f,42c,429;2677:So:427,e4,24f,42d,429;2678:So:427,e4,24f,42e,429;2679:So:427,e4,24f,42f,429;267a:So:427,e4,24f,430,431;267b:So:1f0,426,427,e4;267c:So:432,433,e4;267d:So:434,433,e4;267e:So:435,433,4;267f:So:436,e4;2680:So:437,438;2681:So:437,439;2682:So:437,43a;2683:So:437,43b;2684:So:437,43c;2685:So:437,43d;2686:So:27d,222,74,6b,b;2687:So:27d,222,74,16,1fc;2688:So:1f0,222,74,27d,6b,b;2689:So:1f0,222,74,16,27d,1fc;268a:So:43e,24f,cf;268b:So:43e,24f,cd;268c:So:43f,24f,440,cf;268d:So:43f,24f,441,cd;268e:So:43f,24f,441,cf;268f:So:43f,24f,440,cd;2690:So:27d,442;2691:So:1f0,442;2692:So:3ec,a7,443;2693:So:444;2694:So:445,446;2695:So:447,224,448;2696:So:449;2697:So:44a;2698:So:1f8;2699:So:44b;269a:So:447,224,44c;269b:So:44d,e4;269c:So:44e;269d:So:44f,27d,2c7;269e:So:17,450,451,b;269f:So:17,450,451,9;26a0:So:452,4;26a1:So:ca,453,4;26a2:So:454,400,4;26a3:So:454,401,4;26a4:So:455,400,a7,401,4;26a5:So:401,a7,400,4;26a6:So:401,74,7a,4;26a7:So:401,74,7a,a7,401,a7,400,4;26a8:So:4b,401,74,7a,4;26a9:So:1d4,401,74,7a,4;26aa:So:37a,27d,222;26ab:So:37a,1f0,222;26ac:So:37a,48,27d,222;26ad:So:456,e4;26ae:So:457,e4;26af:So:458,459,e4;26b0:So:45a;26b1:So:45b,45c;26b2:So:45d;26b3:So:45e;26b4:So:45f;26b5:So:460;26b6:So:461;26b7:So:462;26b8:So:1f0,3fd,463;26b9:So:464;26ba:So:465;26bb:So:466;26bc:So:467;26bd:So:468,469;26be:So:46a;26bf:So:2d9,315;26c0:So:27d,46b,1af;26c1:So:27d,46b,414;26c2:So:1f0,46b,1af;26c3:So:1f0,46b,414;26c4:So:3c9,46c,46d;26c5:So:3c5,46e,3c7;26c6:So:3d4;26c7:So:1f0,3c9;26c8:So:3f3,3c7,a7,3d4;26c9:So:92,27d,3d8,356;26ca:So:92,1f0,3d8,356;26cb:So:27d,2ef,2c3,40;26cc:So:46f,470;26cd:So:471,472;26ce:So:473;26cf:So:443;26d0:So:472,474;26d1:So:475,74,27d,c7;26d2:So:2d7,46f,470;26d3:So:476;26d4:So:477,478;26d5:So:479,47a,9,47b,47c;26d6:So:1f0,47d,9,47b,47c;26d7:So:27d,47d,9,47b,47c;26d8:So:1f0,9,47e,47f;26d9:So:27d,9,47e,47f;26da:So:480,481,4;26db:So:3b3,27d,373,2ee;26dc:So:9,99,478;26dd:So:2d9,3d3;26de:So:482,2f6,2c3,27d,222,2c3,1f0,40;26df:So:1f0,483;26e0:So:484,9,485;26e1:So:484,9,486;26e2:So:487,e4,24f,404;26e3:So:3b3,222,74,7a,a7,16,1fc,76;26e4:So:488;26e5:So:489,48a,488;26e6:So:48b,48a,488;26e7:So:4e,488;26e8:So:1f0,c7,17c,48c;26e9:So:48d,48e;26ea:So:48f;26eb:So:490;26ec:So:491,492;26ed:So:44b,46c,493;26ee:So:44b,74,494;26ef:So:495,e4,24f,496;26f0:So:3f6;26f1:So:3c8,17c,369;26f2:So:497;26f3:So:442,2c3,498;26f4:So:499;26f5:So:49a;26f6:So:40,18,3b8;26f7:So:49b;26f8:So:49c,49d;26f9:So:49e,74,469;26fa:So:49f;26fb:So:4a0,3a5,e4;26fc:So:4a1,4a2,e4;26fd:So:4a3,4a4;26fe:So:2d6,17c,1f0,40;26ff:So:27d,442,74,1d4,6a,1f0,4a5;2700:So:1f0,4a6,4a7;2701:So:354,4a8,4a7;2702:So:1f0,4a7;2703:So:de,4a8,4a7;2704:So:27d,4a7;2705:So:27d,3b3,334,2;2706:So:23d,4a9,4;2707:So:4aa,480;2708:So:4ab;2709:So:4ac;270a:So:d2,4ad;270b:So:d2,4ae;270c:So:4af,4ae;270d:So:4b0,4ae;270e:So:de,b,4b1;270f:So:4b1;2710:So:354,b,4b1;2711:So:27d,4b2;2712:So:1f0,4b2;2713:So:334,2;2714:So:3b3,334,2;2715:So:79,3d;2716:So:3b3,79,3d;2717:So:3d2,3d;2718:So:3b3,3d2,3d;2719:So:44f,d9,c7;271a:So:3b3,d9,c7;271b:So:94,22b,c7;271c:So:3b3,94,22b,c7;271d:So:24,c7;271e:So:4b3,27d,24,c7;271f:So:44f,24,c7;2720:So:4b4,c7;2721:So:2c7,224,4b5;2722:So:18,4b6,c;2723:So:18,4b7,c;2724:So:3b3,18,4b7,c;2725:So:18,4b8,c;2726:So:1f0,18,4b9,2c7;2727:So:27d,18,4b9,2c7;2728:So:4ba;2729:So:4bb,44f,27d,2c7;272a:So:2d7,27d,2c7;272b:So:94,22b,1f0,2c7;272c:So:1f0,22b,27d,2c7;272d:So:44f,1f0,2c7;272e:So:3b3,44f,1f0,2c7;272f:So:4bc,2c7;2730:So:4b3,27d,2c7;2731:So:3b3,c;2732:So:94,22b,c;2733:So:1fd,4bd,c;2734:So:1fd,4b9,1f0,2c7;2735:So:1fd,4b9,4bc,2c7;2736:So:19,4b9,1f0,2c7;2737:So:1fd,4b9,4be,1f0,2c7;2738:So:3b3,1fd,4b9,4be,1f0,2c7;2739:So:25f,4b9,1f0,2c7;273a:So:3ac,4b9,c;273b:So:4b6,c;273c:So:94,22b,4b6,c;273d:So:3b3,4b6,c;273e:So:19,4bf,1f0,a7,27d,4c0;273f:So:1f0,4c0;2740:So:27d,4c0;2741:So:1fd,4bf,44f,1f0,4c0;2742:So:2d7,94,22b,1fd,4b9,2c7;2743:So:3b3,4b6,4bc,c;2744:So:4c1;2745:So:4c2,4c3,4c1;2746:So:3b3,4c4,4c1;2747:So:4c5;2748:So:3b3,4c5;2749:So:4b7,c;274a:So:1fd,4b6,4c6,c;274b:So:3b3,1fd,4b6,4c6,c;274c:So:c7,2;274d:So:4b3,27d,222;274e:So:393,2d9,c7,2;274f:So:de,b,4c7,27d,40;2750:So:354,b,4c7,27d,40;2751:So:de,b,4b3,27d,40;2752:So:354,b,4b3,27d,40;2753:So:1f0,21,2,4c8;2754:So:27d,21,2,4c8;2755:So:27d,1,2,4c8;2756:So:1f0,2ef,c5,27d,3d;2757:So:3b3,1,2,e4;2758:So:35e,4b,54;2759:So:37a,4b,54;275a:So:3b3,4b,54;275b:So:3b3,1c5,92,e,5e,2,4c8;275c:So:3b3,1c5,e,5e,2,4c8;275d:So:3b3,5c,92,e,5e,2,4c8;275e:So:3b3,5c,e,5e,2,4c8;275f:So:3b3,45,1c5,e,5e,2,4c8;2760:So:3b3,45,5c,e,5e,2,4c8;2761:So:4c9,4ca,4cb,4,4c8;2762:So:3b3,1,2,4c8;2763:So:3b3,3db,1,2,4c8;2764:So:3b3,1f0,3db;2765:So:247,3b3,1f0,3db,1d8;2766:So:3da,3db;2767:So:247,3da,3db,1d8;2768:Ps:37a,9,a,4c8;2769:Pe:37a,b,a,4c8;276a:Ps:37a,4cc,9,a,4c8;276b:Pe:37a,4cc,b,a,4c8;276c:Ps:37a,5b,5d,41,4c8;276d:Pe:37a,6e,5d,41,4c8;276e:Ps:3b3,5b,5d,5e,2,4c8;276f:Pe:3b3,6e,5d,5e,2,4c8;2770:Ps:3b3,5b,5d,41,4c8;2771:Pe:3b3,6e,5d,41,4c8;2772:Ps:35e,9,36b,36c,41,4c8;2773:Pe:35e,b,36b,36c,41,4c8;2774:Ps:37a,9,4a,41,4c8;2775:Pe:37a,b,4a,41,4c8;2776:No:4cd,393,2d7,13,15;2777:No:4cd,393,2d7,13,16;2778:No:4cd,393,2d7,13,17;2779:No:4cd,393,2d7,13,18;277a:No:4cd,393,2d7,13,1fa;277b:No:4cd,393,2d7,13,19;277c:No:4cd,393,2d7,13,1a;277d:No:4cd,393,2d7,13,1fd;277e:No:4cd,393,2d7,13,1b;277f:No:4cd,393,2d7,3,1e0;2780:No:4cd,2d7,24b,13,15;2781:No:4cd,2d7,24b,13,16;2782:No:4cd,2d7,24b,13,17;2783:No:4cd,2d7,24b,13,18;2784:No:4cd,2d7,24b,13,1fa;2785:No:4cd,2d7,24b,13,19;2786:No:4cd,2d7,24b,13,1a;2787:No:4cd,2d7,24b,13,1fd;2788:No:4cd,2d7,24b,13,1b;2789:No:4cd,2d7,24b,3,1e0;278a:No:4cd,393,2d7,24b,13,15;278b:No:4cd,393,2d7,24b,13,16;278c:No:4cd,393,2d7,24b,13,17;278d:No:4cd,393,2d7,24b,13,18;278e:No:4cd,393,2d7,24b,13,1fa;278f:No:4cd,393,2d7,24b,13,19;2790:No:4cd,393,2d7,24b,13,1a;2791:No:4cd,393,2d7,24b,13,1fd;2792:No:4cd,393,2d7,24b,13,1b;2793:No:4cd,393,2d7,24b,3,1e0;2794:So:3b3,4ce,1f2,d6;2795:So:3b3,d,4;2796:So:3b3,c5,4;2797:So:3b3,7d,4;2798:So:3b3,26a,269,d6;2799:So:3b3,1f2,d6;279a:So:3b3,267,269,d6;279b:So:4cf,1dc,1f2,d6;279c:So:3b3,4d0,1f2,d6;279d:So:4d1,1f2,d6;279e:So:3b3,4d1,1f2,d6;279f:So:27c,4d1,1f2,d6;27a0:So:3b3,27c,4d1,1f2,d6;27a1:So:1f0,1f2,d6;27a2:So:4d2,4d3,1f2,bf;27a3:So:4d2,4d4,1f2,bf;27a4:So:1f0,1f2,bf;27a5:So:3b3,1f0,4c9,266,a7,1f2,d6;27a6:So:3b3,1f0,4c9,265,a7,1f2,d6;27a7:So:a8,1f0,1f2,d6;27a8:So:3b3,4d5,1f0,1f2,d6;27a9:So:4d6,27d,1f2,d6;27aa:So:4d7,27d,1f2,d6;27ab:So:4d8,4b3,27d,1f2,d6;27ac:So:4d9,4b3,27d,1f2,d6;27ad:So:3b3,de,4da,27d,1f2,d6;27ae:So:3b3,354,4da,27d,1f2,d6;27af:So:4db,de,4da,27d,1f2,d6;27b0:So:4a,26f;27b1:So:4db,354,4da,27d,1f2,d6;27b2:So:2d7,3b3,27d,1f2,d6;27b3:So:4dc,1f2,d6;27b4:So:4dd,26a,269,d6;27b5:So:4dd,1f2,d6;27b6:So:4dd,267,269,d6;27b7:So:3b3,4dd,26a,269,d6;27b8:So:3b3,4dd,1f2,d6;27b9:So:3b3,4dd,267,269,d6;27ba:So:4de,1f2,d6;27bb:So:3b3,4df,1f2,d6;27bc:So:4e0,1f2,d6;27bd:So:3b3,4e0,1f2,d6;27be:So:4e1,1f2,d6;27bf:So:5c,4a,26f;27c0:Sm:17,4e2,5d;27c1:Sm:27d,2ee,3b9,48,27d,2ee;27c2:Sm:4e3;27c3:Sm:94,2d1;27c4:Sm:94,2d2;27c5:Ps:9,4e4,2fb,4e5;27c6:Pe:b,4e4,2fb,4e5;27c7:Sm:2a3,74,6b,4e6;27c8:Sm:42,12,4e7,2d1;27c9:Sm:2d2,4e7,12;27ca:Sm:4b,54,74,1d4,7a;27cb:Sm:4e8,4e9,2f6;27cc:Sm:89,7d;27cd:Sm:4e8,482,2f6;27ce:Sm:2d9,2a2,a7;27cf:Sm:2d9,2a2,2a3;27d0:Sm:27d,2ef,74,c3,6b;27d1:Sm:a7,74,6b;27d2:Sm:28d,224,4ea,265;27d3:Sm:de,b,272,74,6b;27d4:Sm:354,9,272,74,6b;27d5:Sm:9,4eb,4ec;27d6:Sm:b,4eb,4ec;27d7:Sm:10,4eb,4ec;27d8:Sm:3c4,c0,c4;27d9:Sm:3c4,c1,c4;27da:Sm:9,a7,b,5c,2de;27db:Sm:9,a7,b,c4;27dc:Sm:9,2e6;27dd:Sm:89,b,c4;27de:Sm:89,9,c4;27df:Sm:c0,c4,74,222,76;27e0:Sm:307,4ed,86,1d4,4ee;27e1:Sm:27d,4ef,2ef;27e2:Sm:27d,4ef,2ef,74,1f1,4f0;27e3:Sm:27d,4ef,2ef,74,1f2,4f0;27e4:Sm:27d,40,74,1f1,4f0;27e5:Sm:27d,40,74,1f2,4f0;27e6:Ps:4e8,9,27d,40,41;27e7:Pe:4e8,b,27d,40,41;27e8:Ps:4e8,9,5d,41;27e9:Pe:4e8,b,5d,41;27ea:Ps:4e8,9,5c,5d,41;27eb:Pe:4e8,b,5c,5d,41;27ec:Ps:4e8,9,27d,36b,36c,41;27ed:Pe:4e8,b,27d,36b,36c,41;27ee:Ps:4e8,9,4cc,a;27ef:Pe:4e8,b,4cc,a;27f0:Sm:265,1f9,d6;27f1:Sm:266,1f9,d6;27f2:Sm:273,4f1,222,d6;27f3:Sm:276,4f1,222,d6;27f4:Sm:b,d6,74,2d7,d;27f5:Sm:89,1f1,d6;27f6:Sm:89,1f2,d6;27f7:Sm:89,9,b,d6;27f8:Sm:89,1f1,5c,d6;27f9:Sm:89,1f2,5c,d6;27fa:Sm:89,9,b,5c,d6;27fb:Sm:89,1f1,d6,26d,54;27fc:Sm:89,1f2,d6,26d,54;27fd:Sm:89,1f1,5c,d6,26d,54;27fe:Sm:89,1f2,5c,d6,26d,54;27ff:Sm:89,1f2,27b,d6;2800:So:4f2,4f3,39d;2801:So:4f2,4f3,4f4;2802:So:4f2,4f3,4f5;2803:So:4f2,4f3,4f6;2804:So:4f2,4f3,4f7;2805:So:4f2,4f3,4f8;2806:So:4f2,4f3,4f9;2807:So:4f2,4f3,4fa;2808:So:4f2,4f3,4fb;2809:So:4f2,4f3,4fc;280a:So:4f2,4f3,4fd;280b:So:4f2,4f3,4fe;280c:So:4f2,4f3,4ff;280d:So:4f2,4f3,500;280e:So:4f2,4f3,501;280f:So:4f2,4f3,502;2810:So:4f2,4f3,503;2811:So:4f2,4f3,504;2812:So:4f2,4f3,505;2813:So:4f2,4f3,506;2814:So:4f2,4f3,507;2815:So:4f2,4f3,508;2816:So:4f2,4f3,509;2817:So:4f2,4f3,50a;2818:So:4f2,4f3,50b;2819:So:4f2,4f3,50c;281a:So:4f2,4f3,50d;281b:So:4f2,4f3,50e;281c:So:4f2,4f3,50f;281d:So:4f2,4f3,510;281e:So:4f2,4f3,511;281f:So:4f2,4f3,512;2820:So:4f2,4f3,513;2821:So:4f2,4f3,514;2822:So:4f2,4f3,515;2823:So:4f2,4f3,516;2824:So:4f2,4f3,517;2825:So:4f2,4f3,518;2826:So:4f2,4f3,519;2827:So:4f2,4f3,51a;2828:So:4f2,4f3,51b;2829:So:4f2,4f3,51c;282a:So:4f2,4f3,51d;282b:So:4f2,4f3,51e;282c:So:4f2,4f3,51f;282d:So:4f2,4f3,520;282e:So:4f2,4f3,521;282f:So:4f2,4f3,522;2830:So:4f2,4f3,523;2831:So:4f2,4f3,524;2832:So:4f2,4f3,525;2833:So:4f2,4f3,526;2834:So:4f2,4f3,527;2835:So:4f2,4f3,528;2836:So:4f2,4f3,529;2837:So:4f2,4f3,52a;2838:So:4f2,4f3,52b;2839:So:4f2,4f3,52c;283a:So:4f2,4f3,52d;283b:So:4f2,4f3,52e;283c:So:4f2,4f3,52f;283d:So:4f2,4f3,530;283e:So:4f2,4f3,531;283f:So:4f2,4f3,532;2840:So:4f2,4f3,533;2841:So:4f2,4f3,534;2842:So:4f2,4f3,535;2843:So:4f2,4f3,536;2844:So:4f2,4f3,537;2845:So:4f2,4f3,538;2846:So:4f2,4f3,539;2847:So:4f2,4f3,53a;2848:So:4f2,4f3,53b;2849:So:4f2,4f3,53c;284a:So:4f2,4f3,53d;284b:So:4f2,4f3,53e;284c:So:4f2,4f3,53f;284d:So:4f2,4f3,540;284e:So:4f2,4f3,541;284f:So:4f2,4f3,542;2850:So:4f2,4f3,543;2851:So:4f2,4f3,544;2852:So:4f2,4f3,545;2853:So:4f2,4f3,546;2854:So:4f2,4f3,547;2855:So:4f2,4f3,548;2856:So:4f2,4f3,549;2857:So:4f2,4f3,54a;2858:So:4f2,4f3,54b;2859:So:4f2,4f3,54c;285a:So:4f2,4f3,54d;285b:So:4f2,4f3,54e;285c:So:4f2,4f3,54f;285d:So:4f2,4f3,550;285e:So:4f2,4f3,551;285f:So:4f2,4f3,552;2860:So:4f2,4f3,553;2861:So:4f2,4f3,554;2862:So:4f2,4f3,555;2863:So:4f2,4f3,556;2864:So:4f2,4f3,557;2865:So:4f2,4f3,558;2866:So:4f2,4f3,559;2867:So:4f2,4f3,55a;2868:So:4f2,4f3,55b;2869:So:4f2,4f3,55c;286a:So:4f2,4f3,55d;286b:So:4f2,4f3,55e;286c:So:4f2,4f3,55f;286d:So:4f2,4f3,560;286e:So:4f2,4f3,561;286f:So:4f2,4f3,562;2870:So:4f2,4f3,563;2871:So:4f2,4f3,564;2872:So:4f2,4f3,565;2873:So:4f2,4f3,566;2874:So:4f2,4f3,567;2875:So:4f2,4f3,568;2876:So:4f2,4f3,569;2877:So:4f2,4f3,56a;2878:So:4f2,4f3,56b;2879:So:4f2,4f3,56c;287a:So:4f2,4f3,56d;287b:So:4f2,4f3,56e;287c:So:4f2,4f3,56f;287d:So:4f2,4f3,570;287e:So:4f2,4f3,571;287f:So:4f2,4f3,572;2880:So:4f2,4f3,573;2881:So:4f2,4f3,574;2882:So:4f2,4f3,575;2883:So:4f2,4f3,576;2884:So:4f2,4f3,577;2885:So:4f2,4f3,578;2886:So:4f2,4f3,579;2887:So:4f2,4f3,57a;2888:So:4f2,4f3,57b;2889:So:4f2,4f3,57c;288a:So:4f2,4f3,57d;288b:So:4f2,4f3,57e;288c:So:4f2,4f3,57f;288d:So:4f2,4f3,580;288e:So:4f2,4f3,581;288f:So:4f2,4f3,582;2890:So:4f2,4f3,583;2891:So:4f2,4f3,584;2892:So:4f2,4f3,585;2893:So:4f2,4f3,586;2894:So:4f2,4f3,587;2895:So:4f2,4f3,588;2896:So:4f2,4f3,589;2897:So:4f2,4f3,58a;2898:So:4f2,4f3,58b;2899:So:4f2,4f3,58c;289a:So:4f2,4f3,58d;289b:So:4f2,4f3,58e;289c:So:4f2,4f3,58f;289d:So:4f2,4f3,590;289e:So:4f2,4f3,591;289f:So:4f2,4f3,592;28a0:So:4f2,4f3,593;28a1:So:4f2,4f3,594;28a2:So:4f2,4f3,595;28a3:So:4f2,4f3,596;28a4:So:4f2,4f3,597;28a5:So:4f2,4f3,598;28a6:So:4f2,4f3,599;28a7:So:4f2,4f3,59a;28a8:So:4f2,4f3,59b;28a9:So:4f2,4f3,59c;28aa:So:4f2,4f3,59d;28ab:So:4f2,4f3,59e;28ac:So:4f2,4f3,59f;28ad:So:4f2,4f3,5a0;28ae:So:4f2,4f3,5a1;28af:So:4f2,4f3,5a2;28b0:So:4f2,4f3,5a3;28b1:So:4f2,4f3,5a4;28b2:So:4f2,4f3,5a5;28b3:So:4f2,4f3,5a6;28b4:So:4f2,4f3,5a7;28b5:So:4f2,4f3,5a8;28b6:So:4f2,4f3,5a9;28b7:So:4f2,4f3,5aa;28b8:So:4f2,4f3,5ab;28b9:So:4f2,4f3,5ac;28ba:So:4f2,4f3,5ad;28bb:So:4f2,4f3,5ae;28bc:So:4f2,4f3,5af;28bd:So:4f2,4f3,5b0;28be:So:4f2,4f3,5b1;28bf:So:4f2,4f3,5b2;28c0:So:4f2,4f3,5b3;28c1:So:4f2,4f3,5b4;28c2:So:4f2,4f3,5b5;28c3:So:4f2,4f3,5b6;28c4:So:4f2,4f3,5b7;28c5:So:4f2,4f3,5b8;28c6:So:4f2,4f3,5b9;28c7:So:4f2,4f3,5ba;28c8:So:4f2,4f3,5bb;28c9:So:4f2,4f3,5bc;28ca:So:4f2,4f3,5bd;28cb:So:4f2,4f3,5be;28cc:So:4f2,4f3,5bf;28cd:So:4f2,4f3,5c0;28ce:So:4f2,4f3,5c1;28cf:So:4f2,4f3,5c2;28d0:So:4f2,4f3,5c3;28d1:So:4f2,4f3,5c4;28d2:So:4f2,4f3,5c5;28d3:So:4f2,4f3,5c6;28d4:So:4f2,4f3,5c7;28d5:So:4f2,4f3,5c8;28d6:So:4f2,4f3,5c9;28d7:So:4f2,4f3,5ca;28d8:So:4f2,4f3,5cb;28d9:So:4f2,4f3,5cc;28da:So:4f2,4f3,5cd;28db:So:4f2,4f3,5ce;28dc:So:4f2,4f3,5cf;28dd:So:4f2,4f3,5d0;28de:So:4f2,4f3,5d1;28df:So:4f2,4f3,5d2;28e0:So:4f2,4f3,5d3;28e1:So:4f2,4f3,5d4;28e2:So:4f2,4f3,5d5;28e3:So:4f2,4f3,5d6;28e4:So:4f2,4f3,5d7;28e5:So:4f2,4f3,5d8;28e6:So:4f2,4f3,5d9;28e7:So:4f2,4f3,5da;28e8:So:4f2,4f3,5db;28e9:So:4f2,4f3,5dc;28ea:So:4f2,4f3,5dd;28eb:So:4f2,4f3,5de;28ec:So:4f2,4f3,5df;28ed:So:4f2,4f3,5e0;28ee:So:4f2,4f3,5e1;28ef:So:4f2,4f3,5e2;28f0:So:4f2,4f3,5e3;28f1:So:4f2,4f3,5e4;28f2:So:4f2,4f3,5e5;28f3:So:4f2,4f3,5e6;28f4:So:4f2,4f3,5e7;28f5:So:4f2,4f3,5e8;28f6:So:4f2,4f3,5e9;28f7:So:4f2,4f3,5ea;28f8:So:4f2,4f3,5eb;28f9:So:4f2,4f3,5ec;28fa:So:4f2,4f3,5ed;28fb:So:4f2,4f3,5ee;28fc:So:4f2,4f3,5ef;28fd:So:4f2,4f3,5f0;28fe:So:4f2,4f3,5f1;28ff:So:4f2,4f3,5f2;2900:Sm:1f2,5f3,d6,74,4b,7a;2901:Sm:1f2,5f3,d6,74,5c,4b,7a;2902:Sm:1f1,5c,d6,74,4b,7a;2903:Sm:1f2,5c,d6,74,4b,7a;2904:Sm:9,b,5c,d6,74,4b,7a;2905:Sm:1f2,5f3,d6,26d,54;2906:Sm:1f1,5c,d6,26d,54;2907:Sm:1f2,5c,d6,26d,54;2908:Sm:266,d6,74,1d4,7a;2909:Sm:265,d6,74,1d4,7a;290a:Sm:265,1e2,d6;290b:Sm:266,1e2,d6;290c:Sm:1f1,5c,1d3,d6;290d:Sm:1f2,5c,1d3,d6;290e:Sm:1f1,1e2,1d3,d6;290f:Sm:1f2,1e2,1d3,d6;2910:Sm:1f2,5f3,1e2,1d3,d6;2911:Sm:1f2,d6,74,e5,4ca;2912:Sm:265,d6,226,54;2913:Sm:266,d6,226,54;2914:Sm:1f2,d6,74,96,74,4b,7a;2915:Sm:1f2,d6,74,96,74,5c,4b,7a;2916:Sm:1f2,5f3,d6,74,96;2917:Sm:1f2,5f3,d6,74,96,74,4b,7a;2918:Sm:1f2,5f3,d6,74,96,74,5c,4b,7a;2919:Sm:1f1,5f4;291a:Sm:1f2,5f4;291b:Sm:1f1,5c,5f4;291c:Sm:1f2,5c,5f4;291d:Sm:1f1,d6,226,1f0,2ef;291e:Sm:1f2,d6,226,1f0,2ef;291f:Sm:1f1,d6,26d,54,226,1f0,2ef;2920:Sm:1f2,d6,26d,54,226,1f0,2ef;2921:Sm:267,268,a7,26a,269,d6;2922:Sm:267,269,a7,26a,268,d6;2923:Sm:267,268,d6,74,8a;2924:Sm:267,269,d6,74,8a;2925:Sm:26a,269,d6,74,8a;2926:Sm:26a,268,d6,74,8a;2927:Sm:267,268,d6,a7,267,269,d6;2928:Sm:267,269,d6,a7,26a,269,d6;2929:Sm:26a,269,d6,a7,26a,268,d6;292a:Sm:26a,268,d6,a7,267,268,d6;292b:Sm:4e9,2f6,46f,482,2f6;292c:Sm:482,2f6,46f,4e9,2f6;292d:Sm:26a,269,d6,46f,267,269,d6;292e:Sm:267,269,d6,46f,26a,269,d6;292f:Sm:482,2f6,46f,267,269,d6;2930:Sm:4e9,2f6,46f,26a,269,d6;2931:Sm:267,269,d6,46f,267,268,d6;2932:Sm:267,268,d6,46f,267,269,d6;2933:Sm:26b,d6,3dc,5f5,b;2934:Sm:d6,3dc,1f2,5f6,5f7,265;2935:Sm:d6,3dc,1f2,5f6,5f7,266;2936:Sm:d6,3dc,266,5f6,5f7,1f1;2937:Sm:d6,3dc,266,5f6,5f7,1f2;2938:Sm:5f8,2ed,276,d6;2939:Sm:5f9,2ed,273,d6;293a:Sm:274,2ed,273,d6;293b:Sm:305,2ed,273,d6;293c:Sm:274,2ed,276,d6,74,c5;293d:Sm:274,2ed,273,d6,74,d;293e:Sm:de,b,5fa,276,d6;293f:Sm:de,9,5fa,273,d6;2940:Sm:273,99,222,d6;2941:Sm:276,99,222,d6;2942:Sm:1f2,d6,76,112,1f1,d6;2943:Sm:1f1,d6,76,112,1f2,d6;2944:Sm:112,1f2,d6,76,1f1,d6;2945:Sm:1f2,d6,74,d,91;2946:Sm:1f1,d6,74,d,91;2947:Sm:1f2,d6,5fb,3d;2948:Sm:9,b,d6,5fb,48,222;2949:Sm:265,5f3,d6,26d,48,222;294a:Sm:9,278,c0,b,278,c1,277;294b:Sm:9,278,c1,b,278,c0,277;294c:Sm:c0,278,b,c1,278,9,277;294d:Sm:c0,278,9,c1,278,b,277;294e:Sm:9,278,c0,b,278,c0,277;294f:Sm:c0,278,b,c1,278,b,277;2950:Sm:9,278,c1,b,278,c1,277;2951:Sm:c0,278,9,c1,278,9,277;2952:Sm:1f1,277,74,278,c0,226,54;2953:Sm:1f2,277,74,278,c0,226,54;2954:Sm:265,277,74,278,b,226,54;2955:Sm:266,277,74,278,b,226,54;2956:Sm:1f1,277,74,278,c1,226,54;2957:Sm:1f2,277,74,278,c1,226,54;2958:Sm:265,277,74,278,9,226,54;2959:Sm:266,277,74,278,9,226,54;295a:Sm:1f1,277,74,278,c0,26d,54;295b:Sm:1f2,277,74,278,c0,26d,54;295c:Sm:265,277,74,278,b,26d,54;295d:Sm:266,277,74,278,b,26d,54;295e:Sm:1f1,277,74,278,c1,26d,54;295f:Sm:1f2,277,74,278,c1,26d,54;2960:Sm:265,277,74,278,9,26d,54;2961:Sm:266,277,74,278,9,26d,54;2962:Sm:1f1,277,74,278,c0,76,1f1,277,74,278,c1;2963:Sm:265,277,74,278,9,5fc,265,277,74,278,b;2964:Sm:1f2,277,74,278,c0,76,1f2,277,74,278,c1;2965:Sm:266,277,74,278,9,5fc,266,277,74,278,b;2966:Sm:1f1,277,74,278,c0,76,1f2,277,74,278,c0;2967:Sm:1f1,277,74,278,c1,76,1f2,277,74,278,c1;2968:Sm:1f2,277,74,278,c0,76,1f1,277,74,278,c0;2969:Sm:1f2,277,74,278,c1,76,1f1,277,74,278,c1;296a:Sm:1f1,277,74,278,c0,76,89,1d3;296b:Sm:1f1,277,74,278,c1,91,89,1d3;296c:Sm:1f2,277,74,278,c0,76,89,1d3;296d:Sm:1f2,277,74,278,c1,91,89,1d3;296e:Sm:265,277,74,278,9,5fc,266,277,74,278,b;296f:Sm:266,277,74,278,9,5fc,265,277,74,278,b;2970:Sm:b,5c,d6,74,3b7,5fd;2971:Sm:1f,4,76,1f2,d6;2972:Sm:4c,297,76,1f2,d6;2973:Sm:1f1,d6,76,4c,297;2974:Sm:1f2,d6,76,4c,297;2975:Sm:1f2,d6,76,2bb,2b5,226;2976:Sm:1e,76,1f1,d6;2977:Sm:1f1,d6,5fb,1e;2978:Sm:20,76,1f2,d6;2979:Sm:2d1,76,1f2,d6;297a:Sm:1f1,d6,5fb,2d1;297b:Sm:2d2,76,1f1,d6;297c:Sm:9,5fe,96;297d:Sm:b,5fe,96;297e:Sm:c0,5fe,96;297f:Sm:c1,5fe,96;2980:Sm:1e2,4b,54,4e5;2981:Sm:3f,2fa,5ff;2982:Sm:3f,2fa,600,1c;2983:Ps:9,27d,4a,41;2984:Pe:b,27d,4a,41;2985:Ps:9,27d,a;2986:Pe:b,27d,a;2987:Ps:3f,2fa,9,2c2,41;2988:Pe:3f,2fa,b,2c2,41;2989:Ps:3f,2fa,9,601,41;298a:Pe:3f,2fa,b,601,41;298b:Ps:9,40,41,74,2f8;298c:Pe:b,40,41,74,2f8;298d:Ps:9,40,41,74,4f0,2c3,274,272;298e:Pe:b,40,41,74,4f0,2c3,305,272;298f:Ps:9,40,41,74,4f0,2c3,305,272;2990:Pe:b,40,41,74,4f0,2c3,274,272;2991:Ps:9,5d,41,74,6b;2992:Pe:b,5d,41,74,6b;2993:Ps:9,2ed,1e,41;2994:Pe:b,2ed,20,41;2995:Ps:5c,9,2ed,20,41;2996:Pe:5c,b,2ed,1e,41;2997:Ps:9,1f0,36b,36c,41;2998:Pe:b,1f0,36b,36c,41;2999:Sm:e5,602;299a:Sm:4b,270,46;299b:Sm:29d,5d,4ea,9;299c:Sm:b,5d,603,74,40;299d:Sm:29d,b,5d,74,6b;299e:Sm:5d,74,38,4e6;299f:Sm:67,5d;29a0:Sm:29e,5d,4ea,9;29a1:Sm:29e,5d,4ea,c0;29a2:Sm:92,5d;29a3:Sm:97,5d;29a4:Sm:5d,74,2f8;29a5:Sm:97,5d,74,2f8;29a6:Sm:604,5d,4ea,c0;29a7:Sm:604,5d,4ea,c1;29a8:Sm:29d,5d,74,94,605,606,2c3,d6,3dc,c0,a7,b;29a9:Sm:29d,5d,74,94,605,606,2c3,d6,3dc,c0,a7,9;29aa:Sm:29d,5d,74,94,605,606,2c3,d6,3dc,c1,a7,b;29ab:Sm:29d,5d,74,94,605,606,2c3,d6,3dc,c1,a7,9;29ac:Sm:29d,5d,74,94,605,606,2c3,d6,3dc,b,a7,c0;29ad:Sm:29d,5d,74,94,605,606,2c3,d6,3dc,9,a7,c0;29ae:Sm:29d,5d,74,94,605,606,2c3,d6,3dc,b,a7,c1;29af:Sm:29d,5d,74,94,605,606,2c3,d6,3dc,9,a7,c1;29b0:Sm:97,289,28a;29b1:Sm:289,28a,74,2f7;29b2:Sm:289,28a,74,48,222,76;29b3:Sm:289,28a,74,b,d6,76;29b4:Sm:289,28a,74,9,d6,76;29b5:Sm:222,74,1d4,54;29b6:Sm:2d7,4b,54;29b7:Sm:2d7,2a1;29b8:Sm:2d7,42,12;29b9:Sm:2d7,4e3;29ba:Sm:222,4ed,86,1d4,54,a7,274,72,4ed,86,4b,54;29bb:Sm:222,74,607,3d;29bc:Sm:2d7,608,7d,4;29bd:Sm:c0,d6,5fb,222;29be:Sm:2d7,27d,1d8;29bf:Sm:2d7,1d8;29c0:Sm:2d7,1e;29c1:Sm:2d7,20;29c2:Sm:222,74,48,222,226,227,b;29c3:Sm:222,74,16,1d4,2f9,226,227,b;29c4:Sm:2d9,4e9,2f6,1ec;29c5:Sm:2d9,482,2f6,1ec;29c6:Sm:2d9,c;29c7:Sm:2d9,48,222;29c8:Sm:2d9,40;29c9:Sm:16,364,609;29ca:Sm:2ee,74,6b,76;29cb:Sm:2ee,74,2f8;29cc:Sm:38,2c3,2ee;29cd:Sm:2ee,74,60a,23,305;29ce:Sm:b,2ee,76,9,2ee;29cf:Sm:9,2ee,5fc,4b,54;29d0:Sm:4b,54,5fc,b,2ee;29d1:Sm:2f0,74,9,72,1f0;29d2:Sm:2f0,74,b,72,1f0;29d3:Sm:1f0,2f0;29d4:Sm:2d8,74,9,72,1f0;29d5:Sm:2d8,74,b,72,1f0;29d6:Sm:27d,310;29d7:Sm:1f0,310;29d8:Ps:9,60b,602;29d9:Pe:b,60b,602;29da:Ps:9,5c,60b,602;29db:Pe:b,5c,60b,602;29dc:Sm:60c,29c;29dd:Sm:1e9,235,29c;29de:Sm:29c,2e1,74,4b,54;29df:Sm:60d,2e6;29e0:Sm:40,74,60e,60f;29e1:Sm:610,290;29e2:Sm:611,294;29e3:Sm:1f,4,a7,612,2a1;29e4:Sm:1f,4,a7,612,2a1,74,4c,76;29e5:Sm:2ca,226,a7,612,2a1;29e6:Sm:613,614;29e7:Sm:615;29e8:Sm:373,2ee,74,9,72,1f0;29e9:Sm:373,2ee,74,b,72,1f0;29ea:Sm:1f0,2ef,74,c1,d6;29eb:Sm:1f0,307;29ec:Sm:27d,222,74,c1,d6;29ed:Sm:1f0,222,74,c1,d6;29ee:Sm:616,27d,40;29ef:Sm:616,1f0,40;29f0:Sm:616,27d,2ef;29f1:Sm:616,1f0,2ef;29f2:Sm:616,27d,222;29f3:Sm:616,1f0,222;29f4:Sm:617;29f5:Sm:42,12,297;29f6:Sm:12,74,2f7;29f7:Sm:42,12,74,1d4,7a;29f8:Sm:618,12;29f9:Sm:618,42,12;29fa:Sm:5c,d;29fb:Sm:1e2,d;29fc:Ps:5b,4c9,5d,41;29fd:Pe:6e,4c9,5d,41;29fe:Sm:619;29ff:Sm:61a;2a00:Sm:249,2d7,6b,297;2a01:Sm:249,2d7,d,297;2a02:Sm:249,2d7,2d8,297;2a03:Sm:249,2a5,297,74,6b;2a04:Sm:249,2a5,297,74,d;2a05:Sm:249,40,2a4,297;2a06:Sm:249,40,2a5,297;2a07:Sm:16,2a2,a7,297;2a08:Sm:16,2a2,2a3,297;2a09:Sm:249,2d8,297;2a0a:Sm:61b,16,61c;2a0b:Sm:24a,74,2a6;2a0c:Sm:1f9,2a6,297;2a0d:Sm:61d,61e,2a6;2a0e:Sm:2a6,74,5c,7a;2a0f:Sm:2a6,61f,74,1ec;2a10:Sm:620,621;2a11:Sm:273,622;2a12:Sm:46,622,74,623,624,625,626;2a13:Sm:46,622,74,5fa,624,625,626;2a14:Sm:46,622,5f,627,227,626;2a15:Sm:2a6,625,27,1dc,297;2a16:Sm:628,2a6,297;2a17:Sm:2a6,74,1f1,d6,74,8a;2a18:Sm:2a6,74,2d8,4;2a19:Sm:2a6,74,2a4;2a1a:Sm:2a6,74,2a5;2a1b:Sm:2a6,74,2f7;2a1c:Sm:2a6,74,2f8;2a1d:Sm:4ec;2a1e:Sm:3c4,9,2ee,297;2a1f:Sm:3f,2fa,629,33b;2a20:Sm:3f,2fa,629,62a;2a21:Sm:3f,2fa,629,62b;2a22:Sm:d,4,74,48,222,76;2a23:Sm:d,4,74,43,44,76;2a24:Sm:d,4,74,4c,76;2a25:Sm:d,4,74,6b,91;2a26:Sm:d,4,74,4c,91;2a27:Sm:d,4,74,1cd,16;2a28:Sm:d,4,74,1f0,2ee;2a29:Sm:c5,4,74,e,76;2a2a:Sm:c5,4,74,6b,91;2a2b:Sm:c5,4,74,482,1fc;2a2c:Sm:c5,4,74,4e9,1fc;2a2d:Sm:d,4,2c3,9,72,222;2a2e:Sm:d,4,2c3,b,72,222;2a2f:Sm:62c,2a3,c7,294;2a30:Sm:79,4,74,6b,76;2a31:Sm:79,4,74,2f8;2a32:Sm:2f2,294,74,305,99;2a33:Sm:62d,294;2a34:Sm:79,4,2c3,9,72,222;2a35:Sm:79,4,2c3,b,72,222;2a36:Sm:2d7,79,4,74,43,44;2a37:Sm:79,4,2c3,5c,222;2a38:Sm:2d7,7d,4;2a39:Sm:d,4,2c3,2ee;2a3a:Sm:c5,4,2c3,2ee;2a3b:Sm:79,4,2c3,2ee;2a3c:Sm:62e,294;2a3d:Sm:62f,62e,294;2a3e:Sm:3f,2fa,630,33b;2a3f:Sm:631,2a3,295;2a40:Sm:2a4,74,6b;2a41:Sm:2a5,74,c5,4;2a42:Sm:2a5,74,2f7;2a43:Sm:2a4,74,2f7;2a44:Sm:2a4,74,2a2,a7;2a45:Sm:2a5,74,2a2,2a3;2a46:Sm:2a5,76,2a4;2a47:Sm:2a4,76,2a5;2a48:Sm:2a5,76,54,76,2a4;2a49:Sm:2a4,76,54,76,2a5;2a4a:Sm:2a5,5fc,a7,364,74,2a5;2a4b:Sm:2a4,5fc,a7,364,74,2a4;2a4c:Sm:99,2a5,74,60a;2a4d:Sm:99,2a4,74,60a;2a4e:Sm:5c,40,2a4;2a4f:Sm:5c,40,2a5;2a50:Sm:99,2a5,74,60a,a7,62d,294;2a51:Sm:2a2,a7,74,6b,76;2a52:Sm:2a2,2a3,74,6b,76;2a53:Sm:5c,2a2,a7;2a54:Sm:5c,2a2,2a3;2a55:Sm:16,632,2a2,a7;2a56:Sm:16,632,2a2,2a3;2a57:Sm:633,3c4,2a3;2a58:Sm:633,3c4,a7;2a59:Sm:2a2,2a3,634,2a2,a7;2a5a:Sm:2a2,a7,74,6a,4ca;2a5b:Sm:2a2,2a3,74,6a,4ca;2a5c:Sm:2a2,a7,74,1d4,1d3;2a5d:Sm:2a2,2a3,74,1d4,1d3;2a5e:Sm:2a2,a7,74,5c,2f7;2a5f:Sm:2a2,a7,74,2f8;2a60:Sm:2a2,a7,74,5c,2f8;2a61:Sm:48,635,74,2f8;2a62:Sm:2a2,2a3,74,5c,2f7;2a63:Sm:2a2,2a3,74,5c,2f8;2a64:Sm:3f,2fa,636,637;2a65:Sm:3f,2fa,638,637;2a66:Sm:1f,4,74,6b,91;2a67:Sm:2ca,74,6b,76;2a68:Sm:1e2,1d4,54,74,5c,4b,7a;2a69:Sm:1e2,1d4,54,74,1e2,4b,7a;2a6a:Sm:4c,297,74,6b,76;2a6b:Sm:4c,297,74,4e9,1fc;2a6c:Sm:639,c5,639;2a6d:Sm:63a,74,6b,76;2a6e:Sm:1f,74,c;2a6f:Sm:2bb,2b5,226,74,43,44;2a70:Sm:2b6,2b5,2a3,2b5,226;2a71:Sm:1f,4,76,d,4;2a72:Sm:d,4,76,1f,4;2a73:Sm:1f,4,76,4c,297;2a74:Sm:5c,1c,2b5;2a75:Sm:16,63b,1f,63c;2a76:Sm:17,63b,1f,63c;2a77:Sm:1f,4,74,16,1fc,76,a7,16,1fc,91;2a78:Sm:2bc,74,18,1fc,76;2a79:Sm:1e,74,222,4e6;2a7a:Sm:20,74,222,4e6;2a7b:Sm:1e,74,21,2,76;2a7c:Sm:20,74,21,2,76;2a7d:Sm:1e,2a3,612,2b5,226;2a7e:Sm:20,2a3,612,2b5,226;2a7f:Sm:1e,2a3,612,2b5,226,74,6b,4e6;2a80:Sm:20,2a3,612,2b5,226,74,6b,4e6;2a81:Sm:1e,2a3,612,2b5,226,74,6b,76;2a82:Sm:20,2a3,612,2b5,226,74,6b,76;2a83:Sm:1e,2a3,612,2b5,226,74,6b,76,b;2a84:Sm:20,2a3,612,2b5,226,74,6b,76,9;2a85:Sm:1e,2a3,63d;2a86:Sm:20,2a3,63d;2a87:Sm:1e,a7,63e,5f,2b5,226;2a88:Sm:20,a7,63e,5f,2b5,226;2a89:Sm:1e,a7,5f,63d;2a8a:Sm:20,a7,5f,63d;2a8b:Sm:1e,76,63f,2b5,76,20;2a8c:Sm:20,76,63f,2b5,76,1e;2a8d:Sm:1e,76,639,2a3,2b5;2a8e:Sm:20,76,639,2a3,2b5;2a8f:Sm:1e,76,639,76,20;2a90:Sm:20,76,639,76,1e;2a91:Sm:1e,76,20,76,63f,2b5;2a92:Sm:20,76,1e,76,63f,2b5;2a93:Sm:1e,76,612,2b5,76,20,76,612,2b5;2a94:Sm:20,76,612,2b5,76,1e,76,612,2b5;2a95:Sm:612,2b5,226,2a3,1e;2a96:Sm:612,2b5,226,2a3,20;2a97:Sm:612,2b5,226,2a3,1e,74,6b,4e6;2a98:Sm:612,2b5,226,2a3,20,74,6b,4e6;2a99:Sm:63f,2b5,226,2a3,1e;2a9a:Sm:63f,2b5,226,2a3,20;2a9b:Sm:63f,612,2b5,226,2a3,1e;2a9c:Sm:63f,612,2b5,226,2a3,20;2a9d:Sm:639,2a3,1e;2a9e:Sm:639,2a3,20;2a9f:Sm:639,76,1e,76,1f,4;2aa0:Sm:639,76,20,76,1f,4;2aa1:Sm:5c,640,1e;2aa2:Sm:5c,640,20;2aa3:Sm:5c,640,1e,74,2f8;2aa4:Sm:20,634,1e;2aa5:Sm:20,5fc,1e;2aa6:Sm:1e,99,86,641;2aa7:Sm:20,99,86,641;2aa8:Sm:1e,99,86,641,76,612,2b5;2aa9:Sm:20,99,86,641,76,612,2b5;2aaa:Sm:642,643;2aab:Sm:644,643;2aac:Sm:642,643,2a3,2b5,226;2aad:Sm:644,643,2a3,2b5,226;2aae:Sm:1f,4,74,645,76;2aaf:Sm:2cd,76,63e,1f,4;2ab0:Sm:2ce,76,63e,1f,4;2ab1:Sm:2cd,76,63e,5f,2b5,226;2ab2:Sm:2ce,76,63e,5f,2b5,226;2ab3:Sm:2cd,76,1f,4;2ab4:Sm:2ce,76,1f,4;2ab5:Sm:2cd,76,5f,2b5,226;2ab6:Sm:2ce,76,5f,2b5,226;2ab7:Sm:2cd,76,2bb,2b5,226;2ab8:Sm:2ce,76,2bb,2b5,226;2ab9:Sm:2cd,76,5f,2bb,2b5,226;2aba:Sm:2ce,76,5f,2bb,2b5,226;2abb:Sm:5c,2cd;2abc:Sm:5c,2ce;2abd:Sm:2d1,74,6b;2abe:Sm:2d2,74,6b;2abf:Sm:2d1,74,d,4,91;2ac0:Sm:2d2,74,d,4,91;2ac1:Sm:2d1,74,79,4,91;2ac2:Sm:2d2,74,79,4,91;2ac3:Sm:2d1,224,2a3,2b5,226,74,6b,76;2ac4:Sm:2d2,224,2a3,2b5,226,74,6b,76;2ac5:Sm:2d1,224,76,1f,4;2ac6:Sm:2d2,224,76,1f,4;2ac7:Sm:2d1,224,76,4c,297;2ac8:Sm:2d2,224,76,4c,297;2ac9:Sm:2d1,224,76,2bb,2b5,226;2aca:Sm:2d2,224,76,2bb,2b5,226;2acb:Sm:2d1,224,76,5f,2b5,226;2acc:Sm:2d2,224,76,5f,2b5,226;2acd:Sm:40,9,94,318,297;2ace:Sm:40,b,94,318,297;2acf:Sm:99,2d1;2ad0:Sm:99,2d2;2ad1:Sm:99,2d1,2a3,2b5,226;2ad2:Sm:99,2d2,2a3,2b5,226;2ad3:Sm:2d1,76,2d2;2ad4:Sm:2d2,76,2d1;2ad5:Sm:2d1,76,2d1;2ad6:Sm:2d2,76,2d2;2ad7:Sm:2d2,5fc,2d1;2ad8:Sm:2d2,5fc,a7,364,86,1d3,74,2d1;2ad9:Sm:28d,224,4ea,266;2ada:Sm:2f3,74,646,274;2adb:Sm:647,2a4;2adc:Sm:648;2add:Sm:649;2ade:Sm:112,9,c4;2adf:Sm:112,c1,c4;2ae0:Sm:112,c0,c4;2ae1:Sm:4e3,74,38;2ae2:Sm:4b,54,1e2,b,2de;2ae3:Sm:5c,4b,54,9,2de;2ae4:Sm:4b,54,5c,9,2de;2ae5:Sm:5c,4b,54,5c,9,2de;2ae6:Sm:89,1d3,26d,9,291,224,5c,4b;2ae7:Sm:112,c1,c4,74,2f7;2ae8:Sm:112,c0,c4,74,2f8;2ae9:Sm:112,c0,c4,76,112,c1,c4;2aea:Sm:5c,c1,c4;2aeb:Sm:5c,c0,c4;2aec:Sm:5c,7a,5f,4;2aed:Sm:97,5c,7a,5f,4;2aee:Sm:287,5f,2a0,74,97,64a,1ec;2aef:Sm:4b,46,74,222,76;2af0:Sm:4b,46,74,222,91;2af1:Sm:c1,c4,74,222,91;2af2:Sm:2a1,74,1d4,7a;2af3:Sm:2a1,74,4c,297;2af4:Sm:1e2,4b,54,64b,2e3;2af5:Sm:1e2,4b,54,74,1d4,7a;2af6:Sm:1e2,1c,297;2af7:Sm:1e2,640,1e;2af8:Sm:1e2,640,20;2af9:Sm:63f,612,1e,2a3,2b5,226;2afa:Sm:63f,612,20,2a3,2b5,226;2afb:Sm:1e2,12,64b,2e3;2afc:Sm:3c4,1e2,4b,54,297;2afd:Sm:5c,12,297;2afe:Sm:27d,4b,54;2aff:Sm:249,27d,4b,54;2b00:So:267,269,27d,d6;2b01:So:267,268,27d,d6;2b02:So:26a,269,27d,d6;2b03:So:26a,268,27d,d6;2b04:So:9,b,27d,d6;2b05:So:1f1,1f0,d6;2b06:So:265,1f0,d6;2b07:So:266,1f0,d6;2b08:So:267,269,1f0,d6;2b09:So:267,268,1f0,d6;2b0a:So:26a,269,1f0,d6;2b0b:So:26a,268,1f0,d6;2b0c:So:9,b,1f0,d6;2b0d:So:c0,c1,1f0,d6;2b0e:So:1f2,d6,74,271,266;2b0f:So:1f2,d6,74,271,265;2b10:So:1f1,d6,74,271,266;2b11:So:1f1,d6,74,271,265;2b12:So:40,74,274,72,1f0;2b13:So:40,74,305,72,1f0;2b14:So:40,74,354,b,2f6,72,1f0;2b15:So:40,74,de,9,2f6,72,1f0;2b16:So:2ef,74,9,72,1f0;2b17:So:2ef,74,b,72,1f0;2b18:So:2ef,74,274,72,1f0;2b19:So:2ef,74,305,72,1f0;2b1a:So:e5,40;2b1b:So:1f0,3c4,40;2b1c:So:27d,3c4,40;2b1d:So:1f0,2f4,48,40;2b1e:So:27d,2f4,48,40;2b1f:So:1f0,64c;2b20:So:27d,64c;2b21:So:27d,64d;2b22:So:1f0,64d;2b23:So:1d4,1f0,64d;2b24:So:1f0,3c4,222;2b25:So:1f0,37a,2ef;2b26:So:27d,37a,2ef;2b27:So:1f0,37a,307;2b28:So:27d,37a,307;2b29:So:1f0,48,2ef;2b2a:So:1f0,48,307;2b2b:So:27d,48,307;2b2c:So:1f0,1d4,64e;2b2d:So:27d,1d4,64e;2b2e:So:1f0,4b,64e;2b2f:So:27d,4b,64e;2b30:Sm:9,d6,74,48,222;2b31:Sm:17,1f1,27a;2b32:Sm:9,d6,74,2d7,d;2b33:Sm:89,1f1,27b,d6;2b34:Sm:1f1,5f3,d6,74,4b,7a;2b35:Sm:1f1,5f3,d6,74,5c,4b,7a;2b36:Sm:1f1,5f3,d6,26d,54;2b37:Sm:1f1,5f3,1e2,1d3,d6;2b38:Sm:1f1,d6,74,e5,4ca;2b39:Sm:1f1,d6,74,96,74,4b,7a;2b3a:Sm:1f1,d6,74,96,74,5c,4b,7a;2b3b:Sm:1f1,5f3,d6,74,96;2b3c:Sm:1f1,5f3,d6,74,96,74,4b,7a;2b3d:Sm:1f1,5f3,d6,74,96,74,5c,4b,7a;2b3e:Sm:1f1,d6,5fb,3d;2b3f:Sm:26b,d6,3dc,5f5,9;2b40:Sm:1f,4,76,1f1,d6;2b41:Sm:42,4c,297,76,1f1,d6;2b42:Sm:1f1,d6,76,42,2bb,2b5,226;2b43:Sm:1f2,d6,5fb,20;2b44:Sm:1f2,d6,5fb,2d2;2b45:So:1f1,1f9,d6;2b46:So:1f2,1f9,d6;2b47:Sm:42,4c,297,76,1f2,d6;2b48:Sm:1f2,d6,76,42,2bb,2b5,226;2b49:Sm:4c,297,76,1f1,d6;2b4a:Sm:1f1,d6,76,2bb,2b5,226;2b4b:Sm:1f1,d6,76,42,4c,297;2b4c:Sm:1f2,d6,76,42,4c,297;2b4d:So:266,4d1,270,d6;2b4e:So:112,612,267,d6;2b4f:So:112,64f,26a,d6;2b50:So:27d,37a,2c7;2b51:So:1f0,48,2c7;2b52:So:27d,48,2c7;2b53:So:1f0,6e,64c;2b54:So:27d,6e,64c;2b55:So:3b3,3c4,222;2b56:So:3b3,650,74,650,4e6;2b57:So:3b3,222,74,222,4e6;2b58:So:3b3,222;2b59:So:3b3,2d7,3d3;2b5a:So:612,267,d6,74,651,5fd;2b5b:So:64f,26a,d6,74,651,96;2b5c:So:612,267,d6,74,1d4,96;2b5d:So:64f,26a,d6,74,1d4,96;2b5e:So:652,d6,3dc,266,5f6,267,269;2b5f:So:112,652,d6,3dc,266,5f6,267,269;2b60:So:1f1,4d1,d6;2b61:So:265,4d1,d6;2b62:So:1f2,4d1,d6;2b63:So:266,4d1,d6;2b64:So:9,b,4d1,d6;2b65:So:c0,c1,4d1,d6;2b66:So:267,268,4d1,d6;2b67:So:267,269,4d1,d6;2b68:So:26a,269,4d1,d6;2b69:So:26a,268,4d1,d6;2b6a:So:1f1,4d1,27c,d6;2b6b:So:265,4d1,27c,d6;2b6c:So:1f2,4d1,27c,d6;2b6d:So:266,4d1,27c,d6;2b6e:So:276,4d1,94,222,d6;2b6f:So:273,4d1,94,222,d6;2b70:So:1f1,4d1,d6,226,54;2b71:So:265,4d1,d6,226,54;2b72:So:1f2,4d1,d6,226,54;2b73:So:266,4d1,d6,226,54;2b90:So:360,9;2b91:So:360,b;2bc0:So:1f0,40,c3;2bc1:So:1f0,2ef,c3;2bc2:So:92,1f0,64c;2bc3:So:1d4,1f0,653;2bc4:So:1f0,653;2bc5:So:1f0,37a,372,2ee,c3;2bc6:So:1f0,37a,373,2ee,c3;2bc7:So:1f0,37a,5b,2ee,c3;2bc8:So:1f0,37a,6e,2ee,c3;2c71:Ll:24,48,26,3b,74,b,8a;2c7c:Lm:24,1cd,48,26,49;2e18:Po:4e,1e5;2e2e:Po:97,21,2;3001:Po:654,e;3002:Po:654,10,11;3003:Po:655,2;3005:Lm:654,656,2;3008:Ps:9,5d,41;3009:Pe:b,5d,41;300a:Ps:9,5c,5d,41;300b:Pe:b,5c,5d,41;300c:Ps:9,272,41;300d:Pe:b,272,41;300e:Ps:9,27d,272,41;300f:Pe:b,27d,272,41;3010:Ps:9,1f0,657,41;3011:Pe:b,1f0,657,41;3014:Ps:9,36b,36c,41;3015:Pe:b,36b,36c,41;3016:Ps:9,27d,657,41;3017:Pe:b,27d,657,41;301c:Pd:26b,1d3;3041:Lo:658,26,48,27;3042:Lo:658,26,27;3043:Lo:658,26,48,2f;3044:Lo:658,26,2f;3045:Lo:658,26,48,3a;3046:Lo:658,26,3a;3047:Lo:658,26,48,2b;3048:Lo:658,26,2b;3049:Lo:658,26,48,34;304a:Lo:658,26,34;304b:Lo:658,26,113;304c:Lo:658,26,659;304d:Lo:658,26,65a;304e:Lo:658,26,65b;304f:Lo:658,26,65c;3050:Lo:658,26,65d;3051:Lo:658,26,65e;3052:Lo:658,26,65f;3053:Lo:658,26,660;3054:Lo:658,26,661;3055:Lo:658,26,662;3056:Lo:658,26,663;3057:Lo:658,26,664;3058:Lo:658,26,665;3059:Lo:658,26,666;305a:Lo:658,26,667;305b:Lo:658,26,668;305c:Lo:658,26,111;305d:Lo:658,26,669;305e:Lo:658,26,66a;305f:Lo:658,26,66b;3060:Lo:658,26,66c;3061:Lo:658,26,66d;3062:Lo:658,26,66e;3063:Lo:658,26,48,66f;3064:Lo:658,26,66f;3065:Lo:658,26,670;3066:Lo:658,26,11a;3067:Lo:658,26,10e;3068:Lo:658,26,226;3069:Lo:658,26,671;306a:Lo:658,26,672;306b:Lo:658,26,673;306c:Lo:658,26,f5;306d:Lo:658,26,674;306e:Lo:658,26,477;306f:Lo:658,26,11c;3070:Lo:658,26,675;3071:Lo:658,26,676;3072:Lo:658,26,677;3073:Lo:658,26,678;3074:Lo:658,26,f7;3075:Lo:658,26,679;3076:Lo:658,26,67a;3077:Lo:658,26,67b;3078:Lo:658,26,137;3079:Lo:658,26,10b;307a:Lo:658,26,117;307b:Lo:658,26,67c;307c:Lo:658,26,67d;307d:Lo:658,26,67e;307e:Lo:658,26,67f;307f:Lo:658,26,680;3080:Lo:658,26,f4;3081:Lo:658,26,681;3082:Lo:658,26,682;3083:Lo:658,26,48,124;3084:Lo:658,26,124;3085:Lo:658,26,48,123;3086:Lo:658,26,123;3087:Lo:658,26,48,683;3088:Lo:658,26,683;3089:Lo:658,26,684;308a:Lo:658,26,685;308b:Lo:658,26,686;308c:Lo:658,26,687;308d:Lo:658,26,688;308e:Lo:658,26,48,689;308f:Lo:658,26,689;3090:Lo:658,26,68a;3091:Lo:658,26,68b;3092:Lo:658,26,68c;3093:Lo:658,26,33;3094:Lo:658,26,68d;3095:Lo:658,26,48,113;3096:Lo:658,26,48,65e;30a1:Lo:68e,26,48,27;30a2:Lo:68e,26,27;30a3:Lo:68e,26,48,2f;30a4:Lo:68e,26,2f;30a5:Lo:68e,26,48,3a;30a6:Lo:68e,26,3a;30a7:Lo:68e,26,48,2b;30a8:Lo:68e,26,2b;30a9:Lo:68e,26,48,34;30aa:Lo:68e,26,34;30ab:Lo:68e,26,113;30ac:Lo:68e,26,659;30ad:Lo:68e,26,65a;30ae:Lo:68e,26,65b;30af:Lo:68e,26,65c;30b0:Lo:68e,26,65d;30b1:Lo:68e,26,65e;30b2:Lo:68e,26,65f;30b3:Lo:68e,26,660;30b4:Lo:68e,26,661;30b5:Lo:68e,26,662;30b6:Lo:68e,26,663;30b7:Lo:68e,26,664;30b8:Lo:68e,26,665;30b9:Lo:68e,26,666;30ba:Lo:68e,26,667;30bb:Lo:68e,26,668;30bc:Lo:68e,26,111;30bd:Lo:68e,26,669;30be:Lo:68e,26,66a;30bf:Lo:68e,26,66b;30c0:Lo:68e,26,66c;30c1:Lo:68e,26,66d;30c2:Lo:68e,26,66e;30c3:Lo:68e,26,48,66f;30c4:Lo:68e,26,66f;30c5:Lo:68e,26,670;30c6:Lo:68e,26,11a;30c7:Lo:68e,26,10e;30c8:Lo:68e,26,226;30c9:Lo:68e,26,671;30ca:Lo:68e,26,672;30cb:Lo:68e,26,673;30cc:Lo:68e,26,f5;30cd:Lo:68e,26,674;30ce:Lo:68e,26,477;30cf:Lo:68e,26,11c;30d0:Lo:68e,26,675;30d1:Lo:68e,26,676;30d2:Lo:68e,26,677;30d3:Lo:68e,26,678;30d4:Lo:68e,26,f7;30d5:Lo:68e,26,679;30d6:Lo:68e,26,67a;30d7:Lo:68e,26,67b;30d8:Lo:68e,26,137;30d9:Lo:68e,26,10b;30da:Lo:68e,26,117;30db:Lo:68e,26,67c;30dc:Lo:68e,26,67d;30dd:Lo:68e,26,67e;30de:Lo:68e,26,67f;30df:Lo:68e,26,680;30e0:Lo:68e,26,f4;30e1:Lo:68e,26,681;30e2:Lo:68e,26,682;30e3:Lo:68e,26,48,124;30e4:Lo:68e,26,124;30e5:Lo:68e,26,48,123;30e6:Lo:68e,26,123;30e7:Lo:68e,26,48,683;30e8:Lo:68e,26,683;30e9:Lo:68e,26,684;30ea:Lo:68e,26,685;30eb:Lo:68e,26,686;30ec:Lo:68e,26,687;30ed:Lo:68e,26,688;30ee:Lo:68e,26,48,689;30ef:Lo:68e,26,689;30f0:Lo:68e,26,68a;30f1:Lo:68e,26,68b;30f2:Lo:68e,26,68c;30f3:Lo:68e,26,33;30f4:Lo:68e,26,68d;30f5:Lo:68e,26,48,113;30f6:Lo:68e,26,48,65e;30f7:Lo:68e,26,68f;30f8:Lo:68e,26,690;30f9:Lo:68e,26,10c;30fa:Lo:68e,26,691;30fb:Po:68e,6a,6b;30fc:Lm:692,693,237,2;3251:No:2d7,3,3b0,15;3252:No:2d7,3,3b0,16;3253:No:2d7,3,3b0,17;3254:No:2d7,3,3b0,18;3255:No:2d7,3,3b0,1fa;3256:No:2d7,3,3b0,19;3257:No:2d7,3,3b0,1a;3258:No:2d7,3,3b0,1fd;3259:No:2d7,3,3b0,1b;325a:No:2d7,3,694;3382:So:40,f4,27;3383:So:40,67f;3384:So:40,113;3388:So:40,695;3389:So:40,696;338d:So:40,f4,2d;338e:So:40,697;338f:So:40,698;3390:So:40,699;3391:So:40,69a;3392:So:40,69b;3393:So:40,69c;3396:So:40,69d;3397:So:40,69e;339c:So:40,69f;339d:So:40,6a0;339e:So:40,6a1;33a1:So:40,32,2d9;33a5:So:40,32,6a2;33a7:So:40,32,235,38;33a8:So:40,32,235,38,2d9;33a9:So:40,676;33aa:So:40,6a3;33ab:So:40,6a4;33ad:So:40,17e;33b6:So:40,f4,3b;33b7:So:40,6a5;33b8:So:40,6a6;33bd:So:40,6a7;33be:So:40,6a8;33bf:So:40,6a7,6a9;33c0:So:40,30,241;33c1:So:40,32,241;33c4:So:40,6aa;33c8:So:40,6ab;33d6:So:40,6ac;33d7:So:40,6ad;4e00:Lo:6ae,6af,6b0;4e03:Lo:6ae,6af,6b1;4e07:Lo:6ae,6af,6b2;4e09:Lo:6ae,6af,6b3;4e0a:Lo:6ae,6af,6b4;4e0b:Lo:6ae,6af,6b5;4e2d:Lo:6ae,6af,6b6;4e5d:Lo:6ae,6af,6b7;4e8c:Lo:6ae,6af,6b8;4e94:Lo:6ae,6af,6b9;4eba:Lo:6ae,6af,6ba;5148:Lo:6ae,6af,6bb;516b:Lo:6ae,6af,6bc;516d:Lo:6ae,6af,6bd;5186:Lo:6ae,6af,6be;5206:Lo:6ae,6af,6bf;5341:Lo:6ae,6af,6c0;5343:Lo:6ae,6af,6c1;53e3:Lo:6ae,6af,6c2;53f3:Lo:6ae,6af,6c3;56db:Lo:6ae,6af,6c4;56fd:Lo:6ae,6af,6c5;571f:Lo:6ae,6af,6c6;5927:Lo:6ae,6af,6c7;5929:Lo:6ae,6af,6c8;5b57:Lo:6ae,6af,6c9;5b66:Lo:6ae,6af,6ca;5c0f:Lo:6ae,6af,6cb;5c71:Lo:6ae,6af,6cc;5ddd:Lo:6ae,6af,6cd;5de6:Lo:6ae,6af,6ce;5e74:Lo:6ae,6af,6cf;5fc3:Lo:6ae,6af,6d0;624b:Lo:6ae,6af,6d1;6587:Lo:6ae,6af,6d2;65e5:Lo:6ae,6af,6d3;6642:Lo:6ae,6af,6d4;6708:Lo:6ae,6af,6d5;6728:Lo:6ae,6af,6d6;672c:Lo:6ae,6af,6d7;6c34:Lo:6ae,6af,6d8;706b:Lo:6ae,6af,6d9;751f:Lo:6ae,6af,6da;767e:Lo:6ae,6af,6db;76ee:Lo:6ae,6af,6dc;8033:Lo:6ae,6af,6dd;8a9e:Lo:6ae,6af,6de;91d1:Lo:6ae,6af,6df;ac00:Lo:6e0,6e1,659;ae00:Lo:6e0,6e1,6e2;b098:Lo:6e0,6e1,672;b2e4:Lo:6e0,6e1,66c;b77c:Lo:6e0,6e1,684;b9c8:Lo:6e0,6e1,67f;bc14:Lo:6e0,6e1,675;c0ac:Lo:6e0,6e1,662;c544:Lo:6e0,6e1,27;c790:Lo:6e0,6e1,6e3;cc28:Lo:6e0,6e1,6e4;ce74:Lo:6e0,6e1,113;d0c0:Lo:6e0,6e1,66b;d30c:Lo:6e0,6e1,676;d558:Lo:6e0,6e1,11c;d55c:Lo:6e0,6e1,6e5;fdfc:Sc:6e6,4;1d100:So:6e7,e4,1c5,6e8;1d101:So:6e7,e4,5c,6e8;1d102:So:6e7,e4,fc,6e8;1d103:So:6e7,e4,42,fc,6e8;1d104:So:6e7,e4,27c,6e8;1d105:So:6e7,e4,112,6e8;1d106:So:6e7,e4,9,6e9,4;1d107:So:6e7,e4,b,6e9,4;1d108:So:6e7,e4,6e9,1fc;1d109:So:6e7,e4,155,6ea;1d10a:So:6e7,e4,66c,6eb;1d10b:So:6e7,e4,6ea;1d10c:So:6e7,e4,6ec;1d10d:So:6e7,e4,6ed,6ee;1d10e:So:6e7,e4,6ed,6ef;1d10f:So:6e7,e4,6ed,6f0;1d110:So:6e7,e4,6f1;1d111:So:6e7,e4,6f1,91;1d112:So:6e7,e4,6f2,2;1d113:So:6e7,e4,6f3;1d114:So:6e7,e4,6f4;1d115:So:6e7,e4,41;1d116:So:6e7,e4,6f5,447;1d117:So:6e7,e4,6f6,447;1d118:So:6e7,e4,6f7,447;1d119:So:6e7,e4,6f8,447;1d11a:So:6e7,e4,6f9,447;1d11b:So:6e7,e4,6fa,447;1d11c:So:6e7,e4,6fb,6fc;1d11d:So:6e7,e4,6fd,6fc;1d11e:So:6e7,e4,2d,6fe;1d11f:So:6e7,e4,2d,6fe,6ff,700;1d120:So:6e7,e4,2d,6fe,6ff,701;1d121:So:6e7,e4,29,6fe;1d122:So:6e7,e4,2c,6fe;1d123:So:6e7,e4,2c,6fe,6ff,700;1d124:So:6e7,e4,2c,6fe,6ff,701;1d125:So:6e7,e4,702,703;1d126:So:6e7,e4,702,704;1d129:So:6e7,e4,1c7,705,706;1d12a:So:6e7,e4,5c,7c;1d12b:So:6e7,e4,5c,423;1d12c:So:6e7,e4,423,c0;1d12d:So:6e7,e4,423,c1;1d12e:So:6e7,e4,424,c0;1d12f:So:6e7,e4,424,c1;1d130:So:6e7,e4,7c,c0;1d131:So:6e7,e4,7c,c1;1d132:So:6e7,e4,71,c9,7c;1d133:So:6e7,e4,71,c9,423;1d134:So:6e7,e4,707,708;1d135:So:6e7,e4,709,708;1d136:So:6e7,e4,6ff,700;1d137:So:6e7,e4,6ff,701;1d138:So:6e7,e4,70a,700;1d139:So:6e7,e4,70a,701;1d13a:So:6e7,e4,70b,706;1d13b:So:6e7,e4,70c,706;1d13c:So:6e7,e4,72,706;1d13d:So:6e7,e4,71,706;1d13e:So:6e7,e4,25a,706;1d13f:So:6e7,e4,421,706;1d140:So:6e7,e4,70d,706;1d141:So:6e7,e4,70e,706;1d142:So:6e7,e4,15,261,70f,706;1d143:So:6e7,e4,3d,710;1d144:So:6e7,e4,d,710;1d145:So:6e7,e4,222,3d,710;1d146:So:6e7,e4,40,710,27d;1d147:So:6e7,e4,40,710,1f0;1d148:So:6e7,e4,2ee,710,c0,27d;1d149:So:6e7,e4,2ee,710,c0,1f0;1d14a:So:6e7,e4,2ee,710,9,27d;1d14b:So:6e7,e4,2ee,710,9,1f0;1d14c:So:6e7,e4,2ee,710,b,27d;1d14d:So:6e7,e4,2ee,710,b,1f0;1d14e:So:6e7,e4,2ee,710,c1,27d;1d14f:So:6e7,e4,2ee,710,c1,1f0;1d150:So:6e7,e4,2ee,710,c0,b,27d;1d151:So:6e7,e4,2ee,710,c0,b,1f0;1d152:So:6e7,e4,3fd,710,27d;1d153:So:6e7,e4,3fd,710,1f0;1d154:So:6e7,e4,711,710,c1,27d;1d155:So:6e7,e4,711,710,c1,1f0;1d156:So:6e7,e4,a,710;1d157:So:6e7,e4,712,710;1d158:So:6e7,e4,710,1f0;1d159:So:6e7,e4,381,710;1d15a:So:6e7,e4,713,710,27d;1d15b:So:6e7,e4,713,710,1f0;1d15c:So:6e7,e4,7e;1d15d:So:6e7,e4,70c,41e;1d15e:So:6e7,e4,72,41e;1d15f:So:6e7,e4,71,41e;1d160:So:6e7,e4,25a,41e;1d161:So:6e7,e4,421,41e;1d162:So:6e7,e4,70d,41e;1d163:So:6e7,e4,70e,41e;1d164:So:6e7,e4,15,261,70f,41e;1d165:Mc:6e7,e4,d7,4ca;1d166:Mc:6e7,e4,d7,714,4ca;1d167:Mn:6e7,e4,d7,715;1d168:Mn:6e7,e4,d7,716;1d169:Mn:6e7,e4,d7,717;1d16a:So:6e7,e4,718,715;1d16b:So:6e7,e4,718,716;1d16c:So:6e7,e4,718,717;1d16d:Mc:6e7,e4,d7,719,6b;1d16e:Mc:6e7,e4,d7,71a;1d16f:Mc:6e7,e4,d7,71b;1d170:Mc:6e7,e4,d7,71c;1d171:Mc:6e7,e4,d7,71d;1d172:Mc:6e7,e4,d7,71e;1d17b:Mn:6e7,e4,d7,44;1d17c:Mn:6e7,e4,d7,71f;1d17d:Mn:6e7,e4,d7,720;1d17e:Mn:6e7,e4,d7,721;1d17f:Mn:6e7,e4,d7,722;1d180:Mn:6e7,e4,d7,723;1d181:Mn:6e7,e4,d7,724;1d182:Mn:6e7,e4,d7,725;1d183:So:6e7,e4,726,c0;1d184:So:6e7,e4,726,c1;1d185:Mn:6e7,e4,d7,727;1d186:Mn:6e7,e4,d7,728;1d187:Mn:6e7,e4,d7,729;1d188:Mn:6e7,e4,d7,72a;1d189:Mn:6e7,e4,d7,72b;1d18a:Mn:6e7,e4,d7,5c,72c;1d18b:Mn:6e7,e4,d7,1e2,72c;1d18c:So:6e7,e4,72d;1d18d:So:6e7,e4,72e;1d18e:So:6e7,e4,3f;1d18f:So:6e7,e4,72f;1d190:So:6e7,e4,730;1d191:So:6e7,e4,731;1d192:So:6e7,e4,732;1d193:So:6e7,e4,733;1d194:So:6e7,e4,734,41e,1ec;1d195:So:6e7,e4,734,41e,477,1ec;1d196:So:6e7,e4,735;1d197:So:6e7,e4,736;1d198:So:6e7,e4,4e,736;1d199:So:6e7,e4,736,1ec;1d19a:So:6e7,e4,736,c0;1d19b:So:6e7,e4,4c8,737;1d19c:So:6e7,e4,4c8,738;1d19d:So:6e7,e4,4c8,739;1d19e:So:6e7,e4,4c8,73a;1d19f:So:6e7,e4,4c8,73b;1d1a0:So:6e7,e4,4c8,73c;1d1a1:So:6e7,e4,4c8,73d;1d1a2:So:6e7,e4,4c8,73e;1d1a3:So:6e7,e4,4c8,73f;1d1a4:So:6e7,e4,4c8,740;1d1a5:So:6e7,e4,4c8,741;1d1a6:So:6e7,e4,742;1d1a7:So:6e7,e4,743;1d1a8:So:6e7,e4,d4,224,744;1d1a9:So:6e7,e4,64,1ec;1d1aa:Mn:6e7,e4,d7,c1,3a3;1d1ab:Mn:6e7,e4,d7,c0,3a3;1d1ac:Mn:6e7,e4,d7,745;1d1ad:Mn:6e7,e4,d7,746,747;1d1ae:So:6e7,e4,748,2;1d1af:So:6e7,e4,748,c0,2;1d1b0:So:6e7,e4,72,748,2;1d1b1:So:6e7,e4,749,c0;1d1b2:So:6e7,e4,749,c1;1d1b3:So:6e7,e4,74,74a;1d1b4:So:6e7,e4,74b;1d1b5:So:6e7,e4,74b,281;1d1b6:So:6e7,e4,74c;1d1b7:So:6e7,e4,74d;1d1b8:So:6e7,e4,74e;1d1b9:So:6e7,e4,74f,27d;1d1ba:So:6e7,e4,74f,1f0;1d1bb:So:6e7,e4,750;1d1bc:So:6e7,e4,750,1f0;1d1bd:So:6e7,e4,751,27d;1d1be:So:6e7,e4,751,1f0;1d1bf:So:6e7,e4,752,27d;1d1c0:So:6e7,e4,752,1f0;1d1c1:So:6e7,e4,74d,753,706;1d1c2:So:6e7,e4,74d,754,706;1d1c3:So:6e7,e4,74e,706;1d1c4:So:6e7,e4,74f,706;1d1c5:So:6e7,e4,750,706;1d1c6:So:6e7,e4,751,706;1d1c7:So:6e7,e4,755,756,757,758,753;1d1c8:So:6e7,e4,755,756,757,758,754;1d1c9:So:6e7,e4,755,756,757,758,753,759;1d1ca:So:6e7,e4,755,75a,757,758,753;1d1cb:So:6e7,e4,755,75a,757,758,754;1d1cc:So:6e7,e4,755,75a,757,758,754,759;1d1cd:So:6e7,e4,755,75a,757,758,754,75b;1d1ce:So:6e7,e4,755,75a,757,758,754,75c;1d1cf:So:6e7,e4,75d;1d1d0:So:6e7,e4,75e,29,6fe;1d1d1:So:6e7,e4,75e,2c,6fe;1d1d2:So:6e7,e4,40,28;1d1d3:So:6e7,e4,75f;1d1d4:So:6e7,e4,760;1d1d5:So:6e7,e4,761;1d1d6:So:6e7,e4,762;1d1d7:So:6e7,e4,763;1d1d8:So:6e7,e4,764;1d1d9:So:6e7,e4,765;1d1da:So:6e7,e4,765,766;1d1db:So:6e7,e4,762,766;1d1dc:So:6e7,e4,764,767;1d1dd:So:6e7,e4,768,769;1d1de:So:6e7,e4,76a,29,6fe;1d1df:So:6e7,e4,76a,d4,224,356;1d1e0:So:6e7,e4,76a,fc,41e;1d1e1:So:6e7,e4,76a,76b,2;1d1e2:So:6e7,e4,76a,70c,41e;1d1e3:So:6e7,e4,76a,72,41e;1d1e4:So:6e7,e4,76a,71,41e,4ca,c1;1d1e5:So:6e7,e4,76a,71,41e,4ca,c0;1d1e6:So:6e7,e4,76a,25a,41e,4ca,c1;1d1e7:So:6e7,e4,76a,25a,41e,4ca,c0;1d1e8:So:6e7,e4,76a,423,4;1d1e9:So:6e7,e4,76c;1d1ea:So:6e7,e4,76d;1d400:Lu:4e8,76e,25,27;1d401:Lu:4e8,76e,25,28;1d402:Lu:4e8,76e,25,29;1d403:Lu:4e8,76e,25,2a;1d404:Lu:4e8,76e,25,2b;1d405:Lu:4e8,76e,25,2c;1d406:Lu:4e8,76e,25,2d;1d407:Lu:4e8,76e,25,2e;1d408:Lu:4e8,76e,25,2f;1d409:Lu:4e8,76e,25,49;1d40a:Lu:4e8,76e,25,30;1d40b:Lu:4e8,76e,25,31;1d40c:Lu:4e8,76e,25,32;1d40d:Lu:4e8,76e,25,33;1d40e:Lu:4e8,76e,25,34;1d40f:Lu:4e8,76e,25,35;1d410:Lu:4e8,76e,25,36;1d411:Lu:4e8,76e,25,37;1d412:Lu:4e8,76e,25,38;1d413:Lu:4e8,76e,25,39;1d414:Lu:4e8,76e,25,3a;1d415:Lu:4e8,76e,25,3b;1d416:Lu:4e8,76e,25,3c;1d417:Lu:4e8,76e,25,3d;1d418:Lu:4e8,76e,25,3e;1d419:Lu:4e8,76e,25,3f;1d41a:Ll:4e8,76e,48,27;1d41b:Ll:4e8,76e,48,28;1d41c:Ll:4e8,76e,48,29;1d41d:Ll:4e8,76e,48,2a;1d41e:Ll:4e8,76e,48,2b;1d41f:Ll:4e8,76e,48,2c;1d420:Ll:4e8,76e,48,2d;1d421:Ll:4e8,76e,48,2e;1d422:Ll:4e8,76e,48,2f;1d423:Ll:4e8,76e,48,49;1d424:Ll:4e8,76e,48,30;1d425:Ll:4e8,76e,48,31;1d426:Ll:4e8,76e,48,32;1d427:Ll:4e8,76e,48,33;1d428:Ll:4e8,76e,48,34;1d429:Ll:4e8,76e,48,35;1d42a:Ll:4e8,76e,48,36;1d42b:Ll:4e8,76e,48,37;1d42c:Ll:4e8,76e,48,38;1d42d:Ll:4e8,76e,48,39;1d42e:Ll:4e8,76e,48,3a;1d42f:Ll:4e8,76e,48,3b;1d430:Ll:4e8,76e,48,3c;1d431:Ll:4e8,76e,48,3d;1d432:Ll:4e8,76e,48,3e;1d433:Ll:4e8,76e,48,3f;1d434:Lu:4e8,24c,25,27;1d435:Lu:4e8,24c,25,28;1d436:Lu:4e8,24c,25,29;1d437:Lu:4e8,24c,25,2a;1d438:Lu:4e8,24c,25,2b;1d439:Lu:4e8,24c,25,2c;1d43a:Lu:4e8,24c,25,2d;1d43b:Lu:4e8,24c,25,2e;1d43c:Lu:4e8,24c,25,2f;1d43d:Lu:4e8,24c,25,49;1d43e:Lu:4e8,24c,25,30;1d43f:Lu:4e8,24c,25,31;1d440:Lu:4e8,24c,25,32;1d441:Lu:4e8,24c,25,33;1d442:Lu:4e8,24c,25,34;1d443:Lu:4e8,24c,25,35;1d444:Lu:4e8,24c,25,36;1d445:Lu:4e8,24c,25,37;1d446:Lu:4e8,24c,25,38;1d447:Lu:4e8,24c,25,39;1d448:Lu:4e8,24c,25,3a;1d449:Lu:4e8,24c,25,3b;1d44a:Lu:4e8,24c,25,3c;1d44b:Lu:4e8,24c,25,3d;1d44c:Lu:4e8,24c,25,3e;1d44d:Lu:4e8,24c,25,3f;1d44e:Ll:4e8,24c,48,27;1d44f:Ll:4e8,24c,48,28;1d450:Ll:4e8,24c,48,29;1d451:Ll:4e8,24c,48,2a;1d452:Ll:4e8,24c,48,2b;1d453:Ll:4e8,24c,48,2c;1d454:Ll:4e8,24c,48,2d;1d456:Ll:4e8,24c,48,2f;1d457:Ll:4e8,24c,48,49;1d458:Ll:4e8,24c,48,30;1d459:Ll:4e8,24c,48,31;1d45a:Ll:4e8,24c,48,32;1d45b:Ll:4e8,24c,48,33;1d45c:Ll:4e8,24c,48,34;1d45d:Ll:4e8,24c,48,35;1d45e:Ll:4e8,24c,48,36;1d45f:Ll:4e8,24c,48,37;1d460:Ll:4e8,24c,48,38;1d461:Ll:4e8,24c,48,39;1d462:Ll:4e8,24c,48,3a;1d463:Ll:4e8,24c,48,3b;1d464:Ll:4e8,24c,48,3c;1d465:Ll:4e8,24c,48,3d;1d466:Ll:4e8,24c,48,3e;1d467:Ll:4e8,24c,48,3f;1d468:Lu:4e8,76e,24c,25,27;1d469:Lu:4e8,76e,24c,25,28;1d46a:Lu:4e8,76e,24c,25,29;1d46b:Lu:4e8,76e,24c,25,2a;1d46c:Lu:4e8,76e,24c,25,2b;1d46d:Lu:4e8,76e,24c,25,2c;1d46e:Lu:4e8,76e,24c,25,2d;1d46f:Lu:4e8,76e,24c,25,2e;1d470:Lu:4e8,76e,24c,25,2f;1d471:Lu:4e8,76e,24c,25,49;1d472:Lu:4e8,76e,24c,25,30;1d473:Lu:4e8,76e,24c,25,31;1d474:Lu:4e8,76e,24c,25,32;1d475:Lu:4e8,76e,24c,25,33;1d476:Lu:4e8,76e,24c,25,34;1d477:Lu:4e8,76e,24c,25,35;1d478:Lu:4e8,76e,24c,25,36;1d479:Lu:4e8,76e,24c,25,37;1d47a:Lu:4e8,76e,24c,25,38;1d47b:Lu:4e8,76e,24c,25,39;1d47c:Lu:4e8,76e,24c,25,3a;1d47d:Lu:4e8,76e,24c,25,3b;1d47e:Lu:4e8,76e,24c,25,3c;1d47f:Lu:4e8,76e,24c,25,3d;1d480:Lu:4e8,76e,24c,25,3e;1d481:Lu:4e8,76e,24c,25,3f;1d482:Ll:4e8,76e,24c,48,27;1d483:Ll:4e8,76e,24c,48,28;1d484:Ll:4e8,76e,24c,48,29;1d485:Ll:4e8,76e,24c,48,2a;1d486:Ll:4e8,76e,24c,48,2b;1d487:Ll:4e8,76e,24c,48,2c;1d488:Ll:4e8,76e,24c,48,2d;1d489:Ll:4e8,76e,24c,48,2e;1d48a:Ll:4e8,76e,24c,48,2f;1d48b:Ll:4e8,76e,24c,48,49;1d48c:Ll:4e8,76e,24c,48,30;1d48d:Ll:4e8,76e,24c,48,31;1d48e:Ll:4e8,76e,24c,48,32;1d48f:Ll:4e8,76e,24c,48,33;1d490:Ll:4e8,76e,24c,48,34;1d491:Ll:4e8,76e,24c,48,35;1d492:Ll:4e8,76e,24c,48,36;1d493:Ll:4e8,76e,24c,48,37;1d494:Ll:4e8,76e,24c,48,38;1d495:Ll:4e8,76e,24c,48,39;1d496:Ll:4e8,76e,24c,48,3a;1d497:Ll:4e8,76e,24c,48,3b;1d498:Ll:4e8,76e,24c,48,3c;1d499:Ll:4e8,76e,24c,48,3d;1d49a:Ll:4e8,76e,24c,48,3e;1d49b:Ll:4e8,76e,24c,48,3f;1d49c:Lu:4e8,9a,25,27;1d49e:Lu:4e8,9a,25,29;1d49f:Lu:4e8,9a,25,2a;1d4a2:Lu:4e8,9a,25,2d;1d4a5:Lu:4e8,9a,25,49;1d4a6:Lu:4e8,9a,25,30;1d4a9:Lu:4e8,9a,25,33;1d4aa:Lu:4e8,9a,25,34;1d4ab:Lu:4e8,9a,25,35;1d4ac:Lu:4e8,9a,25,36;1d4ae:Lu:4e8,9a,25,38;1d4af:Lu:4e8,9a,25,39;1d4b0:Lu:4e8,9a,25,3a;1d4b1:Lu:4e8,9a,25,3b;1d4b2:Lu:4e8,9a,25,3c;1d4b3:Lu:4e8,9a,25,3d;1d4b4:Lu:4e8,9a,25,3e;1d4b5:Lu:4e8,9a,25,3f;1d4b6:Ll:4e8,9a,48,27;1d4b7:Ll:4e8,9a,48,28;1d4b8:Ll:4e8,9a,48,29;1d4b9:Ll:4e8,9a,48,2a;1d4bb:Ll:4e8,9a,48,2c;1d4bd:Ll:4e8,9a,48,2e;1d4be:Ll:4e8,9a,48,2f;1d4bf:Ll:4e8,9a,48,49;1d4c0:Ll:4e8,9a,48,30;1d4c1:Ll:4e8,9a,48,31;1d4c2:Ll:4e8,9a,48,32;1d4c3:Ll:4e8,9a,48,33;1d4c5:Ll:4e8,9a,48,35;1d4c6:Ll:4e8,9a,48,36;1d4c7:Ll:4e8,9a,48,37;1d4c8:Ll:4e8,9a,48,38;1d4c9:Ll:4e8,9a,48,39;1d4ca:Ll:4e8,9a,48,3a;1d4cb:Ll:4e8,9a,48,3b;1d4cc:Ll:4e8,9a,48,3c;1d4cd:Ll:4e8,9a,48,3d;1d4ce:Ll:4e8,9a,48,3e;1d4cf:Ll:4e8,9a,48,3f;1d4d0:Lu:4e8,76e,9a,25,27;1d4d1:Lu:4e8,76e,9a,25,28;1d4d2:Lu:4e8,76e,9a,25,29;1d4d3:Lu:4e8,76e,9a,25,2a;1d4d4:Lu:4e8,76e,9a,25,2b;1d4d5:Lu:4e8,76e,9a,25,2c;1d4d6:Lu:4e8,76e,9a,25,2d;1d4d7:Lu:4e8,76e,9a,25,2e;1d4d8:Lu:4e8,76e,9a,25,2f;1d4d9:Lu:4e8,76e,9a,25,49;1d4da:Lu:4e8,76e,9a,25,30;1d4db:Lu:4e8,76e,9a,25,31;1d4dc:Lu:4e8,76e,9a,25,32;1d4dd:Lu:4e8,76e,9a,25,33;1d4de:Lu:4e8,76e,9a,25,34;1d4df:Lu:4e8,76e,9a,25,35;1d4e0:Lu:4e8,76e,9a,25,36;1d4e1:Lu:4e8,76e,9a,25,37;1d4e2:Lu:4e8,76e,9a,25,38;1d4e3:Lu:4e8,76e,9a,25,39;1d4e4:Lu:4e8,76e,9a,25,3a;1d4e5:Lu:4e8,76e,9a,25,3b;1d4e6:Lu:4e8,76e,9a,25,3c;1d4e7:Lu:4e8,76e,9a,25,3d;1d4e8:Lu:4e8,76e,9a,25,3e;1d4e9:Lu:4e8,76e,9a,25,3f;1d4ea:Ll:4e8,76e,9a,48,27;1d4eb:Ll:4e8,76e,9a,48,28;1d4ec:Ll:4e8,76e,9a,48,29;1d4ed:Ll:4e8,76e,9a,48,2a;1d4ee:Ll:4e8,76e,9a,48,2b;1d4ef:Ll:4e8,76e,9a,48,2c;1d4f0:Ll:4e8,76e,9a,48,2d;1d4f1:Ll:4e8,76e,9a,48,2e;1d4f2:Ll:4e8,76e,9a,48,2f;1d4f3:Ll:4e8,76e,9a,48,49;1d4f4:Ll:4e8,76e,9a,48,30;1d4f5:Ll:4e8,76e,9a,48,31;1d4f6:Ll:4e8,76e,9a,48,32;1d4f7:Ll:4e8,76e,9a,48,33;1d4f8:Ll:4e8,76e,9a,48,34;1d4f9:Ll:4e8,76e,9a,48,35;1d4fa:Ll:4e8,76e,9a,48,36;1d4fb:Ll:4e8,76e,9a,48,37;1d4fc:Ll:4e8,76e,9a,48,38;1d4fd:Ll:4e8,76e,9a,48,39;1d4fe:Ll:4e8,76e,9a,48,3a;1d4ff:Ll:4e8,76e,9a,48,3b;1d500:Ll:4e8,76e,9a,48,3c;1d501:Ll:4e8,76e,9a,48,3d;1d502:Ll:4e8,76e,9a,48,3e;1d503:Ll:4e8,76e,9a,48,3f;1d504:Lu:4e8,76f,25,27;1d505:Lu:4e8,76f,25,28;1d507:Lu:4e8,76f,25,2a;1d508:Lu:4e8,76f,25,2b;1d509:Lu:4e8,76f,25,2c;1d50a:Lu:4e8,76f,25,2d;1d50d:Lu:4e8,76f,25,49;1d50e:Lu:4e8,76f,25,30;1d50f:Lu:4e8,76f,25,31;1d510:Lu:4e8,76f,25,32;1d511:Lu:4e8,76f,25,33;1d512:Lu:4e8,76f,25,34;1d513:Lu:4e8,76f,25,35;1d514:Lu:4e8,76f,25,36;1d516:Lu:4e8,76f,25,38;1d517:Lu:4e8,76f,25,39;1d518:Lu:4e8,76f,25,3a;1d519:Lu:4e8,76f,25,3b;1d51a:Lu:4e8,76f,25,3c;1d51b:Lu:4e8,76f,25,3d;1d51c:Lu:4e8,76f,25,3e;1d51e:Ll:4e8,76f,48,27;1d51f:Ll:4e8,76f,48,28;1d520:Ll:4e8,76f,48,29;1d521:Ll:4e8,76f,48,2a;1d522:Ll:4e8,76f,48,2b;1d523:Ll:4e8,76f,48,2c;1d524:Ll:4e8,76f,48,2d;1d525:Ll:4e8,76f,48,2e;1d526:Ll:4e8,76f,48,2f;1d527:Ll:4e8,76f,48,49;1d528:Ll:4e8,76f,48,30;1d529:Ll:4e8,76f,48,31;1d52a:Ll:4e8,76f,48,32;1d52b:Ll:4e8,76f,48,33;1d52c:Ll:4e8,76f,48,34;1d52d:Ll:4e8,76f,48,35;1d52e:Ll:4e8,76f,48,36;1d52f:Ll:4e8,76f,48,37;1d530:Ll:4e8,76f,48,38;1d531:Ll:4e8,76f,48,39;1d532:Ll:4e8,76f,48,3a;1d533:Ll:4e8,76f,48,3b;1d534:Ll:4e8,76f,48,3c;1d535:Ll:4e8,76f,48,3d;1d536:Ll:4e8,76f,48,3e;1d537:Ll:4e8,76f,48,3f;1d538:Lu:4e8,229,25,27;1d539:Lu:4e8,229,25,28;1d53b:Lu:4e8,229,25,2a;1d53c:Lu:4e8,229,25,2b;1d53d:Lu:4e8,229,25,2c;1d53e:Lu:4e8,229,25,2d;1d540:Lu:4e8,229,25,2f;1d541:Lu:4e8,229,25,49;1d542:Lu:4e8,229,25,30;1d543:Lu:4e8,229,25,31;1d544:Lu:4e8,229,25,32;1d546:Lu:4e8,229,25,34;1d54a:Lu:4e8,229,25,38;1d54b:Lu:4e8,229,25,39;1d54c:Lu:4e8,229,25,3a;1d54d:Lu:4e8,229,25,3b;1d54e:Lu:4e8,229,25,3c;1d54f:Lu:4e8,229,25,3d;1d550:Lu:4e8,229,25,3e;1d552:Ll:4e8,229,48,27;1d553:Ll:4e8,229,48,28;1d554:Ll:4e8,229,48,29;1d555:Ll:4e8,229,48,2a;1d556:Ll:4e8,229,48,2b;1d557:Ll:4e8,229,48,2c;1d558:Ll:4e8,229,48,2d;1d559:Ll:4e8,229,48,2e;1d55a:Ll:4e8,229,48,2f;1d55b:Ll:4e8,229,48,49;1d55c:Ll:4e8,229,48,30;1d55d:Ll:4e8,229,48,31;1d55e:Ll:4e8,229,48,32;1d55f:Ll:4e8,229,48,33;1d560:Ll:4e8,229,48,34;1d561:Ll:4e8,229,48,35;1d562:Ll:4e8,229,48,36;1d563:Ll:4e8,229,48,37;1d564:Ll:4e8,229,48,38;1d565:Ll:4e8,229,48,39;1d566:Ll:4e8,229,48,3a;1d567:Ll:4e8,229,48,3b;1d568:Ll:4e8,229,48,3c;1d569:Ll:4e8,229,48,3d;1d56a:Ll:4e8,229,48,3e;1d56b:Ll:4e8,229,48,3f;1d56c:Lu:4e8,76e,76f,25,27;1d56d:Lu:4e8,76e,76f,25,28;1d56e:Lu:4e8,76e,76f,25,29;1d56f:Lu:4e8,76e,76f,25,2a;1d570:Lu:4e8,76e,76f,25,2b;1d571:Lu:4e8,76e,76f,25,2c;1d572:Lu:4e8,76e,76f,25,2d;1d573:Lu:4e8,76e,76f,25,2e;1d574:Lu:4e8,76e,76f,25,2f;1d575:Lu:4e8,76e,76f,25,49;1d576:Lu:4e8,76e,76f,25,30;1d577:Lu:4e8,76e,76f,25,31;1d578:Lu:4e8,76e,76f,25,32;1d579:Lu:4e8,76e,76f,25,33;1d57a:Lu:4e8,76e,76f,25,34;1d57b:Lu:4e8,76e,76f,25,35;1d57c:Lu:4e8,76e,76f,25,36;1d57d:Lu:4e8,76e,76f,25,37;1d57e:Lu:4e8,76e,76f,25,38;1d57f:Lu:4e8,76e,76f,25,39;1d580:Lu:4e8,76e,76f,25,3a;1d581:Lu:4e8,76e,76f,25,3b;1d582:Lu:4e8,76e,76f,25,3c;1d583:Lu:4e8,76e,76f,25,3d;1d584:Lu:4e8,76e,76f,25,3e;1d585:Lu:4e8,76e,76f,25,3f;1d586:Ll:4e8,76e,76f,48,27;1d587:Ll:4e8,76e,76f,48,28;1d588:Ll:4e8,76e,76f,48,29;1d589:Ll:4e8,76e,76f,48,2a;1d58a:Ll:4e8,76e,76f,48,2b;1d58b:Ll:4e8,76e,76f,48,2c;1d58c:Ll:4e8,76e,76f,48,2d;1d58d:Ll:4e8,76e,76f,48,2e;1d58e:Ll:4e8,76e,76f,48,2f;1d58f:Ll:4e8,76e,76f,48,49;1d590:Ll:4e8,76e,76f,48,30;1d591:Ll:4e8,76e,76f,48,31;1d592:Ll:4e8,76e,76f,48,32;1d593:Ll:4e8,76e,76f,48,33;1d594:Ll:4e8,76e,76f,48,34;1d595:Ll:4e8,76e,76f,48,35;1d596:Ll:4e8,76e,76f,48,36;1d597:Ll:4e8,76e,76f,48,37;1d598:Ll:4e8,76e,76f,48,38;1d599:Ll:4e8,76e,76f,48,39;1d59a:Ll:4e8,76e,76f,48,3a;1d59b:Ll:4e8,76e,76f,48,3b;1d59c:Ll:4e8,76e,76f,48,3c;1d59d:Ll:4e8,76e,76f,48,3d;1d59e:Ll:4e8,76e,76f,48,3e;1d59f:Ll:4e8,76e,76f,48,3f;1d5a0:Lu:4e8,24b,25,27;1d5a1:Lu:4e8,24b,25,28;1d5a2:Lu:4e8,24b,25,29;1d5a3:Lu:4e8,24b,25,2a;1d5a4:Lu:4e8,24b,25,2b;1d5a5:Lu:4e8,24b,25,2c;1d5a6:Lu:4e8,24b,25,2d;1d5a7:Lu:4e8,24b,25,2e;1d5a8:Lu:4e8,24b,25,2f;1d5a9:Lu:4e8,24b,25,49;1d5aa:Lu:4e8,24b,25,30;1d5ab:Lu:4e8,24b,25,31;1d5ac:Lu:4e8,24b,25,32;1d5ad:Lu:4e8,24b,25,33;1d5ae:Lu:4e8,24b,25,34;1d5af:Lu:4e8,24b,25,35;1d5b0:Lu:4e8,24b,25,36;1d5b1:Lu:4e8,24b,25,37;1d5b2:Lu:4e8,24b,25,38;1d5b3:Lu:4e8,24b,25,39;1d5b4:Lu:4e8,24b,25,3a;1d5b5:Lu:4e8,24b,25,3b;1d5b6:Lu:4e8,24b,25,3c;1d5b7:Lu:4e8,24b,25,3d;1d5b8:Lu:4e8,24b,25,3e;1d5b9:Lu:4e8,24b,25,3f;1d5ba:Ll:4e8,24b,48,27;1d5bb:Ll:4e8,24b,48,28;1d5bc:Ll:4e8,24b,48,29;1d5bd:Ll:4e8,24b,48,2a;1d5be:Ll:4e8,24b,48,2b;1d5bf:Ll:4e8,24b,48,2c;1d5c0:Ll:4e8,24b,48,2d;1d5c1:Ll:4e8,24b,48,2e;1d5c2:Ll:4e8,24b,48,2f;1d5c3:Ll:4e8,24b,48,49;1d5c4:Ll:4e8,24b,48,30;1d5c5:Ll:4e8,24b,48,31;1d5c6:Ll:4e8,24b,48,32;1d5c7:Ll:4e8,24b,48,33;1d5c8:Ll:4e8,24b,48,34;1d5c9:Ll:4e8,24b,48,35;1d5ca:Ll:4e8,24b,48,36;1d5cb:Ll:4e8,24b,48,37;1d5cc:Ll:4e8,24b,48,38;1d5cd:Ll:4e8,24b,48,39;1d5ce:Ll:4e8,24b,48,3a;1d5cf:Ll:4e8,24b,48,3b;1d5d0:Ll:4e8,24b,48,3c;1d5d1:Ll:4e8,24b,48,3d;1d5d2:Ll:4e8,24b,48,3e;1d5d3:Ll:4e8,24b,48,3f;1d5d4:Lu:4e8,24b,76e,25,27;1d5d5:Lu:4e8,24b,76e,25,28;1d5d6:Lu:4e8,24b,76e,25,29;1d5d7:Lu:4e8,24b,76e,25,2a;1d5d8:Lu:4e8,24b,76e,25,2b;1d5d9:Lu:4e8,24b,76e,25,2c;1d5da:Lu:4e8,24b,76e,25,2d;1d5db:Lu:4e8,24b,76e,25,2e;1d5dc:Lu:4e8,24b,76e,25,2f;1d5dd:Lu:4e8,24b,76e,25,49;1d5de:Lu:4e8,24b,76e,25,30;1d5df:Lu:4e8,24b,76e,25,31;1d5e0:Lu:4e8,24b,76e,25,32;1d5e1:Lu:4e8,24b,76e,25,33;1d5e2:Lu:4e8,24b,76e,25,34;1d5e3:Lu:4e8,24b,76e,25,35;1d5e4:Lu:4e8,24b,76e,25,36;1d5e5:Lu:4e8,24b,76e,25,37;1d5e6:Lu:4e8,24b,76e,25,38;1d5e7:Lu:4e8,24b,76e,25,39;1d5e8:Lu:4e8,24b,76e,25,3a;1d5e9:Lu:4e8,24b,76e,25,3b;1d5ea:Lu:4e8,24b,76e,25,3c;1d5eb:Lu:4e8,24b,76e,25,3d;1d5ec:Lu:4e8,24b,76e,25,3e;1d5ed:Lu:4e8,24b,76e,25,3f;1d5ee:Ll:4e8,24b,76e,48,27;1d5ef:Ll:4e8,24b,76e,48,28;1d5f0:Ll:4e8,24b,76e,48,29;1d5f1:Ll:4e8,24b,76e,48,2a;1d5f2:Ll:4e8,24b,76e,48,2b;1d5f3:Ll:4e8,24b,76e,48,2c;1d5f4:Ll:4e8,24b,76e,48,2d;1d5f5:Ll:4e8,24b,76e,48,2e;1d5f6:Ll:4e8,24b,76e,48,2f;1d5f7:Ll:4e8,24b,76e,48,49;1d5f8:Ll:4e8,24b,76e,48,30;1d5f9:Ll:4e8,24b,76e,48,31;1d5fa:Ll:4e8,24b,76e,48,32;1d5fb:Ll:4e8,24b,76e,48,33;1d5fc:Ll:4e8,24b,76e,48,34;1d5fd:Ll:4e8,24b,76e,48,35;1d5fe:Ll:4e8,24b,76e,48,36;1d5ff:Ll:4e8,24b,76e,48,37;1d600:Ll:4e8,24b,76e,48,38;1d601:Ll:4e8,24b,76e,48,39;1d602:Ll:4e8,24b,76e,48,3a;1d603:Ll:4e8,24b,76e,48,3b;1d604:Ll:4e8,24b,76e,48,3c;1d605:Ll:4e8,24b,76e,48,3d;1d606:Ll:4e8,24b,76e,48,3e;1d607:Ll:4e8,24b,76e,48,3f;1d608:Lu:4e8,24b,24c,25,27;1d609:Lu:4e8,24b,24c,25,28;1d60a:Lu:4e8,24b,24c,25,29;1d60b:Lu:4e8,24b,24c,25,2a;1d60c:Lu:4e8,24b,24c,25,2b;1d60d:Lu:4e8,24b,24c,25,2c;1d60e:Lu:4e8,24b,24c,25,2d;1d60f:Lu:4e8,24b,24c,25,2e;1d610:Lu:4e8,24b,24c,25,2f;1d611:Lu:4e8,24b,24c,25,49;1d612:Lu:4e8,24b,24c,25,30;1d613:Lu:4e8,24b,24c,25,31;1d614:Lu:4e8,24b,24c,25,32;1d615:Lu:4e8,24b,24c,25,33;1d616:Lu:4e8,24b,24c,25,34;1d617:Lu:4e8,24b,24c,25,35;1d618:Lu:4e8,24b,24c,25,36;1d619:Lu:4e8,24b,24c,25,37;1d61a:Lu:4e8,24b,24c,25,38;1d61b:Lu:4e8,24b,24c,25,39;1d61c:Lu:4e8,24b,24c,25,3a;1d61d:Lu:4e8,24b,24c,25,3b;1d61e:Lu:4e8,24b,24c,25,3c;1d61f:Lu:4e8,24b,24c,25,3d;1d620:Lu:4e8,24b,24c,25,3e;1d621:Lu:4e8,24b,24c,25,3f;1d622:Ll:4e8,24b,24c,48,27;1d623:Ll:4e8,24b,24c,48,28;1d624:Ll:4e8,24b,24c,48,29;1d625:Ll:4e8,24b,24c,48,2a;1d626:Ll:4e8,24b,24c,48,2b;1d627:Ll:4e8,24b,24c,48,2c;1d628:Ll:4e8,24b,24c,48,2d;1d629:Ll:4e8,24b,24c,48,2e;1d62a:Ll:4e8,24b,24c,48,2f;1d62b:Ll:4e8,24b,24c,48,49;1d62c:Ll:4e8,24b,24c,48,30;1d62d:Ll:4e8,24b,24c,48,31;1d62e:Ll:4e8,24b,24c,48,32;1d62f:Ll:4e8,24b,24c,48,33;1d630:Ll:4e8,24b,24c,48,34;1d631:Ll:4e8,24b,24c,48,35;1d632:Ll:4e8,24b,24c,48,36;1d633:Ll:4e8,24b,24c,48,37;1d634:Ll:4e8,24b,24c,48,38;1d635:Ll:4e8,24b,24c,48,39;1d636:Ll:4e8,24b,24c,48,3a;1d637:Ll:4e8,24b,24c,48,3b;1d638:Ll:4e8,24b,24c,48,3c;1d639:Ll:4e8,24b,24c,48,3d;1d63a:Ll:4e8,24b,24c,48,3e;1d63b:Ll:4e8,24b,24c,48,3f;1d63c:Lu:4e8,24b,76e,24c,25,27;1d63d:Lu:4e8,24b,76e,24c,25,28;1d63e:Lu:4e8,24b,76e,24c,25,29;1d63f:Lu:4e8,24b,76e,24c,25,2a;1d640:Lu:4e8,24b,76e,24c,25,2b;1d641:Lu:4e8,24b,76e,24c,25,2c;1d642:Lu:4e8,24b,76e,24c,25,2d;1d643:Lu:4e8,24b,76e,24c,25,2e;1d644:Lu:4e8,24b,76e,24c,25,2f;1d645:Lu:4e8,24b,76e,24c,25,49;1d646:Lu:4e8,24b,76e,24c,25,30;1d647:Lu:4e8,24b,76e,24c,25,31;1d648:Lu:4e8,24b,76e,24c,25,32;1d649:Lu:4e8,24b,76e,24c,25,33;1d64a:Lu:4e8,24b,76e,24c,25,34;1d64b:Lu:4e8,24b,76e,24c,25,35;1d64c:Lu:4e8,24b,76e,24c,25,36;1d64d:Lu:4e8,24b,76e,24c,25,37;1d64e:Lu:4e8,24b,76e,24c,25,38;1d64f:Lu:4e8,24b,76e,24c,25,39;1d650:Lu:4e8,24b,76e,24c,25,3a;1d651:Lu:4e8,24b,76e,24c,25,3b;1d652:Lu:4e8,24b,76e,24c,25,3c;1d653:Lu:4e8,24b,76e,24c,25,3d;1d654:Lu:4e8,24b,76e,24c,25,3e;1d655:Lu:4e8,24b,76e,24c,25,3f;1d656:Ll:4e8,24b,76e,24c,48,27;1d657:Ll:4e8,24b,76e,24c,48,28;1d658:Ll:4e8,24b,76e,24c,48,29;1d659:Ll:4e8,24b,76e,24c,48,2a;1d65a:Ll:4e8,24b,76e,24c,48,2b;1d65b:Ll:4e8,24b,76e,24c,48,2c;1d65c:Ll:4e8,24b,76e,24c,48,2d;1d65d:Ll:4e8,24b,76e,24c,48,2e;1d65e:Ll:4e8,24b,76e,24c,48,2f;1d65f:Ll:4e8,24b,76e,24c,48,49;1d660:Ll:4e8,24b,76e,24c,48,30;1d661:Ll:4e8,24b,76e,24c,48,31;1d662:Ll:4e8,24b,76e,24c,48,32;1d663:Ll:4e8,24b,76e,24c,48,33;1d664:Ll:4e8,24b,76e,24c,48,34;1d665:Ll:4e8,24b,76e,24c,48,35;1d666:Ll:4e8,24b,76e,24c,48,36;1d667:Ll:4e8,24b,76e,24c,48,37;1d668:Ll:4e8,24b,76e,24c,48,38;1d669:Ll:4e8,24b,76e,24c,48,39;1d66a:Ll:4e8,24b,76e,24c,48,3a;1d66b:Ll:4e8,24b,76e,24c,48,3b;1d66c:Ll:4e8,24b,76e,24c,48,3c;1d66d:Ll:4e8,24b,76e,24c,48,3d;1d66e:Ll:4e8,24b,76e,24c,48,3e;1d66f:Ll:4e8,24b,76e,24c,48,3f;1d670:Lu:4e8,770,25,27;1d671:Lu:4e8,770,25,28;1d672:Lu:4e8,770,25,29;1d673:Lu:4e8,770,25,2a;1d674:Lu:4e8,770,25,2b;1d675:Lu:4e8,770,25,2c;1d676:Lu:4e8,770,25,2d;1d677:Lu:4e8,770,25,2e;1d678:Lu:4e8,770,25,2f;1d679:Lu:4e8,770,25,49;1d67a:Lu:4e8,770,25,30;1d67b:Lu:4e8,770,25,31;1d67c:Lu:4e8,770,25,32;1d67d:Lu:4e8,770,25,33;1d67e:Lu:4e8,770,25,34;1d67f:Lu:4e8,770,25,35;1d680:Lu:4e8,770,25,36;1d681:Lu:4e8,770,25,37;1d682:Lu:4e8,770,25,38;1d683:Lu:4e8,770,25,39;1d684:Lu:4e8,770,25,3a;1d685:Lu:4e8,770,25,3b;1d686:Lu:4e8,770,25,3c;1d687:Lu:4e8,770,25,3d;1d688:Lu:4e8,770,25,3e;1d689:Lu:4e8,770,25,3f;1d68a:Ll:4e8,770,48,27;1d68b:Ll:4e8,770,48,28;1d68c:Ll:4e8,770,48,29;1d68d:Ll:4e8,770,48,2a;1d68e:Ll:4e8,770,48,2b;1d68f:Ll:4e8,770,48,2c;1d690:Ll:4e8,770,48,2d;1d691:Ll:4e8,770,48,2e;1d692:Ll:4e8,770,48,2f;1d693:Ll:4e8,770,48,49;1d694:Ll:4e8,770,48,30;1d695:Ll:4e8,770,48,31;1d696:Ll:4e8,770,48,32;1d697:Ll:4e8,770,48,33;1d698:Ll:4e8,770,48,34;1d699:Ll:4e8,770,48,35;1d69a:Ll:4e8,770,48,36;1d69b:Ll:4e8,770,48,37;1d69c:Ll:4e8,770,48,38;1d69d:Ll:4e8,770,48,39;1d69e:Ll:4e8,770,48,3a;1d69f:Ll:4e8,770,48,3b;1d6a0:Ll:4e8,770,48,3c;1d6a1:Ll:4e8,770,48,3d;1d6a2:Ll:4e8,770,48,3e;1d6a3:Ll:4e8,770,48,3f;1d6a4:Ll:4e8,24c,48,81,2f;1d6a5:Ll:4e8,24c,48,81,49;1d6a8:Lu:4e8,76e,25,93;1d6a9:Lu:4e8,76e,25,ee;1d6aa:Lu:4e8,76e,25,9b;1d6ab:Lu:4e8,76e,25,ef;1d6ac:Lu:4e8,76e,25,eb;1d6ad:Lu:4e8,76e,25,f0;1d6ae:Lu:4e8,76e,25,ec;1d6af:Lu:4e8,76e,25,f1;1d6b0:Lu:4e8,76e,25,9e;1d6b1:Lu:4e8,76e,25,f2;1d6b2:Lu:4e8,76e,25,f3;1d6b3:Lu:4e8,76e,25,f4;1d6b4:Lu:4e8,76e,25,f5;1d6b5:Lu:4e8,76e,25,f6;1d6b6:Lu:4e8,76e,25,ed;1d6b7:Lu:4e8,76e,25,f7;1d6b8:Lu:4e8,76e,25,f8;1d6b9:Lu:4e8,76e,25,f1,e4;1d6ba:Lu:4e8,76e,25,e3;1d6bb:Lu:4e8,76e,25,f9;1d6bc:Lu:4e8,76e,25,a9;1d6bd:Lu:4e8,76e,25,a4;1d6be:Lu:4e8,76e,25,fa;1d6bf:Lu:4e8,76e,25,fb;1d6c0:Lu:4e8,76e,25,a3;1d6c1:Sm:4e8,76e,28c;1d6c2:Ll:4e8,76e,48,93;1d6c3:Ll:4e8,76e,48,ee;1d6c4:Ll:4e8,76e,48,9b;1d6c5:Ll:4e8,76e,48,ef;1d6c6:Ll:4e8,76e,48,eb;1d6c7:Ll:4e8,76e,48,f0;1d6c8:Ll:4e8,76e,48,ec;1d6c9:Ll:4e8,76e,48,f1;1d6ca:Ll:4e8,76e,48,9e;1d6cb:Ll:4e8,76e,48,f2;1d6cc:Ll:4e8,76e,48,f3;1d6cd:Ll:4e8,76e,48,f4;1d6ce:Ll:4e8,76e,48,f5;1d6cf:Ll:4e8,76e,48,f6;1d6d0:Ll:4e8,76e,48,ed;1d6d1:Ll:4e8,76e,48,f7;1d6d2:Ll:4e8,76e,48,f8;1d6d3:Ll:4e8,76e,48,fc,e3;1d6d4:Ll:4e8,76e,48,e3;1d6d5:Ll:4e8,76e,48,f9;1d6d6:Ll:4e8,76e,48,a9;1d6d7:Ll:4e8,76e,48,a4;1d6d8:Ll:4e8,76e,48,fa;1d6d9:Ll:4e8,76e,48,fb;1d6da:Ll:4e8,76e,48,a3;1d6db:Sm:4e8,76e,283,284;1d6dc:Ll:4e8,76e,eb,e4;1d6dd:Ll:4e8,76e,f1,e4;1d6de:Ll:4e8,76e,f2,e4;1d6df:Ll:4e8,76e,a4,e4;1d6e0:Ll:4e8,76e,f8,e4;1d6e1:Ll:4e8,76e,f7,e4;1d6e2:Lu:4e8,24c,25,93;1d6e3:Lu:4e8,24c,25,ee;1d6e4:Lu:4e8,24c,25,9b;1d6e5:Lu:4e8,24c,25,ef;1d6e6:Lu:4e8,24c,25,eb;1d6e7:Lu:4e8,24c,25,f0;1d6e8:Lu:4e8,24c,25,ec;1d6e9:Lu:4e8,24c,25,f1;1d6ea:Lu:4e8,24c,25,9e;1d6eb:Lu:4e8,24c,25,f2;1d6ec:Lu:4e8,24c,25,f3;1d6ed:Lu:4e8,24c,25,f4;1d6ee:Lu:4e8,24c,25,f5;1d6ef:Lu:4e8,24c,25,f6;1d6f0:Lu:4e8,24c,25,ed;1d6f1:Lu:4e8,24c,25,f7;1d6f2:Lu:4e8,24c,25,f8;1d6f3:Lu:4e8,24c,25,f1,e4;1d6f4:Lu:4e8,24c,25,e3;1d6f5:Lu:4e8,24c,25,f9;1d6f6:Lu:4e8,24c,25,a9;1d6f7:Lu:4e8,24c,25,a4;1d6f8:Lu:4e8,24c,25,fa;1d6f9:Lu:4e8,24c,25,fb;1d6fa:Lu:4e8,24c,25,a3;1d6fb:Sm:4e8,24c,28c;1d6fc:Ll:4e8,24c,48,93;1d6fd:Ll:4e8,24c,48,ee;1d6fe:Ll:4e8,24c,48,9b;1d6ff:Ll:4e8,24c,48,ef;1d700:Ll:4e8,24c,48,eb;1d701:Ll:4e8,24c,48,f0;1d702:Ll:4e8,24c,48,ec;1d703:Ll:4e8,24c,48,f1;1d704:Ll:4e8,24c,48,9e;1d705:Ll:4e8,24c,48,f2;1d706:Ll:4e8,24c,48,f3;1d707:Ll:4e8,24c,48,f4;1d708:Ll:4e8,24c,48,f5;1d709:Ll:4e8,24c,48,f6;1d70a:Ll:4e8,24c,48,ed;1d70b:Ll:4e8,24c,48,f7;1d70c:Ll:4e8,24c,48,f8;1d70d:Ll:4e8,24c,48,fc,e3;1d70e:Ll:4e8,24c,48,e3;1d70f:Ll:4e8,24c,48,f9;1d710:Ll:4e8,24c,48,a9;1d711:Ll:4e8,24c,48,a4;1d712:Ll:4e8,24c,48,fa;1d713:Ll:4e8,24c,48,fb;1d714:Ll:4e8,24c,48,a3;1d715:Sm:4e8,24c,283,284;1d716:Ll:4e8,24c,eb,e4;1d717:Ll:4e8,24c,f1,e4;1d718:Ll:4e8,24c,f2,e4;1d719:Ll:4e8,24c,a4,e4;1d71a:Ll:4e8,24c,f8,e4;1d71b:Ll:4e8,24c,f7,e4;1d71c:Lu:4e8,76e,24c,25,93;1d71d:Lu:4e8,76e,24c,25,ee;1d71e:Lu:4e8,76e,24c,25,9b;1d71f:Lu:4e8,76e,24c,25,ef;1d720:Lu:4e8,76e,24c,25,eb;1d721:Lu:4e8,76e,24c,25,f0;1d722:Lu:4e8,76e,24c,25,ec;1d723:Lu:4e8,76e,24c,25,f1;1d724:Lu:4e8,76e,24c,25,9e;1d725:Lu:4e8,76e,24c,25,f2;1d726:Lu:4e8,76e,24c,25,f3;1d727:Lu:4e8,76e,24c,25,f4;1d728:Lu:4e8,76e,24c,25,f5;1d729:Lu:4e8,76e,24c,25,f6;1d72a:Lu:4e8,76e,24c,25,ed;1d72b:Lu:4e8,76e,24c,25,f7;1d72c:Lu:4e8,76e,24c,25,f8;1d72d:Lu:4e8,76e,24c,25,f1,e4;1d72e:Lu:4e8,76e,24c,25,e3;1d72f:Lu:4e8,76e,24c,25,f9;1d730:Lu:4e8,76e,24c,25,a9;1d731:Lu:4e8,76e,24c,25,a4;1d732:Lu:4e8,76e,24c,25,fa;1d733:Lu:4e8,76e,24c,25,fb;1d734:Lu:4e8,76e,24c,25,a3;1d735:Sm:4e8,76e,24c,28c;1d736:Ll:4e8,76e,24c,48,93;1d737:Ll:4e8,76e,24c,48,ee;1d738:Ll:4e8,76e,24c,48,9b;1d739:Ll:4e8,76e,24c,48,ef;1d73a:Ll:4e8,76e,24c,48,eb;1d73b:Ll:4e8,76e,24c,48,f0;1d73c:Ll:4e8,76e,24c,48,ec;1d73d:Ll:4e8,76e,24c,48,f1;1d73e:Ll:4e8,76e,24c,48,9e;1d73f:Ll:4e8,76e,24c,48,f2;1d740:Ll:4e8,76e,24c,48,f3;1d741:Ll:4e8,76e,24c,48,f4;1d742:Ll:4e8,76e,24c,48,f5;1d743:Ll:4e8,76e,24c,48,f6;1d744:Ll:4e8,76e,24c,48,ed;1d745:Ll:4e8,76e,24c,48,f7;1d746:Ll:4e8,76e,24c,48,f8;1d747:Ll:4e8,76e,24c,48,fc,e3;1d748:Ll:4e8,76e,24c,48,e3;1d749:Ll:4e8,76e,24c,48,f9;1d74a:Ll:4e8,76e,24c,48,a9;1d74b:Ll:4e8,76e,24c,48,a4;1d74c:Ll:4e8,76e,24c,48,fa;1d74d:Ll:4e8,76e,24c,48,fb;1d74e:Ll:4e8,76e,24c,48,a3;1d74f:Sm:4e8,76e,24c,283,284;1d750:Ll:4e8,76e,24c,eb,e4;1d751:Ll:4e8,76e,24c,f1,e4;1d752:Ll:4e8,76e,24c,f2,e4;1d753:Ll:4e8,76e,24c,a4,e4;1d754:Ll:4e8,76e,24c,f8,e4;1d755:Ll:4e8,76e,24c,f7,e4;1d756:Lu:4e8,24b,76e,25,93;1d757:Lu:4e8,24b,76e,25,ee;1d758:Lu:4e8,24b,76e,25,9b;1d759:Lu:4e8,24b,76e,25,ef;1d75a:Lu:4e8,24b,76e,25,eb;1d75b:Lu:4e8,24b,76e,25,f0;1d75c:Lu:4e8,24b,76e,25,ec;1d75d:Lu:4e8,24b,76e,25,f1;1d75e:Lu:4e8,24b,76e,25,9e;1d75f:Lu:4e8,24b,76e,25,f2;1d760:Lu:4e8,24b,76e,25,f3;1d761:Lu:4e8,24b,76e,25,f4;1d762:Lu:4e8,24b,76e,25,f5;1d763:Lu:4e8,24b,76e,25,f6;1d764:Lu:4e8,24b,76e,25,ed;1d765:Lu:4e8,24b,76e,25,f7;1d766:Lu:4e8,24b,76e,25,f8;1d767:Lu:4e8,24b,76e,25,f1,e4;1d768:Lu:4e8,24b,76e,25,e3;1d769:Lu:4e8,24b,76e,25,f9;1d76a:Lu:4e8,24b,76e,25,a9;1d76b:Lu:4e8,24b,76e,25,a4;1d76c:Lu:4e8,24b,76e,25,fa;1d76d:Lu:4e8,24b,76e,25,fb;1d76e:Lu:4e8,24b,76e,25,a3;1d76f:Sm:4e8,24b,76e,28c;1d770:Ll:4e8,24b,76e,48,93;1d771:Ll:4e8,24b,76e,48,ee;1d772:Ll:4e8,24b,76e,48,9b;1d773:Ll:4e8,24b,76e,48,ef;1d774:Ll:4e8,24b,76e,48,eb;1d775:Ll:4e8,24b,76e,48,f0;1d776:Ll:4e8,24b,76e,48,ec;1d777:Ll:4e8,24b,76e,48,f1;1d778:Ll:4e8,24b,76e,48,9e;1d779:Ll:4e8,24b,76e,48,f2;1d77a:Ll:4e8,24b,76e,48,f3;1d77b:Ll:4e8,24b,76e,48,f4;1d77c:Ll:4e8,24b,76e,48,f5;1d77d:Ll:4e8,24b,76e,48,f6;1d77e:Ll:4e8,24b,76e,48,ed;1d77f:Ll:4e8,24b,76e,48,f7;1d780:Ll:4e8,24b,76e,48,f8;1d781:Ll:4e8,24b,76e,48,fc,e3;1d782:Ll:4e8,24b,76e,48,e3;1d783:Ll:4e8,24b,76e,48,f9;1d784:Ll:4e8,24b,76e,48,a9;1d785:Ll:4e8,24b,76e,48,a4;1d786:Ll:4e8,24b,76e,48,fa;1d787:Ll:4e8,24b,76e,48,fb;1d788:Ll:4e8,24b,76e,48,a3;1d789:Sm:4e8,24b,76e,283,284;1d78a:Ll:4e8,24b,76e,eb,e4;1d78b:Ll:4e8,24b,76e,f1,e4;1d78c:Ll:4e8,24b,76e,f2,e4;1d78d:Ll:4e8,24b,76e,a4,e4;1d78e:Ll:4e8,24b,76e,f8,e4;1d78f:Ll:4e8,24b,76e,f7,e4;1d790:Lu:4e8,24b,76e,24c,25,93;1d791:Lu:4e8,24b,76e,24c,25,ee;1d792:Lu:4e8,24b,76e,24c,25,9b;1d793:Lu:4e8,24b,76e,24c,25,ef;1d794:Lu:4e8,24b,76e,24c,25,eb;1d795:Lu:4e8,24b,76e,24c,25,f0;1d796:Lu:4e8,24b,76e,24c,25,ec;1d797:Lu:4e8,24b,76e,24c,25,f1;1d798:Lu:4e8,24b,76e,24c,25,9e;1d799:Lu:4e8,24b,76e,24c,25,f2;1d79a:Lu:4e8,24b,76e,24c,25,f3;1d79b:Lu:4e8,24b,76e,24c,25,f4;1d79c:Lu:4e8,24b,76e,24c,25,f5;1d79d:Lu:4e8,24b,76e,24c,25,f6;1d79e:Lu:4e8,24b,76e,24c,25,ed;1d79f:Lu:4e8,24b,76e,24c,25,f7;1d7a0:Lu:4e8,24b,76e,24c,25,f8;1d7a1:Lu:4e8,24b,76e,24c,25,f1,e4;1d7a2:Lu:4e8,24b,76e,24c,25,e3;1d7a3:Lu:4e8,24b,76e,24c,25,f9;1d7a4:Lu:4e8,24b,76e,24c,25,a9;1d7a5:Lu:4e8,24b,76e,24c,25,a4;1d7a6:Lu:4e8,24b,76e,24c,25,fa;1d7a7:Lu:4e8,24b,76e,24c,25,fb;1d7a8:Lu:4e8,24b,76e,24c,25,a3;1d7a9:Sm:4e8,24b,76e,24c,28c;1d7aa:Ll:4e8,24b,76e,24c,48,93;1d7ab:Ll:4e8,24b,76e,24c,48,ee;1d7ac:Ll:4e8,24b,76e,24c,48,9b;1d7ad:Ll:4e8,24b,76e,24c,48,ef;1d7ae:Ll:4e8,24b,76e,24c,48,eb;1d7af:Ll:4e8,24b,76e,24c,48,f0;1d7b0:Ll:4e8,24b,76e,24c,48,ec;1d7b1:Ll:4e8,24b,76e,24c,48,f1;1d7b2:Ll:4e8,24b,76e,24c,48,9e;1d7b3:Ll:4e8,24b,76e,24c,48,f2;1d7b4:Ll:4e8,24b,76e,24c,48,f3;1d7b5:Ll:4e8,24b,76e,24c,48,f4;1d7b6:Ll:4e8,24b,76e,24c,48,f5;1d7b7:Ll:4e8,24b,76e,24c,48,f6;1d7b8:Ll:4e8,24b,76e,24c,48,ed;1d7b9:Ll:4e8,24b,76e,24c,48,f7;1d7ba:Ll:4e8,24b,76e,24c,48,f8;1d7bb:Ll:4e8,24b,76e,24c,48,fc,e3;1d7bc:Ll:4e8,24b,76e,24c,48,e3;1d7bd:Ll:4e8,24b,76e,24c,48,f9;1d7be:Ll:4e8,24b,76e,24c,48,a9;1d7bf:Ll:4e8,24b,76e,24c,48,a4;1d7c0:Ll:4e8,24b,76e,24c,48,fa;1d7c1:Ll:4e8,24b,76e,24c,48,fb;1d7c2:Ll:4e8,24b,76e,24c,48,a3;1d7c3:Sm:4e8,24b,76e,24c,283,284;1d7c4:Ll:4e8,24b,76e,24c,eb,e4;1d7c5:Ll:4e8,24b,76e,24c,f1,e4;1d7c6:Ll:4e8,24b,76e,24c,f2,e4;1d7c7:Ll:4e8,24b,76e,24c,a4,e4;1d7c8:Ll:4e8,24b,76e,24c,f8,e4;1d7c9:Ll:4e8,24b,76e,24c,f7,e4;1d7ca:Lu:4e8,76e,25,e0;1d7cb:Ll:4e8,76e,48,e0;1d7ce:Nd:4e8,76e,13,14;1d7cf:Nd:4e8,76e,13,15;1d7d0:Nd:4e8,76e,13,16;1d7d1:Nd:4e8,76e,13,17;1d7d2:Nd:4e8,76e,13,18;1d7d3:Nd:4e8,76e,13,1fa;1d7d4:Nd:4e8,76e,13,19;1d7d5:Nd:4e8,76e,13,1a;1d7d6:Nd:4e8,76e,13,1fd;1d7d7:Nd:4e8,76e,13,1b;1d7d8:Nd:4e8,229,13,14;1d7d9:Nd:4e8,229,13,15;1d7da:Nd:4e8,229,13,16;1d7db:Nd:4e8,229,13,17;1d7dc:Nd:4e8,229,13,18;1d7dd:Nd:4e8,229,13,1fa;1d7de:Nd:4e8,229,13,19;1d7df:Nd:4e8,229,13,1a;1d7e0:Nd:4e8,229,13,1fd;1d7e1:Nd:4e8,229,13,1b;1d7e2:Nd:4e8,24b,13,14;1d7e3:Nd:4e8,24b,13,15;1d7e4:Nd:4e8,24b,13,16;1d7e5:Nd:4e8,24b,13,17;1d7e6:Nd:4e8,24b,13,18;1d7e7:Nd:4e8,24b,13,1fa;1d7e8:Nd:4e8,24b,13,19;1d7e9:Nd:4e8,24b,13,1a;1d7ea:Nd:4e8,24b,13,1fd;1d7eb:Nd:4e8,24b,13,1b;1d7ec:Nd:4e8,24b,76e,13,14;1d7ed:Nd:4e8,24b,76e,13,15;1d7ee:Nd:4e8,24b,76e,13,16;1d7ef:Nd:4e8,24b,76e,13,17;1d7f0:Nd:4e8,24b,76e,13,18;1d7f1:Nd:4e8,24b,76e,13,1fa;1d7f2:Nd:4e8,24b,76e,13,19;1d7f3:Nd:4e8,24b,76e,13,1a;1d7f4:Nd:4e8,24b,76e,13,1fd;1d7f5:Nd:4e8,24b,76e,13,1b;1d7f6:Nd:4e8,770,13,14;1d7f7:Nd:4e8,770,13,15;1d7f8:Nd:4e8,770,13,16;1d7f9:Nd:4e8,770,13,17;1d7fa:Nd:4e8,770,13,18;1d7fb:Nd:4e8,770,13,1fa;1d7fc:Nd:4e8,770,13,19;1d7fd:Nd:4e8,770,13,1a;1d7fe:Nd:4e8,770,13,1fd;1d7ff:Nd:4e8,770,13,1b;1f000:So:771,772,269,3f4;1f001:So:771,772,26a,3f4;1f002:So:771,772,268,3f4;1f003:So:771,772,267,3f4;1f004:So:771,772,773,774;1f005:So:771,772,775,774;1f006:So:771,772,27d,774;1f007:So:771,772,15,224,776;1f008:So:771,772,16,224,776;1f009:So:771,772,17,224,776;1f00a:So:771,772,18,224,776;1f00b:So:771,772,1fa,224,776;1f00c:So:771,772,19,224,776;1f00d:So:771,772,1a,224,776;1f00e:So:771,772,1fd,224,776;1f00f:So:771,772,1b,224,776;1f010:So:771,772,15,224,777;1f011:So:771,772,16,224,777;1f012:So:771,772,17,224,777;1f013:So:771,772,18,224,777;1f014:So:771,772,1fa,224,777;1f015:So:771,772,19,224,777;1f016:So:771,772,1a,224,777;1f017:So:771,772,1fd,224,777;1f018:So:771,772,1b,224,777;1f019:So:771,772,15,224,778;1f01a:So:771,772,16,224,778;1f01b:So:771,772,17,224,778;1f01c:So:771,772,18,224,778;1f01d:So:771,772,1fa,224,778;1f01e:So:771,772,19,224,778;1f01f:So:771,772,1a,224,778;1f020:So:771,772,1fd,224,778;1f021:So:771,772,1b,224,778;1f022:So:771,772,779;1f023:So:771,772,77a;1f024:So:771,772,77b;1f025:So:771,772,77c;1f026:So:771,772,77d;1f027:So:771,772,77e;1f028:So:771,772,77f;1f029:So:771,772,780;1f02a:So:771,772,781;1f02b:So:771,772,782;1f030:So:783,772,1d4,782;1f031:So:783,772,784;1f032:So:783,772,785;1f033:So:783,772,786;1f034:So:783,772,787;1f035:So:783,772,788;1f036:So:783,772,789;1f037:So:783,772,78a;1f038:So:783,772,78b;1f039:So:783,772,78c;1f03a:So:783,772,78d;1f03b:So:783,772,78e;1f03c:So:783,772,78f;1f03d:So:783,772,790;1f03e:So:783,772,791;1f03f:So:783,772,792;1f040:So:783,772,793;1f041:So:783,772,794;1f042:So:783,772,795;1f043:So:783,772,796;1f044:So:783,772,797;1f045:So:783,772,798;1f046:So:783,772,799;1f047:So:783,772,79a;1f048:So:783,772,79b;1f049:So:783,772,79c;1f04a:So:783,772,79d;1f04b:So:783,772,79e;1f04c:So:783,772,79f;1f04d:So:783,772,7a0;1f04e:So:783,772,7a1;1f04f:So:783,772,7a2;1f050:So:783,772,7a3;1f051:So:783,772,7a4;1f052:So:783,772,7a5;1f053:So:783,772,7a6;1f054:So:783,772,7a7;1f055:So:783,772,7a8;1f056:So:783,772,7a9;1f057:So:783,772,7aa;1f058:So:783,772,7ab;1f059:So:783,772,7ac;1f05a:So:783,772,7ad;1f05b:So:783,772,7ae;1f05c:So:783,772,7af;1f05d:So:783,772,7b0;1f05e:So:783,772,7b1;1f05f:So:783,772,7b2;1f060:So:783,772,7b3;1f061:So:783,772,7b4;1f062:So:783,772,4b,782;1f063:So:783,772,7b5;1f064:So:783,772,7b6;1f065:So:783,772,7b7;1f066:So:783,772,7b8;1f067:So:783,772,7b9;1f068:So:783,772,7ba;1f069:So:783,772,7bb;1f06a:So:783,772,7bc;1f06b:So:783,772,7bd;1f06c:So:783,772,7be;1f06d:So:783,772,7bf;1f06e:So:783,772,7c0;1f06f:So:783,772,7c1;1f070:So:783,772,7c2;1f071:So:783,772,7c3;1f072:So:783,772,7c4;1f073:So:783,772,7c5;1f074:So:783,772,7c6;1f075:So:783,772,7c7;1f076:So:783,772,7c8;1f077:So:783,772,7c9;1f078:So:783,772,7ca;1f079:So:783,772,7cb;1f07a:So:783,772,7cc;1f07b:So:783,772,7cd;1f07c:So:783,772,7ce;1f07d:So:783,772,7cf;1f07e:So:783,772,7d0;1f07f:So:783,772,7d1;1f080:So:783,772,7d2;1f081:So:783,772,7d3;1f082:So:783,772,7d4;1f083:So:783,772,7d5;1f084:So:783,772,7d6;1f085:So:783,772,7d7;1f086:So:783,772,7d8;1f087:So:783,772,7d9;1f088:So:783,772,7da;1f089:So:783,772,7db;1f08a:So:783,772,7dc;1f08b:So:783,772,7dd;1f08c:So:783,772,7de;1f08d:So:783,772,7df;1f08e:So:783,772,7e0;1f08f:So:783,772,7e1;1f090:So:783,772,7e2;1f091:So:783,772,7e3;1f092:So:783,772,7e4;1f093:So:783,772,7e5;1f0a0:So:7e6,7e7,782;1f0a1:So:7e6,7e7,7e8,224,7e9;1f0a2:So:7e6,7e7,16,224,7e9;1f0a3:So:7e6,7e7,17,224,7e9;1f0a4:So:7e6,7e7,18,224,7e9;1f0a5:So:7e6,7e7,1fa,224,7e9;1f0a6:So:7e6,7e7,19,224,7e9;1f0a7:So:7e6,7e7,1a,224,7e9;1f0a8:So:7e6,7e7,1fd,224,7e9;1f0a9:So:7e6,7e7,1b,224,7e9;1f0aa:So:7e6,7e7,1e0,224,7e9;1f0ab:So:7e6,7e7,7ea,224,7e9;1f0ac:So:7e6,7e7,418,224,7e9;1f0ad:So:7e6,7e7,415,224,7e9;1f0ae:So:7e6,7e7,414,224,7e9;1f0b1:So:7e6,7e7,7e8,224,7eb;1f0b2:So:7e6,7e7,16,224,7eb;1f0b3:So:7e6,7e7,17,224,7eb;1f0b4:So:7e6,7e7,18,224,7eb;1f0b5:So:7e6,7e7,1fa,224,7eb;1f0b6:So:7e6,7e7,19,224,7eb;1f0b7:So:7e6,7e7,1a,224,7eb;1f0b8:So:7e6,7e7,1fd,224,7eb;1f0b9:So:7e6,7e7,1b,224,7eb;1f0ba:So:7e6,7e7,1e0,224,7eb;1f0bb:So:7e6,7e7,7ea,224,7eb;1f0bc:So:7e6,7e7,418,224,7eb;1f0bd:So:7e6,7e7,415,224,7eb;1f0be:So:7e6,7e7,414,224,7eb;1f0bf:So:7e6,7e7,773,781;1f0c1:So:7e6,7e7,7e8,224,7ec;1f0c2:So:7e6,7e7,16,224,7ec;1f0c3:So:7e6,7e7,17,224,7ec;1f0c4:So:7e6,7e7,18,224,7ec;1f0c5:So:7e6,7e7,1fa,224,7ec;1f0c6:So:7e6,7e7,19,224,7ec;1f0c7:So:7e6,7e7,1a,224,7ec;1f0c8:So:7e6,7e7,1fd,224,7ec;1f0c9:So:7e6,7e7,1b,224,7ec;1f0ca:So:7e6,7e7,1e0,224,7ec;1f0cb:So:7e6,7e7,7ea,224,7ec;1f0cc:So:7e6,7e7,418,224,7ec;1f0cd:So:7e6,7e7,415,224,7ec;1f0ce:So:7e6,7e7,414,224,7ec;1f0cf:So:7e6,7e7,1f0,781;1f0d1:So:7e6,7e7,7e8,224,7ed;1f0d2:So:7e6,7e7,16,224,7ed;1f0d3:So:7e6,7e7,17,224,7ed;1f0d4:So:7e6,7e7,18,224,7ed;1f0d5:So:7e6,7e7,1fa,224,7ed;1f0d6:So:7e6,7e7,19,224,7ed;1f0d7:So:7e6,7e7,1a,224,7ed;1f0d8:So:7e6,7e7,1fd,224,7ed;1f0d9:So:7e6,7e7,1b,224,7ed;1f0da:So:7e6,7e7,1e0,224,7ed;1f0db:So:7e6,7e7,7ea,224,7ed;1f0dc:So:7e6,7e7,418,224,7ed;1f0dd:So:7e6,7e7,415,224,7ed;1f0de:So:7e6,7e7,414,224,7ed;1f0df:So:7e6,7e7,27d,781;1f0e0:So:7e6,7e7,7ee;1f0e1:So:7e6,7e7,7ef;1f0e2:So:7e6,7e7,7f0;1f0e3:So:7e6,7e7,7f1;1f0e4:So:7e6,7e7,7f2;1f0e5:So:7e6,7e7,7f3;1f0e6:So:7e6,7e7,7f4;1f0e7:So:7e6,7e7,7f5;1f0e8:So:7e6,7e7,7f6;1f0e9:So:7e6,7e7,7f7;1f0ea:So:7e6,7e7,7f8;1f0eb:So:7e6,7e7,7f9;1f0ec:So:7e6,7e7,7fa;1f0ed:So:7e6,7e7,7fb;1f0ee:So:7e6,7e7,7fc;1f0ef:So:7e6,7e7,7fd;1f0f0:So:7e6,7e7,7fe;1f0f1:So:7e6,7e7,7ff;1f0f2:So:7e6,7e7,800;1f0f3:So:7e6,7e7,801;1f0f4:So:7e6,7e7,802;1f0f5:So:7e6,7e7,803;1f12f:So:804,e4;1f130:So:2d9,24,25,26,27;1f131:So:2d9,24,25,26,28;1f132:So:2d9,24,25,26,29;1f133:So:2d9,24,25,26,2a;1f134:So:2d9,24,25,26,2b;1f135:So:2d9,24,25,26,2c;1f150:So:393,2d7,24,25,26,27;1f151:So:393,2d7,24,25,26,28;1f152:So:393,2d7,24,25,26,29;1f153:So:393,2d7,24,25,26,2a;1f154:So:393,2d7,24,25,26,2b;1f155:So:393,2d7,24,25,26,2c;1f170:So:393,2d9,24,25,26,27;1f171:So:393,2d9,24,25,26,28;1f17e:So:393,2d9,24,25,26,34;1f17f:So:393,2d9,24,25,26,35;1f308:So:805;1f30a:So:3f5,26b;1f30b:So:806;1f30c:So:807,47b;1f30d:So:368,808,809;1f30e:So:368,808,80a;1f30f:So:368,808,80b;1f311:So:207,3fd,e4;1f312:So:80c,3e8,3fd,e4;1f313:So:3fc,71,3fd,e4;1f314:So:80c,80d,3fd,e4;1f315:So:10,3fd,e4;1f316:So:80e,80d,3fd,e4;1f317:So:3fe,71,3fd,e4;1f318:So:80e,3e8,3fd,e4;1f319:So:3e8,3fd;1f31a:So:207,3fd,74,3fa;1f31b:So:3fc,71,3fd,74,3fa;1f31c:So:3fe,71,3fd,74,3fa;1f31d:So:10,3fd,74,3fa;1f31e:So:3c5,74,3fa;1f31f:So:80f,2c7;1f320:So:810,2c7;1f321:So:811;1f32a:So:3c7,74,812;1f32b:So:813;1f331:So:814;1f33f:So:815;1f343:So:816,817,2c3,3f4;1f393:So:818,2d5;1f399:So:819,81a;1f39a:So:81b,81c;1f39b:So:392,81d;1f3a4:So:81a;1f3a7:So:81e;1f3a8:So:81f,820;1f3ac:So:821,822;1f3ad:So:823,824;1f3af:So:349,825;1f3b2:So:826,437;1f3b4:So:1f8,7e6,827;1f3b5:So:6e7,41e;1f3b6:So:1c7,6e7,420;1f3b7:So:828;1f3b8:So:829;1f3b9:So:6e7,319;1f3ba:So:82a;1f3bb:So:82b;1f3bc:So:6e7,82c;1f3c0:So:82d,a7,82e;1f3c6:So:82f;1f3d4:So:46d,830,3f6;1f3db:So:831,832;1f3dc:So:833;1f3dd:So:833,834;1f3eb:So:835;1f3f3:So:836,27d,442;1f3f4:So:836,1f0,442;1f3f7:So:837;1f3fa:So:838;1f43e:So:839,83a;1f440:So:83b;1f441:So:380;1f449:So:27d,b,3dc,83c,3dd;1f44d:So:83d,c0,4;1f44e:So:83d,c1,4;1f44f:So:83e,83f,4;1f451:So:840;1f489:So:841;1f48a:So:842;1f4a1:So:2fe,35e,843;1f4a7:So:844;1f4a8:So:1d3,e4;1f4aa:So:845,846;1f4ab:So:847,e4;1f4ac:So:848,849;1f4ad:So:84a,849;1f4af:So:261,84b,e4;1f4b0:So:84c,2fb;1f4bb:So:84d,84e;1f4c1:So:399,84f;1f4c5:So:850;1f4c8:So:851,74,265,852;1f4c9:So:851,74,266,852;1f4ca:So:54,851;1f4cc:So:853;1f4cd:So:854,853;1f4ce:So:855;1f4cf:So:856,857;1f4d0:So:c2,857;1f4d1:So:858,859;1f4d2:So:85a;1f4d3:So:85b;1f4d4:So:85b,74,85c,85d;1f4d5:So:99,85e;1f4d6:So:94,85e;1f4d7:So:775,85e;1f4d8:So:85f,85e;1f4d9:So:860,85e;1f4da:So:861;1f4dc:So:862;1f4dd:So:863;1f4ef:So:864,8b;1f4f1:So:865,866;1f50b:So:867;1f50c:So:2fe,868;1f50d:So:5b,869,86a;1f511:So:315;1f512:So:86b;1f513:So:94,86b;1f514:So:336;1f516:So:858;1f525:So:3f2;1f52c:So:86c;1f52d:So:86d;1f549:So:86e,e4;1f54a:So:86f,224,3ee;1f58a:So:de,9,870,871;1f58b:So:de,9,497,871;1f58d:So:de,9,872;1f5a5:So:873,84e;1f5c2:So:7e7,3dd,874;1f5d3:So:875,850,876;1f5e1:So:1d7,877;1f5e3:So:878,5fd,2c3,879;1f5fa:So:87a,495;1f5ff:So:87b;1f600:So:87c,3fa;1f605:So:3fb,3fa,74,94,87d,a7,87e,87f;1f634:So:880,3fa;1f64c:So:49e,881,882,83f,2c3,883;1f680:So:884;1f6a9:So:c2,442,17c,885;1f6ab:So:477,478,4;1f6e1:So:48c;1f6f0:So:886;1f700:So:887,e4,24f,888;1f701:So:887,e4,24f,889;1f702:So:887,e4,24f,3f2;1f703:So:887,e4,24f,368;1f704:So:887,e4,24f,3f5;1f705:So:887,e4,24f,88a;1f706:So:887,e4,24f,88b,88c;1f707:So:887,e4,24f,88b,88d;1f708:So:887,e4,24f,88b,88e;1f709:So:887,e4,24f,88b,88f;1f70a:So:887,e4,24f,890;1f70b:So:887,e4,24f,891;1f70c:So:887,e4,24f,892;1f70d:So:887,e4,24f,893;1f70e:So:887,e4,24f,894,893;1f70f:So:887,e4,24f,1f0,893;1f710:So:887,e4,24f,3ff,895;1f711:So:887,e4,24f,3ff,896;1f712:So:887,e4,24f,3ff,897;1f713:So:887,e4,24f,898;1f714:So:887,e4,24f,899;1f715:So:887,e4,24f,89a;1f716:So:887,e4,24f,89b;1f717:So:887,e4,24f,89c;1f718:So:887,e4,24f,89d,899;1f719:So:887,e4,24f,89d,89e;1f71a:So:887,e4,24f,89f;1f71b:So:887,e4,24f,8a0;1f71c:So:887,e4,24f,8a1,8a2;1f71d:So:887,e4,24f,8a1,8a3;1f71e:So:887,e4,24f,8a4,224,8a1;1f71f:So:887,e4,24f,8a5,224,8a1;1f720:So:887,e4,24f,8a6,8a2;1f721:So:887,e4,24f,8a7,8a2;1f722:So:887,e4,24f,895,224,8a6;1f723:So:887,e4,24f,8a4,224,8a6;1f724:So:887,e4,24f,8a4,224,8a8;1f725:So:887,e4,24f,8a6,8a9;1f726:So:887,e4,24f,899,224,8a6,8a9;1f727:So:887,e4,24f,895,224,899,224,8a6;1f728:So:887,e4,24f,8aa;1f729:So:887,e4,24f,8ab,8a2;1f72a:So:887,e4,24f,8ac,8a2;1f72b:So:887,e4,24f,8ad,8a2;1f72c:So:887,e4,24f,895,224,8ad;1f72d:So:887,e4,24f,899,224,8ad;1f72e:So:887,e4,24f,895,224,899,224,8ad;1f72f:So:887,e4,24f,890,224,8ad;1f730:So:887,e4,24f,8a5,224,8ad;1f731:So:887,e4,24f,8a5,224,8ae;1f732:So:887,e4,24f,8a5;1f733:So:887,e4,24f,8af;1f734:So:887,e4,24f,8b0;1f735:So:887,e4,24f,8b1;1f736:So:887,e4,24f,8b2;1f737:So:887,e4,24f,8b3;1f738:So:887,e4,24f,8b4;1f739:So:887,e4,24f,8b5;1f73a:So:887,e4,24f,8b6;1f73b:So:887,e4,24f,8b7;1f73c:So:887,e4,24f,8b8;1f73d:So:887,e4,24f,8b9;1f73e:So:887,e4,24f,8ba,8a2;1f73f:So:887,e4,24f,8bb;1f740:So:887,e4,24f,8bc;1f741:So:887,e4,24f,8bd,8be;1f742:So:887,e4,24f,8bf;1f743:So:887,e4,24f,8c0;1f744:So:887,e4,24f,8c1;1f745:So:887,e4,24f,8c2;1f746:So:887,e4,24f,8c3;1f747:So:887,e4,24f,8c4;1f748:So:887,e4,24f,8c5;1f749:So:887,e4,24f,8c6;1f74a:So:887,e4,24f,8c7;1f74b:So:887,e4,24f,8c8;1f74c:So:887,e4,24f,8c9;1f74d:So:887,e4,24f,8ca;1f74e:So:887,e4,24f,8cb,8cc;1f74f:So:887,e4,24f,8cd,224,8ce;1f750:So:887,e4,24f,3e3;1f751:So:887,e4,24f,8cf;1f752:So:887,e4,24f,8d0,8cf;1f753:So:887,e4,24f,8d1;1f754:So:887,e4,24f,8d2;1f755:So:887,e4,24f,8d3;1f756:So:887,e4,24f,8d4,8d5;1f757:So:887,e4,24f,8d6;1f758:So:887,e4,24f,8d7,8d6;1f759:So:887,e4,24f,8d8;1f75a:So:887,e4,24f,8d9,8d8;1f75b:So:887,e4,24f,8da;1f75c:So:887,e4,24f,8db,8dc,8db;1f75d:So:887,e4,24f,8db,8dc,8dd;1f75e:So:887,e4,24f,8de;1f75f:So:887,e4,24f,8df;1f760:So:887,e4,24f,8e0;1f761:So:887,e4,24f,8e1;1f762:So:887,e4,24f,8e2;1f763:So:887,e4,24f,8e3;1f764:So:887,e4,24f,8e4;1f765:So:887,e4,24f,8e5;1f766:So:887,e4,24f,8e6;1f767:So:887,e4,24f,8e7;1f768:So:887,e4,24f,8e8;1f769:So:887,e4,24f,8e9;1f76a:So:887,e4,24f,44a;1f76b:So:887,e4,24f,8ea,224,8eb;1f76c:So:887,e4,24f,8ea,224,8ec;1f76d:So:887,e4,24f,8ed;1f76e:So:887,e4,24f,8ee;1f76f:So:887,e4,24f,8ef;1f770:So:887,e4,24f,8f0;1f771:So:887,e4,24f,8f1;1f772:So:887,e4,24f,72,8f2;1f773:So:887,e4,24f,72,240;1f780:So:1f0,5b,8f3,b,2ee;1f781:So:1f0,372,8f3,b,2ee;1f782:So:1f0,6e,8f3,b,2ee;1f783:So:1f0,373,8f3,b,2ee;1f784:So:1f0,8f4,48,222;1f785:So:37a,76e,27d,222;1f786:So:76e,27d,222;1f787:So:3b3,27d,222;1f788:So:2f4,3b3,27d,222;1f789:So:8f5,3b3,27d,222;1f78a:So:27d,222,3b9,1f0,48,222;1f78b:So:854,8f6;1f78c:So:1f0,619,40;1f78d:So:1f0,8f4,48,40;1f78e:So:35e,27d,40;1f78f:So:37a,27d,40;1f790:So:76e,27d,40;1f791:So:3b3,27d,40;1f792:So:2f4,3b3,27d,40;1f793:So:8f5,3b3,27d,40;1f794:So:27d,40,3b9,1f0,2f4,48,40;1f795:So:27d,40,3b9,1f0,37a,40;1f796:So:40,8f6;1f797:So:1f0,619,2ef;1f798:So:1f0,2f4,48,2ef;1f799:So:1f0,37a,48,2ef;1f79a:So:27d,2ef,3b9,1f0,2f4,48,2ef;1f79b:So:27d,2ef,3b9,1f0,37a,2ef;1f79c:So:2ef,8f6;1f79d:So:1f0,619,307;1f79e:So:1f0,2f4,48,307;1f79f:So:1f0,37a,48,307;1f7a0:So:27d,307,3b9,1f0,48,307;1f7a1:So:1ce,d9,c7;1f7a2:So:35e,d9,c7;1f7a3:So:37a,d9,c7;1f7a4:So:76e,d9,c7;1f7a5:So:2f4,76e,d9,c7;1f7a6:So:2f4,3b3,d9,c7;1f7a7:So:8f5,3b3,d9,c7;1f7a8:So:1ce,3d3;1f7a9:So:35e,3d3;1f7aa:So:37a,3d3;1f7ab:So:76e,3d3;1f7ac:So:3b3,3d3;1f7ad:So:2f4,3b3,3d3;1f7ae:So:8f5,3b3,3d3;1f7af:So:35e,1fa,4bd,c;1f7b0:So:37a,1fa,4bd,c;1f7b1:So:76e,1fa,4bd,c;1f7b2:So:3b3,1fa,4bd,c;1f7b3:So:2f4,3b3,1fa,4bd,c;1f7b4:So:8f5,3b3,1fa,4bd,c;1f7b5:So:35e,19,4bd,c;1f7b6:So:37a,19,4bd,c;1f7b7:So:76e,19,4bd,c;1f7b8:So:3b3,19,4bd,c;1f7b9:So:2f4,3b3,19,4bd,c;1f7ba:So:8f5,3b3,19,4bd,c;1f7bb:So:35e,1fd,4bd,c;1f7bc:So:37a,1fd,4bd,c;1f7bd:So:76e,1fd,4bd,c;1f7be:So:3b3,1fd,4bd,c;1f7bf:So:2f4,3b3,1fd,4bd,c;1f7c0:So:35e,17,4b9,1f0,2c7;1f7c1:So:37a,17,4b9,1f0,2c7;1f7c2:So:17,4b9,1f0,2c7;1f7c3:So:37a,17,4b9,4bc,2c7;1f7c4:So:35e,18,4b9,1f0,2c7;1f7c5:So:37a,18,4b9,1f0,2c7;1f7c6:So:18,4b9,1f0,2c7;1f7c7:So:37a,18,4b9,4bc,2c7;1f7c8:So:42,35e,18,4b9,4bc,2c7;1f7c9:So:35e,1fa,4b9,1f0,2c7;1f7ca:So:3b3,1fa,4b9,1f0,2c7;1f7cb:So:37a,19,4b9,1f0,2c7;1f7cc:So:3b3,19,4b9,1f0,2c7;1f7cd:So:19,4b9,4bc,2c7;1f7ce:So:37a,1fd,4b9,1f0,2c7;1f7cf:So:3b3,1fd,4b9,1f0,2c7;1f7d0:So:2f4,3b3,1fd,4b9,1f0,2c7;1f7d1:So:3b3,1fd,4b9,4bc,2c7;1f7d2:So:35e,25f,4b9,1f0,2c7;1f7d3:So:3b3,25f,4b9,1f0,2c7;1f7d4:So:3b3,25f,4b9,4bc,2c7;1f7d5:So:2d7,2ee;1f7d6:So:393,2d7,2ee;1f7d7:So:2d7,40;1f7d8:So:393,2d7,40;1f914:So:8f7,3fa;1f92f:So:8f8,3fa,74,8f9,5fd;1f941:So:702,74,8fa;1f947:So:3fc,30d,8fb;1f973:So:3fa,74,8fc,8b,a7,8fc,8fd;1f9a0:So:8fe;1f9b4:So:8ff;1f9b7:So:900;1f9e0:So:901;1f9ea:So:902,903;1f9eb:So:904,905;1f9ec:So:906,5c,907;1f9ed:So:908;1f9ee:So:909;1fa78:So:90a,224,90b;1fa7a:So:90c;1fa88:So:90d;1fa90:So:90e,90f;1fa95:So:910;1fa97:So:911;1fa98:So:89,702;1fac0:So:912,3db;1fac1:So:913",J=" =spacing=a0;#=textord=23;$=textord=24;%=textord=25;&=textord=26;cdots=inner=22ef;gvertneqq=rel=e00d;imath=mathord=e131;jmath=mathord=e237;llcorner=open=2514;lrcorner=close=2518;lvertneqq=rel=e00c;ngeqq=rel=e00e;ngeqslant=rel=e00f;nleqq=rel=e011;nleqslant=rel=e010;not=rel=e020;nshortmid=rel=e006;nshortparallel=rel=e007;nsubseteqq=rel=e016;nsupseteqq=rel=e018;ulcorner=open=250c;urcorner=close=2510;varsubsetneq=rel=e01a;varsubsetneqq=rel=e017;varsupsetneq=rel=e01b;varsupsetneqq=rel=e019;And=bin=26;Box=textord=25a1;Bumpeq=rel=224e;Cap=bin=22d2;Cup=bin=22d3;Delta=textord=394;Diamond=textord=25ca;Doteq=rel=2251;Downarrow=rel=21d3;Finv=textord=2132;Game=textord=2141;Gamma=textord=393;Im=textord=2111;Join=rel=22c8;Lambda=textord=39b;Leftarrow=rel=21d0;Leftrightarrow=rel=21d4;Lleftarrow=rel=21da;Longleftarrow=rel=27f8;Longleftrightarrow=rel=27fa;Longrightarrow=rel=27f9;Lsh=rel=21b0;Omega=textord=3a9;P=textord=b6;Phi=textord=3a6;Pi=textord=3a0;Psi=textord=3a8;Re=textord=211c;Rightarrow=rel=21d2;Rrightarrow=rel=21db;Rsh=rel=21b1;S=textord=a7;Sigma=textord=3a3;Subset=rel=22d0;Supset=rel=22d1;Theta=textord=398;Uparrow=rel=21d1;Updownarrow=rel=21d5;Upsilon=textord=3a5;Vdash=rel=22a9;Vert=textord=2225;Vvdash=rel=22aa;Xi=textord=39e;_=textord=5f;acute=accent=2ca;aleph=textord=2135;allowbreak=spacing=;alpha=mathord=3b1;amalg=bin=2a3f;angle=textord=2220;approx=rel=2248;approxeq=rel=224a;ast=bin=2217;asymp=rel=224d;backepsilon=rel=220d;backprime=textord=2035;backsim=rel=223d;backsimeq=rel=22cd;backslash=textord=5c.5c;bar=accent=2c9;barwedge=bin=22bc;because=rel=2235;beta=mathord=3b2;beth=textord=2136;between=rel=226c;bigcap=op=22c2;bigcirc=bin=25ef;bigcup=op=22c3;bigodot=op=2a00;bigoplus=op=2a01;bigotimes=op=2a02;bigsqcup=op=2a06;bigstar=textord=2605;bigtriangledown=bin=25bd;bigtriangleup=bin=25b3;biguplus=op=2a04;bigvee=op=22c1;bigwedge=op=22c0;blacklozenge=textord=29eb;blacksquare=textord=25a0;blacktriangle=textord=25b2;blacktriangledown=textord=25bc;blacktriangleleft=rel=25c0;blacktriangleright=rel=25b6;bot=textord=22a5;bowtie=rel=22c8;boxdot=bin=22a1;boxminus=bin=229f;boxplus=bin=229e;boxtimes=bin=22a0;breve=accent=2d8;bullet=bin=2219;bumpeq=rel=224f;cap=bin=2229;cdot=bin=22c5;cdotp=punct=22c5;centerdot=bin=22c5;check=accent=2c7;checkmark=textord=2713;chi=mathord=3c7;circ=bin=2218;circeq=rel=2257;circlearrowleft=rel=21ba;circlearrowright=rel=21bb;circledR=textord=ae;circledS=textord=24c8;circledast=bin=229b;circledcirc=bin=229a;circleddash=bin=229d;clubsuit=textord=2663;complement=textord=2201;cong=rel=2245;coprod=op=2210;cup=bin=222a;curlyeqprec=rel=22de;curlyeqsucc=rel=22df;curlyvee=bin=22ce;curlywedge=bin=22cf;curvearrowleft=rel=21b6;curvearrowright=rel=21b7;dag=textord=2020;dagger=bin=2020;daleth=textord=2138;dashleftarrow=rel=21e0;dashrightarrow=rel=21e2;dashv=rel=22a3;ddag=textord=2021;ddagger=bin=2021;ddot=accent=a8;ddots=inner=22f1;degree=textord=b0;delta=mathord=3b4;diagdown=textord=2572;diagup=textord=2571;diamond=bin=22c4;diamondsuit=textord=2662;digamma=textord=3dd;div=bin=f7;divideontimes=bin=22c7;dot=accent=2d9;doteq=rel=2250;doteqdot=rel=2251;dotplus=bin=2214;doublebarwedge=bin=2a5e;doublecap=bin=22d2;doublecup=bin=22d3;downarrow=rel=2193;downdownarrows=rel=21ca;downharpoonleft=rel=21c3;downharpoonright=rel=21c2;ell=textord=2113;emptyset=textord=2205;epsilon=mathord=3f5;eqcirc=rel=2256;eqsim=rel=2242;eqslantgtr=rel=2a96;eqslantless=rel=2a95;equiv=rel=2261;eta=mathord=3b7;eth=textord=f0;exists=textord=2203;fallingdotseq=rel=2252;flat=textord=266d;forall=textord=2200;frown=rel=2322;gamma=mathord=3b3;ge=rel=2265;geq=rel=2265;geqq=rel=2267;geqslant=rel=2a7e;gets=rel=2190;gg=rel=226b;ggg=rel=22d9;gggtr=rel=22d9;gimel=textord=2137;gnapprox=rel=2a8a;gneq=rel=2a88;gneqq=rel=2269;gnsim=rel=22e7;grave=accent=2cb;gt=rel=3e;gtrapprox=rel=2a86;gtrdot=bin=22d7;gtreqless=rel=22db;gtreqqless=rel=2a8c;gtrless=rel=2277;gtrsim=rel=2273;hat=accent=5e;hbar=textord=210f;heartsuit=textord=2661;hookleftarrow=rel=21a9;hookrightarrow=rel=21aa;hslash=textord=210f;iiint=op=222d;iint=op=222c;imageof=rel=22b7;in=rel=2208;infty=textord=221e;int=op=222b;intercal=bin=22ba;intop=op=222b;iota=mathord=3b9;kappa=mathord=3ba;lVert=open=2225;lambda=mathord=3bb;land=bin=2227;langle=open=27e8;lbrace=open=7b;lbrack=open=5b;lceil=open=2308;ldotp=punct=2e;ldots=inner=2026;le=rel=2264;leadsto=rel=21dd;leftarrow=rel=2190;leftarrowtail=rel=21a2;leftharpoondown=rel=21bd;leftharpoonup=rel=21bc;leftleftarrows=rel=21c7;leftrightarrow=rel=2194;leftrightarrows=rel=21c6;leftrightharpoons=rel=21cb;leftrightsquigarrow=rel=21ad;leftthreetimes=bin=22cb;leq=rel=2264;leqq=rel=2266;leqslant=rel=2a7d;lessapprox=rel=2a85;lessdot=bin=22d6;lesseqgtr=rel=22da;lesseqqgtr=rel=2a8b;lessgtr=rel=2276;lesssim=rel=2272;lfloor=open=230a;lgroup=open=27ee;lhd=bin=22b2;ll=rel=226a;lll=rel=22d8;llless=rel=22d8;lmoustache=open=23b0;lnapprox=rel=2a89;lneq=rel=2a87;lneqq=rel=2268;lnot=textord=ac;lnsim=rel=22e6;longleftarrow=rel=27f5;longleftrightarrow=rel=27f7;longmapsto=rel=27fc;longrightarrow=rel=27f6;looparrowleft=rel=21ab;looparrowright=rel=21ac;lor=bin=2228;lozenge=textord=25ca;lparen=open=28;lt=rel=3c;ltimes=bin=22c9;lvert=open=2223;maltese=textord=2720;mapsto=rel=21a6;mathellipsis=inner=2026;mathring=accent=2da;mathsterling=textord=a3;measuredangle=textord=2221;mho=textord=2127;mid=rel=2223;models=rel=22a8;mp=bin=2213;mu=mathord=3bc;multimap=rel=22b8;nLeftarrow=rel=21cd;nLeftrightarrow=rel=21ce;nRightarrow=rel=21cf;nVDash=rel=22af;nVdash=rel=22ae;nabla=textord=2207;natural=textord=266e;ncong=rel=2246;nearrow=rel=2197;neg=textord=ac;nexists=textord=2204;ngeq=rel=2271;ngtr=rel=226f;ni=rel=220b;nleftarrow=rel=219a;nleftrightarrow=rel=21ae;nleq=rel=2270;nless=rel=226e;nmid=rel=2224;nobreak=spacing=;nobreakspace=spacing=a0;nparallel=rel=2226;nprec=rel=2280;npreceq=rel=22e0;nrightarrow=rel=219b;nsim=rel=2241;nsubseteq=rel=2288;nsucc=rel=2281;nsucceq=rel=22e1;nsupseteq=rel=2289;ntriangleleft=rel=22ea;ntrianglelefteq=rel=22ec;ntriangleright=rel=22eb;ntrianglerighteq=rel=22ed;nu=mathord=3bd;nvDash=rel=22ad;nvdash=rel=22ac;nwarrow=rel=2196;odot=bin=2299;oiiint=op=2230;oiint=op=222f;oint=op=222e;omega=mathord=3c9;omicron=mathord=3bf;ominus=bin=2296;oplus=bin=2295;origof=rel=22b6;oslash=bin=2298;otimes=bin=2297;owns=rel=220b;parallel=rel=2225;partial=textord=2202;perp=rel=22a5;phi=mathord=3d5;pi=mathord=3c0;pitchfork=rel=22d4;pm=bin=b1;pounds=textord=a3;prec=rel=227a;precapprox=rel=2ab7;preccurlyeq=rel=227c;preceq=rel=2aaf;precnapprox=rel=2ab9;precneqq=rel=2ab5;precnsim=rel=22e8;precsim=rel=227e;prime=textord=2032;prod=op=220f;propto=rel=221d;psi=mathord=3c8;rVert=close=2225;rangle=close=27e9;rbrace=close=7d;rbrack=close=5d;rceil=close=2309;restriction=rel=21be;rfloor=close=230b;rgroup=close=27ef;rhd=bin=22b3;rho=mathord=3c1;rightarrow=rel=2192;rightarrowtail=rel=21a3;rightharpoondown=rel=21c1;rightharpoonup=rel=21c0;rightleftarrows=rel=21c4;rightleftharpoons=rel=21cc;rightrightarrows=rel=21c9;rightsquigarrow=rel=21dd;rightthreetimes=bin=22cc;risingdotseq=rel=2253;rmoustache=close=23b1;rparen=close=29;rtimes=bin=22ca;rvert=close=2223;searrow=rel=2198;setminus=bin=2216;sharp=textord=266f;shortmid=rel=2223;shortparallel=rel=2225;sigma=mathord=3c3;sim=rel=223c;simeq=rel=2243;smallfrown=rel=2322;smallint=op=222b;smallsetminus=bin=2216;smallsmile=rel=2323;smile=rel=2323;space=spacing=a0;spadesuit=textord=2660;sphericalangle=textord=2222;sqcap=bin=2293;sqcup=bin=2294;sqsubset=rel=228f;sqsubseteq=rel=2291;sqsupset=rel=2290;sqsupseteq=rel=2292;square=textord=25a1;star=bin=22c6;subset=rel=2282;subseteq=rel=2286;subseteqq=rel=2ac5;subsetneq=rel=228a;subsetneqq=rel=2acb;succ=rel=227b;succapprox=rel=2ab8;succcurlyeq=rel=227d;succeq=rel=2ab0;succnapprox=rel=2aba;succneqq=rel=2ab6;succnsim=rel=22e9;succsim=rel=227f;sum=op=2211;supset=rel=2283;supseteq=rel=2287;supseteqq=rel=2ac6;supsetneq=rel=228b;supsetneqq=rel=2acc;surd=textord=221a;swarrow=rel=2199;tau=mathord=3c4;therefore=rel=2234;theta=mathord=3b8;thickapprox=rel=2248;thicksim=rel=223c;tilde=accent=7e;times=bin=d7;to=rel=2192;top=textord=22a4;triangle=textord=25b3;triangledown=textord=25bd;triangleleft=bin=25c3;trianglelefteq=rel=22b4;triangleq=rel=225c;triangleright=bin=25b9;trianglerighteq=rel=22b5;twoheadleftarrow=rel=219e;twoheadrightarrow=rel=21a0;u00b7=punct=22c5;u0131=textord=131;u0237=textord=237;u0391=textord=41;u0392=textord=42;u0395=textord=45;u0396=textord=5a;u0397=textord=48;u0399=textord=49;u039A=textord=4b;u039C=textord=4d;u039D=textord=4e;u039F=textord=4f;u03A1=textord=50;u03A4=textord=54;u03A7=textord=58;u2102=textord=43;u210D=textord=48;u210E=mathord=68;u2115=textord=4e;u2119=textord=50;u211A=textord=51;u211D=textord=52;u2124=textord=5a;unlhd=bin=22b4;unrhd=bin=22b5;uparrow=rel=2191;updownarrow=rel=2195;upharpoonleft=rel=21bf;upharpoonright=rel=21be;uplus=bin=228e;upsilon=mathord=3c5;upuparrows=rel=21c8;vDash=rel=22a8;varepsilon=mathord=3b5;varkappa=textord=3f0;varnothing=textord=2205;varphi=mathord=3c6;varpi=mathord=3d6;varpropto=rel=221d;varrho=mathord=3f1;varsigma=mathord=3c2;vartheta=mathord=3d1;vartriangle=rel=25b3;vartriangleleft=rel=22b2;vartriangleright=rel=22b3;varvdots=textord=22ee;vdash=rel=22a2;vec=accent=20d7;vee=bin=2228;veebar=bin=22bb;vert=textord=2223;wedge=bin=2227;wp=textord=2118;wr=bin=2240;xi=mathord=3be;yen=textord=a5;zeta=mathord=3b6;{=open=7b;|=textord=2225;}=close=7d",F=["Hydrogen=No metal","Helium=Gas noble","Lithium=Metal alcalino","Beryllium=Metal alcalinotérreo","Boron=Metaloide","Carbon=No metal","Nitrogen=No metal","Oxygen=No metal","Fluorine=Halógeno","Neon=Gas noble","Sodium=Metal alcalino","Magnesium=Metal alcalinotérreo","Aluminium=Metal postransición","Silicon=Metaloide","Phosphorus=No metal","Sulfur=No metal","Chlorine=Halógeno","Argon=Gas noble","Potassium=Metal alcalino","Calcium=Metal alcalinotérreo","Scandium=Metal de transición","Titanium=Metal de transición","Vanadium=Metal de transición","Chromium=Metal de transición","Manganese=Metal de transición","Iron=Metal de transición","Cobalt=Metal de transición","Nickel=Metal de transición","Copper=Metal de transición","Zinc=Metal de transición","Gallium=Metal postransición","Germanium=Metaloide","Arsenic=Metaloide","Selenium=No metal","Bromine=Halógeno","Krypton=Gas noble","Rubidium=Metal alcalino","Strontium=Metal alcalinotérreo","Yttrium=Metal de transición","Zirconium=Metal de transición","Niobium=Metal de transición","Molybdenum=Metal de transición","Technetium=Metal de transición","Ruthenium=Metal de transición","Rhodium=Metal de transición","Palladium=Metal de transición","Silver=Metal de transición","Cadmium=Metal de transición","Indium=Metal postransición","Tin=Metal postransición","Antimony=Metaloide","Tellurium=Metaloide","Iodine=Halógeno","Xenon=Gas noble","Caesium=Metal alcalino","Barium=Metal alcalinotérreo","Lanthanum=Lantánido","Cerium=Lantánido","Praseodymium=Lantánido","Neodymium=Lantánido","Promethium=Lantánido","Samarium=Lantánido","Europium=Lantánido","Gadolinium=Lantánido","Terbium=Lantánido","Dysprosium=Lantánido","Holmium=Lantánido","Erbium=Lantánido","Thulium=Lantánido","Ytterbium=Lantánido","Lutetium=Lantánido","Hafnium=Metal de transición","Tantalum=Metal de transición","Tungsten=Metal de transición","Rhenium=Metal de transición","Osmium=Metal de transición","Iridium=Metal de transición","Platinum=Metal de transición","Gold=Metal de transición","Mercury=Metal de transición","Thallium=Metal postransición","Lead=Metal postransición","Bismuth=Metal postransición","Polonium=Metal postransición","Astatine=Halógeno","Radon=Gas noble","Francium=Metal alcalino","Radium=Metal alcalinotérreo","Actinium=Actínido","Thorium=Actínido","Protactinium=Actínido","Uranium=Actínido","Neptunium=Actínido","Plutonium=Actínido","Americium=Actínido","Curium=Actínido","Berkelium=Actínido","Californium=Actínido","Einsteinium=Actínido","Fermium=Actínido","Mendelevium=Actínido","Nobelium=Actínido","Lawrencium=Actínido","Rutherfordium=Metal de transición","Dubnium=Metal de transición","Seaborgium=Metal de transición","Bohrium=Metal de transición","Hassium=Metal de transición","Meitnerium=Metal de transición","Darmstadtium=Metal de transición","Roentgenium=Metal de transición","Copernicium=Metal de transición","Nihonium=Metal postransición","Flerovium=Metal postransición","Moscovium=Metal postransición","Livermorium=Metal postransición","Tennessine=Halógeno","Oganesson=Gas noble"],B=`H Hidrógeno
+He Helio
+Li Litio
+Be Berilio
+B Boro
+C Carbono
+N Nitrógeno
+O Oxígeno
+F Flúor
+Ne Neón
+Na Sodio
+Mg Magnesio
+Al Aluminio
+Si Silicio
+P Fósforo
+S Azufre
+Cl Cloro
+Ar Argón
+K Potasio
+Ca Calcio
+Sc Escandio
+Ti Titanio
+V Vanadio
+Cr Cromo
+Mn Manganeso
+Fe Hierro
+Co Cobalto
+Ni Níquel
+Cu Cobre
+Zn Zinc
+Ga Galio
+Ge Germanio
+As Arsénico
+Se Selenio
+Br Bromo
+Kr Kriptón
+Rb Rubidio
+Sr Estroncio
+Y Itrio
+Zr Circonio
+Nb Niobio
+Mo Molibdeno
+Tc Tecnecio
+Ru Rutenio
+Rh Rodio
+Pd Paladio
+Ag Plata
+Cd Cadmio
+In Indio
+Sn Estaño
+Sb Antimonio
+Te Telurio
+I Yodo
+Xe Xenón
+Cs Cesio
+Ba Bario
+La Lantano
+Ce Cerio
+Pr Praseodimio
+Nd Neodimio
+Pm Prometio
+Sm Samario
+Eu Europio
+Gd Gadolinio
+Tb Terbio
+Dy Disprosio
+Ho Holmio
+Er Erbio
+Tm Tulio
+Yb Iterbio
+Lu Lutecio
+Hf Hafnio
+Ta Tantalio
+W Wolframio
+Re Renio
+Os Osmio
+Ir Iridio
+Pt Platino
+Au Oro
+Hg Mercurio
+Tl Talio
+Pb Plomo
+Bi Bismuto
+Po Polonio
+At Astato
+Rn Radón
+Fr Francio
+Ra Radio
+Ac Actinio
+Th Torio
+Pa Protactinio
+U Uranio
+Np Neptunio
+Pu Plutonio
+Am Americio
+Cm Curio
+Bk Berkelio
+Cf Californio
+Es Einstenio
+Fm Fermio
+Md Mendelevio
+No Nobelio
+Lr Lawrencio
+Rf Rutherfordio
+Db Dubnio
+Sg Seaborgio
+Bh Bohrio
+Hs Hasio
+Mt Meitnerio
+Ds Darmstatio
+Rg Roentgenio
+Cn Copernicio
+Nh Nihonio
+Fl Flerovio
+Mc Moscovio
+Lv Livermorio
+Ts Teneso
+Og Oganesón`,e2=()=>_(B,(e,d,r)=>{const[c,f]=F[r].split("=");return{c:e,t:`\\ce{${e}}`,n:`${d} (Z=${r+1})`,u:`${c} (${e}, Z=${r+1})`,y:`Elemento químico · ${f}`,k:`elemento ${e} ${c} ${f} ${r+1} tabla periodica`}}),a2=()=>_(B,(e,d,r)=>{const[c]=F[r].split("=");return{t:`\\ce{^{#?}_{${r+1}}${e}}`,n:`Núclido de ${d.toLowerCase()}`,u:`Nuclide of ${c.toLowerCase()} (Z=${r+1})`,y:"Núclido (número másico editable)",k:`isotopo ${e} ${c} masa atomica nuclide`}}).slice(0,103),o2=[n("phys","Física","⚛️",[a("Mecánica",o`
+      \vec{F}=m\vec{a} :: Segunda ley de Newton
+      v=\frac{\Delta x}{\Delta t} :: Velocidad media
+      a=\frac{\Delta v}{\Delta t} :: Aceleración media
+      v=v_0+at :: Velocidad en MRUA
+      x=x_0+v_0t+\frac{1}{2}at^2 :: Posición en MRUA
+      v^2=v_0^2+2a\Delta x :: Ecuación sin tiempo
+      \vec{p}=m\vec{v} :: Cantidad de movimiento :: momento lineal
+      \vec{F}=\frac{d\vec{p}}{dt} :: Fuerza como variación del momento
+      \vec{J}=\vec{F}\Delta t=\Delta\vec{p} :: Impulso
+      W=\vec{F}\cdot\vec{d}=Fd\cos\theta :: Trabajo
+      E_c=\frac{1}{2}mv^2 :: Energía cinética
+      E_p=mgh :: Energía potencial gravitatoria
+      E_e=\frac{1}{2}kx^2 :: Energía potencial elástica
+      P=\frac{W}{t} :: Potencia
+      F=-kx :: Ley de Hooke
+      F_r=\mu N :: Fuerza de rozamiento
+      P=mg :: Peso
+      F=G\frac{m_1m_2}{r^2} :: Gravitación universal
+      a_c=\frac{v^2}{r} :: Aceleración centrípeta
+      \omega=\frac{d\theta}{dt} :: Velocidad angular
+      v=\omega r :: Velocidad lineal y angular
+      \vec{\tau}=\vec{r}\times\vec{F} :: Momento de una fuerza :: torque
+      \vec{L}=\vec{r}\times\vec{p} :: Momento angular
+      \tau=I\alpha :: Dinámica de rotación
+      I=\sum m_ir_i^2 :: Momento de inercia
+      T=2\pi\sqrt{\frac{l}{g}} :: Periodo del péndulo
+      T=2\pi\sqrt{\frac{m}{k}} :: Periodo del muelle
+      v_e=\sqrt{\frac{2GM}{r}} :: Velocidad de escape
+      T^2=\frac{4\pi^2}{GM}r^3 :: Tercera ley de Kepler
+      \rho=\frac{m}{V} :: Densidad
+      P=\frac{F}{A} :: Presión
+      P=P_0+\rho gh :: Presión hidrostática
+      E=\rho_fVg :: Empuje (Arquímedes)
+      A_1v_1=A_2v_2 :: Ecuación de continuidad
+      P+\frac{1}{2}\rho v^2+\rho gh=\text{cte} :: Ecuación de Bernoulli
+      L=T-V :: Lagrangiano
+      \frac{d}{dt}\frac{\partial L}{\partial\dot{q}}-\frac{\partial L}{\partial q}=0 :: Ecuaciones de Euler-Lagrange
+    `),a("Ondas y óptica",o`
+      v=\lambda f :: Velocidad de una onda
+      f=\frac{1}{T} :: Frecuencia
+      \omega=2\pi f :: Frecuencia angular
+      k=\frac{2\pi}{\lambda} :: Número de onda
+      y(x,t)=A\sin(kx-\omega t+\varphi) :: Onda armónica
+      x(t)=A\cos(\omega t+\varphi) :: Movimiento armónico simple
+      \beta=10\log\frac{I}{I_0} :: Nivel de intensidad sonora
+      f'=f\frac{v\pm v_o}{v\mp v_f} :: Efecto Doppler
+      n=\frac{c}{v} :: Índice de refracción
+      n_1\sin\theta_1=n_2\sin\theta_2 :: Ley de Snell
+      \frac{1}{f}=\frac{1}{s}+\frac{1}{s'} :: Ecuación de las lentes
+      M=-\frac{s'}{s} :: Aumento lateral
+      P=\frac{1}{f} :: Potencia de una lente :: dioptrias
+      d\sin\theta=m\lambda :: Interferencia / red de difracción
+      \sin\theta_c=\frac{n_2}{n_1} :: Ángulo límite
+      I=I_0\cos^2\theta :: Ley de Malus
+    `),a("Termodinámica",o`
+      PV=nRT :: Gas ideal
+      Q=mc\Delta T :: Calor sensible
+      Q=mL :: Calor latente
+      \Delta U=Q-W :: Primer principio
+      W=P\Delta V :: Trabajo de expansión
+      \eta=\frac{W}{Q_c}=1-\frac{Q_f}{Q_c} :: Rendimiento
+      \eta_C=1-\frac{T_f}{T_c} :: Rendimiento de Carnot
+      \Delta S=\frac{Q}{T} :: Variación de entropía
+      \Delta S\ge0 :: Segundo principio
+      S=k_B\ln\Omega :: Entropía de Boltzmann
+      \frac{P_1V_1}{T_1}=\frac{P_2V_2}{T_2} :: Ley combinada de los gases
+      \Delta L=\alpha L_0\Delta T :: Dilatación lineal
+      E_c=\frac{3}{2}k_BT :: Energía cinética media
+      \frac{Q}{t}=kA\frac{\Delta T}{d} :: Conducción (Fourier)
+      P=\varepsilon\sigma AT^4 :: Ley de Stefan-Boltzmann
+      \lambda_{\max}T=b :: Ley de Wien
+      PV^{\gamma}=\text{cte} :: Proceso adiabático
+      T(K)=T(^\circ\text{C})+273{,}15 :: Kelvin y Celsius
+      H=U+PV :: Entalpía
+      G=H-TS :: Energía libre de Gibbs
+    `),a("Electricidad y magnetismo",o`
+      F=k\frac{q_1q_2}{r^2} :: Ley de Coulomb
+      \vec{E}=\frac{\vec{F}}{q} :: Campo eléctrico
+      E=k\frac{Q}{r^2} :: Campo de una carga puntual
+      V=k\frac{Q}{r} :: Potencial eléctrico
+      V=IR :: Ley de Ohm
+      P=VI=I^2R :: Potencia eléctrica
+      I=\frac{dQ}{dt} :: Intensidad de corriente
+      R=\rho\frac{l}{A} :: Resistencia de un conductor
+      R_s=R_1+R_2+\cdots :: Resistencias en serie
+      \frac{1}{R_p}=\frac{1}{R_1}+\frac{1}{R_2}+\cdots :: Resistencias en paralelo
+      C=\frac{Q}{V} :: Capacidad
+      C=\varepsilon_0\frac{A}{d} :: Condensador plano
+      U=\frac{1}{2}CV^2 :: Energía de un condensador
+      \vec{F}=q\vec{v}\times\vec{B} :: Fuerza de Lorentz
+      \vec{F}=q(\vec{E}+\vec{v}\times\vec{B}) :: Fuerza de Lorentz completa
+      F=BIl\sin\theta :: Fuerza sobre un conductor
+      B=\frac{\mu_0I}{2\pi r} :: Campo de un hilo
+      B=\mu_0nI :: Campo de un solenoide
+      \Phi_B=\vec{B}\cdot\vec{A} :: Flujo magnético
+      \varepsilon=-\frac{d\Phi_B}{dt} :: Ley de Faraday-Lenz
+      \varepsilon=-L\frac{dI}{dt} :: Autoinducción
+      \frac{V_1}{V_2}=\frac{N_1}{N_2} :: Transformador
+      X_L=\omega L :: Reactancia inductiva
+      X_C=\frac{1}{\omega C} :: Reactancia capacitiva
+      Z=\sqrt{R^2+(X_L-X_C)^2} :: Impedancia
+      f_0=\frac{1}{2\pi\sqrt{LC}} :: Frecuencia de resonancia
+      \oint\vec{E}\cdot d\vec{A}=\frac{Q}{\varepsilon_0} :: Ley de Gauss
+      \oint\vec{B}\cdot d\vec{A}=0 :: Gauss para el magnetismo
+      \oint\vec{E}\cdot d\vec{l}=-\frac{d\Phi_B}{dt} :: Faraday (integral)
+      \oint\vec{B}\cdot d\vec{l}=\mu_0I+\mu_0\varepsilon_0\frac{d\Phi_E}{dt} :: Ampère-Maxwell
+      \nabla\cdot\vec{E}=\frac{\rho}{\varepsilon_0} :: Maxwell: Gauss
+      \nabla\cdot\vec{B}=0 :: Maxwell: sin monopolos
+      \nabla\times\vec{E}=-\frac{\partial\vec{B}}{\partial t} :: Maxwell: Faraday
+      \nabla\times\vec{B}=\mu_0\vec{J}+\mu_0\varepsilon_0\frac{\partial\vec{E}}{\partial t} :: Maxwell: Ampère
+      c=\frac{1}{\sqrt{\mu_0\varepsilon_0}} :: Velocidad de la luz
+      \vec{S}=\frac{1}{\mu_0}\vec{E}\times\vec{B} :: Vector de Poynting
+    `),a("Cuántica y notación de Dirac",o`
+      |#?\rangle :: Ket
+      \langle#?| :: Bra
+      \langle#?|#?\rangle :: Bra-ket :: producto interno
+      \langle#?|#?|#?\rangle :: Elemento de matriz
+      |#?\rangle\langle#?| :: Proyector
+      \langle#?\rangle :: Valor esperado
+      \hat{H}|\psi\rangle=E|\psi\rangle :: Ecuación de autovalores
+      i\hbar\frac{\partial}{\partial t}\Psi=\hat{H}\Psi :: Ecuación de Schrödinger
+      -\frac{\hbar^2}{2m}\nabla^2\psi+V\psi=E\psi :: Schrödinger independiente del tiempo
+      E=h\nu :: Energía del fotón
+      E=\hbar\omega :: Energía (ħω)
+      \lambda=\frac{h}{p} :: Longitud de onda de De Broglie
+      \Delta x\,\Delta p\ge\frac{\hbar}{2} :: Principio de incertidumbre
+      \Delta E\,\Delta t\ge\frac{\hbar}{2} :: Incertidumbre energía-tiempo
+      [\hat{x},\hat{p}]=i\hbar :: Conmutador posición-momento
+      [#?,#?] :: Conmutador
+      \{#?,#?\} :: Anticonmutador
+      \hat{p}=-i\hbar\nabla :: Operador momento
+      E_n=-\frac{13{,}6\ \text{eV}}{n^2} :: Niveles del hidrógeno
+      E_n=\left(n+\frac{1}{2}\right)\hbar\omega :: Oscilador armónico cuántico
+      hf=\phi+E_{c,\max} :: Efecto fotoeléctrico
+      \frac{1}{\lambda}=R_H\left(\frac{1}{n_1^2}-\frac{1}{n_2^2}\right) :: Fórmula de Rydberg
+      |\psi|^2 :: Densidad de probabilidad
+      \int|\psi|^2\,dV=1 :: Normalización
+      \hat{a}^{\dagger} :: Operador de creación
+      \hat{a} :: Operador de aniquilación
+      \otimes :: Producto tensorial
+      |\uparrow\rangle :: Espín arriba
+      |\downarrow\rangle :: Espín abajo
+      |0\rangle :: Estado base / qubit 0
+      |1\rangle :: Qubit 1
+      \frac{1}{\sqrt{2}}(|0\rangle+|1\rangle) :: Superposición
+      \sigma_x,\sigma_y,\sigma_z :: Matrices de Pauli
+      \operatorname{Tr}(\rho\hat{A}) :: Traza con matriz densidad
+    `),a("Relatividad y nuclear",o`
+      E=mc^2 :: Equivalencia masa-energía
+      E^2=(pc)^2+(mc^2)^2 :: Energía relativista
+      \gamma=\frac{1}{\sqrt{1-\frac{v^2}{c^2}}} :: Factor de Lorentz
+      \Delta t=\gamma\Delta t_0 :: Dilatación del tiempo
+      L=\frac{L_0}{\gamma} :: Contracción de la longitud
+      p=\gamma mv :: Momento relativista
+      ds^2=-c^2dt^2+dx^2+dy^2+dz^2 :: Intervalo espacio-temporal
+      G_{\mu\nu}+\Lambda g_{\mu\nu}=\frac{8\pi G}{c^4}T_{\mu\nu} :: Ecuaciones de Einstein
+      r_s=\frac{2GM}{c^2} :: Radio de Schwarzschild
+      N=N_0e^{-\lambda t} :: Desintegración radiactiva
+      t_{1/2}=\frac{\ln2}{\lambda} :: Periodo de semidesintegración
+      A=\lambda N :: Actividad
+      \Delta m=Zm_p+(A-Z)m_n-M :: Defecto de masa
+      E_b=\Delta m\,c^2 :: Energía de enlace
+      \ce{^{A}_{Z}X} :: Núclido genérico
+      \ce{^{A}_{Z}X -> ^{A-4}_{Z-2}Y + ^{4}_{2}He} :: Desintegración alfa
+      \ce{^{A}_{Z}X -> ^{A}_{Z+1}Y + e^- + \bar{\nu}_e} :: Desintegración beta menos
+      \ce{^{A}_{Z}X -> ^{A}_{Z-1}Y + e^+ + \nu_e} :: Desintegración beta más
+      \ce{^{235}_{92}U + ^{1}_{0}n -> ^{141}_{56}Ba + ^{92}_{36}Kr + 3^{1}_{0}n} :: Fisión del uranio
+      \ce{^{2}_{1}H + ^{3}_{1}H -> ^{4}_{2}He + ^{1}_{0}n} :: Fusión D-T
+    `),a("Partículas",o`
+      e^{-} :: Electrón
+      e^{+} :: Positrón
+      p^{+} :: Protón
+      \bar{p} :: Antiprotón
+      n^{0} :: Neutrón
+      \gamma :: Fotón
+      \nu_e :: Neutrino electrónico
+      \bar{\nu}_e :: Antineutrino
+      \nu_\mu :: Neutrino muónico
+      \nu_\tau :: Neutrino tauónico
+      \mu^{-} :: Muon
+      \tau^{-} :: Tau
+      \pi^{+} :: Pion positivo
+      \pi^{0} :: Pion neutro
+      K^{+} :: Kaón
+      W^{\pm} :: Bosón W
+      Z^{0} :: Bosón Z
+      H^{0} :: Bosón de Higgs
+      g :: Gluon
+      u :: Quark arriba
+      d :: Quark abajo
+      s :: Quark extraño
+      c :: Quark encanto
+      b :: Quark fondo
+      t :: Quark cima
+      \alpha :: Partícula alfa
+      \beta^{-} :: Partícula beta
+      \Lambda^{0} :: Barión lambda
+      \Sigma^{+} :: Barión sigma
+      \Omega^{-} :: Barión omega
+    `),a("Constantes",o`
+      c=3{,}00\times10^{8}\ \text{m/s} :: Velocidad de la luz
+      h=6{,}626\times10^{-34}\ \text{J·s} :: Constante de Planck
+      \hbar=\frac{h}{2\pi} :: Planck reducida
+      G=6{,}674\times10^{-11}\ \text{N·m}^2/\text{kg}^2 :: Constante de gravitación
+      g=9{,}81\ \text{m/s}^2 :: Gravedad terrestre
+      k_B=1{,}381\times10^{-23}\ \text{J/K} :: Constante de Boltzmann
+      N_A=6{,}022\times10^{23}\ \text{mol}^{-1} :: Número de Avogadro
+      R=8{,}314\ \text{J/(mol·K)} :: Constante de los gases
+      e=1{,}602\times10^{-19}\ \text{C} :: Carga elemental
+      \varepsilon_0=8{,}854\times10^{-12}\ \text{F/m} :: Permitividad del vacío
+      \mu_0=4\pi\times10^{-7}\ \text{T·m/A} :: Permeabilidad del vacío
+      k=8{,}99\times10^{9}\ \text{N·m}^2/\text{C}^2 :: Constante de Coulomb
+      m_e=9{,}109\times10^{-31}\ \text{kg} :: Masa del electrón
+      m_p=1{,}673\times10^{-27}\ \text{kg} :: Masa del protón
+      m_n=1{,}675\times10^{-27}\ \text{kg} :: Masa del neutrón
+      \sigma=5{,}670\times10^{-8}\ \text{W/(m}^2\text{K}^4) :: Stefan-Boltzmann
+      R_H=1{,}097\times10^{7}\ \text{m}^{-1} :: Constante de Rydberg
+      u=1{,}661\times10^{-27}\ \text{kg} :: Unidad de masa atómica
+      F=96485\ \text{C/mol} :: Constante de Faraday
+      a_0=5{,}29\times10^{-11}\ \text{m} :: Radio de Bohr
+      \alpha\approx\frac{1}{137} :: Constante de estructura fina
+      1\ \text{eV}=1{,}602\times10^{-19}\ \text{J} :: Electronvoltio
+      1\ \text{atm}=101325\ \text{Pa} :: Atmósfera
+    `),a("Unidades",o`
+      \text{m} :: metro :: longitud
+      \text{kg} :: kilogramo :: masa
+      \text{s} :: segundo :: tiempo
+      \text{A} :: amperio :: corriente
+      \text{K} :: kelvin :: temperatura
+      \text{mol} :: mol :: cantidad de sustancia
+      \text{cd} :: candela :: intensidad luminosa
+      \text{N} :: newton :: fuerza
+      \text{J} :: julio :: energia joule
+      \text{W} :: vatio :: potencia watt
+      \text{Pa} :: pascal :: presion
+      \text{Hz} :: hercio :: frecuencia hertz
+      \text{C} :: culombio :: carga coulomb
+      \text{V} :: voltio :: tension
+      Ω ~ \Omega :: ohmio :: resistencia
+      \text{F} :: faradio :: capacidad
+      \text{T} :: tesla :: campo magnetico
+      \text{Wb} :: weber :: flujo magnetico
+      \text{H} :: henrio :: inductancia
+      \text{S} :: siemens :: conductancia
+      \text{lm} :: lumen
+      \text{lx} :: lux
+      \text{Bq} :: becquerel
+      \text{Gy} :: gray
+      \text{Sv} :: sievert
+      \text{rad} :: radián
+      \text{sr} :: estereorradián
+      ℃ ~ ^\circ\text{C} :: grado Celsius
+      ℉ ~ ^\circ\text{F} :: grado Fahrenheit
+      Å ~ \text{\AA} :: ángstrom
+      \text{eV} :: electronvoltio
+      \text{L} :: litro
+      \text{atm} :: atmósfera
+      \text{bar} :: bar
+      \text{mmHg} :: milímetro de mercurio
+      \text{cal} :: caloría
+      \text{kWh} :: kilovatio hora
+      \text{dB} :: decibelio
+      \text{u} :: unidad de masa atómica
+      \text{m/s} :: metro por segundo
+      \text{m/s}^2 :: metro por segundo al cuadrado
+      \text{km/h} :: kilómetro por hora
+      \text{kg/m}^3 :: kilogramo por metro cúbico
+      \text{N·m} :: newton metro
+      \text{J/(kg·K)} :: calor específico (unidad)
+      \text{mol/L} :: molaridad (unidad)
+      μ ~ \mu :: micro (prefijo)
+      @ ㎜ ㎝ ㎞ ㎡ ㎥ ㎏ ㎎ ㎍ ㎖ ㎗ ㎐ ㎑ ㎒ ㎓ ㎩ ㎪ ㎫ ㎂ ㎃ ㎄ ㎶ ㎷ ㎸ ㎽ ㎾ ㎿ ㏀ ㏁ ㏄ ㏈ ㎧ ㎨ ㎭ ㏖ ㏗ ㎈ ㎉
+    `)]),n("chem","Química","🧪",[a("Escribir química (mhchem)",o`
+      \ce{#?} :: Fórmula química libre :: mhchem
+      \ce{#? -> #?} :: Reacción
+      \ce{#? + #? -> #?} :: Reacción con dos reactivos
+      \ce{#? + #? -> #? + #?} :: Reacción completa
+      \ce{#? <=> #?} :: Equilibrio
+      \ce{#? ->[#?] #?} :: Reacción con catalizador
+      \ce{#? ->[#?][#?] #?} :: Reacción con condiciones arriba y abajo
+      \ce{#?^{#?}} :: Ion con carga
+      \ce{^{#?}_{#?}#?} :: Núclido (A, Z)
+      \ce{#?(s)} :: Estado sólido
+      \ce{#?(l)} :: Estado líquido
+      \ce{#?(g)} :: Estado gaseoso
+      \ce{#?(aq)} :: Disolución acuosa
+      \ce{#? v} :: Precipitado ↓
+      \ce{#? ^} :: Desprendimiento de gas ↑
+      \ce{#? . #?H2O} :: Hidrato
+      [\ce{#?}] :: Concentración molar
+    `),a("Flechas y enlaces",o`
+      \ce{->} :: Flecha de reacción
+      \ce{<-} :: Flecha inversa
+      \ce{<->} :: Resonancia
+      \ce{<=>} :: Equilibrio
+      \ce{<=>>} :: Equilibrio desplazado a la derecha
+      \ce{<<=>} :: Equilibrio desplazado a la izquierda
+      \ce{<-->} :: Doble flecha
+      \ce{->[\Delta]} :: Calentar
+      \ce{->[h\nu]} :: Luz
+      \ce{->[H2O]} :: En agua
+      \ce{->[\text{cat.}]} :: Catalizador
+      \ce{->[T][P]} :: Temperatura y presión
+      \ce{A-B} :: Enlace simple
+      \ce{A=B} :: Enlace doble
+      \ce{A#B} :: Enlace triple
+      \ce{A\bond{~}B} :: Enlace de resonancia
+      \ce{A\bond{...}B} :: Enlace de hidrógeno
+      \ce{A\bond{->}B} :: Enlace dativo
+      \ce{A\bond{~-}B} :: Enlace parcial doble
+      ⇌ ~ \rightleftharpoons :: Equilibrio (símbolo)
+      ⇄ :: Reversible (símbolo)
+      ↑ :: Gas (símbolo)
+      ↓ :: Precipitado (símbolo)
+      Δ ~ \Delta :: Calor
+    `),a("Elementos (tabla periódica)",e2()),a("Núclidos e isótopos",[...o`
+        \ce{^{1}_{1}H} :: Protio
+        \ce{^{2}_{1}H} :: Deuterio
+        \ce{^{3}_{1}H} :: Tritio
+        \ce{^{4}_{2}He} :: Helio-4 :: alfa
+        \ce{^{12}_{6}C} :: Carbono-12
+        \ce{^{13}_{6}C} :: Carbono-13
+        \ce{^{14}_{6}C} :: Carbono-14 :: datacion
+        \ce{^{14}_{7}N} :: Nitrógeno-14
+        \ce{^{16}_{8}O} :: Oxígeno-16
+        \ce{^{18}_{8}O} :: Oxígeno-18
+        \ce{^{40}_{19}K} :: Potasio-40
+        \ce{^{60}_{27}Co} :: Cobalto-60
+        \ce{^{90}_{38}Sr} :: Estroncio-90
+        \ce{^{99m}_{43}Tc} :: Tecnecio-99m
+        \ce{^{131}_{53}I} :: Yodo-131
+        \ce{^{133}_{55}Cs} :: Cesio-133
+        \ce{^{137}_{55}Cs} :: Cesio-137
+        \ce{^{222}_{86}Rn} :: Radón-222
+        \ce{^{226}_{88}Ra} :: Radio-226
+        \ce{^{235}_{92}U} :: Uranio-235
+        \ce{^{238}_{92}U} :: Uranio-238
+        \ce{^{239}_{94}Pu} :: Plutonio-239
+        \ce{^{1}_{0}n} :: Neutrón
+        \ce{^{1}_{1}p} :: Protón
+        \ce{^{0}_{-1}e} :: Electrón (beta)
+        \ce{^{0}_{+1}e} :: Positrón
+      `,...a2()]),a("Iones",o`
+      \ce{H+} :: Protón / hidrón
+      \ce{H3O+} :: Hidronio :: oxonio
+      \ce{OH-} :: Hidróxido
+      \ce{Na+} :: Sodio
+      \ce{K+} :: Potasio
+      \ce{Li+} :: Litio
+      \ce{Ag+} :: Plata
+      \ce{NH4+} :: Amonio
+      \ce{Ca^2+} :: Calcio
+      \ce{Mg^2+} :: Magnesio
+      \ce{Ba^2+} :: Bario
+      \ce{Zn^2+} :: Zinc
+      \ce{Cu+} :: Cobre(I)
+      \ce{Cu^2+} :: Cobre(II)
+      \ce{Fe^2+} :: Hierro(II) :: ferroso
+      \ce{Fe^3+} :: Hierro(III) :: ferrico
+      \ce{Al^3+} :: Aluminio
+      \ce{Pb^2+} :: Plomo(II)
+      \ce{Hg^2+} :: Mercurio(II)
+      \ce{Hg2^2+} :: Mercurio(I)
+      \ce{Sn^2+} :: Estaño(II)
+      \ce{Mn^2+} :: Manganeso(II)
+      \ce{Cr^3+} :: Cromo(III)
+      \ce{Co^2+} :: Cobalto(II)
+      \ce{Ni^2+} :: Níquel(II)
+      \ce{F-} :: Fluoruro
+      \ce{Cl-} :: Cloruro
+      \ce{Br-} :: Bromuro
+      \ce{I-} :: Yoduro
+      \ce{O^2-} :: Óxido
+      \ce{S^2-} :: Sulfuro
+      \ce{N^3-} :: Nitruro
+      \ce{H-} :: Hidruro
+      \ce{O2^2-} :: Peróxido
+      \ce{CN-} :: Cianuro
+      \ce{SCN-} :: Tiocianato
+      \ce{NO3-} :: Nitrato
+      \ce{NO2-} :: Nitrito
+      \ce{SO4^2-} :: Sulfato
+      \ce{SO3^2-} :: Sulfito
+      \ce{HSO4-} :: Hidrogenosulfato :: bisulfato
+      \ce{CO3^2-} :: Carbonato
+      \ce{HCO3-} :: Hidrogenocarbonato :: bicarbonato
+      \ce{PO4^3-} :: Fosfato
+      \ce{HPO4^2-} :: Hidrogenofosfato
+      \ce{H2PO4-} :: Dihidrogenofosfato
+      \ce{ClO-} :: Hipoclorito
+      \ce{ClO2-} :: Clorito
+      \ce{ClO3-} :: Clorato
+      \ce{ClO4-} :: Perclorato
+      \ce{MnO4-} :: Permanganato
+      \ce{CrO4^2-} :: Cromato
+      \ce{Cr2O7^2-} :: Dicromato
+      \ce{CH3COO-} :: Acetato :: etanoato
+      \ce{C2O4^2-} :: Oxalato
+      \ce{S2O3^2-} :: Tiosulfato
+      \ce{SiO3^2-} :: Silicato
+      \ce{BO3^3-} :: Borato
+      \ce{AlO2-} :: Aluminato
+      \ce{[Fe(CN)6]^4-} :: Hexacianoferrato(II)
+      \ce{[Cu(NH3)4]^2+} :: Tetraamincobre(II)
+      \ce{[Ag(NH3)2]+} :: Diaminplata
+      \ce{e-} :: Electrón
+    `),a("Compuestos inorgánicos",o`
+      \ce{H2O} :: Agua
+      \ce{H2O2} :: Agua oxigenada :: peroxido
+      \ce{O2} :: Oxígeno molecular
+      \ce{O3} :: Ozono
+      \ce{H2} :: Hidrógeno molecular
+      \ce{N2} :: Nitrógeno molecular
+      \ce{Cl2} :: Cloro molecular
+      \ce{CO2} :: Dióxido de carbono
+      \ce{CO} :: Monóxido de carbono
+      \ce{NH3} :: Amoniaco
+      \ce{CH4} :: Metano
+      \ce{NaCl} :: Cloruro de sodio :: sal
+      \ce{HCl} :: Ácido clorhídrico
+      \ce{HF} :: Ácido fluorhídrico
+      \ce{HBr} :: Ácido bromhídrico
+      \ce{H2SO4} :: Ácido sulfúrico
+      \ce{HNO3} :: Ácido nítrico
+      \ce{H3PO4} :: Ácido fosfórico
+      \ce{H2CO3} :: Ácido carbónico
+      \ce{HClO4} :: Ácido perclórico
+      \ce{H2S} :: Sulfuro de hidrógeno
+      \ce{HCN} :: Cianuro de hidrógeno
+      \ce{NaOH} :: Hidróxido de sodio :: sosa
+      \ce{KOH} :: Hidróxido de potasio :: potasa
+      \ce{Ca(OH)2} :: Hidróxido de calcio :: cal apagada
+      \ce{Mg(OH)2} :: Hidróxido de magnesio
+      \ce{Al(OH)3} :: Hidróxido de aluminio
+      \ce{CaCO3} :: Carbonato de calcio :: caliza
+      \ce{NaHCO3} :: Bicarbonato de sodio
+      \ce{Na2CO3} :: Carbonato de sodio
+      \ce{CaO} :: Óxido de calcio :: cal viva
+      \ce{Fe2O3} :: Óxido de hierro(III)
+      \ce{Fe3O4} :: Magnetita
+      \ce{Al2O3} :: Alúmina
+      \ce{SiO2} :: Dióxido de silicio :: silice cuarzo
+      \ce{SO2} :: Dióxido de azufre
+      \ce{SO3} :: Trióxido de azufre
+      \ce{NO} :: Monóxido de nitrógeno
+      \ce{NO2} :: Dióxido de nitrógeno
+      \ce{N2O} :: Óxido nitroso
+      \ce{N2O4} :: Tetraóxido de dinitrógeno
+      \ce{P4O10} :: Pentóxido de fósforo
+      \ce{KMnO4} :: Permanganato de potasio
+      \ce{K2Cr2O7} :: Dicromato de potasio
+      \ce{AgNO3} :: Nitrato de plata
+      \ce{CuSO4} :: Sulfato de cobre(II)
+      \ce{CuSO4.5H2O} :: Sulfato de cobre pentahidratado
+      \ce{NH4Cl} :: Cloruro de amonio
+      \ce{NH4NO3} :: Nitrato de amonio
+      \ce{KNO3} :: Nitrato de potasio
+      \ce{CaSO4} :: Sulfato de calcio :: yeso
+      \ce{BaSO4} :: Sulfato de bario
+      \ce{AgCl} :: Cloruro de plata
+      \ce{NaClO} :: Hipoclorito de sodio :: lejia
+      \ce{CaCl2} :: Cloruro de calcio
+      \ce{MgO} :: Óxido de magnesio
+      \ce{ZnO} :: Óxido de zinc
+      \ce{TiO2} :: Dióxido de titanio
+    `),a("Orgánica y bioquímica",o`
+      \ce{CH4} :: Metano
+      \ce{C2H6} :: Etano
+      \ce{C3H8} :: Propano
+      \ce{C4H10} :: Butano
+      \ce{C2H4} :: Eteno :: etileno
+      \ce{C2H2} :: Etino :: acetileno
+      \ce{C6H6} :: Benceno
+      \ce{CH3OH} :: Metanol
+      \ce{C2H5OH} :: Etanol
+      \ce{CH3COOH} :: Ácido acético :: etanoico
+      \ce{HCOOH} :: Ácido fórmico :: metanoico
+      \ce{CH3CHO} :: Etanal :: acetaldehido
+      \ce{HCHO} :: Metanal :: formaldehido
+      \ce{CH3COCH3} :: Propanona :: acetona
+      \ce{CH3COOCH2CH3} :: Acetato de etilo
+      \ce{CH3NH2} :: Metilamina
+      \ce{CH3CONH2} :: Acetamida
+      \ce{C6H5OH} :: Fenol
+      \ce{C6H5CH3} :: Tolueno
+      \ce{CHCl3} :: Cloroformo
+      \ce{CCl4} :: Tetracloruro de carbono
+      \ce{C6H12O6} :: Glucosa
+      \ce{C12H22O11} :: Sacarosa
+      \ce{(C6H10O5)_n} :: Almidón / celulosa
+      \ce{CO(NH2)2} :: Urea
+      \ce{C3H8O3} :: Glicerol
+      \ce{C10H16N5O13P3} :: ATP
+      \ce{R-OH} :: Alcohol (grupo)
+      \ce{R-CHO} :: Aldehído (grupo)
+      \ce{R-CO-R'} :: Cetona (grupo)
+      \ce{R-COOH} :: Ácido carboxílico (grupo)
+      \ce{R-COO-R'} :: Éster (grupo)
+      \ce{R-O-R'} :: Éter (grupo)
+      \ce{R-NH2} :: Amina (grupo)
+      \ce{R-CONH2} :: Amida (grupo)
+      \ce{R-X} :: Haluro de alquilo
+      \ce{R-SH} :: Tiol
+      \ce{R-C#N} :: Nitrilo
+      \ce{-CH3} :: Metilo
+      \ce{-CH2-} :: Metileno
+      \ce{-C6H5} :: Fenilo
+      \ce{C_nH_{2n+2}} :: Alcanos (fórmula general)
+      \ce{C_nH_{2n}} :: Alquenos (fórmula general)
+      \ce{C_nH_{2n-2}} :: Alquinos (fórmula general)
+      ⌬ :: Anillo de benceno
+      ⏣ :: Benceno con círculo
+      α ~ \alpha :: Posición alfa
+      β ~ \beta :: Posición beta
+      (R) :: Configuración R
+      (S) :: Configuración S
+      \textit{cis} :: cis
+      \textit{trans} :: trans
+      \textit{o}\text{-} :: orto
+      \textit{m}\text{-} :: meta
+      \textit{p}\text{-} :: para
+      (+) :: Dextrógiro
+      (-) :: Levógiro
+    `),a("Reacciones típicas",o`
+      \ce{2H2 + O2 -> 2H2O} :: Formación del agua
+      \ce{CH4 + 2O2 -> CO2 + 2H2O} :: Combustión del metano
+      \ce{C3H8 + 5O2 -> 3CO2 + 4H2O} :: Combustión del propano
+      \ce{6CO2 + 6H2O ->[h\nu] C6H12O6 + 6O2} :: Fotosíntesis
+      \ce{C6H12O6 + 6O2 -> 6CO2 + 6H2O} :: Respiración celular
+      \ce{HCl + NaOH -> NaCl + H2O} :: Neutralización
+      \ce{N2 + 3H2 <=> 2NH3} :: Síntesis de Haber
+      \ce{2SO2 + O2 <=> 2SO3} :: Proceso de contacto
+      \ce{CaCO3 ->[\Delta] CaO + CO2} :: Descomposición de la caliza
+      \ce{Zn + 2HCl -> ZnCl2 + H2 ^} :: Metal con ácido
+      \ce{AgNO3 + NaCl -> AgCl v + NaNO3} :: Precipitación
+      \ce{2Na + 2H2O -> 2NaOH + H2 ^} :: Sodio con agua
+      \ce{Fe2O3 + 3CO -> 2Fe + 3CO2} :: Alto horno
+      \ce{4Fe + 3O2 -> 2Fe2O3} :: Oxidación del hierro
+      \ce{2H2O2 -> 2H2O + O2} :: Descomposición del peróxido
+      \ce{2H2O -> 2H2 + O2} :: Electrólisis del agua
+      \ce{CH3COOH + C2H5OH <=> CH3COOC2H5 + H2O} :: Esterificación
+      \ce{C2H4 + H2 ->[Ni] C2H6} :: Hidrogenación
+      \ce{C6H12O6 -> 2C2H5OH + 2CO2} :: Fermentación alcohólica
+      \ce{H2O <=> H+ + OH-} :: Autoionización del agua
+      \ce{CO2 + H2O <=> H2CO3} :: Ácido carbónico
+      \ce{Zn + Cu^2+ -> Zn^2+ + Cu} :: Pila Daniell
+      \ce{MnO4- + 8H+ + 5e- -> Mn^2+ + 4H2O} :: Semirreacción del permanganato
+      \ce{2H+ + 2e- -> H2} :: Electrodo de hidrógeno
+    `),a("Magnitudes y fórmulas",o`
+      n=\frac{m}{M} :: Moles
+      M=\frac{n}{V} :: Molaridad
+      m=\frac{n_{soluto}}{kg_{disolvente}} :: Molalidad
+      \chi_i=\frac{n_i}{n_T} :: Fracción molar
+      \%\,m/m=\frac{m_{soluto}}{m_{disolución}}\cdot100 :: Porcentaje en masa
+      C_1V_1=C_2V_2 :: Dilución
+      PV=nRT :: Gases ideales
+      P_T=\sum P_i :: Ley de Dalton
+      pH=-\log[\ce{H+}] :: pH
+      pOH=-\log[\ce{OH-}] :: pOH
+      pH+pOH=14 :: Relación pH y pOH
+      K_w=[\ce{H+}][\ce{OH-}]=10^{-14} :: Producto iónico del agua
+      K_a=\frac{[\ce{H+}][\ce{A-}]}{[\ce{HA}]} :: Constante de acidez
+      pK_a=-\log K_a :: pKa
+      pH=pK_a+\log\frac{[\ce{A-}]}{[\ce{HA}]} :: Henderson-Hasselbalch
+      K_c=\frac{[C]^c[D]^d}{[A]^a[B]^b} :: Constante de equilibrio
+      K_p=K_c(RT)^{\Delta n} :: Relación Kp y Kc
+      K_{ps} :: Producto de solubilidad
+      Q :: Cociente de reacción
+      \Delta H :: Variación de entalpía
+      \Delta H^\circ_f :: Entalpía de formación estándar
+      \Delta S :: Variación de entropía
+      \Delta G=\Delta H-T\Delta S :: Energía libre de Gibbs
+      \Delta G^\circ=-RT\ln K :: Gibbs y equilibrio
+      \Delta G^\circ=-nFE^\circ :: Gibbs y potencial
+      E=E^\circ-\frac{RT}{nF}\ln Q :: Ecuación de Nernst
+      E^\circ_{pila}=E^\circ_{cátodo}-E^\circ_{ánodo} :: Potencial de la pila
+      v=k[A]^m[B]^n :: Ley de velocidad
+      k=Ae^{-\frac{E_a}{RT}} :: Ecuación de Arrhenius
+      t_{1/2}=\frac{\ln2}{k} :: Vida media (orden 1)
+      \Delta T_e=K_e\,m :: Ascenso ebulloscópico
+      \Delta T_c=K_c\,m :: Descenso crioscópico
+      \pi=MRT :: Presión osmótica
+      A=\varepsilon lc :: Ley de Lambert-Beer
+      \Delta H=\sum\Delta H_f(\text{prod})-\sum\Delta H_f(\text{react}) :: Ley de Hess
+      q=mc_e\Delta T :: Calorimetría
+      \text{Rendimiento}=\frac{m_{real}}{m_{teórica}}\cdot100 :: Rendimiento
+      E_a :: Energía de activación
+      \ce{1s^2 2s^2 2p^6} :: Configuración electrónica
+      [\ce{Ne}]\,3s^2\,3p^5 :: Configuración abreviada
+      \delta^{+} :: Carga parcial positiva
+      \delta^{-} :: Carga parcial negativa
+      \ddagger :: Estado de transición
+      ‡ :: Estado de transición (símbolo)
+      • ~ \bullet :: Radical libre / electrón desapareado
+      \uparrow\downarrow :: Par de electrones (orbital)
+      sp^3 :: Hibridación sp³
+      sp^2 :: Hibridación sp²
+      \sigma :: Enlace sigma
+      \pi :: Enlace pi
+    `),a("Alquimia y laboratorio",o`
+      @ 🜀 🜁 🜂 🜃 🜄 🜅 🜆 🜇 🜈 🜉 🜊 🜋 🜌 🜍 🜎 🜏 🜐 🜑 🜒 🜓 🜔 🜕 🜖 🜗 🜘 🜙 🜚 🜛 🜜 🜝 🜞 🜟 🜠 🜡 🜢 🜣 🜤 🜥 🜦 🜧 🜨 🜩 🜪 🜫 🜬 🜭 🜮 🜯
+      ⚗ :: Alambique
+      🧪 :: Tubo de ensayo
+      ⚛ :: Átomo
+      ☢ :: Radiactivo
+      ☣ :: Riesgo biológico
+      ☠ :: Tóxico
+      ⚠ :: Peligro
+      🔥 :: Inflamable
+      ♻ :: Reciclaje
+      ⚡ :: Alta tensión
+    `)]),n("bio","Biología y medicina","🧬",[a("Genética",o`
+      ♀ :: Hembra :: femenino mujer venus
+      ♂ :: Macho :: masculino hombre marte
+      ⚥ :: Intersexual / hermafrodita
+      ⚧ :: Transgénero
+      ⚲ :: Neutro
+      ⚢ :: Dos hembras
+      ⚣ :: Dos machos
+      ⚤ :: Hembra y macho
+      × :: Cruce :: cruzamiento
+      P :: Generación parental
+      F_1 :: Primera generación filial
+      F_2 :: Segunda generación filial
+      AA :: Homocigoto dominante
+      Aa :: Heterocigoto
+      aa :: Homocigoto recesivo
+      X^{A}X^{a} :: Portadora (ligado al X)
+      X^{a}Y :: Varón afectado (ligado al X)
+      I^{A}I^{B} :: Grupo sanguíneo AB
+      I^{A}i :: Grupo A heterocigoto
+      ii :: Grupo sanguíneo 0
+      Rh^{+} :: Rh positivo
+      Rh^{-} :: Rh negativo
+      2n :: Diploide
+      n :: Haploide
+      3n :: Triploide
+      2n=46 :: Cariotipo humano
+      46,XX :: Cariotipo femenino
+      46,XY :: Cariotipo masculino
+      47,XX,+21 :: Trisomía 21
+      p^2+2pq+q^2=1 :: Equilibrio de Hardy-Weinberg
+      p+q=1 :: Frecuencias alélicas
+      9:3:3:1 :: Proporción dihíbrida
+      3:1 :: Proporción monohíbrida
+      1:2:1 :: Proporción genotípica
+      □ :: Varón (genealogía) :: pedigree
+      ○ :: Mujer (genealogía)
+      ■ :: Varón afectado
+      ● :: Mujer afectada
+      ◇ :: Sexo desconocido
+      ◐ :: Portador/a
+      ⚭ :: Matrimonio :: union
+      ⚮ :: Divorcio
+      ⚯ :: Pareja no casada
+      † :: Fallecido
+      \begin{array}{c|cc} & A & a\\\hline A & AA & Aa\\ a & Aa & aa\end{array} :: Cuadro de Punnett
+    `),a("Molecular y bioquímica",o`
+      5'\to3' :: Sentido 5′→3′
+      3'\to5' :: Sentido 3′→5′
+      A=T :: Par adenina-timina
+      G\equiv C :: Par guanina-citosina
+      A=U :: Par adenina-uracilo
+      \text{ADN}\to\text{ARN}\to\text{proteína} :: Dogma central
+      \text{ARNm} :: ARN mensajero
+      \text{ARNt} :: ARN de transferencia
+      \text{ARNr} :: ARN ribosómico
+      \ce{ATP -> ADP + P_i} :: Hidrólisis del ATP
+      \ce{NAD+ + 2e- + H+ -> NADH} :: Reducción del NAD
+      \ce{NADP+} :: NADP+
+      \ce{FADH2} :: FADH₂
+      \ce{CoA-SH} :: Coenzima A
+      \ce{6CO2 + 6H2O ->[luz] C6H12O6 + 6O2} :: Fotosíntesis
+      \ce{C6H12O6 + 6O2 -> 6CO2 + 6H2O + ATP} :: Respiración aerobia
+      \ce{C6H12O6 -> 2C3H6O3} :: Fermentación láctica
+      v=\frac{V_{max}[S]}{K_m+[S]} :: Michaelis-Menten
+      K_m :: Constante de Michaelis
+      V_{max} :: Velocidad máxima
+      \ce{-NH2} :: Grupo amino
+      \ce{-COOH} :: Grupo carboxilo
+      \ce{-PO4^3-} :: Grupo fosfato
+      \ce{H3N+-CHR-COO-} :: Aminoácido (zwitterión)
+      \alpha\text{-hélice} :: Hélice alfa
+      \beta\text{-lámina} :: Lámina beta
+      \Delta G<0 :: Reacción exergónica
+      pH=7{,}4 :: pH fisiológico
+      \ce{Na+}/\ce{K+} :: Bomba sodio-potasio
+      \ce{Ca^2+} :: Calcio (señalización)
+      E=\frac{RT}{zF}\ln\frac{[ion]_{ext}}{[ion]_{int}} :: Potencial de Nernst
+      \Psi=\Psi_s+\Psi_p :: Potencial hídrico
+      🧬 :: ADN
+      🦠 :: Microbio
+      🧫 :: Placa de Petri
+      🔬 :: Microscopio
+    `),a("Ecología y evolución",o`
+      \frac{dN}{dt}=rN :: Crecimiento exponencial
+      \frac{dN}{dt}=rN\left(1-\frac{N}{K}\right) :: Crecimiento logístico
+      N_t=N_0e^{rt} :: Tamaño poblacional
+      K :: Capacidad de carga
+      r :: Tasa intrínseca de crecimiento
+      H'=-\sum p_i\ln p_i :: Índice de Shannon
+      D=1-\sum p_i^2 :: Índice de Simpson
+      \Delta p :: Cambio en la frecuencia alélica
+      w :: Eficacia biológica :: fitness
+      s :: Coeficiente de selección
+      N_e :: Tamaño efectivo de la población
+      \text{PPN}=\text{PPB}-R :: Producción primaria neta
+      10\% :: Regla del diez por ciento
+      \textit{Homo sapiens} :: Nombre científico (cursiva)
+      \textit{sp.} :: Especie no determinada
+      \textit{spp.} :: Varias especies
+      † :: Extinto
+      ♁ :: Tierra
+      🌱 :: Productor
+      🍃 :: Hoja
+      🌿 :: Planta
+      🐾 :: Fauna
+      🦴 :: Fósil
+      ↔ :: Mutualismo / interacción
+      ☘ :: Trébol
+      ⚘ :: Flor
+      ❀ :: Flor (fórmula floral)
+      ⚥ :: Flor hermafrodita
+      ⊕ :: Simetría actinomorfa
+      ↓ :: Simetría zigomorfa
+      K_{(5)}C_{(5)}A_5G_{(2)} :: Fórmula floral
+    `),a("Medicina y farmacia",o`
+      ℞ :: Receta :: prescripcion rx
+      ⚕ :: Vara de Esculapio :: medicina
+      ☤ :: Caduceo
+      ⚚ :: Vara de Hermes
+      ✚ :: Cruz médica
+      ♿ :: Accesibilidad
+      ℥ :: Onza (apotecario)
+      ℈ :: Escrúpulo
+      ʒ :: Dracma
+      ♡ :: Corazón
+      🫀 :: Corazón anatómico
+      🫁 :: Pulmones
+      🧠 :: Cerebro
+      🦷 :: Diente
+      🦴 :: Hueso
+      👁 :: Ojo
+      🩸 :: Sangre
+      💊 :: Fármaco
+      💉 :: Inyección
+      🩺 :: Estetoscopio
+      🌡 :: Termómetro
+      ↑ :: Aumentado
+      ↓ :: Disminuido
+      ↔ :: Sin cambios
+      Δ :: Cambio / diagnóstico
+      Ø :: Ausente / negativo
+      ⊕ :: Positivo
+      ⊖ :: Negativo
+      ≈ :: Aproximadamente
+      ♯ :: Fractura
+      c̄ :: Con (cum)
+      s̄ :: Sin (sine)
+      p̄ :: Después (post)
+      ā :: Antes (ante)
+      \text{IMC}=\frac{m}{h^2} :: Índice de masa corporal
+      \text{GC}=\text{FC}\times\text{VS} :: Gasto cardíaco
+      \text{PAM}=\text{PAD}+\frac{\text{PAS}-\text{PAD}}{3} :: Presión arterial media
+      \text{Cl}=\frac{U\cdot V}{P} :: Aclaramiento renal
+      t_{1/2}=\frac{0{,}693\,V_d}{Cl} :: Semivida de eliminación
+      \text{mg/kg} :: Dosis por peso
+      \text{mmHg} :: Milímetros de mercurio
+      \text{lpm} :: Latidos por minuto
+      \text{mEq/L} :: Miliequivalentes por litro
+      \text{UI} :: Unidades internacionales
+      \mu\text{g} :: Microgramo
+      \ce{SpO2} :: Saturación de oxígeno
+      \ce{PaO2} :: Presión arterial de oxígeno
+      \ce{PaCO2} :: Presión arterial de CO₂
+      \ce{HCO3-} :: Bicarbonato
+      \ce{HbO2} :: Oxihemoglobina
+    `)]),n("astro","Astronomía y Tierra","🪐",[a("Sistema solar",o`
+      ☉ :: Sol
+      ☿ :: Mercurio
+      ♀ :: Venus
+      ♁ :: Tierra
+      🜨 :: Tierra (variante)
+      ☾ :: Luna
+      ☽ :: Luna creciente
+      ♂ :: Marte
+      ♃ :: Júpiter
+      ♄ :: Saturno
+      ♅ :: Urano
+      ⛢ :: Urano (variante)
+      ♆ :: Neptuno
+      ♇ :: Plutón
+      ⚳ :: Ceres
+      ⚴ :: Palas
+      ⚵ :: Juno
+      ⚶ :: Vesta
+      ⚷ :: Quirón
+      ☄ :: Cometa
+      ★ :: Estrella
+      ☆ :: Estrella (hueca)
+      ✦ :: Estrella de cuatro puntas
+      ☊ :: Nodo ascendente
+      ☋ :: Nodo descendente
+      ☌ :: Conjunción
+      ☍ :: Oposición
+      ⚹ :: Sextil
+      △ :: Trígono
+      □ :: Cuadratura
+      M_\odot :: Masa solar
+      R_\odot :: Radio solar
+      L_\odot :: Luminosidad solar
+      M_\oplus :: Masa terrestre
+      R_\oplus :: Radio terrestre
+      \text{UA} :: Unidad astronómica
+      \text{pc} :: Pársec
+      \text{al} :: Año luz
+      m-M=5\log d-5 :: Módulo de distancia
+      v=H_0d :: Ley de Hubble
+      z=\frac{\Delta\lambda}{\lambda} :: Corrimiento al rojo
+      L=4\pi R^2\sigma T^4 :: Luminosidad estelar
+      F=\frac{L}{4\pi d^2} :: Flujo
+      d=\frac{1}{p} :: Paralaje
+    `),a("Fases lunares y zodiaco",o`
+      @ 🌑 🌒 🌓 🌔 🌕 🌖 🌗 🌘 🌙 🌚 🌛 🌜 🌝 🌞 ⭐ 🌟 💫 🌠 🌌 🪐 🌍 🌎 🌏 ☀ 🔭 🚀 🛰
+      ♈ :: Aries
+      ♉ :: Tauro
+      ♊ :: Géminis
+      ♋ :: Cáncer
+      ♌ :: Leo
+      ♍ :: Virgo
+      ♎ :: Libra
+      ♏ :: Escorpio
+      ♐ :: Sagitario
+      ♑ :: Capricornio
+      ♒ :: Acuario
+      ♓ :: Piscis
+      ⛎ :: Ofiuco
+    `),a("Geografía y clima",o`
+      ° :: Grado
+      ′ :: Minuto de arco
+      ″ :: Segundo de arco
+      #?^\circ\,#?'\,#?''\,\text{N} :: Coordenada (grados, minutos, segundos)
+      N :: Norte
+      S :: Sur
+      E :: Este
+      O :: Oeste
+      ↑ :: Norte (flecha)
+      ⌖ :: Posición
+      ⊕ :: Punto de referencia
+      📍 :: Ubicación
+      🧭 :: Brújula
+      🗺 :: Mapa
+      ⛰ :: Montaña
+      🌋 :: Volcán
+      🏔 :: Pico nevado
+      🏝 :: Isla
+      🏜 :: Desierto
+      🌊 :: Ola / océano
+      ☀ :: Soleado
+      ☁ :: Nublado
+      ⛅ :: Parcialmente nublado
+      ☂ :: Lluvia
+      ☔ :: Lluvia intensa
+      ⛈ :: Tormenta
+      ⚡ :: Rayo
+      ❄ :: Nieve
+      ☃ :: Muñeco de nieve
+      🌪 :: Tornado
+      🌫 :: Niebla
+      🌈 :: Arcoíris
+      🌡 :: Temperatura
+      💧 :: Gota
+      💨 :: Viento
+      ☈ :: Tormenta eléctrica
+      ⛆ :: Lluvia (símbolo)
+      \text{hPa} :: Hectopascal
+      \text{mm} :: Milímetros de precipitación
+      \text{msnm} :: Metros sobre el nivel del mar
+      \text{hab/km}^2 :: Densidad de población
+      1:50\,000 :: Escala
+      M_w :: Magnitud de momento
+      \rho=\frac{P}{S} :: Densidad de población (fórmula)
+      \text{TN}=\frac{N}{P}\cdot1000 :: Tasa de natalidad
+    `)]),n("cs","Informática y electrónica","💻",[a("Lógica y bits",o`
+      ∧ ~ \land :: AND
+      ∨ ~ \lor :: OR
+      ¬ ~ \lnot :: NOT
+      ⊕ ~ \oplus :: XOR
+      ⊼ ~ \barwedge :: NAND
+      ⊽ :: NOR
+      ⊙ ~ \odot :: XNOR
+      \overline{#?} :: Negación (barra)
+      A\cdot B :: AND (producto)
+      A+B :: OR (suma)
+      \overline{A\cdot B}=\overline{A}+\overline{B} :: Ley de De Morgan
+      \ll :: Desplazamiento a la izquierda
+      \gg :: Desplazamiento a la derecha
+      \& :: AND bit a bit
+      | :: OR bit a bit
+      c:^ :: XOR bit a bit
+      ~ :: NOT bit a bit
+      #?_{2} :: Número en binario
+      #?_{16} :: Número en hexadecimal
+      #?_{8} :: Número en octal
+      \texttt{0x#?} :: Literal hexadecimal
+      \texttt{0b#?} :: Literal binario
+      ⊤ :: Verdadero
+      ⊥ :: Falso
+      \text{true} :: true
+      \text{false} :: false
+      \emptyset :: Nulo / vacío
+    `),a("Algoritmos y complejidad",o`
+      O(#?) :: O grande :: cota superior
+      \Omega(#?) :: Omega grande :: cota inferior
+      \Theta(#?) :: Theta :: cota ajustada
+      o(#?) :: o pequeña
+      \omega(#?) :: omega pequeña
+      O(1) :: Constante
+      O(\log n) :: Logarítmica
+      O(n) :: Lineal
+      O(n\log n) :: Linealítmica
+      O(n^2) :: Cuadrática
+      O(2^n) :: Exponencial
+      O(n!) :: Factorial
+      T(n)=aT\left(\frac{n}{b}\right)+f(n) :: Recurrencia (teorema maestro)
+      \lfloor\log_2n\rfloor :: Altura de un árbol binario
+      \leftarrow :: Asignación (pseudocódigo)
+      \gets :: Asignación
+      := :: Asignación (texto)
+      \neq :: Distinto
+      \bmod :: Módulo
+      \lfloor#?\rfloor :: Suelo
+      \lceil#?\rceil :: Techo
+      \sum_{i=1}^{n}i=\frac{n(n+1)}{2} :: Suma de iteraciones
+      \mathcal{P} :: Clase P
+      \mathcal{NP} :: Clase NP
+      \Sigma^{*} :: Clausura de Kleene
+      \varepsilon :: Cadena vacía
+      \delta(q,a) :: Función de transición
+      L(M) :: Lenguaje aceptado
+      \vdash :: Deriva (un paso)
+      \lambda x.#? :: Abstracción lambda
+      \langle#?\rangle :: Codificación
+      G=(V,E) :: Grafo
+      |V| :: Número de vértices
+      |E| :: Número de aristas
+      H(X)=-\sum p(x)\log_2p(x) :: Entropía de Shannon
+    `),a("Programación (caracteres)",o`
+      @ { } [ ] ( ) < > / | ; : , . ! ? @ # $ % & * + - = ~
+      c:\ :: Barra invertida
+      c:^ :: Circunflejo
+      c:_ :: Guion bajo
+      c:{ :: Llave de apertura
+      c:} :: Llave de cierre
+      == :: Igual a
+      != :: Distinto de
+      === :: Idéntico
+      <= :: Menor o igual
+      >= :: Mayor o igual
+      && :: Y lógico
+      || :: O lógico
+      => :: Flecha (función)
+      -> :: Flecha (puntero / retorno)
+      ++ :: Incremento
+      -- :: Decremento
+      += :: Suma y asigna
+      :: :: Ámbito
+      ... :: Propagación
+      // :: Comentario
+      /* */ :: Comentario de bloque
+      <> :: Fragmento / distinto
+      </> :: Etiqueta
+      ?? :: Fusión nula
+      ?. :: Encadenamiento opcional
+      |> :: Tubería
+      λ :: Lambda
+      ∅ :: Vacío
+      ⏎ :: Retorno
+      ⇥ :: Tabulador
+      ␣ :: Espacio visible
+      ¶ :: Fin de párrafo
+    `),a("Teclas e interfaz",o`
+      ⌘ :: Comando (Mac)
+      ⌥ :: Opción
+      ⇧ :: Mayúsculas
+      ⌃ :: Control
+      ⎋ :: Escape
+      ⇪ :: Bloqueo de mayúsculas
+      ⏎ :: Intro
+      ↵ :: Retorno
+      ⌫ :: Borrar
+      ⌦ :: Suprimir
+      ⇥ :: Tabulador
+      ⇤ :: Tabulador inverso
+      ␣ :: Barra espaciadora
+      ⏏ :: Expulsar
+      ⏻ :: Encendido
+      ⏼ :: Encendido/apagado
+      ⏽ :: Encendido (I)
+      ⭘ :: Apagado (O)
+      ⏯ :: Reproducir/pausa
+      ⏸ :: Pausa
+      ⏹ :: Detener
+      ⏺ :: Grabar
+      ⏭ :: Siguiente
+      ⏮ :: Anterior
+      ⏩ :: Avance rápido
+      ⏪ :: Rebobinar
+      🔍 :: Buscar
+      ⚙ :: Ajustes
+      ☰ :: Menú
+      ⋮ :: Más opciones (vertical)
+      ⋯ :: Más opciones
+      ✕ :: Cerrar
+      ⌂ :: Inicio
+      ⎘ :: Copiar
+      ✂ :: Cortar
+      ⎌ :: Deshacer
+      ↻ :: Recargar
+      ⇱ :: Inicio (tecla)
+      ⇲ :: Fin (tecla)
+      ⇞ :: Página arriba
+      ⇟ :: Página abajo
+      @ ␀ ␁ ␂ ␃ ␄ ␅ ␆ ␇ ␈ ␉ ␊ ␋ ␌ ␍ ␎ ␏ ␐ ␑ ␒ ␓ ␔ ␕ ␖ ␗ ␘ ␙ ␚ ␛ ␜ ␝ ␞ ␟ ␠ ␡ ␤
+    `),a("Electrónica",o`
+      V=IR :: Ley de Ohm
+      P=VI :: Potencia
+      \sum I_{ent}=\sum I_{sal} :: Ley de Kirchhoff de corrientes
+      \sum V=0 :: Ley de Kirchhoff de tensiones
+      \tau=RC :: Constante de tiempo RC
+      V_C=V_0\left(1-e^{-t/RC}\right) :: Carga de un condensador
+      f_c=\frac{1}{2\pi RC} :: Frecuencia de corte
+      A_v=\frac{V_{out}}{V_{in}} :: Ganancia de tensión
+      A_{dB}=20\log\frac{V_{out}}{V_{in}} :: Ganancia en decibelios
+      I_C=\beta I_B :: Transistor (ganancia)
+      Z=R+jX :: Impedancia compleja
+      V_{rms}=\frac{V_p}{\sqrt{2}} :: Valor eficaz
+      Ω :: Ohmio
+      ℧ :: Mho (siemens)
+      µ :: Micro
+      ⏚ :: Tierra
+      ⏛ :: Fusible
+      ⎓ :: Corriente continua
+      ⏦ :: Corriente alterna
+      ∿ :: Onda senoidal
+      ⎍ :: Onda cuadrada
+      ⌁ :: Flecha eléctrica
+      ⚡ :: Tensión
+      ⏧ :: Intersección eléctrica
+      ⊣ :: Condensador (aprox.)
+      ⊥ :: Tierra (aprox.)
+      ⟜ :: Conexión
+      🔋 :: Batería
+      🔌 :: Enchufe
+      💡 :: Bombilla
+      \text{k}\Omega :: Kiloohmio
+      \mu\text{F} :: Microfaradio
+      \text{mA} :: Miliamperio
+      \text{mAh} :: Miliamperio hora
+    `)])],d2=[n("music","Música","🎼",[a("Notas y silencios",o`
+      𝅝 :: Redonda
+      𝅗𝅥 :: Blanca
+      ♩ :: Negra
+      ♪ :: Corchea
+      𝅘𝅥𝅯 :: Semicorchea
+      𝅘𝅥𝅰 :: Fusa
+      𝅘𝅥𝅱 :: Semifusa
+      ♫ :: Dos corcheas unidas
+      ♬ :: Dos semicorcheas unidas
+      𝄻 :: Silencio de redonda
+      𝄼 :: Silencio de blanca
+      𝄽 :: Silencio de negra
+      𝄾 :: Silencio de corchea
+      𝄿 :: Silencio de semicorchea
+      𝅀 :: Silencio de fusa
+      𝅁 :: Silencio de semifusa
+      𝅭 :: Puntillo
+      𝆒 :: Crescendo (regulador)
+      𝆓 :: Diminuendo (regulador)
+      𝄐 :: Calderón
+      𝄑 :: Calderón inferior
+      𝄒 :: Respiración
+      𝄓 :: Cesura
+      ♩=120 :: Indicación metronómica
+      🎵 :: Nota musical
+      🎶 :: Notas musicales
+    `),a("Alteraciones y claves",o`
+      ♯ ~ \sharp :: Sostenido
+      ♭ ~ \flat :: Bemol
+      ♮ ~ \natural :: Becuadro
+      𝄪 :: Doble sostenido
+      𝄫 :: Doble bemol
+      𝄲 :: Cuarto de tono sostenido
+      𝄳 :: Cuarto de tono bemol
+      𝄞 :: Clave de sol
+      𝄢 :: Clave de fa
+      𝄡 :: Clave de do
+      𝄟 :: Clave de sol octava alta
+      𝄠 :: Clave de sol octava baja
+      𝄣 :: Clave de fa octava alta
+      𝄤 :: Clave de fa octava baja
+      𝄥 :: Clave de percusión
+      𝄦 :: Clave de percusión 2
+      𝄚 :: Pentagrama
+      𝄀 :: Barra de compás
+      𝄁 :: Doble barra
+      𝄂 :: Barra final
+      𝄃 :: Barra final invertida
+      𝄆 :: Repetición (inicio)
+      𝄇 :: Repetición (fin)
+      𝄈 :: Puntos de repetición
+      𝄋 :: Segno
+      𝄌 :: Coda
+      𝄊 :: Fine
+      𝄉 :: Dal segno
+      𝄍 :: Repetir compás
+      𝄎 :: Repetir dos compases
+      𝄏 :: Repetir cuatro compases
+    `),a("Compás, dinámica y expresión",o`
+      𝄴 :: Compasillo (4/4)
+      𝄵 :: Compás partido (2/2)
+      \frac{4}{4} :: Compás de 4/4
+      \frac{3}{4} :: Compás de 3/4
+      \frac{2}{4} :: Compás de 2/4
+      \frac{6}{8} :: Compás de 6/8
+      \frac{#?}{#?} :: Compás personalizado
+      𝆏 :: piano (p)
+      𝆐 :: mezzo (m)
+      𝆑 :: forte (f)
+      𝆏𝆏 :: pianissimo (pp)
+      𝆐𝆏 :: mezzo piano (mp)
+      𝆐𝆑 :: mezzo forte (mf)
+      𝆑𝆑 :: fortissimo (ff)
+      𝆍 :: Rinforzando
+      𝆎 :: Subito
+      𝆌 :: Rinforzando (r)
+      𝅻 :: Acento
+      𝅼 :: Staccato
+      𝅽 :: Tenuto
+      𝅾 :: Staccatissimo
+      𝅿 :: Marcato
+      𝆖 :: Trino
+      𝆗 :: Grupeto
+      𝆘 :: Grupeto invertido
+      𝆙 :: Grupeto con barra
+      𝆮 :: Pedal
+      𝆯 :: Soltar pedal
+      𝆪 :: Arco abajo
+      𝆫 :: Arco arriba
+      𝆹𝅥 :: Armónico
+      \textit{cresc.} :: crescendo
+      \textit{dim.} :: diminuendo
+      \textit{rit.} :: ritardando
+      \textit{accel.} :: accelerando
+      \textit{legato} :: legato
+      \textit{D.C. al Fine} :: Da capo al fine
+      8^{va} :: Octava alta
+      8^{vb} :: Octava baja
+      \overset{3}{\frown} :: Tresillo
+    `),a("Armonía y acordes",o`
+      C :: Do
+      D :: Re
+      E :: Mi
+      F :: Fa
+      G :: Sol
+      A :: La
+      B :: Si
+      C♯ :: Do sostenido
+      D♭ :: Re bemol
+      E♭ :: Mi bemol
+      F♯ :: Fa sostenido
+      A♭ :: La bemol
+      B♭ :: Si bemol
+      Cm :: Menor
+      C7 :: Séptima de dominante
+      Cmaj7 :: Séptima mayor
+      Cm7 :: Menor séptima
+      C° :: Disminuido
+      Cø :: Semidisminuido
+      C+ :: Aumentado
+      Csus4 :: Suspendido
+      C/G :: Inversión (bajo en sol)
+      I :: Tónica
+      ii :: Supertónica
+      iii :: Mediante
+      IV :: Subdominante
+      V :: Dominante
+      vi :: Superdominante
+      vii° :: Sensible
+      V^7 :: Séptima de dominante (grado)
+      I^6_4 :: Seis-cuatro cadencial
+      V/V :: Dominante secundaria
+      ♭VII :: Séptimo grado rebajado
+      \hat{1} :: Grado de la escala
+      △ :: Mayor séptima (símbolo)
+      ° :: Disminuido (símbolo)
+      ø :: Semidisminuido (símbolo)
+      f=440\cdot2^{\frac{n}{12}} :: Frecuencia de una nota
+      \text{Hz} :: Hercios
+      \text{bpm} :: Pulsos por minuto
+    `),S("Notación musical completa",119040,119274,[[119079,119080],[119155,119162]]),a("Instrumentos",o`
+      @ 🎹 🎸 🎻 🎺 🎷 🥁 🪘 🪗 🪕 🪈 🎤 🎧 🎼 🎙 📯 🔔 🎚 🎛
+    `)]),n("lang","Idiomas","🌍",[a("Español",o`
+      @ á é í ó ú ü ñ Á É Í Ó Ú Ü Ñ ¿ ¡ « » ª º € — – … ç Ç
+    `),a("Latín extendido (acentos)",o`
+      @ à è ì ò ù À È Ì Ò Ù â ê î ô û Â Ê Î Ô Û ä ë ï ö ü ÿ Ä Ë Ï Ö Ü Ÿ ã õ ñ Ã Õ Ñ å Å æ Æ œ Œ ø Ø ç Ç ß ẞ ð Ð þ Þ
+      @ ā ē ī ō ū Ā Ē Ī Ō Ū ă ĕ ĭ ŏ ŭ ą ę į ų Ą Ę ć č ĉ ċ Ć Č ď đ Ď Đ ě ė ğ ĝ ġ ģ ĥ ħ ı İ ĵ ķ ĺ ľ ļ ł Ł ń ň ņ ŋ ő ŕ ř ś š ŝ ş ș Ś Š Ş ť ţ ț ŧ ů ű ũ ŵ ý ŷ ź ž ż Ź Ž Ż ĳ Ĳ ŉ ſ
+      @ ạ ả ấ ầ ẩ ẫ ậ ắ ằ ẳ ẵ ặ ẹ ẻ ẽ ế ề ể ễ ệ ỉ ị ọ ỏ ố ồ ổ ỗ ộ ớ ờ ở ỡ ợ ụ ủ ứ ừ ử ữ ự ỳ ỵ ỷ ỹ ơ ư đ
+    `),a("Marcas diacríticas",o`
+      c:´ :: Acento agudo
+      c:\u0060 :: Acento grave
+      c:^ :: Circunflejo
+      ¨ :: Diéresis
+      c:~ :: Virgulilla
+      ¯ :: Macrón
+      ˘ :: Breve
+      ˙ :: Punto superior
+      ˚ :: Anillo
+      ¸ :: Cedilla
+      ˛ :: Ogonek
+      ˇ :: Carón
+      ˝ :: Doble agudo
+      ʼ :: Apóstrofo modificador
+      ʻ :: Okina
+      @ ◌́ ◌̀ ◌̂ ◌̃ ◌̄ ◌̆ ◌̇ ◌̈ ◌̊ ◌̋ ◌̌ ◌̧ ◌̨ ◌̣ ◌̤ ◌̥ ◌̩ ◌̯ ◌̰ ◌̱ ◌̲ ◌̶ ◌̸ ◌⃗ ◌⃝
+    `),S("Griego (alfabeto completo)",913,969,[[930,930],[938,944]]),S("Cirílico",1040,1119,[[1104,1104],[1117,1117]]),S("Hebreo",1488,1514),S("Árabe",1569,1610,[[1595,1599]]),S("Japonés · hiragana",12353,12438),S("Japonés · katakana",12449,12538),a("Chino, japonés y coreano (básicos)",o`
+      @ 一 二 三 四 五 六 七 八 九 十 百 千 万 円 年 月 日 時 分 人 大 小 中 上 下 左 右 水 火 木 金 土 山 川 天 口 目 耳 手 心 学 生 先 本 文 字 語 国 中国 日本 한 글 가 나 다 라 마 바 사 아 자 차 카 타 파 하 、 。 「 」 ・ ー 々 〜
+    `),a("Fonética (AFI) · consonantes",o`
+      @ p b t d ʈ ɖ c ɟ k ɡ q ɢ ʔ m ɱ n ɳ ɲ ŋ ɴ ʙ r ʀ ⱱ ɾ ɽ ɸ β f v θ ð s z ʃ ʒ ʂ ʐ ç ʝ x ɣ χ ʁ ħ ʕ h ɦ ɬ ɮ ʋ ɹ ɻ j ɰ l ɭ ʎ ʟ ʍ w ɥ ʜ ʢ ʡ ɕ ʑ ɺ ɧ ʘ ǀ ǃ ǂ ǁ ɓ ɗ ʄ ɠ ʛ t͡s t͡ʃ d͡z d͡ʒ
+    `),a("Fonética (AFI) · vocales y marcas",o`
+      @ i y ɨ ʉ ɯ u ɪ ʏ ʊ e ø ɘ ɵ ɤ o ə ɛ œ ɜ ɞ ʌ ɔ æ ɐ a ɶ ɑ ɒ ɚ ɝ
+      ˈ :: Acento primario
+      ˌ :: Acento secundario
+      ː :: Larga
+      ˑ :: Semilarga
+      ◌̆ :: Extra breve
+      . :: Límite silábico
+      | :: Grupo menor
+      ‖ :: Grupo mayor
+      ‿ :: Ligadura
+      ↗ :: Entonación ascendente
+      ↘ :: Entonación descendente
+      ʰ :: Aspirada
+      ʷ :: Labializada
+      ʲ :: Palatalizada
+      ˠ :: Velarizada
+      ˤ :: Faringalizada
+      ◌̃ :: Nasalizada
+      ◌̥ :: Sorda
+      ◌̬ :: Sonora
+      ◌̩ :: Silábica
+      ◌̯ :: No silábica
+      c:/#?/ :: Transcripción fonológica
+      c:[#?] :: Transcripción fonética
+      c:⟨#?⟩ :: Grafema
+      * :: Forma agramatical / reconstruida
+      ∅ :: Morfema cero
+      → :: Se realiza como
+      > :: Evoluciona a
+      < :: Procede de
+      # :: Límite de palabra
+      σ :: Sílaba
+      μ :: Mora
+    `),S("AFI completo (extensiones)",592,687),S("Runas",5792,5872),a("Lingüística y gramática",o`
+      \text{SN} :: Sintagma nominal
+      \text{SV} :: Sintagma verbal
+      \text{SPrep} :: Sintagma preposicional
+      \text{O}\to\text{SN}+\text{SV} :: Regla de reescritura
+      [_{\text{SN}}\ #?] :: Corchetes etiquetados
+      \text{CD} :: Complemento directo
+      \text{CI} :: Complemento indirecto
+      \text{CC} :: Complemento circunstancial
+      \text{1SG} :: Primera persona singular (glosa)
+      \text{3PL} :: Tercera persona plural (glosa)
+      \emptyset :: Elemento nulo
+      t_i :: Huella
+      \lambda x.#? :: Función semántica
+      [\![#?]\!] :: Denotación
+      \models :: Satisface
+      ※ :: Nota
+      § :: Sección
+    `)]),n("eco","Economía y finanzas","💱",[a("Monedas",o`
+      € :: Euro
+      $ :: Dólar / peso
+      £ :: Libra esterlina
+      ¥ :: Yen / yuan
+      ₹ :: Rupia india
+      ₽ :: Rublo
+      ₩ :: Won
+      ₪ :: Séquel
+      ₺ :: Lira turca
+      ₴ :: Grivna
+      ₦ :: Naira
+      ₱ :: Peso filipino
+      ₲ :: Guaraní
+      ₡ :: Colón
+      ₫ :: Dong
+      ₭ :: Kip
+      ₮ :: Tugrik
+      ₸ :: Tenge
+      ₼ :: Manat
+      ₾ :: Lari
+      ₿ :: Bitcoin
+      ¢ :: Centavo
+      ₵ :: Cedi
+      ₣ :: Franco
+      ₧ :: Peseta
+      ₤ :: Lira
+      ƒ :: Florín
+      ₠ :: ECU
+      ₢ :: Cruzeiro
+      ₥ :: Mill
+      ₨ :: Rupia
+      ₯ :: Dracma
+      ₰ :: Pfennig
+      ₳ :: Austral
+      ₶ :: Livre tournois
+      ₷ :: Spesmilo
+      ₻ :: Marco nórdico
+      ¤ :: Moneda genérica
+      S/ :: Sol peruano
+      R$ :: Real brasileño
+      Bs :: Bolívar / boliviano
+      ؋ :: Afgani
+      ৳ :: Taka
+      ៛ :: Riel
+      ฿ :: Baht
+      ﷼ :: Rial
+      Ξ :: Ether
+      Ł :: Litecoin
+    `),a("Fórmulas económicas",o`
+      I=C\cdot r\cdot t :: Interés simple
+      C_f=C_0(1+r)^t :: Interés compuesto
+      C_f=C_0\left(1+\frac{r}{n}\right)^{nt} :: Capitalización periódica
+      C_f=C_0e^{rt} :: Capitalización continua
+      VA=\frac{VF}{(1+r)^n} :: Valor actual
+      VAN=\sum_{t=0}^{n}\frac{F_t}{(1+r)^t} :: Valor actual neto
+      \sum_{t=0}^{n}\frac{F_t}{(1+TIR)^t}=0 :: Tasa interna de retorno
+      PIB=C+I+G+(X-M) :: Producto interior bruto
+      E_p=\frac{\%\Delta Q}{\%\Delta P} :: Elasticidad precio
+      Q_d=a-bP :: Función de demanda
+      Q_s=c+dP :: Función de oferta
+      \pi=IT-CT :: Beneficio
+      IT=P\cdot Q :: Ingreso total
+      CMg=\frac{\Delta CT}{\Delta Q} :: Coste marginal
+      IMg=CMg :: Maximización del beneficio
+      MV=PQ :: Ecuación cuantitativa del dinero
+      \text{ROE}=\frac{\text{Beneficio neto}}{\text{Patrimonio}} :: Rentabilidad financiera
+      \text{ROI}=\frac{\text{Ganancia}-\text{Inversión}}{\text{Inversión}} :: Retorno de la inversión
+      \text{IPC}_t=\frac{\text{Cesta}_t}{\text{Cesta}_0}\cdot100 :: Índice de precios
+      \text{Inflación}=\frac{IPC_t-IPC_{t-1}}{IPC_{t-1}}\cdot100 :: Tasa de inflación
+      k=\frac{1}{1-PMC} :: Multiplicador keynesiano
+      Y=AK^{\alpha}L^{1-\alpha} :: Función Cobb-Douglas
+      U(x,y) :: Función de utilidad
+      \frac{UMg_x}{P_x}=\frac{UMg_y}{P_y} :: Equilibrio del consumidor
+      E(R_i)=R_f+\beta_i(E(R_m)-R_f) :: CAPM
+      \text{Activo}=\text{Pasivo}+\text{Patrimonio neto} :: Ecuación contable
+      \Delta\% :: Variación porcentual
+      % :: Por ciento
+      ‰ :: Por mil
+      p.b. :: Puntos básicos
+      ↑ :: Sube
+      ↓ :: Baja
+      ▲ :: Alza
+      ▼ :: Caída
+      📈 :: Tendencia alcista
+      📉 :: Tendencia bajista
+    `)]),n("typo","Tipografía y texto","✒️",[a("Puntuación y comillas",o`
+      … :: Puntos suspensivos
+      — :: Raya
+      – :: Semirraya
+      ‐ :: Guion
+      ‑ :: Guion irrompible
+      ― :: Barra horizontal
+      « :: Comilla angular de apertura
+      » :: Comilla angular de cierre
+      “ :: Comilla inglesa de apertura
+      ” :: Comilla inglesa de cierre
+      ‘ :: Comilla simple de apertura
+      ’ :: Comilla simple de cierre / apóstrofo
+      „ :: Comilla baja doble
+      ‚ :: Comilla baja simple
+      ‹ :: Comilla angular simple de apertura
+      › :: Comilla angular simple de cierre
+      ¿ :: Interrogación de apertura
+      ¡ :: Exclamación de apertura
+      ‽ :: Interrobang
+      ⸘ :: Interrobang invertido
+      · :: Punto medio
+      • :: Bolo / viñeta
+      ‣ :: Viñeta triangular
+      ◦ :: Viñeta hueca
+      ⁃ :: Viñeta de guion
+      ※ :: Marca de referencia
+      ⁂ :: Asterismo
+      ‖ :: Doble barra vertical
+      ¦ :: Barra partida
+      ′ :: Prima
+      ″ :: Doble prima
+      ‴ :: Triple prima
+      ‰ :: Por mil
+      № :: Número
+      ⁄ :: Barra de fracción
+      ⁓ :: Guion ondulado
+      〃 :: Ídem
+    `),a("Legal, edición y referencias",o`
+      § :: Sección / párrafo legal
+      ¶ :: Calderón
+      © :: Copyright
+      ® :: Marca registrada
+      ™ :: Marca comercial
+      ℠ :: Marca de servicio
+      ℗ :: Copyright fonográfico
+      🄯 :: Copyleft
+      † :: Cruz / obelisco
+      ‡ :: Doble cruz
+      * :: Asterisco
+      ⁑ :: Doble asterisco
+      ª :: Ordinal femenino
+      º :: Ordinal masculino
+      ℅ :: A cargo de (c/o)
+      ℀ :: Cuenta (a/c)
+      ℡ :: Teléfono
+      ℻ :: Fax
+      ⚖ :: Balanza (derecho)
+      ⌘ :: Lugar de interés
+      ✉ :: Correo
+      ✆ :: Teléfono (símbolo)
+      ✎ :: Editar
+      ✐ :: Lápiz
+      ✍ :: Escribir
+      ⌫ :: Borrar
+      ⁁ :: Inserción (corrección)
+      ⁀ :: Unir (corrección)
+      ⸮ :: Signo de ironía
+      ⁋ :: Calderón invertido
+      ❡ :: Calderón ornamental
+      ❦ :: Hoja ornamental
+      ❧ :: Hoja ornamental girada
+      ☙ :: Florón
+      [sic] :: Sic
+      [...] :: Elipsis editorial
+      cf. :: Confer
+      ibid. :: Ibídem
+      et al. :: Et alii
+      op. cit. :: Opere citato
+      p. ej. :: Por ejemplo
+      i. e. :: Id est
+    `),a("Espacios invisibles",o`
+      c:\u00A0 :: Espacio irrompible :: nbsp
+      c:\u2009 :: Espacio fino
+      c:\u2002 :: Espacio de medio cuadratín
+      c:\u2003 :: Espacio de cuadratín
+      c:\u200A :: Espacio ultrafino
+      c:\u202F :: Espacio fino irrompible
+      c:\u200B :: Espacio de ancho cero
+      c:\u00AD :: Guion blando
+    `),a("Viñetas, marcas y casillas",o`
+      @ ✓ ✔ ✗ ✘ ✕ ✖ ☐ ☑ ☒ ⬜ ⬛ ✅ ❌ ❎ ⭕ ❗ ❓ ❕ ❔ ‼ ⁉ ⚠ ⛔ 🚫 ➕ ➖ ➗ ✚ ✛ ✜ ❖ ◆ ◇ ◈ ● ○ ◉ ◎ ◌ ◍ ◐ ◑ ◒ ◓ ◔ ◕ ▪ ▫ ■ □ ▣ ▤ ▥ ▦ ▧ ▨ ▩ ▸ ▹ ► ▻ ‣ ⁌ ⁍ ❥ ❣ ☛ ☞ 👉 📌 📎 🔖 🏷 💡 ⭐ 🌟 ✨ 🔥 💯 🎯 🔑 🔒 🔓 ⏰ ⏳ 📅 📝 📚 📖 🎓 🧠
+    `),S("Números y letras en círculo",9312,9471),a("Más números decorados",o`
+      @ ⓿ ❶ ❷ ❸ ❹ ❺ ❻ ❼ ❽ ❾ ❿ ➀ ➁ ➂ ➃ ➄ ➅ ➆ ➇ ➈ ➉ ➊ ➋ ➌ ➍ ➎ ➏ ➐ ➑ ➒ ➓ ㉑ ㉒ ㉓ ㉔ ㉕ ㉖ ㉗ ㉘ ㉙ ㉚ 🄰 🄱 🄲 🄳 🄴 🄵 🅐 🅑 🅒 🅓 🅔 🅕 🅰 🅱 🅾 🅿
+    `)]),n("shapes","Formas y dibujo","🔷",[S("Figuras geométricas",9632,9727),a("Estrellas, flores y ornamentos",o`
+      @ ★ ☆ ✡ ✦ ✧ ✩ ✪ ✫ ✬ ✭ ✮ ✯ ✰ ✱ ✲ ✳ ✴ ✵ ✶ ✷ ✸ ✹ ✺ ✻ ✼ ✽ ✾ ✿ ❀ ❁ ❂ ❃ ❄ ❅ ❆ ❇ ❈ ❉ ❊ ❋ ⁎ ⁕ ⚝ ⛤ ⛥ ⛦ ⛧ ♥ ♡ ❤ ❥ ♦ ♢ ♠ ♤ ♣ ♧ ⬟ ⬠ ⬡ ⬢ ⬣ ⬤ ⬥ ⬦ ⬧ ⬨ ⬩ ⬪ ⬫ ⬬ ⬭ ⬮ ⬯ ⯀ ⯁ ⯂ ⯃ ⯄ ⯅ ⯆ ⯇ ⯈
+    `),S("Líneas de caja",9472,9599),S("Bloques y sombreados",9600,9631),S("Braille",10240,10495),a("Líneas y conectores para esquemas",o`
+      @ ─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ ═ ║ ╔ ╗ ╚ ╝ ╠ ╣ ╦ ╩ ╬ ╭ ╮ ╯ ╰ ╱ ╲ ╳ ⎯ ⎸ ⎹ ⎺ ⎻ ⎼ ⎽ ⏐ ⌜ ⌝ ⌞ ⌟ ⌈ ⌉ ⌊ ⌋ ⎡ ⎢ ⎣ ⎤ ⎥ ⎦ ⎧ ⎨ ⎩ ⎪ ⎫ ⎬ ⎭ ⎛ ⎜ ⎝ ⎞ ⎟ ⎠ ⏜ ⏝ ⏞ ⏟ ⏠ ⏡ ⎴ ⎵ ⎶
+    `)]),n("games","Juegos, cultura y emojis","♟️",[a("Ajedrez, cartas y dados",o`
+      ♔ :: Rey blanco
+      ♕ :: Dama blanca
+      ♖ :: Torre blanca
+      ♗ :: Alfil blanco
+      ♘ :: Caballo blanco
+      ♙ :: Peón blanco
+      ♚ :: Rey negro
+      ♛ :: Dama negra
+      ♜ :: Torre negra
+      ♝ :: Alfil negro
+      ♞ :: Caballo negro
+      ♟ :: Peón negro
+      ♠ :: Picas
+      ♥ :: Corazones
+      ♦ :: Diamantes
+      ♣ :: Tréboles
+      @ ♤ ♡ ♢ ♧ ⚀ ⚁ ⚂ ⚃ ⚄ ⚅ 🂡 🂱 🃁 🃑 🃏 🀄 🎲 🎴 ⛀ ⛁ ⛂ ⛃ ☖ ☗
+      + :: Jaque
+      # :: Jaque mate
+      !! :: Jugada brillante
+      ?? :: Error grave
+      O-O :: Enroque corto
+      O-O-O :: Enroque largo
+      ½–½ :: Tablas
+    `),a("Religión, cultura y política",o`
+      @ ✝ ☦ ✞ ✟ ☨ ☩ ☥ ☪ ☫ ☬ ☮ ☯ ☸ ✡ 🕉 ☧ ⚛ ⚜ ☭ ⚒ ⚔ ⚓ ⚑ ⚐ ♔ ♕ ⚖ ☤ ⚕ ♻ ☘ ⚘ 🏛 🗿 🏺 📜 🗡 🛡 👑 🕊 🏳 🏴 🚩
+    `),a("Emojis de estudio",o`
+      @ 📚 📖 📕 📗 📘 📙 📓 📒 📔 📑 🔖 📝 ✏ 🖊 🖋 🖍 📐 📏 🧮 🔬 🔭 🧪 🧫 🧬 ⚗ 🩺 💊 🧠 💡 🎓 🏫 🗂 📁 📊 📈 📉 🗓 ⏰ ⏱ ⏳ 🎯 🏆 🥇 ⭐ 🔥 ✅ ❌ ❓ ❗ 💬 💭 🗣 👀 👍 👎 👏 🙌 💪 🤔 😀 😅 😴 🤯 🥳 🌍 🌎 🌏 🗺 🧭 🏛 ⚖ 💰 💻 ⌨ 🖥 📱 🔌 🔋 🎨 🎭 🎬 🎵 ⚽ 🏀
+    `),S("Símbolos varios (bloque completo)",9728,9983),S("Dingbats (bloque completo)",9984,10175)]),n("unicode","Unicode completo","🗃️",[S("Operadores matemáticos",8704,8959),S("Operadores matemáticos suplementarios",10752,11007),S("Símbolos matemáticos varios A",10176,10223),S("Símbolos matemáticos varios B",10624,10751),S("Flechas",8592,8703),S("Flechas suplementarias A",10224,10239),S("Flechas suplementarias B",10496,10623),S("Símbolos y flechas varios",11008,11123),S("Símbolos tipo letra",8448,8527),S("Formas numéricas",8528,8587),S("Superíndices y subíndices",8304,8348,[[8306,8307],[8335,8335]]),S("Símbolos técnicos",8960,9215),S("Símbolos de moneda",8352,8384),S("Puntuación general",8208,8286,[[8232,8239]]),S("Letras modificadoras",688,767),S("Griego y copto",880,1023,[[888,889],[896,899],[907,907],[909,909],[930,930]]),S("Latín-1 (símbolos y letras)",161,255,[[173,173]]),S("Latín extendido A",256,383),S("Alfanuméricos matemáticos",119808,120831,[[119893,119893],[119965,119965],[119968,119969],[119971,119972],[119975,119976],[119981,119981],[119994,119994],[119996,119996],[120004,120004],[120070,120070],[120075,120076],[120085,120085],[120093,120093],[120122,120122],[120127,120127],[120133,120133],[120135,120137],[120145,120145],[120486,120487],[120780,120781]]),S("Símbolos alquímicos",128768,128883),S("Formas geométricas extendidas",128896,128984),S("Naipes",127136,127221,[[127151,127152],[127168,127168],[127184,127184]]),S("Fichas de dominó",127024,127123),S("Mahjong",126976,127019),S("Imágenes de control",9216,9254),S("Reconocimiento óptico",9280,9290)])],q=[...X,...o2,...d2],T2=[{id:"math",name:"Matemáticas",hue:205,cats:["arit","alg","linalg","calc","geo","sets","stats"]},{id:"nota",name:"Notación y letras",hue:265,cats:["greek","fonts","rel","arrows","ops","delims","accents","layout"]},{id:"sci",name:"Ciencias y tecnología",hue:150,cats:["phys","chem","bio","astro","cs"]},{id:"arts",name:"Arte, lenguas y sociedad",hue:25,cats:["music","lang","eco","typo"]},{id:"more",name:"Formas, juegos y Unicode",hue:330,cats:["shapes","games","unicode"]}],O2={arit:"Operaciones, fracciones, potencias, romanos",alg:"Ecuaciones, logaritmos, complejos, combinatoria",linalg:"Matrices, determinantes, vectores",calc:"Límites, derivadas, integrales, series",geo:"Ángulos, figuras, trigonometría",sets:"Conjuntos, lógica, funciones",stats:"Probabilidad, distribuciones, estadística",greek:"Alfabeto griego, hebreo y letras especiales",fonts:"Pizarra, caligráfica, gótica, negrita…",rel:"Igualdad, orden, equivalencia",arrows:"Flechas, arpones, reacciones",ops:"Operadores binarios, grandes y funciones",delims:"Paréntesis, llaves, barras, corchetes",accents:"Sombreros, barras, tachados, llaves",layout:"Entornos, espacios, puntos suspensivos",phys:"Mecánica, ondas, electricidad, cuántica",chem:"Elementos, iones, reacciones, orgánica",bio:"Genética, bioquímica, ecología, medicina",astro:"Planetas, zodiaco, clima, geografía",cs:"Lógica, algoritmos, teclas, electrónica",music:"Notas, claves, compás, acordes",lang:"Acentos, alfabetos, fonética (AFI)",eco:"Monedas y fórmulas financieras",typo:"Puntuación, comillas, marcas legales",shapes:"Figuras, estrellas, cajas, Braille",games:"Ajedrez, cartas, emojis de estudio",unicode:"Bloques Unicode completos"},p2={sym:{name:"Símbolos",hint:"Piezas sueltas para armar lo que quieras"},tpl:{name:"Estructuras",hint:"Plantillas con casillas que rellenas tú"},formula:{name:"Fórmulas hechas",hint:"Fórmulas y reacciones ya escritas"}},N2=["sym","tpl","formula"],c2={"phys/Mecánica":"formula","phys/Ondas y óptica":"formula","phys/Termodinámica":"formula","phys/Electricidad y magnetismo":"formula","phys/Relatividad y nuclear":"formula","phys/Constantes":"formula","phys/Partículas":"sym","phys/Unidades":"sym","chem/Reacciones típicas":"formula","chem/Magnitudes y fórmulas":"formula","chem/Elementos (tabla periódica)":"sym","chem/Núclidos e isótopos":"sym","chem/Iones":"sym","chem/Compuestos inorgánicos":"sym","chem/Orgánica y bioquímica":"sym","alg/Identidades y fórmulas":"formula","geo/Identidades":"formula","geo/Áreas, volúmenes y analítica":"formula","eco/Fórmulas económicas":"formula"};let I=null;function r2(){if(I)return I;I=new Map;for(const e of $.split(";")){const[d,r,c]=e.split(":");I.set(parseInt(d,16),{g:r,n:c.split(",").map(f=>Q[parseInt(f,16)]).join(" ")})}return I}let P=null,g=null;function i2(){if(!P||!g){P=new Map,g=new Map;for(const e of J.split(";")){const[d,r,c]=e.split("="),f=c?c.split(".").map(i=>String.fromCodePoint(parseInt(i,16))).join(""):"";if(P.set(d,{g:r,c:f}),!f)continue;const t=g.get(f);t?t.push("\\"+d):g.set(f,["\\"+d])}}return{byName:P,byChar:g}}const f2={mathord:"Letra o variable",textord:"Símbolo ordinario",bin:"Operador binario",rel:"Relación",open:"Delimitador de apertura",close:"Delimitador de cierre",punct:"Puntuación",inner:"Símbolo interno",op:"Operador grande",accent:"Acento","accent-token":"Acento",spacing:"Espacio"},t2={Lu:"Letra mayúscula",Ll:"Letra minúscula",Lt:"Letra de título",Lm:"Letra modificadora",Lo:"Letra",Mn:"Marca combinante",Mc:"Marca combinante",Me:"Marca envolvente",Nd:"Dígito",Nl:"Número (letra)",No:"Número",Pc:"Puntuación (conector)",Pd:"Guion o raya",Ps:"Signo de apertura",Pe:"Signo de cierre",Pi:"Comilla de apertura",Pf:"Comilla de cierre",Po:"Puntuación",Sm:"Símbolo matemático",Sc:"Símbolo de moneda",Sk:"Símbolo modificador",So:"Símbolo",Zs:"Espacio",Cc:"Carácter de control",Cf:"Carácter de formato"};function S2(e,d){const r=/\bSMALL\b/.test(e);return/^GREEK (SMALL|CAPITAL) LETTER/.test(e)?r?"Letra griega minúscula":"Letra griega mayúscula":/^GREEK /.test(e)?"Letra o signo griego":/^CYRILLIC (SMALL|CAPITAL) LETTER/.test(e)?r?"Letra cirílica minúscula":"Letra cirílica mayúscula":/^LATIN (SMALL|CAPITAL) LETTER/.test(e)?r?"Letra latina minúscula":"Letra latina mayúscula":/^HEBREW LETTER/.test(e)?"Letra hebrea":/^ARABIC LETTER/.test(e)?"Letra árabe":/^(HIRAGANA|KATAKANA) LETTER/.test(e)?/^HIRAGANA/.test(e)?"Hiragana":"Katakana":/^RUNIC/.test(e)?"Runa":/^MATHEMATICAL .*(CAPITAL|SMALL|DIGIT|NABLA|PARTIAL)/.test(e)?"Letra o dígito matemático":/^(MUSICAL SYMBOL|BYZANTINE MUSICAL)/.test(e)?"Símbolo musical":/^BRAILLE PATTERN/.test(e)?"Patrón Braille":/^BOX DRAWINGS|^(LIGHT|MEDIUM|DARK) SHADE|BLOCK$|^(UPPER|LOWER|LEFT|RIGHT) .*BLOCK/.test(e)?"Dibujo de caja o bloque":/^ALCHEMICAL SYMBOL/.test(e)?"Símbolo alquímico":/^(PLAYING CARD|DOMINO TILE|MAHJONG TILE)/.test(e)?"Ficha o carta":/^CIRCLED|^PARENTHESIZED|^DIGIT .*FULL STOP|^NEGATIVE CIRCLED/.test(e)?"Número o letra rodeados":/^ROMAN NUMERAL/.test(e)?"Número romano":/^(SUPERSCRIPT|MODIFIER LETTER SMALL)/.test(e)?"Superíndice":/^SUBSCRIPT/.test(e)?"Subíndice":/FRACTION/.test(e)?"Fracción":/ARROW|HARPOON/.test(e)?"Flecha":/^(BLACK|WHITE)\b.*(SQUARE|CIRCLE|TRIANGLE|DIAMOND|STAR|PENTAGON|HEXAGON|RECTANGLE|PARALLELOGRAM|LOZENGE)/.test(e)?"Figura geométrica":/^(COMBINING)/.test(e)?"Marca combinante":/^(CHESS|BLACK CHESS|WHITE CHESS)/.test(e)?"Pieza de ajedrez":/^(DIE FACE|BLACK (SPADE|HEART|DIAMOND|CLUB)|WHITE (SPADE|HEART|DIAMOND|CLUB))/.test(e)?"Palo de baraja o dado":/^(APL FUNCTIONAL)/.test(e)?"Símbolo APL":t2[d]||"Símbolo"}function b2(e){const d=r2(),r=Array.from(e,f=>f.codePointAt(0));if(!r.length)return;const c=[];for(const f of r){const t=d.get(f);if(!t)return;c.push(t)}if(!(r.length>1&&!c.slice(1).every((t,i)=>/^M/.test(t.g)||/^VARIATION SELECTOR/.test(t.n)||r[i+1]===8205)))return{u:c.map(f=>f.n).join(" + "),gc:c[0].g,first:c[0]}}const n2=new Set(["OR","TO","OF","AND","WITH","THE","ON","IN","FOR","OVER","UNDER","BY","AT"]);function H(e){return e.split(" ").map((d,r)=>r>0&&n2.has(d)?d.toLowerCase():d.split("-").map(c=>/^[A-Z]/.test(c)?c[0]+c.slice(1).toLowerCase():c).join("-")).join(" ")}const v={music:"Símbolo musical",astro:"Símbolo astronómico o terrestre",games:"Símbolo de juego o cultura",shapes:"Figura u ornamento",typo:"Signo tipográfico",bio:"Símbolo biológico o médico",cs:"Símbolo informático",lang:"Signo lingüístico",eco:"Símbolo económico",phys:"Símbolo científico",chem:"Símbolo químico",sets:"Símbolo de lógica o conjuntos",arrows:"Flecha"},l2=new Set(["Símbolo","Símbolo matemático","Puntuación"]),U=e=>e.n===e.c||/^U\+[0-9A-F]{4,6}$/.test(e.n)||!!e.t&&(e.n===e.t||e.n===e.t.replace(/^\\/,""));function L2(e){let d=0;for(let r=0;r<e.length;r++){const c=e[r];if(c==="\\"){r++;continue}if(c==="{")d++;else if(c==="}")d--;else if(c==="="&&d===0)return!0}return!1}function s2(e){const d=e.t;return d?d.includes("#?")||d.includes("#@")||d.includes("#0")||/\\begin\{/.test(d)?"tpl":/^\\ce\{/.test(d)&&/->|<=>|<->|<=>>|<<=>| \+ /.test(d)||L2(d)||/\\(iff|Rightarrow|implies)\b/.test(d)&&d.length>14?"formula":/^\\[A-Za-z]+$/.test(d)?"sym":d.length>24?"formula":"sym":"sym"}let M=null,G=!1;function m2(e){const{byName:d,byChar:r}=i2(),c=e.t?/^\\([A-Za-z]+)$/.exec(e.t.trim()):null,f=c?d.get(c[1]):void 0,t=e.c&&!e.c.includes("#?")?e.c:f==null?void 0:f.c,i=t?b2(t):void 0;if(!e.u){if(i)e.u=H(i.u);else if(c)e.u=`LaTeX \\${c[1]}`;else if(e.t&&e.kind==="tpl"){const b=/\\begin\{(\w+\*?)\}/.exec(e.t),m=/^[^\\]*\\([A-Za-z]+)/.exec(e.t);b?e.u=`LaTeX environment ${b[1]}`:m&&(e.u=`LaTeX \\${m[1]}`)}}if(!e.y){const b=f?f2[f.g]:void 0;let s=i?S2(i.u,i.gc):void 0;s&&l2.has(s)&&e.cat&&v[e.cat]&&!(e.cat==="sets"&&s==="Símbolo matemático")&&(s=v[e.cat]),b&&s&&b!==s?e.y=`${b} · ${s}`:e.y=b||s}if(!e.y){const b=e.kind;e.y=c?"Función u operador":b==="tpl"?"Estructura con casillas":b==="formula"?"Fórmula hecha":"Expresión"}const L=new Set;t&&r.has(t)&&r.get(t).forEach(b=>L.add(b)),c&&L.add(`\\${c[1]}`),L.size&&(e.a=Array.from(L)),U(e)&&i?e.n=c&&!e.c?`${H(i.u)} (\\${c[1]})`:H(i.u):U(e)&&e.u&&c&&(e.n=`\\${c[1]}`)}function h(){if(M&&G)return M;const e=[];for(const d of q){const r=N(d.name);for(const c of d.subs){const f=N(c.name),t=c2[`${d.id}/${c.name}`];for(const i of c.items){i.cat=d.id,i.sub=c.name,i.kind=t||s2(i),m2(i);const L=i.c?Array.from(i.c,s=>s.codePointAt(0).toString(16)):[],b=L.length?L.map(s=>`u+${s.padStart(4,"0")} ${s.padStart(4,"0")}`).join(" "):"",m=i.a?i.a.join(" ")+" "+i.a.map(s=>s.slice(1)).join(" "):"";i.s=[N(i.n),i.k?N(i.k):"",i.u?i.u.toLowerCase():"",i.y?N(i.y):"",m.toLowerCase(),i.t?i.t.toLowerCase():"",i.c?i.c.toLowerCase():"",b,f,r].join(" "),e.push(i)}}}return M=e,G=!0,e}function R2(){return h().length}function y(e){return q.find(d=>d.id===e)}function u2(e){h();const d={sym:0,tpl:0,formula:0},r=y(e);if(r)for(const c of r.subs)for(const f of c.items)d[f.kind]++;return d}function I2(e){const d=u2(e);return d.sym+d.tpl+d.formula}function g2(e,d){h();const r=y(e);if(!r)return[];const c=[];for(const f of r.subs){const t=f.items.filter(i=>i.kind===d);t.length&&c.push({name:f.name,items:t})}return c}const E2={sym:0,tpl:.35,formula:.7};function C2(e,d=160,r){var O;const c=e.trim();if(!c)return[];const f=h(),t=N(c).replace(/^u\+/,""),i=t.split(/\s+/).filter(Boolean),L=c.startsWith("\\")?c.toLowerCase():"",b=[],m=new Set;for(let A=0;A<f.length;A++){const l=f[A];if(r&&!r.has(l.cat))continue;let u=-1;if(l.c===c)u=0;else if(L){const R=[(O=l.t)==null?void 0:O.toLowerCase(),...(l.a||[]).map(T=>T.toLowerCase())].filter(Boolean);if(!R.length)continue;R.some(T=>T===L)?u=0:R.some(T=>T.startsWith(L))?u=1+(l.t||"").replace(/#\?/g,"").length/100:R.some(T=>T.includes(L))&&(u=3)}else{const R=l.s;let T=!0;for(const p of i)if(!R.includes(p)){T=!1;break}if(!T)continue;const C=N(l.n),D=l.u?l.u.toLowerCase():"",V=(l.a||[]).some(p=>p.slice(1).toLowerCase()===t);C===t||D===t||V?u=0:C.startsWith(t)||D.startsWith(t)||l.t&&l.t.toLowerCase()===`\\${t}`?u=1:C.split(/[\s(/-]+/).some(p=>p.startsWith(i[0]))||D.split(/[\s(/-]+/).some(p=>p.startsWith(i[0]))?u=2:l.k&&N(l.k).split(/\s+/).some(p=>p.startsWith(i[0]))?u=3:C.includes(t)||D.includes(t)?u=4:u=5}if(u<0)continue;const x=l.c??K(l);if(!m.has(x)&&(m.add(x),u+=E2[l.kind],l.t&&l.t.length>24&&(u+=.2),b.push({s:l,score:u,i:A}),b.length>4e3))break}return b.sort((A,l)=>A.score-l.score||A.i-l.i),(b.filter(A=>A.score<5).length>=12?b.filter(A=>A.score<5):b).slice(0,d).map(A=>A.s)}export{q as CATALOG,O2 as CAT_DESC,T2 as GROUPS,p2 as KIND_INFO,N2 as KIND_ORDER,h as allSyms,g2 as catKindView,I2 as catTotal,y as findCat,A2 as hasSlots,u2 as kindCounts,N as norm,C2 as searchSyms,K as symKey,R2 as totalCount};

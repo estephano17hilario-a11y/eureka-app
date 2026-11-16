@@ -1,0 +1,28 @@
+/* ==========================================================================
+   Campo de texto con fórmulas visibles (RichField)
+   ========================================================================== */
+.rf {
+  position: relative; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; overflow-y: auto; outline: 0;
+  cursor: text; -webkit-user-select: text; user-select: text; -webkit-tap-highlight-color: transparent;
+}
+.rf.rf-empty::before {
+  content: attr(data-placeholder); position: absolute; left: 2px; right: 2px; top: 4px; pointer-events: none;
+  color: var(--f-text-muted, #64748b); white-space: normal; overflow: hidden; text-overflow: ellipsis;
+}
+.rf-m {
+  display: inline-block; max-width: 100%; vertical-align: middle; margin: 0 1px; padding: 0 4px; min-width: 1.4em; min-height: 1.5em;
+  border-radius: 7px; cursor: pointer; white-space: normal; text-indent: 0; line-height: 1.4; text-align: left;
+  background: color-mix(in srgb, currentColor 7%, transparent); transition: background 0.12s ease, box-shadow 0.12s ease;
+  overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
+}
+.rf-m::-webkit-scrollbar { display: none; }
+.rf-m:hover { background: rgba(56, 189, 248, 0.2); }
+.rf-m.rf-sel, .rf-m:active { background: rgba(56, 189, 248, 0.3); box-shadow: 0 0 0 1.5px rgba(56, 189, 248, 0.7); }
+.rf-m .katex { font-size: 1.04em; }
+.rf-m .katex-display { margin: 0.15em 0; text-align: left; }
+.rf-m.rf-block { display: block; margin: 0.25em 0; text-align: center; }
+.rf-m.rf-block .katex-display { text-align: center; }
+
+
+/* En el mapa mental el campo ocupa exactamente la caja de la idea */
+.mmx-edit-input.rf { overflow: hidden; padding: 0; }

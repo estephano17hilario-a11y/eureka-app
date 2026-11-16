@@ -1,13 +1,15 @@
 import '../ui/styles/cards.css';
 import type { Deck, Flashcard, OcclusionMask, OcclusionMode } from '../types/flashcard';
-import { deckService } from '../services/deck.service';
+import { deckService, normalizeTag } from '../services/deck.service';
 import { ttsService } from '../services/tts.service';
 import { katexService } from '../services/katex.service';
 import { compressImageFile } from '../services/image-library.service';
 import { lsGet, lsSet, lsRemove } from '../services/storage.service';
 import { openImageOcclusionModal } from './ImageOcclusionModal';
 import { openFigmaAiBuilderModal } from './FigmaAiBuilderModal';
-import { openScientificFormulaAssistant } from './ScientificFormulaAssistant';
+import { textareaHost, isCoarsePointer } from '../symbols/host';
+import { upgradeTextarea, type FormulaInfo } from '../symbols/RichField';
+import { attachSymbolAutocomplete, openSymbolStudioLazy } from '../symbols/autocomplete';
 import { openImageLibrary, queryFromCardText } from './ImageLibrarySheet';
 import { CLEAN_CANVAS_PLACEHOLDER } from '../services/demo-data';
 
@@ -50,17 +52,23 @@ function toolbarHtml(side: Side): string {
       <button type="button" tabindex="-1" class="ce-tool" data-act="audio" data-side="${side}" title="Escuchar">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
       </button>
+      <button type="button" tabindex="-1" class="ce-tool ce-tool-sym" data-act="symbols" data-side="${side}" title="Símbolos y fórmulas de todas las materias (Ctrl+M) · o escribe \ + nombre">
+        <b>Ω</b><span>Símbolos</span>
+      </button>
       <span class="ce-sep"></span>
       ${btn('**', '<b>B</b>', 'Negrita (Ctrl+B)')}
       ${btn('*', '<i>I</i>', 'Cursiva')}
       ${btn('__', '<u>U</u>', 'Subrayado')}
       ${btn('~~', '<s>S</s>', 'Tachado')}
+      ${btn('==', '<mark>R</mark>', 'Resaltar')}
+      ${btn('## ', 'H', 'Título')}
+      ${btn('> ', '❝', 'Cita')}
       ${btn('- ', '≡', 'Lista con viñetas')}
       ${btn('1. ', '1≡', 'Lista numerada')}
       ${btn('$_', 'X₂', 'Subíndice', '', '$')}
       ${btn('$^', 'X²', 'Superíndice', '', '$')}
       ${btn('$$', 'fx', 'Fórmula KaTeX', 'style="color:var(--f-blue);font-weight:800"')}
-      <button type="button" tabindex="-1" class="ce-tool" data-act="formula" data-side="${side}" title="Asistente de fórmulas" style="color:#38bdf8">📐</button>
+      <button type="button" tabindex="-1" class="ce-tool" data-act="table" data-side="${side}" title="Insertar tabla">▦</button>
       ${btn('`', '&lt;/&gt;', 'Código')}
       ${btn('[enlace](url)', '🔗', 'Enlace')}
       ${side === 'front' ? '<button type="button" tabindex="-1" class="ce-tool ce-tool-cloze" data-act="cloze" title="Ocultar el texto seleccionado (Ctrl+Shift+C)">[…] Ocultar</button>' : ''}
@@ -134,7 +142,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
             </div>
             <div class="ce-box" id="drop-zone-anverso">
               <textarea id="f-anverso-input" class="ce-textarea" rows="2" spellcheck="true"
-                placeholder="Escribe la pregunta o el concepto… Usa $$E=mc^2$$ para fórmulas">${esc(frontText)}</textarea>
+                placeholder="Escribe la pregunta o el concepto… Toca Ω para insertar fórmulas y símbolos">${esc(frontText)}</textarea>
               ${imageSlotHtml('front', frontImg)}
               ${toolbarHtml('front')}
             </div>
@@ -161,12 +169,31 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
             </button>
           </section>
 
+          <section class="ce-meta" id="ce-meta">
+            <label class="ce-field">
+              <span class="ce-field-l">💡 Pista <small>opcional · se puede pedir antes de ver la respuesta</small></span>
+              <input type="text" id="ce-hint" class="ce-input" maxlength="240" autocomplete="off" placeholder="Ej.: empieza por «mito…», piensa en la energía" value="${esc(editCard?.hint || '')}" />
+            </label>
+            <div class="ce-field">
+              <span class="ce-field-l">🏷️ Etiquetas <small>para filtrar y estudiar por temas · Enter para añadir</small></span>
+              <div class="ce-tags" id="ce-tags"><input type="text" id="ce-tag-input" autocomplete="off" autocapitalize="off" placeholder="tema, examen-1…" /></div>
+              <div class="ce-tag-sugs" id="ce-tag-sugs"></div>
+            </div>
+          </section>
+
           <section class="ce-options" id="ce-options">
+            <label class="ce-switch-row">
+              <span class="ce-switch-text"><b>⭐ Favorita</b><small>Para encontrarla rápido y repasarla aparte</small></span>
+              <span class="figma-switch"><input type="checkbox" id="ce-star" ${editCard?.starred ? 'checked' : ''} /><span class="figma-slider"></span></span>
+            </label>
             <label class="ce-switch-row">
               <span class="ce-switch-text"><b>Tarjeta invertida</b><small>También se estudia de Reverso → Anverso</small></span>
               <span class="figma-switch"><input type="checkbox" id="toggle-inverted-cards" ${editCard?.isInverted || (!editCard && invertPref) ? 'checked' : ''} /><span class="figma-slider"></span></span>
             </label>
-            <button type="button" class="ce-ai" id="btn-ai-anverso">✨ Generar con IA</button>
+            <div class="ce-option-btns">
+              <button type="button" class="ce-ai" id="btn-ai-anverso">✨ Generar con IA</button>
+              <button type="button" class="ce-ghost" id="ce-swap" title="Intercambiar anverso y reverso">⇅ Intercambiar caras</button>
+            </div>
           </section>
         </div>
 
@@ -183,7 +210,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
             <div class="ce-face ce-face-back"><div class="ce-face-body" id="ce-pv-back"></div></div>
           </div>
           <p class="ce-shortcuts">
-            <kbd>Ctrl</kbd>+<kbd>↵</kbd> crear y seguir · <kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>↵</kbd> crear y salir · <kbd>Ctrl</kbd>+<kbd>I</kbd> imagen
+            <kbd>Ctrl</kbd>+<kbd>↵</kbd> crear y seguir · <kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>↵</kbd> crear y salir · <kbd>Ctrl</kbd>+<kbd>I</kbd> imagen · <kbd>Ctrl</kbd>+<kbd>M</kbd> símbolos · <kbd>\</kbd> + nombre para insertar un símbolo
           </p>
         </aside>
       </div>
@@ -209,8 +236,11 @@ export function bindFigmaCardEditorEvents(
   detachGlobalKeys?.();
 
   const q = <T extends HTMLElement>(sel: string) => root.querySelector(sel) as T | null;
-  const frontEl = q<HTMLTextAreaElement>('#f-anverso-input');
-  const backEl = q<HTMLTextAreaElement>('#f-reverso-input');
+  // Los cuadros de texto muestran las fórmulas ya renderizadas y se pulsan para editarlas
+  const rawFront = q<HTMLTextAreaElement>('#f-anverso-input');
+  const rawBack = q<HTMLTextAreaElement>('#f-reverso-input');
+  const frontEl = rawFront ? (upgradeTextarea(rawFront, (f) => openSymbols('front', true, f), 'Anverso') as unknown as HTMLTextAreaElement) : null;
+  const backEl = rawBack ? (upgradeTextarea(rawBack, (f) => openSymbols('back', true, f), 'Reverso') as unknown as HTMLTextAreaElement) : null;
   const invertedToggle = q<HTMLInputElement>('#toggle-inverted-cards');
   const flipEl = q<HTMLElement>('#ce-flip');
   const pvFront = q<HTMLElement>('#ce-pv-front');
@@ -231,6 +261,12 @@ export function bindFigmaCardEditorEvents(
   let createdCount = 0;
   let lastCreatedIds: string[] = [];
   let pendingImageSide: Side = 'front';
+  const hintEl = q<HTMLInputElement>('#ce-hint');
+  const starEl = q<HTMLInputElement>('#ce-star');
+  const tagsBox = q<HTMLElement>('#ce-tags');
+  const tagInput = q<HTMLInputElement>('#ce-tag-input');
+  const tagSugs = q<HTMLElement>('#ce-tag-sugs');
+  let tags: string[] = (editCard?.tags || []).slice();
 
   /* ------------------------------------------------------------------ */
   /*  Utilidades                                                         */
@@ -489,7 +525,7 @@ export function bindFigmaCardEditorEvents(
       if (lf) lf.textContent = 'Anverso · Pregunta';
       if (lb) lb.textContent = 'Reverso · Respuesta';
       if (hf) hf.textContent = 'Markdown y KaTeX';
-      frontEl.placeholder = 'Escribe la pregunta o el concepto… Usa $$E=mc^2$$ para fórmulas';
+      frontEl.placeholder = 'Escribe la pregunta o el concepto… Toca Ω para insertar fórmulas y símbolos';
       backEl.placeholder = 'Escribe la respuesta o la explicación…';
     }
     updatePreview();
@@ -568,7 +604,7 @@ export function bindFigmaCardEditorEvents(
     const end = ta.selectionEnd;
     const val = ta.value;
     const selected = val.substring(start, end);
-    const linePrefix = prefix === '## ' || prefix === '- ' || prefix === '1. ';
+    const linePrefix = prefix === '## ' || prefix === '- ' || prefix === '1. ' || prefix === '> ';
 
     if (linePrefix) {
       const lines = (selected || '').split('\n');
@@ -657,22 +693,114 @@ export function bindFigmaCardEditorEvents(
       case 'cloze':
         wrapCloze();
         break;
-      case 'formula': {
+      case 'symbols':
+        openSymbols(side);
+        break;
+      case 'table': {
         const ta = side === 'front' ? frontEl : backEl;
-        openScientificFormulaAssistant({
-          initialLatex: ta.value,
-          onInsert: (formula) => {
-            const cur = ta.value;
-            const pos = ta.selectionStart ?? cur.length;
-            ta.value = `${cur.slice(0, pos)} ${formula} ${cur.slice(pos)}`.trim();
-            ta.focus();
-            autoGrow(ta);
-            onTextChanged();
-          }
-        });
+        const pos = ta.selectionStart ?? ta.value.length;
+        const lead = pos > 0 && ta.value[pos - 1] !== '\n' ? '\n\n' : '';
+        ta.setRangeText(`${lead}| Concepto | Detalle |\n| --- | --- |\n|  |  |\n`, pos, ta.selectionEnd ?? pos, 'end');
+        ta.focus();
+        autoGrow(ta);
+        onTextChanged();
         break;
       }
     }
+  });
+
+  /* ------------------------------------------------------------------ */
+  /*  Símbolos y fórmulas                                                 */
+  /* ------------------------------------------------------------------ */
+  const openSymbols = (side: Side, compose = false, edit?: FormulaInfo) => {
+    const ta = side === 'front' ? frontEl : backEl;
+    const mobile = isCoarsePointer();
+    if (mobile) {
+      // En el móvil el panel sustituye al teclado del sistema; el cuadro queda a la vista encima
+      ta.blur();
+      root.classList.add('ce-symx-open');
+      window.setTimeout(() => ta.closest('.ce-block')?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 60);
+    }
+    void openSymbolStudioLazy({
+      host: textareaHost(() => (ta.isConnected ? ta : null), undefined, edit),
+      mode: compose ? 'compose' : undefined,
+      initialLatex: edit?.latex,
+      editing: !!edit,
+      onClose: () => root.classList.remove('ce-symx-open')
+    });
+  };
+  const detachAc = [attachSymbolAutocomplete(frontEl), attachSymbolAutocomplete(backEl)];
+
+  /* ------------------------------------------------------------------ */
+  /*  Pista, etiquetas y favorita                                         */
+  /* ------------------------------------------------------------------ */
+  const renderTags = () => {
+    if (!tagsBox || !tagInput) return;
+    tagsBox.querySelectorAll('.ce-tag').forEach((el) => el.remove());
+    tags.forEach((t) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'ce-tag';
+      chip.dataset.tag = t;
+      chip.title = 'Quitar etiqueta';
+      chip.innerHTML = `#${esc(t)} <i>✕</i>`;
+      tagsBox.insertBefore(chip, tagInput);
+    });
+    if (tagSugs) {
+      const typed = normalizeTag(tagInput.value);
+      const sugs = deckService
+        .getDeckTags(deck.id)
+        .filter((x) => !tags.includes(x.tag) && (!typed || x.tag.includes(typed)))
+        .slice(0, 8);
+      tagSugs.innerHTML = sugs.map((x) => `<button type="button" data-tag="${esc(x.tag)}">+ ${esc(x.tag)}</button>`).join('');
+    }
+  };
+  const addTag = (raw: string) => {
+    const t = normalizeTag(raw);
+    if (t && !tags.includes(t) && tags.length < 12) tags.push(t);
+    if (tagInput) tagInput.value = '';
+    renderTags();
+  };
+  tagInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',' || (e.key === ' ' && tagInput.value.trim())) {
+      e.preventDefault();
+      e.stopPropagation();
+      addTag(tagInput.value);
+    } else if (e.key === 'Backspace' && !tagInput.value && tags.length) {
+      tags.pop();
+      renderTags();
+    }
+  });
+  tagInput?.addEventListener('input', renderTags);
+  tagInput?.addEventListener('blur', () => tagInput.value.trim() && addTag(tagInput.value));
+  tagsBox?.addEventListener('click', (e) => {
+    const chip = (e.target as HTMLElement).closest('.ce-tag') as HTMLElement | null;
+    if (chip) {
+      tags = tags.filter((t) => t !== chip.dataset.tag);
+      renderTags();
+    } else tagInput?.focus();
+  });
+  tagSugs?.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('[data-tag]') as HTMLElement | null;
+    if (b) addTag(b.dataset.tag || '');
+  });
+  renderTags();
+
+  /** Lo que se guarda además del texto: pista, etiquetas y marca de favorita */
+  const extras = (): Partial<Flashcard> => ({
+    hint: hintEl?.value.trim() || undefined,
+    tags: tags.length ? tags.slice() : undefined,
+    starred: starEl?.checked || undefined
+  });
+
+  q('#ce-swap')?.addEventListener('click', () => {
+    if (mode !== 'basic') return toast('Solo las tarjetas básicas tienen dos caras intercambiables');
+    [frontEl.value, backEl.value] = [backEl.value, frontEl.value];
+    [frontImage, backImage] = [backImage, frontImage];
+    [credits.front, credits.back] = [credits.back, credits.front];
+    autoGrow(frontEl);
+    autoGrow(backEl);
+    refreshImages();
   });
 
   /* ------------------------------------------------------------------ */
@@ -728,6 +856,9 @@ export function bindFigmaCardEditorEvents(
     lsRemove(draftKey(deck.id));
     q('#ce-draft')?.classList.add('hidden');
     dupEl?.classList.add('hidden');
+    // Las etiquetas se mantienen para la siguiente tarjeta (se suele crear por temas); la pista no
+    if (hintEl) hintEl.value = '';
+    if (starEl) starEl.checked = false;
     autoGrow(frontEl);
     autoGrow(backEl);
     refreshImages();
@@ -777,7 +908,7 @@ export function bindFigmaCardEditorEvents(
         const idxs = Array.from(new Set(Array.from(front.matchAll(/\{\{c(\d+)::/g)).map((m) => Number(m[1])))).sort((a, b) => a - b);
         const first = idxs[0] ?? 1;
         const own = front.replace(/\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g, (_m, n: string, a: string, h?: string) => (Number(n) === first ? `{{c::${a}${h ? '::' + h : ''}}}` : a));
-        deckService.updateCard(editCard.id, { deckId: deck.id, type: 'cloze', front: own, back, frontImage, backImage, imageCredit: creditText() });
+        deckService.updateCard(editCard.id, { deckId: deck.id, type: 'cloze', front: own, back, frontImage, backImage, imageCredit: creditText(), ...extras() });
         if (idxs.length > 1) deckService.createClozeCards(deck.id, front, back, chunkId, { frontImage, backImage, imageCredit: creditText() }, idxs.slice(1));
       } else {
         const isLatex = front.includes('$') || back.includes('$');
@@ -791,9 +922,11 @@ export function bindFigmaCardEditorEvents(
           imageCredit: creditText(),
           occlusionImage: undefined,
           occlusionMasks: undefined,
-          activeMaskId: undefined
+          activeMaskId: undefined,
+          ...extras()
         });
       }
+      if (mode === 'occlusion') deckService.patchCards(editCard.groupId ? deckService.getCardsByGroupId(editCard.groupId).map((c) => c.id) : [editCard.id], extras());
       callbacks.onSaved();
       return;
     }
@@ -815,13 +948,18 @@ export function bindFigmaCardEditorEvents(
           frontImage,
           backImage,
           imageCredit: creditText(),
-          chunkId
+          chunkId,
+          ...extras()
         },
         createInverted
       );
       created = c.groupId ? deckService.getCardsByGroupId(c.groupId) : [c];
     }
     lastCreatedIds = created.map((c) => c.id);
+    if (mode !== 'basic') {
+      const ex = extras();
+      if (ex.hint || ex.tags || ex.starred) deckService.patchCards(lastCreatedIds, ex);
+    }
     bumpCounter(created.length);
 
     if (closeAfter) {
@@ -873,6 +1011,10 @@ export function bindFigmaCardEditorEvents(
       // Ctrl+I abre la biblioteca de imágenes para el lado donde estás escribiendo
       e.preventDefault();
       openLibrary(document.activeElement === backEl ? 'back' : 'front');
+    } else if (mod && !e.shiftKey && (e.key === 'm' || e.key === 'M')) {
+      // Ctrl+M: símbolos y fórmulas para el lado en el que estás (si el cursor está en una fórmula, la edita)
+      e.preventDefault();
+      openSymbols(document.activeElement === backEl ? 'back' : 'front', true);
     } else if (mod && e.shiftKey && (e.key === 'c' || e.key === 'C')) {
       e.preventDefault();
       wrapCloze();
@@ -886,6 +1028,7 @@ export function bindFigmaCardEditorEvents(
   window.addEventListener('keydown', onKey);
   detachGlobalKeys = () => {
     window.removeEventListener('keydown', onKey);
+    detachAc.forEach((off) => off());
     detachGlobalKeys = null;
   };
 

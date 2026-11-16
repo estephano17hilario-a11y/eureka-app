@@ -915,6 +915,14 @@ export class MindMapStudio {
       case 'edit':
         this.beginEdit(first);
         break;
+      case 'symbols':
+        // Símbolos y fórmulas: se abre sobre la idea en edición (si no lo está, empieza a editarla)
+        if (this.editor.isOpen()) this.editor.openSymbols();
+        else if (first) {
+          this.beginEdit(first);
+          window.setTimeout(() => this.editor.isOpen() && this.editor.openSymbols(), 30);
+        }
+        break;
       case 'delete':
         this.askDelete();
         break;
@@ -1170,6 +1178,7 @@ export class MindMapStudio {
       b('child', 'child', 'Añadir idea hija (Tab)') +
       b('sibling', 'sibling', 'Añadir idea hermana (Enter)', 'tb-sib') +
       b('edit', 'edit', 'Editar texto (F2)') +
+      '<button class="mmx-tb" data-act="symbols" title="Símbolos y fórmulas (Ctrl+M al escribir)" aria-label="Símbolos y fórmulas"><b style="font-size:16px;line-height:1">Ω</b></button>' +
       '<span class="mmx-tb-sep"></span>' +
       b('color-pop', 'palette', 'Color') +
       b('emoji-pop', 'emoji', 'Emoji') +
@@ -1790,7 +1799,9 @@ export class MindMapStudio {
       ['Ctrl + F', 'Buscar'],
       ['Ctrl + 0', 'Ajustar a la pantalla'],
       ['Ctrl + + / −', 'Acercar / alejar'],
-      ['Ctrl + B / I / M', 'Negrita, cursiva, fórmula (al escribir)'],
+      ['Ctrl + B / I', 'Negrita y cursiva (al escribir)'],
+      ['Ctrl + M', 'Símbolos y fórmulas (al escribir)'],
+      ['\\ + nombre', 'Insertar un símbolo: \\alfa, \\raiz, \\flecha…'],
       ['Esc', 'Salir del editor, enfoque o modo estudio']
     ];
     const body = document.createElement('div');

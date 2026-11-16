@@ -140,3 +140,31 @@
   .imglib-sheet, .imglib-overlay, .imglib-cell { transition: none; }
   .imglib-cell.skeleton, .imglib-spin::after { animation-duration: 2.4s; }
 }
+
+/* ---- cómo se entendió la búsqueda (tema, traducción, temas parecidos) ---- */
+.imglib-plan { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 18px 0; font-size: 0.78rem; color: var(--f-text-secondary, #9da3af); }
+.imglib-pl { padding: 4px 10px; border-radius: 999px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); }
+.imglib-pl b { color: #e0f2fe; }
+.imglib-rel { margin-left: 4px; font-size: 0.72rem; color: var(--f-text-muted, #64748b); }
+.imglib-chip.sm { padding: 4px 10px; font-size: 0.74rem; }
+.imglib-sugs { display: flex; flex-direction: column; gap: 12px; max-width: 620px; margin: 0 auto; text-align: left; }
+.imglib-sug b { display: block; margin: 0 0 6px 2px; font-size: 0.78rem; color: #e5e7eb; }
+.imglib-sug .imglib-chips { justify-content: flex-start; }
+
+/* ---- más imágenes por fila y datos de cada una ---- */
+.imglib-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.imglib-src {
+  position: absolute; top: 6px; left: 6px; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center;
+  border-radius: 6px; font-size: 0.62rem; font-weight: 800; color: #fff; background: rgba(0, 0, 0, 0.62);
+}
+.imglib-src.s-wikipedia { background: rgba(37, 99, 235, 0.85); }
+.imglib-src.s-wikimedia { background: rgba(5, 150, 105, 0.85); }
+.imglib-src.s-openverse { background: rgba(124, 58, 237, 0.85); }
+.imglib-src.s-inaturalist { background: rgba(101, 163, 13, 0.9); }
+.imglib-cap {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 8px 26px; font-size: 0.68rem; font-weight: 600; color: #fff; text-align: left;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8)); opacity: 0; transition: opacity 0.15s ease;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.imglib-cell:hover .imglib-cap { opacity: 1; }
+@media (pointer: coarse) { .imglib-cap { display: none; } }
