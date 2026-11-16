@@ -1,6 +1,14 @@
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
-import type { BatchParseOptions } from '../types/flashcard';
+import {
+  DEFAULT_SETTINGS,
+  buildExample,
+  parseImport,
+  type CardSepMode,
+  type ImportParseResult,
+  type ImportSettings,
+  type SideSepKey
+} from '../services/import-parser';
 
 export interface FigmaBatchImportOptions {
   deckId: string;
@@ -8,363 +16,415 @@ export interface FigmaBatchImportOptions {
   onClose: () => void;
 }
 
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const norm = (t: string) => t.toLowerCase().replace(/\s+/g, ' ').trim();
+const MAX_FILE_BYTES = 8 * 1024 * 1024;
+const PREVIEW_STEP = 8;
+
+const SIDE_CHIPS: Array<{ key: SideSepKey; label: string }> = [
+  { key: 'auto', label: '✨ Automático' },
+  { key: 'tab', label: 'Tab' },
+  { key: 'semi', label: ';' },
+  { key: 'comma', label: ',' },
+  { key: 'pipe', label: '|' },
+  { key: 'colons', label: ':::' },
+  { key: 'dash', label: ' - ' },
+  { key: 'custom', label: '✏️ Otro' }
+];
+const CARD_CHIPS: Array<{ key: CardSepMode; label: string }> = [
+  { key: 'auto', label: '✨ Automático' },
+  { key: 'line', label: 'Cada línea' },
+  { key: 'blank', label: 'Línea en blanco' },
+  { key: 'dashes', label: '---' },
+  { key: 'custom', label: '✏️ Otro' }
+];
+
 export function openFigmaBatchImportModal(options: FigmaBatchImportOptions): void {
-  const existing = document.getElementById('modal-batch-import-root');
-  if (existing) existing.remove();
+  document.getElementById('modal-batch-import-root')?.remove();
 
   const allDecks = deckService.getAllDecks();
+  const settings: ImportSettings = { ...DEFAULT_SETTINGS };
+  let parsed: ImportParseResult = parseImport('', settings);
+  const excluded = new Set<string>();
+  let shown = PREVIEW_STEP;
+  let skipDuplicates = true;
+  let makeInverted = false;
+  let advancedOpen = false;
+  let helpOpen = false;
+  let existingFronts = new Set<string>();
+  let timer = 0;
 
-  const modalHtml = `
+  const html = `
     <div class="modal-backdrop figma-modal-backdrop" id="modal-batch-import-root">
-      <div class="apple-glass-modal" style="max-width:720px; width:95%; max-height:92vh; display:flex; flex-direction:column; padding:0; overflow:hidden; border:1px solid rgba(255,255,255,0.14); box-shadow:0 28px 70px rgba(0,0,0,0.75);">
-        
-        <!-- Header -->
-        <div class="figma-modal-header" style="padding:18px 24px; border-bottom:1px solid rgba(255,255,255,0.08); background:linear-gradient(180deg, rgba(255,255,255,0.04), transparent); display:flex; align-items:center; justify-content:space-between;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg, rgba(56,189,248,0.25), rgba(16,185,129,0.25)); border:1px solid rgba(56,189,248,0.4); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:1.3rem;">
-              ⚡
-            </div>
-            <div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <h3 style="font-size:1.25rem; font-weight:800; color:#fff; letter-spacing:-0.02em; margin:0;">Importar Flashcards Masivas</h3>
-                <span class="apple-badge-beta" style="background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); font-size:0.72rem; padding:2px 8px; border-radius:6px; font-weight:800;">Sin Límites</span>
-              </div>
-              <p style="font-size:0.8rem; color:var(--f-text-secondary); margin:2px 0 0 0;">
-                Pega cientos o miles de tarjetas de una sola vez • Soporta fórmulas KaTeX y Markdown
-              </p>
-            </div>
+      <div class="apple-glass-modal imp-panel" role="dialog" aria-label="Importar tarjetas">
+
+        <header class="imp-head">
+          <div class="imp-head-ic">⬇️</div>
+          <div class="imp-head-tx">
+            <h3>Importar tarjetas</h3>
+            <p>Pega texto o sube un archivo. Eureka detecta solo cómo está organizado.</p>
           </div>
-          <button class="figma-btn-ghost" id="btn-close-batch-modal" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:var(--f-text-secondary); display:flex; align-items:center; justify-content:center; font-size:1.2rem; cursor:pointer;">×</button>
-        </div>
+          <button type="button" class="imp-x" id="imp-close" aria-label="Cerrar">×</button>
+        </header>
 
-        <!-- Body -->
-        <div class="modal-body" style="padding:20px 24px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;">
-          
-          <!-- Target Deck Selector & Quick Actions -->
-          <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px;">
-            <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:220px;">
-              <label style="font-size:0.78rem; font-weight:700; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em;">Mazo destino:</label>
-              <select id="batch-deck-select" class="cupertino-dialog-input" style="padding:6px 12px; font-size:0.88rem; text-align:left; flex:1; max-width:260px;">
-                ${allDecks.map(d => `<option value="${d.id}" ${d.id === options.deckId ? 'selected' : ''}>${d.parentId ? '↳ ' : '📁 '} ${d.name}</option>`).join('')}
-              </select>
+        <div class="imp-body">
+
+          <section class="imp-step">
+            <div class="imp-step-h"><span class="imp-num">1</span><b>¿A qué mazo van?</b></div>
+            <select id="imp-deck" class="imp-select">
+              ${allDecks.map((d) => `<option value="${d.id}" ${d.id === options.deckId ? 'selected' : ''}>${d.parentId ? '↳ ' : '📁 '}${esc(d.name)}</option>`).join('')}
+            </select>
+          </section>
+
+          <section class="imp-step">
+            <div class="imp-step-h"><span class="imp-num">2</span><b>Tu contenido</b></div>
+            <div class="imp-drop" id="imp-drop">
+              <textarea id="imp-text" spellcheck="false" autocomplete="off" placeholder="Pega aquí tus tarjetas, o arrastra un archivo (.txt, .csv, .tsv)&#10;&#10;Ejemplo:&#10;Capital de Australia ; Canberra&#10;Ley de Ohm ; $$V = I \cdot R$$"></textarea>
+              <div class="imp-drop-over" aria-hidden="true">📄 Suelta el archivo para leerlo</div>
             </div>
-
-            <!-- Action buttons -->
-            <div style="display:flex; align-items:center; gap:6px;">
-              <button type="button" class="apple-btn-outline-pill" id="btn-batch-paste" style="font-size:0.75rem; padding:4px 10px; font-weight:700; color:#38bdf8; border-color:rgba(56,189,248,0.35);">
-                📋 Pegar Portapapeles
-              </button>
-              <button type="button" class="apple-btn-outline-pill" id="btn-batch-example" style="font-size:0.75rem; padding:4px 10px; font-weight:700;">
-                💡 Cargar Ejemplo
-              </button>
-              <button type="button" class="apple-btn-outline-pill" id="btn-batch-clear" style="font-size:0.75rem; padding:4px 10px; font-weight:700; color:#ef4444; border-color:rgba(239,68,68,0.3);">
-                🗑️ Limpiar
-              </button>
+            <div class="imp-tools">
+              <button type="button" class="imp-btn primary" id="imp-file">📄 Subir archivo</button>
+              <button type="button" class="imp-btn" id="imp-paste">📋 Pegar</button>
+              <button type="button" class="imp-btn" id="imp-example">💡 Ejemplo</button>
+              <button type="button" class="imp-btn danger" id="imp-clear">Limpiar</button>
+              <button type="button" class="imp-link" id="imp-help-toggle">¿Qué formatos entiende?</button>
+              <input type="file" id="imp-file-input" accept=".txt,.csv,.tsv,.md,.text,text/plain,text/csv,text/tab-separated-values" hidden />
             </div>
-          </div>
+            <div class="imp-help hidden" id="imp-help"></div>
+          </section>
 
-          <!-- Delimiter Selection Panel (Configuración de Separadores) -->
-          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:12px 16px; display:flex; flex-direction:column; gap:10px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
-              <span style="font-size:0.8rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:6px;">
-                <span>✂️</span> Configuración de Separadores
-              </span>
-              <span style="font-size:0.72rem; color:var(--f-text-secondary);">
-                Elige cómo dividir caras y tarjetas con opciones recomendadas o personalizadas
-              </span>
-            </div>
+          <section class="imp-step" id="imp-detect-wrap">
+            <div class="imp-step-h"><span class="imp-num">3</span><b>Así lo entendimos</b></div>
+            <div id="imp-detect"></div>
+            <div class="imp-adv hidden" id="imp-adv"></div>
+          </section>
 
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px;">
-              
-              <!-- 1. Separador entre Anverso y Reverso (Side Separator) -->
-              <div style="display:flex; flex-direction:column; gap:5px;">
-                <label style="font-size:0.75rem; font-weight:700; color:var(--f-text-secondary); display:flex; align-items:center; justify-content:space-between;">
-                  <span>Separador Anverso ⇄ Reverso</span>
-                  <span class="apple-badge-subpill" style="font-size:0.68rem; color:#38bdf8; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25);">Entre lados</span>
-                </label>
-                <div style="display:flex; gap:6px; align-items:center;">
-                  <select id="batch-side-separator" class="cupertino-dialog-input" style="padding:7px 10px; font-size:0.84rem; text-align:left; flex:1;">
-                    <option value=";" selected>; Punto y coma (Recomendado)</option>
-                    <option value="auto">⚡ Automático (Detección inteligente)</option>
-                    <option value="\\t">⇥ Tabulación [TAB] (Recomendado)</option>
-                    <option value=":::">::: Tres dos puntos (Recomendado)</option>
-                    <option value="|">| Barra vertical</option>
-                    <option value=",">, Coma</option>
-                    <option value=" - ">- Guion con espacios</option>
-                    <option value=" : ">: Dos puntos con espacios</option>
-                    <option value="custom">✏️ Personalizado...</option>
-                  </select>
-                  <input 
-                    type="text" 
-                    id="batch-side-custom" 
-                    placeholder="Separador" 
-                    class="cupertino-dialog-input hidden" 
-                    style="width:90px; padding:7px 8px; font-size:0.84rem;"
-                  />
-                </div>
-              </div>
-
-              <!-- 2. Separador entre Flashcards (Card Separator) -->
-              <div style="display:flex; flex-direction:column; gap:5px;">
-                <label style="font-size:0.75rem; font-weight:700; color:var(--f-text-secondary); display:flex; align-items:center; justify-content:space-between;">
-                  <span>Separador entre Flashcards</span>
-                  <span class="apple-badge-subpill" style="font-size:0.68rem; color:#10b981; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25);">Entre tarjetas</span>
-                </label>
-                <div style="display:flex; gap:6px; align-items:center;">
-                  <select id="batch-card-separator" class="cupertino-dialog-input" style="padding:7px 10px; font-size:0.84rem; text-align:left; flex:1;">
-                    <option value="\\n" selected>↵ Salto de línea (1 por línea) (Recomendado)</option>
-                    <option value="\\n\\n">↵↵ Línea vacía (Doble salto) (Recomendado)</option>
-                    <option value=";;;">;;; Tres puntos y coma</option>
-                    <option value="---">--- Tres guiones</option>
-                    <option value="|">| Barra vertical</option>
-                    <option value="custom">✏️ Personalizado...</option>
-                  </select>
-                  <input 
-                    type="text" 
-                    id="batch-card-custom" 
-                    placeholder="Separador" 
-                    class="cupertino-dialog-input hidden" 
-                    style="width:90px; padding:7px 8px; font-size:0.84rem;"
-                  />
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- UNLIMITED TEXTAREA CONTAINER -->
-          <div style="position:relative; display:flex; flex-direction:column;">
-            <textarea 
-              id="batch-raw-textarea" 
-              class="figma-editor-textarea" 
-              style="min-height:220px; max-height:420px; border-radius:14px; font-size:0.9rem; line-height:1.55; padding:16px; font-family:'Fira Code', 'SF Mono', Consolas, Menlo, monospace; background:rgba(0,0,0,0.35); border:1.5px solid rgba(255,255,255,0.12); color:#ffffff; resize:vertical; outline:none;"
-              placeholder="Pega aquí tus pares de Pregunta y Respuesta&#10;Ejemplo:&#10;¿Qué es la fotosíntesis?;Proceso químico que convierte dióxido de carbono y agua en glucosa usando luz solar&#10;Teorema de Pitágoras;$$a^2 + b^2 = c^2$$"
-              spellcheck="false"
-              autocomplete="off"
-            ></textarea>
-          </div>
-
-          <!-- Live Detection Metrics Bar -->
-          <div id="batch-stats-bar" style="display:flex; align-items:center; justify-content:space-between; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.2); border-radius:12px; padding:10px 14px; font-size:0.85rem; color:#fff;">
-            <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-              <span style="font-weight:800; color:#38bdf8;" id="stat-cards-count">🎴 0 tarjetas detectadas</span>
-              <span style="color:var(--f-text-secondary);" id="stat-chars-count">📝 0 caracteres (Sin límite)</span>
-              <span style="color:var(--f-text-secondary);" id="stat-lines-count">📄 0 líneas</span>
-            </div>
-            <button type="button" class="apple-btn-outline-pill" id="btn-toggle-preview" style="font-size:0.74rem; padding:3px 10px; color:var(--f-blue); border-color:rgba(56,189,248,0.3); display:none;">
-              👁️ Previsualizar
-            </button>
-          </div>
-
-          <!-- Real-Time Parsed Cards Preview (Collapsible) -->
-          <div id="batch-preview-drawer" class="hidden" style="border:1px solid rgba(255,255,255,0.08); border-radius:14px; background:rgba(0,0,0,0.25); padding:12px; max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
-            <div style="font-size:0.78rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em;">
-              Vista Previa en Vivo de Flashcards a Importar:
-            </div>
-            <div id="batch-preview-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-          </div>
+          <section class="imp-step hidden" id="imp-preview-wrap">
+            <div class="imp-step-h"><span class="imp-num">4</span><b>Revisa y listo</b><span class="imp-hint" id="imp-preview-hint"></span></div>
+            <div id="imp-preview"></div>
+            <div class="imp-opts" id="imp-opts"></div>
+          </section>
 
         </div>
 
-        <!-- Footer -->
-        <div style="padding:16px 24px 20px; border-top:1px solid rgba(255,255,255,0.08); background:linear-gradient(0deg, rgba(255,255,255,0.03), transparent); display:flex; align-items:center; justify-content:space-between;">
-          <button class="dialog-btn dialog-btn-cancel" id="btn-cancel-batch" style="padding:10px 18px; font-size:0.92rem;">
-            Cancelar
-          </button>
-          
-          <button class="dialog-btn dialog-btn-primary" id="btn-confirm-batch-import" style="padding:12px 24px; font-size:0.95rem; font-weight:800; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; box-shadow:0 4px 18px rgba(56,189,248,0.4); opacity:0.6; pointer-events:none; transition:all 0.2s ease;">
-            🚀 Importar 0 Tarjetas
-          </button>
-        </div>
-
+        <footer class="imp-foot">
+          <button type="button" class="imp-btn" id="imp-cancel">Cancelar</button>
+          <button type="button" class="imp-go" id="imp-go" disabled>Importar 0 tarjetas</button>
+        </footer>
       </div>
-    </div>
-  `;
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
 
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+  const text = $<HTMLTextAreaElement>('imp-text')!;
+  const deckSel = $<HTMLSelectElement>('imp-deck')!;
+  const goBtn = $<HTMLButtonElement>('imp-go')!;
 
-  const textarea = document.getElementById('batch-raw-textarea') as HTMLTextAreaElement | null;
-  const deckSelect = document.getElementById('batch-deck-select') as HTMLSelectElement | null;
-  const sideSelect = document.getElementById('batch-side-separator') as HTMLSelectElement | null;
-  const sideCustom = document.getElementById('batch-side-custom') as HTMLInputElement | null;
-  const cardSelect = document.getElementById('batch-card-separator') as HTMLSelectElement | null;
-  const cardCustom = document.getElementById('batch-card-custom') as HTMLInputElement | null;
-
-  const statCards = document.getElementById('stat-cards-count');
-  const statChars = document.getElementById('stat-chars-count');
-  const statLines = document.getElementById('stat-lines-count');
-  const btnTogglePreview = document.getElementById('btn-toggle-preview') as HTMLButtonElement | null;
-  const previewDrawer = document.getElementById('batch-preview-drawer');
-  const previewList = document.getElementById('batch-preview-list');
-  const btnConfirm = document.getElementById('btn-confirm-batch-import') as HTMLButtonElement | null;
-
-  let isPreviewOpen = false;
-
-  const getActiveSeparators = (): BatchParseOptions => {
-    let sideSeparator = sideSelect?.value || ';';
-    if (sideSeparator === 'custom') {
-      sideSeparator = sideCustom?.value.trim() || ';';
-    }
-
-    let cardSeparator = cardSelect?.value || '\\n';
-    if (cardSeparator === 'custom') {
-      cardSeparator = cardCustom?.value || '\\n';
-    }
-
-    return { sideSeparator, cardSeparator };
+  const refreshExisting = () => {
+    existingFronts = new Set(deckService.getCardsByDeck(deckSel.value, false).map((c) => norm(c.front)));
   };
 
-  const updateBatchMetrics = () => {
-    if (!textarea) return;
-    const raw = textarea.value;
-    const seps = getActiveSeparators();
-    const parsed = deckService.parseBatchCards(raw, seps);
-    const charCount = raw.length;
-    const lineCount = raw ? raw.split('\n').length : 0;
+  /** Filas ya marcadas como duplicadas / excluidas */
+  const rowKey = (f: string, b: string) => `${f}\u0001${b}`;
+  const decorate = () => {
+    const seen = new Set<string>();
+    return parsed.rows.map((r) => {
+      const n = norm(r.front);
+      const dup = existingFronts.has(n) ? 'mazo' : seen.has(n) ? 'lista' : '';
+      seen.add(n);
+      return { ...r, dup, off: excluded.has(rowKey(r.front, r.back)) };
+    });
+  };
+  const toImport = () => decorate().filter((r) => !r.off && !(skipDuplicates && r.dup));
 
-    if (statCards) statCards.textContent = `🎴 ${parsed.length} tarjeta${parsed.length === 1 ? '' : 's'} detectada${parsed.length === 1 ? '' : 's'}`;
-    if (statChars) statChars.textContent = `📝 ${charCount.toLocaleString()} caracteres (Sin límite)`;
-    if (statLines) statLines.textContent = `📄 ${lineCount.toLocaleString()} líneas`;
+  /* ---------------- pintado ---------------- */
+  const renderHelp = () => {
+    const help = $('imp-help')!;
+    help.classList.toggle('hidden', !helpOpen);
+    if (!helpOpen) return;
+    const ex = (side: Parameters<typeof buildExample>[0], title: string, sample: string) => `
+      <button type="button" class="imp-fmt" data-ex="${side}">
+        <b>${title}</b>
+        <code>${esc(sample)}</code>
+        <span>Usar este ejemplo</span>
+      </button>`;
+    help.innerHTML = `
+      <div class="imp-fmt-grid">
+        ${ex('semi', 'Una tarjeta por línea', 'Pregunta ; Respuesta')}
+        ${ex('tab', 'Excel, Sheets o Anki', 'Pregunta⇥Respuesta  (copiar y pegar celdas)')}
+        ${ex('blocks', 'Varias líneas por tarjeta', 'Pregunta\nRespuesta\n\n(línea en blanco entre tarjetas)')}
+      </div>
+      <p class="imp-note">También entiende <b>CSV con comillas</b>, exportaciones de <b>Anki</b> (texto plano), bloques con <b>«Pregunta: … Respuesta: …»</b> y fila de títulos. Para Excel (.xlsx) elige <i>Guardar como → CSV</i>; para Anki, <i>Exportar → Texto plano</i>.</p>`;
+    help.querySelectorAll<HTMLButtonElement>('.imp-fmt').forEach((b) =>
+      b.addEventListener('click', () => {
+        text.value = buildExample(b.dataset.ex as Parameters<typeof buildExample>[0]);
+        resetSettings();
+        text.focus();
+        recompute(true);
+      })
+    );
+  };
 
-    if (btnConfirm) {
-      if (parsed.length > 0) {
-        btnConfirm.style.opacity = '1';
-        btnConfirm.style.pointerEvents = 'auto';
-        btnConfirm.innerHTML = `🚀 Importar ${parsed.length} Tarjeta${parsed.length === 1 ? '' : 's'}`;
-      } else {
-        btnConfirm.style.opacity = '0.5';
-        btnConfirm.style.pointerEvents = 'none';
-        btnConfirm.innerHTML = `🚀 Importar 0 Tarjetas`;
+  const renderAdvanced = () => {
+    const adv = $('imp-adv')!;
+    adv.classList.toggle('hidden', !advancedOpen);
+    if (!advancedOpen) return;
+    const chips = <K extends string>(group: string, items: Array<{ key: K; label: string }>, cur: K) =>
+      items.map((i) => `<button type="button" class="imp-chip ${i.key === cur ? 'on' : ''}" data-group="${group}" data-key="${i.key}">${esc(i.label)}</button>`).join('');
+    adv.innerHTML = `
+      <div class="imp-adv-row">
+        <span>Pregunta y respuesta se separan con</span>
+        <div class="imp-chips">${chips('side', SIDE_CHIPS, settings.sideSep)}</div>
+        <input class="imp-input ${settings.sideSep === 'custom' ? '' : 'hidden'}" id="imp-side-custom" placeholder="Escribe el separador" value="${esc(settings.sideCustom)}" />
+      </div>
+      <div class="imp-adv-row">
+        <span>Las tarjetas se separan con</span>
+        <div class="imp-chips">${chips('card', CARD_CHIPS, settings.cardSep)}</div>
+        <input class="imp-input ${settings.cardSep === 'custom' ? '' : 'hidden'}" id="imp-card-custom" placeholder="Escribe el separador" value="${esc(settings.cardCustom)}" />
+      </div>`;
+    adv.querySelectorAll<HTMLButtonElement>('.imp-chip').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (b.dataset.group === 'side') settings.sideSep = b.dataset.key as SideSepKey;
+        else settings.cardSep = b.dataset.key as CardSepMode;
+        renderAdvanced();
+        recompute(true);
+      })
+    );
+    $<HTMLInputElement>('imp-side-custom')?.addEventListener('input', (e) => {
+      settings.sideCustom = (e.target as HTMLInputElement).value;
+      recompute(true);
+    });
+    $<HTMLInputElement>('imp-card-custom')?.addEventListener('input', (e) => {
+      settings.cardCustom = (e.target as HTMLInputElement).value;
+      recompute(true);
+    });
+  };
+
+  const renderDetect = () => {
+    const box = $('imp-detect')!;
+    const raw = text.value.trim();
+    const n = parsed.rows.length;
+    const d = parsed.detected;
+    const lines: string[] = [];
+    let tone = 'idle';
+    let title = '';
+
+    if (!raw) {
+      title = 'Esperando tu contenido…';
+      lines.push('Cuando pegues o subas algo, aquí te decimos qué entendimos.');
+    } else if (n === 0) {
+      tone = 'bad';
+      title = 'No encontramos tarjetas todavía';
+      lines.push('Falta algo que separe la pregunta de la respuesta (por ejemplo <b>;</b> o un Tab). Toca «Ajustar» para elegirlo, o mira «¿Qué formatos entiende?».');
+    } else {
+      tone = parsed.ignored.length ? 'warn' : 'good';
+      title = `${n} tarjeta${n === 1 ? '' : 's'} detectada${n === 1 ? '' : 's'}`;
+      lines.push(`<b>Formato:</b> ${esc(d.cardSepLabel ? `${d.cardSepLabel} · ` : '')}${esc(d.sideSepLabel)}`);
+      if (parsed.headerSkipped) lines.push('Omitimos la primera fila porque parecía un título.');
+      if (parsed.extraColumnRows) lines.push(`${parsed.extraColumnRows} fila${parsed.extraColumnRows === 1 ? '' : 's'} con más de 2 columnas: usamos solo las 2 primeras (pregunta y respuesta).`);
+      if (parsed.ignored.length) {
+        const sample = parsed.ignored.slice(0, 3).map((i) => `línea ${i.line}`).join(', ');
+        lines.push(`⚠️ ${parsed.ignored.length} línea${parsed.ignored.length === 1 ? '' : 's'} sin separador ${parsed.ignored.length === 1 ? 'se ignora' : 'se ignoran'} (${sample}${parsed.ignored.length > 3 ? '…' : ''}).`);
       }
     }
 
-    if (btnTogglePreview) {
-      btnTogglePreview.style.display = parsed.length > 0 ? 'inline-block' : 'none';
-    }
-
-    if (previewList && isPreviewOpen) {
-      renderPreviewList(parsed);
-    }
+    box.innerHTML = `
+      <div class="imp-detect ${tone}">
+        <div class="imp-detect-ic">${tone === 'good' ? '✅' : tone === 'warn' ? '⚠️' : tone === 'bad' ? '🤔' : '✨'}</div>
+        <div class="imp-detect-tx"><b>${title}</b>${lines.map((l) => `<span>${l}</span>`).join('')}</div>
+        <button type="button" class="imp-btn small" id="imp-adv-toggle">${advancedOpen ? 'Listo' : '⚙️ Ajustar'}</button>
+      </div>`;
+    $('imp-adv-toggle')?.addEventListener('click', () => {
+      advancedOpen = !advancedOpen;
+      renderDetect();
+      renderAdvanced();
+    });
   };
 
-  const renderPreviewList = (parsed: Array<{ front: string; back: string; type: string }>) => {
-    if (!previewList) return;
-    if (parsed.length === 0) {
-      previewList.innerHTML = '<div style="font-size:0.8rem; color:var(--f-text-secondary); text-align:center;">No se detectaron tarjetas válidas todavía. Revisa los separadores elegidos arriba.</div>';
+  const renderPreview = () => {
+    const wrap = $('imp-preview-wrap')!;
+    const rows = decorate();
+    wrap.classList.toggle('hidden', rows.length === 0);
+    if (rows.length === 0) return;
+    const dups = rows.filter((r) => r.dup).length;
+    const hint = $('imp-preview-hint')!;
+    hint.textContent = dups ? `${dups} repetida${dups === 1 ? '' : 's'}` : '';
+
+    const list = $('imp-preview')!;
+    const visible = rows.slice(0, shown);
+    list.innerHTML = `
+      <div class="imp-cards">
+        ${visible
+          .map((r) => {
+            const skip = r.off || (skipDuplicates && !!r.dup);
+            return `
+          <div class="imp-card ${skip ? 'skip' : ''}" data-k="${esc(rowKey(r.front, r.back))}">
+            <div class="imp-card-n">${rows.indexOf(r) + 1}</div>
+            <div class="imp-card-sides">
+              <div class="imp-side"><i>Pregunta</i><div>${katexService.parseAndRender(r.front)}</div></div>
+              <div class="imp-side"><i>Respuesta</i><div>${katexService.parseAndRender(r.back)}</div></div>
+            </div>
+            <div class="imp-card-act">
+              ${r.dup ? `<span class="imp-badge" title="Ya existe una tarjeta con esta pregunta ${r.dup === 'mazo' ? 'en el mazo' : 'más arriba en tu lista'}">Repetida</span>` : ''}
+              <button type="button" class="imp-rm" data-rm="1" aria-label="${r.off ? 'Incluir' : 'Quitar'} esta tarjeta" title="${r.off ? 'Incluir de nuevo' : 'No importar esta tarjeta'}">${r.off ? '↺' : '✕'}</button>
+            </div>
+          </div>`;
+          })
+          .join('')}
+      </div>
+      ${
+        rows.length > shown
+          ? `<button type="button" class="imp-more" id="imp-more">Ver ${Math.min(PREVIEW_STEP * 4, rows.length - shown)} más · quedan ${rows.length - shown}</button>`
+          : rows.length > PREVIEW_STEP
+          ? '<button type="button" class="imp-more" id="imp-less">Ver menos</button>'
+          : ''
+      }`;
+    list.querySelectorAll<HTMLElement>('.imp-card').forEach((c) =>
+      c.querySelector('[data-rm]')?.addEventListener('click', () => {
+        const k = c.dataset.k || '';
+        if (excluded.has(k)) excluded.delete(k);
+        else excluded.add(k);
+        renderPreview();
+        renderGo();
+      })
+    );
+    $('imp-more')?.addEventListener('click', () => {
+      shown += PREVIEW_STEP * 4;
+      renderPreview();
+    });
+    $('imp-less')?.addEventListener('click', () => {
+      shown = PREVIEW_STEP;
+      renderPreview();
+    });
+
+    const opts = $('imp-opts')!;
+    opts.innerHTML = `
+      <label class="imp-toggle"><input type="checkbox" id="imp-opt-dup" ${skipDuplicates ? 'checked' : ''} /><span class="imp-sw"></span><span><b>Omitir repetidas</b><small>No importa las que ya existen en el mazo</small></span></label>
+      <label class="imp-toggle"><input type="checkbox" id="imp-opt-inv" ${makeInverted ? 'checked' : ''} /><span class="imp-sw"></span><span><b>Crear también la inversa</b><small>Se estudia Respuesta → Pregunta</small></span></label>
+      <label class="imp-tag"><span>🏷️ Etiqueta para todas <small>(opcional)</small></span><input type="text" id="imp-opt-tag" class="imp-input" maxlength="32" placeholder="ej. tema-1, examen" value="${esc(tagValue)}" /></label>`;
+    $<HTMLInputElement>('imp-opt-dup')?.addEventListener('change', (e) => {
+      skipDuplicates = (e.target as HTMLInputElement).checked;
+      renderPreview();
+      renderGo();
+    });
+    $<HTMLInputElement>('imp-opt-inv')?.addEventListener('change', (e) => {
+      makeInverted = (e.target as HTMLInputElement).checked;
+    });
+    $<HTMLInputElement>('imp-opt-tag')?.addEventListener('input', (e) => {
+      tagValue = (e.target as HTMLInputElement).value;
+    });
+  };
+  let tagValue = '';
+
+  const renderGo = () => {
+    const n = toImport().length;
+    goBtn.disabled = n === 0;
+    goBtn.textContent = n === 0 ? 'Nada que importar' : `Importar ${n} tarjeta${n === 1 ? '' : 's'}`;
+  };
+
+  const recompute = (immediate = false) => {
+    window.clearTimeout(timer);
+    const run = () => {
+      parsed = parseImport(text.value, settings);
+      // al cambiar el texto se vuelve a pintar todo; las exclusiones que ya no existen se descartan solas
+      renderDetect();
+      renderAdvanced();
+      renderPreview();
+      renderGo();
+    };
+    if (immediate || text.value.length < 4000) run();
+    else timer = window.setTimeout(run, 180);
+  };
+
+  const resetSettings = () => {
+    Object.assign(settings, DEFAULT_SETTINGS);
+    excluded.clear();
+    shown = PREVIEW_STEP;
+  };
+
+  /* ---------------- eventos ---------------- */
+  text.addEventListener('input', () => {
+    shown = PREVIEW_STEP;
+    recompute();
+  });
+  deckSel.addEventListener('change', () => {
+    refreshExisting();
+    recompute(true);
+  });
+
+  const loadText = (content: string, name?: string) => {
+    resetSettings();
+    text.value = content;
+    recompute(true);
+    if (name) $('imp-preview-hint')!.textContent = `📄 ${name}`;
+  };
+
+  const readFile = (file: File) => {
+    if (/\.(xlsx|xls|apkg|colpkg|docx|pdf)$/i.test(file.name)) {
+      const kind = /\.(xlsx|xls)$/i.test(file.name) ? 'Excel: abre el archivo y usa «Guardar como → CSV»' : /apkg|colpkg/i.test(file.name) ? 'Anki: usa «Exportar → Texto plano (.txt)»' : 'Copia el texto y pégalo aquí';
+      renderDetect();
+      $('imp-detect')!.innerHTML = `<div class="imp-detect bad"><div class="imp-detect-ic">🤔</div><div class="imp-detect-tx"><b>Ese tipo de archivo no se puede leer directamente</b><span>${kind}, y súbelo de nuevo.</span></div></div>`;
       return;
     }
-
-    previewList.innerHTML = parsed.slice(0, 100).map((c, i) => `
-      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:8px 12px; font-size:0.84rem;">
-        <div style="font-weight:700; color:#fff; margin-bottom:2px;">#${i + 1}: ${katexService.parseAndRender(c.front)}</div>
-        <div style="color:var(--f-text-secondary); font-size:0.8rem; line-height:1.4;">↳ ${katexService.parseAndRender(c.back)}</div>
-      </div>
-    `).join('') + (parsed.length > 100 ? `<div style="text-align:center; font-size:0.8rem; color:var(--f-blue); font-weight:700;">+ ${parsed.length - 100} tarjetas más...</div>` : '');
+    if (file.size > MAX_FILE_BYTES) {
+      $('imp-detect')!.innerHTML = '<div class="imp-detect bad"><div class="imp-detect-ic">⚠️</div><div class="imp-detect-tx"><b>El archivo es demasiado grande</b><span>El máximo es 8 MB. Divídelo en partes.</span></div></div>';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => loadText(String(reader.result || ''), file.name);
+    reader.readAsText(file, 'utf-8');
   };
 
-  // Separator controls event handling
-  sideSelect?.addEventListener('change', () => {
-    if (sideSelect.value === 'custom') {
-      sideCustom?.classList.remove('hidden');
-      sideCustom?.focus();
-    } else {
-      sideCustom?.classList.add('hidden');
-    }
-    updateBatchMetrics();
+  const fileInput = $<HTMLInputElement>('imp-file-input')!;
+  $('imp-file')?.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const f = fileInput.files?.[0];
+    if (f) readFile(f);
+    fileInput.value = '';
   });
 
-  sideCustom?.addEventListener('input', updateBatchMetrics);
-
-  cardSelect?.addEventListener('change', () => {
-    if (cardSelect.value === 'custom') {
-      cardCustom?.classList.remove('hidden');
-      cardCustom?.focus();
-    } else {
-      cardCustom?.classList.add('hidden');
-    }
-    updateBatchMetrics();
+  const drop = $('imp-drop')!;
+  ['dragenter', 'dragover'].forEach((ev) =>
+    drop.addEventListener(ev, (e) => {
+      e.preventDefault();
+      drop.classList.add('over');
+    })
+  );
+  ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, () => drop.classList.remove('over')));
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const f = (e as DragEvent).dataTransfer?.files?.[0];
+    if (f) readFile(f);
   });
 
-  cardCustom?.addEventListener('input', updateBatchMetrics);
-
-  textarea?.addEventListener('input', updateBatchMetrics);
-
-  // Toggle preview
-  btnTogglePreview?.addEventListener('click', () => {
-    isPreviewOpen = !isPreviewOpen;
-    if (previewDrawer) {
-      if (isPreviewOpen) {
-        previewDrawer.classList.remove('hidden');
-        btnTogglePreview.textContent = '🙈 Ocultar';
-        const parsed = deckService.parseBatchCards(textarea?.value || '', getActiveSeparators());
-        renderPreviewList(parsed);
-      } else {
-        previewDrawer.classList.add('hidden');
-        btnTogglePreview.textContent = '👁️ Previsualizar';
-      }
-    }
-  });
-
-  // Paste from clipboard
-  document.getElementById('btn-batch-paste')?.addEventListener('click', async () => {
+  $('imp-paste')?.addEventListener('click', async () => {
     try {
-      if (navigator.clipboard && navigator.clipboard.readText) {
-        const text = await navigator.clipboard.readText();
-        if (textarea && text) {
-          textarea.value = textarea.value ? `${textarea.value}\n${text}` : text;
-          updateBatchMetrics();
-          textarea.focus();
-        }
-      } else {
-        textarea?.focus();
+      const clip = await navigator.clipboard.readText();
+      if (clip) {
+        if (text.value.trim()) text.value += `\n${clip}`;
+        else loadText(clip);
+        recompute(true);
       }
     } catch {
-      textarea?.focus();
+      text.focus();
     }
   });
-
-  // Load example dynamically based on currently chosen separators
-  document.getElementById('btn-batch-example')?.addEventListener('click', () => {
-    if (textarea) {
-      const seps = getActiveSeparators();
-      let s = seps.sideSeparator || ';';
-      if (s === '\\t') s = '\t';
-      if (s === 'auto') s = ';';
-
-      let c = '\n';
-      if (seps.cardSeparator === '\\n\\n') c = '\n\n';
-      else if (seps.cardSeparator === '---') c = '\n---\n';
-      else if (seps.cardSeparator === ';;;') c = ';;;\n';
-      else if (seps.cardSeparator && seps.cardSeparator !== '\\n' && seps.cardSeparator !== 'auto') {
-        c = seps.cardSeparator.includes('\n') ? seps.cardSeparator : ` ${seps.cardSeparator} `;
-      }
-
-      const exampleCards = [
-        `¿Qué es el principio de Arquímedes?${s}Todo cuerpo sumergido experimenta un empuje vertical hacia arriba igual al peso del fluido desalojado: $$F_E = \\rho \\cdot g \\cdot V$$`,
-        `¿Qué es la Vena Cava Superior?${s}Gran vaso que transporta sangre desoxigenada desde la parte superior del cuerpo hacia la aurícula derecha del corazón.`,
-        `Identidad de Euler${s}$$e^{i\\pi} + 1 = 0$$ vincula las 5 constantes matemáticas fundamentales.`,
-        `Ley de Ohm${s}$$V = I \\cdot R$$ (El voltaje es directamente proporcional a la corriente y resistencia).`,
-        `Función de la Mitocondria${s}Produce ATP a través de la respiración celular (central energética celular).`
-      ];
-
-      textarea.value = exampleCards.join(c);
-      updateBatchMetrics();
-    }
+  $('imp-example')?.addEventListener('click', () => {
+    loadText(buildExample('semi'));
+  });
+  $('imp-clear')?.addEventListener('click', () => {
+    loadText('');
+    text.focus();
+  });
+  $('imp-help-toggle')?.addEventListener('click', () => {
+    helpOpen = !helpOpen;
+    renderHelp();
   });
 
-  // Clear
-  document.getElementById('btn-batch-clear')?.addEventListener('click', () => {
-    if (textarea) {
-      textarea.value = '';
-      updateBatchMetrics();
-    }
-  });
-
-  // Confirm Import
-  btnConfirm?.addEventListener('click', () => {
-    const raw = textarea?.value || '';
-    const targetDeckId = deckSelect?.value || options.deckId;
-    const count = deckService.importBatchCards(targetDeckId, raw, getActiveSeparators());
+  goBtn.addEventListener('click', () => {
+    const rows = toImport();
+    if (rows.length === 0) return;
+    const count = deckService.importParsedCards(deckSel.value, rows, { tag: tagValue, inverted: makeInverted });
     document.getElementById('modal-batch-import-root')?.remove();
     options.onImported(count);
   });
@@ -373,7 +433,22 @@ export function openFigmaBatchImportModal(options: FigmaBatchImportOptions): voi
     document.getElementById('modal-batch-import-root')?.remove();
     options.onClose();
   };
+  $('imp-close')?.addEventListener('click', close);
+  $('imp-cancel')?.addEventListener('click', close);
+  document.getElementById('modal-batch-import-root')?.addEventListener('mousedown', (e) => {
+    if ((e.target as HTMLElement).id === 'modal-batch-import-root') close();
+  });
 
-  document.getElementById('btn-close-batch-modal')?.addEventListener('click', close);
-  document.getElementById('btn-cancel-batch')?.addEventListener('click', close);
+  const onEsc = (e: KeyboardEvent) => {
+    if (!document.getElementById('modal-batch-import-root')) return document.removeEventListener('keydown', onEsc);
+    if (e.key === 'Escape') {
+      document.removeEventListener('keydown', onEsc);
+      close();
+    }
+  };
+  document.addEventListener('keydown', onEsc);
+  refreshExisting();
+  renderDetect();
+  renderHelp();
+  text.focus();
 }

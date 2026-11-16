@@ -36,6 +36,24 @@ export class SrsService {
   }
 
   /**
+   * Duración exacta con meses y días (1 mes = 30 días): «14 meses y 20 días», «1 mes», «3 días y 4 h», «25 min».
+   */
+  public formatMinutesDetailed(minutes: number): string {
+    const total = Math.max(0, Math.round(minutes));
+    const months = Math.floor(total / 43200);
+    const days = Math.floor((total % 43200) / 1440);
+    const hours = Math.floor((total % 1440) / 60);
+    const mins = total % 60;
+    const unit = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+    const join = (parts: string[]) => (parts.length > 1 ? `${parts.slice(0, -1).join(', ')} y ${parts[parts.length - 1]}` : parts[0] || '0 min');
+
+    if (months > 0) return join([unit(months, 'mes', 'meses'), ...(days > 0 ? [unit(days, 'día', 'días')] : [])]);
+    if (days > 0) return join([unit(days, 'día', 'días'), ...(hours > 0 ? [`${hours} h`] : [])]);
+    if (hours > 0) return join([`${hours} h`, ...(mins > 0 ? [`${mins} min`] : [])]);
+    return `${mins} min`;
+  }
+
+  /**
    * Parsea un texto (ej. "4m", "1d", "2 días", "12h") a minutos numéricos.
    */
   public parseTimeToMinutes(raw: string): number {

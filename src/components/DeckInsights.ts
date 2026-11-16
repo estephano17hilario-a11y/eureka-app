@@ -27,6 +27,7 @@ export const isHardCard = (c: Flashcard): boolean => (c.lapses || 0) >= 3 || ((c
 const stateOf = (c: Flashcard): 'new' | 'learning' | 'review' => (c.state === 'new' ? 'new' : c.state === 'review' || c.intervalMinutes >= 10080 ? 'review' : 'learning');
 
 function dueLabel(c: Flashcard, now: number): string {
+  if (c.archived) return 'Archivada';
   if (c.suspended) return 'Pausada';
   if (c.buriedUntil && c.buriedUntil > now) return 'Pospuesta a mañana';
   if (c.state === 'new') return 'Nueva';
@@ -41,7 +42,7 @@ function dueLabel(c: Flashcard, now: number): string {
 
 export function cardDataAttrs(c: Flashcard): string {
   const tags = (c.tags || []).join('|');
-  return `data-st="${stateOf(c)}" data-due="${c.dueDate}" data-created="${c.createdAt}" data-lapses="${c.lapses || 0}" data-ease="${c.easeFactor || 2.5}" data-star="${c.starred ? 1 : 0}" data-susp="${c.suspended ? 1 : 0}" data-hard="${isHardCard(c) ? 1 : 0}" data-buried="${c.buriedUntil && c.buriedUntil > Date.now() ? 1 : 0}" data-tags="|${esc(tags)}|"`;
+  return `data-st="${stateOf(c)}" data-due="${c.dueDate}" data-created="${c.createdAt}" data-lapses="${c.lapses || 0}" data-ease="${c.easeFactor || 2.5}" data-star="${c.starred ? 1 : 0}" data-susp="${c.suspended ? 1 : 0}" data-arch="${c.archived ? 1 : 0}" data-hard="${isHardCard(c) ? 1 : 0}" data-buried="${c.buriedUntil && c.buriedUntil > Date.now() ? 1 : 0}" data-tags="|${esc(tags)}|"`;
 }
 
 export function cardBadgesHtml(c: Flashcard): string {
@@ -79,7 +80,8 @@ const stateFor = (deckId: string): FilterState => {
 };
 
 export function deckFilterBarHtml(deck: Deck): string {
-  const cards = deckService.getCardsByDeck(deck.id, true);
+  const everything = deckService.getCardsByDeck(deck.id, true);
+  const cards = everything.filter((c) => !c.archived);
   const now = Date.now();
   const st = stateFor(deck.id);
   const n = {
@@ -90,7 +92,8 @@ export function deckFilterBarHtml(deck: Deck): string {
     review: cards.filter((c) => stateOf(c) === 'review').length,
     star: cards.filter((c) => c.starred).length,
     hard: cards.filter(isHardCard).length,
-    susp: cards.filter((c) => c.suspended).length
+    susp: cards.filter((c) => c.suspended).length,
+    arch: everything.length - cards.length
   };
   const chip = (id: string, label: string, count: number, hideEmpty = false) =>
     hideEmpty && !count && st.filter !== id ? '' : `<button type="button" class="dk-chip ${st.filter === id ? 'on' : ''}" data-filter="${id}">${label}<i>${count}</i></button>`;
@@ -107,6 +110,7 @@ export function deckFilterBarHtml(deck: Deck): string {
         ${chip('star', '⭐ Favoritas', n.star, true)}
         ${chip('hard', '🔥 Difíciles', n.hard, true)}
         ${chip('susp', '⏸ Pausadas', n.susp, true)}
+        ${chip('arch', '📦 Archivadas', n.arch, true)}
       </div>
       <label class="dk-sort" title="Ordenar tarjetas">
         <span>Orden</span>
@@ -146,8 +150,8 @@ export function bindDeckFilters(container: HTMLElement, deck: Deck): void {
     const items = Array.from(mount.querySelectorAll<HTMLElement>('.selectable-card-target'));
     for (const el of items) {
       const d = el.dataset;
-      let ok = true;
-      switch (st.filter) {
+      let ok = st.filter === 'arch' ? d.arch === '1' : d.arch !== '1';
+      if (ok) switch (st.filter) {
         case 'due':
           ok = Number(d.due) <= now && d.susp !== '1' && d.buried !== '1';
           break;
@@ -233,7 +237,7 @@ export function bindDeckFilters(container: HTMLElement, deck: Deck): void {
   });
 
   if (st.sort !== 'recent') sort();
-  if (st.filter !== 'all' || st.tag || st.query) apply();
+  apply();
 }
 
 /* -------------------------------------------------------------------------- */

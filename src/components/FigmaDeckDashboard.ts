@@ -45,6 +45,10 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
 
   const renderedGroupIds = new Set<string>();
   const cardItemsHtml: string[] = [];
+  // Grupos que son un par invertido (Anverso↔Reverso): se muestran como una sola pila.
+  // Cualquier otro grupo (p. ej. huecos/cloze) se pinta tarjeta a tarjeta; antes esas tarjetas no aparecían en el mazo.
+  const invertedGroupIds = new Set<string>();
+  for (const x of cards) if (x.groupId && x.isInverted) invertedGroupIds.add(x.groupId);
 
   for (const c of cards) {
     if (c.groupId && c.type === 'image_occlusion') {
@@ -92,7 +96,7 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           </div>
         </div>
       `);
-    } else if (c.groupId && c.isInverted) {
+    } else if (c.groupId && invertedGroupIds.has(c.groupId)) {
       if (renderedGroupIds.has(c.groupId)) continue;
       renderedGroupIds.add(c.groupId);
 
@@ -133,8 +137,8 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           </div>
         </div>
       `);
-    } else if (!c.groupId) {
-      // Tarjeta individual sin grupo
+    } else {
+      // Tarjeta individual (sin grupo, o de un grupo que no se apila: huecos, etc.)
       const isInverted = c.isInverted;
       const isOcclusion = c.type === 'image_occlusion';
 
@@ -375,8 +379,14 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
           <button class="batch-action-btn" id="btn-batch-dup-action" title="Duplicar como tarjetas nuevas">
             ⧉ Duplicar
           </button>
-          <button class="batch-action-btn btn-batch-invert" id="btn-batch-invert-action" title="Revertir o desrevertir">
-            ⇄ Revertir
+          <button class="batch-action-btn btn-batch-invert" id="btn-batch-rev-on-action" title="Activar la versión inversa (Reverso → Anverso) de las seleccionadas">
+            ⇄ Activar inversa
+          </button>
+          <button class="batch-action-btn btn-batch-invert" id="btn-batch-rev-off-action" title="Quitar la versión inversa de las seleccionadas">
+            ⇄ Quitar inversa
+          </button>
+          <button class="batch-action-btn" id="btn-batch-archive-action" title="Archivar o desarchivar: salen de la vista normal y de los repasos">
+            📦 Archivar
           </button>
           <button class="batch-action-btn btn-batch-reset" id="btn-batch-reset-action" title="Restablecer progreso a nuevo" style="background:rgba(245,158,11,0.18); color:#f59e0b; border:1px solid rgba(245,158,11,0.35);">
             🔄 Borrar Progreso
@@ -429,6 +439,8 @@ export function bindFigmaDashboardEvents(
 
   const updateBatchDock = () => {
     if (!batchDock || !countBadge) return;
+    // Con alguna tarjeta elegida se muestran las casillas en todas las tarjetas
+    container.classList.toggle('dk-select-mode', selectedCards.size > 0);
     if (selectedCards.size > 0) {
       batchDock.style.display = 'flex';
       countBadge.textContent = `${selectedCards.size} sel.`;
@@ -464,6 +476,17 @@ export function bindFigmaDashboardEvents(
 
   // Búsqueda, filtros por estado/etiqueta y orden (se recuerdan mientras sigas en la app)
   bindDeckFilters(container, deck);
+
+  const showBatchToast = (msg: string) => {
+    document.getElementById('dk-batch-toast')?.remove();
+    const t = document.createElement('div');
+    t.id = 'dk-batch-toast';
+    t.textContent = msg;
+    t.style.cssText =
+      'position:fixed;left:50%;bottom:110px;transform:translateX(-50%);z-index:9999;background:rgba(20,20,24,.96);color:#fff;padding:10px 16px;border-radius:12px;font-weight:700;font-size:.88rem;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center;';
+    document.body.appendChild(t);
+    window.setTimeout(() => t.remove(), 2600);
+  };
 
   // Acciones por lote: favoritas, etiquetas, pausar y duplicar
   const selectedList = () => Array.from(selectedCards);
@@ -543,12 +566,33 @@ export function bindFigmaDashboardEvents(
     });
   });
 
-  // Batch Invert / Toggle Reverse
-  container.querySelector('#btn-batch-invert-action')?.addEventListener('click', () => {
-    if (selectedCards.size === 0) return;
-    deckService.toggleInvertCards(Array.from(selectedCards));
-    selectedCards.clear();
-    updateBatchDock();
+  // Activar / quitar la versión inversa (tarjeta Reverso → Anverso) de varias tarjetas
+  const setReversible = (enable: boolean) => {
+    const ids = selectedList();
+    if (!ids.length) return;
+    const n = deckService.setReversible(ids, enable);
+    showBatchToast(
+      n > 0
+        ? enable
+          ? `⇄ Inversa activada en ${n} tarjeta${n === 1 ? '' : 's'}`
+          : `Inversa quitada en ${n} tarjeta${n === 1 ? '' : 's'}`
+        : enable
+        ? 'Esas tarjetas ya tienen inversa (o son de huecos/oclusión)'
+        : 'Ninguna de las seleccionadas tiene inversa'
+    );
+    afterBatch();
+  };
+  container.querySelector('#btn-batch-rev-on-action')?.addEventListener('click', () => setReversible(true));
+  container.querySelector('#btn-batch-rev-off-action')?.addEventListener('click', () => setReversible(false));
+
+  // Archivar / desarchivar
+  container.querySelector('#btn-batch-archive-action')?.addEventListener('click', () => {
+    const ids = selectedList();
+    if (!ids.length) return;
+    const allArchived = ids.every((id) => deckService.getCardById(id)?.archived);
+    deckService.setCardsFlags(ids, allArchived ? { archived: false, suspended: false } : { archived: true, suspended: true });
+    showBatchToast(allArchived ? `Desarchivadas ${ids.length}` : `📦 ${ids.length} archivada${ids.length === 1 ? '' : 's'} · las ves en el filtro «Archivadas»`);
+    afterBatch();
   });
 
   // Batch Reset Progress (Solicitud #4: Doble Confirmación)
@@ -570,7 +614,7 @@ export function bindFigmaDashboardEvents(
             deckService.resetCardsProgress(Array.from(selectedCards));
             selectedCards.clear();
             updateBatchDock();
-            callbacks.onConfigureDeck(deck.id);
+            callbacks.onRefresh?.();
           }
         });
       }
@@ -863,7 +907,7 @@ export function bindFigmaDashboardEvents(
         modal.querySelector('#btn-cmenu-reset')?.addEventListener('click', () => {
           closeModal();
           deckService.resetCardProgress(targetCard.id);
-          callbacks.onConfigureDeck(deck.id);
+          callbacks.onRefresh?.();
         });
 
         modal.querySelector('#btn-cmenu-delete')?.addEventListener('click', () => {
@@ -875,7 +919,7 @@ export function bindFigmaDashboardEvents(
             isDanger: true,
             onConfirm: () => {
               deckService.deleteCard(targetCard.id);
-              callbacks.onConfigureDeck(deck.id);
+              callbacks.onRefresh?.();
             }
           });
         });

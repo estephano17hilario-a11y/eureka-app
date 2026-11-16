@@ -1,8 +1,7 @@
 import '../ui/styles/cards.css';
 import type { Deck, Flashcard, OcclusionMask, OcclusionMode } from '../types/flashcard';
-import { deckService, normalizeTag } from '../services/deck.service';
+import { deckService } from '../services/deck.service';
 import { ttsService } from '../services/tts.service';
-import { katexService } from '../services/katex.service';
 import { compressImageFile } from '../services/image-library.service';
 import { lsGet, lsSet, lsRemove } from '../services/storage.service';
 import { openImageOcclusionModal } from './ImageOcclusionModal';
@@ -40,42 +39,69 @@ function clozeForEditing(text: string): string {
   return text.replace(/\{\{c::/g, '{{c1::');
 }
 
+const ICON_IMG =
+  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+const ICON_AUDIO =
+  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
+
+/** Las herramientas se agrupan en tres cajones desplegables: Formato, Estructura e Insertar */
 function toolbarHtml(side: Side): string {
-  const btn = (fmt: string, label: string, title: string, extra = '', suffix = '') =>
-    `<button type="button" tabindex="-1" class="ce-tool tool-fmt-btn" data-fmt="${esc(fmt)}" ${suffix ? `data-suffix="${suffix}"` : ''} title="${title}" ${extra}>${label}</button>`;
+  const tool = (attrs: string, icon: string, label: string, title: string, cls = '') =>
+    `<button type="button" tabindex="-1" class="ce-tool ${cls}" ${attrs} data-side="${side}" title="${esc(title)}"><span class="ce-tool-ic">${icon}</span><span class="ce-tool-tx">${label}</span></button>`;
+  const fmt = (open: string, close: string, icon: string, label: string, title: string) => tool(`data-fmt="${esc(open)}" data-suffix="${esc(close)}"`, icon, label, title);
+  const line = (prefix: string, icon: string, label: string, title: string) => tool(`data-line="${esc(prefix)}"`, icon, label, title);
+  const grp = (id: string, icon: string, label: string) =>
+    `<button type="button" tabindex="-1" class="ce-tb-tab" data-grp="${id}" aria-expanded="false"><span class="ce-tb-ic">${icon}</span><span>${label}</span><i aria-hidden="true">▾</i></button>`;
   return `
     <div class="ce-toolbar" data-side="${side}">
-      <button type="button" tabindex="-1" class="ce-tool ce-tool-img" data-act="img-menu" data-side="${side}" title="Añadir imagen (Ctrl+I)">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        <span>Imagen</span>
-      </button>
-      <button type="button" tabindex="-1" class="ce-tool" data-act="audio" data-side="${side}" title="Escuchar">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-      </button>
-      <button type="button" tabindex="-1" class="ce-tool ce-tool-sym" data-act="symbols" data-side="${side}" title="Símbolos y fórmulas de todas las materias (Ctrl+M) · o escribe \ + nombre">
-        <b>Ω</b><span>Símbolos</span>
-      </button>
-      <span class="ce-sep"></span>
-      ${btn('**', '<b>B</b>', 'Negrita (Ctrl+B)')}
-      ${btn('*', '<i>I</i>', 'Cursiva')}
-      ${btn('__', '<u>U</u>', 'Subrayado')}
-      ${btn('~~', '<s>S</s>', 'Tachado')}
-      ${btn('==', '<mark>R</mark>', 'Resaltar')}
-      ${btn('## ', 'H', 'Título')}
-      ${btn('> ', '❝', 'Cita')}
-      ${btn('- ', '≡', 'Lista con viñetas')}
-      ${btn('1. ', '1≡', 'Lista numerada')}
-      ${btn('$_', 'X₂', 'Subíndice', '', '$')}
-      ${btn('$^', 'X²', 'Superíndice', '', '$')}
-      ${btn('$$', 'fx', 'Fórmula KaTeX', 'style="color:var(--f-blue);font-weight:800"')}
-      <button type="button" tabindex="-1" class="ce-tool" data-act="table" data-side="${side}" title="Insertar tabla">▦</button>
-      ${btn('`', '&lt;/&gt;', 'Código')}
-      ${btn('[enlace](url)', '🔗', 'Enlace')}
-      ${side === 'front' ? '<button type="button" tabindex="-1" class="ce-tool ce-tool-cloze" data-act="cloze" title="Ocultar el texto seleccionado (Ctrl+Shift+C)">[…] Ocultar</button>' : ''}
+      <div class="ce-tb-tabs" role="tablist">
+        ${grp('fmt', '<b>Aa</b>', 'Formato')}
+        ${grp('str', '☰', 'Estructura')}
+        ${grp('ins', '＋', 'Insertar')}
+      </div>
+      <div class="ce-tb-panel hidden" data-panel="fmt">
+        ${fmt('**', '**', '<b>B</b>', 'Negrita', 'Negrita (Ctrl+B)')}
+        ${fmt('*', '*', '<i>I</i>', 'Cursiva', 'Cursiva')}
+        ${fmt('<u>', '</u>', '<u>U</u>', 'Subrayado', 'Subrayado')}
+        ${fmt('~~', '~~', '<s>S</s>', 'Tachado', 'Tachado')}
+        ${fmt('==', '==', '<mark>R</mark>', 'Resaltar', 'Resaltar')}
+        ${fmt('<sub>', '</sub>', 'X₂', 'Subíndice', 'Subíndice')}
+        ${fmt('<sup>', '</sup>', 'X²', 'Superíndice', 'Superíndice')}
+        ${fmt('`', '`', '&lt;/&gt;', 'Código', 'Código')}
+      </div>
+      <div class="ce-tb-panel hidden" data-panel="str">
+        ${line('## ', 'H', 'Título', 'Título (convierte la línea)')}
+        ${line('> ', '❝', 'Cita', 'Cita')}
+        ${line('- ', '≡', 'Viñetas', 'Lista con viñetas')}
+        ${line('1. ', '1≡', 'Numerada', 'Lista numerada')}
+        ${tool('data-act="table"', '▦', 'Tabla', 'Insertar una tabla')}
+      </div>
+      <div class="ce-tb-panel hidden" data-panel="ins">
+        ${tool('data-act="img-menu"', ICON_IMG, 'Imagen', 'Añadir imagen (Ctrl+I)', 'ce-tool-img')}
+        ${tool('data-act="symbols"', '<b>Ω</b>', 'Símbolos', 'Símbolos y fórmulas de todas las materias (Ctrl+M) · o escribe \\ + nombre', 'ce-tool-sym')}
+        ${tool('data-act="formula"', '<b>fx</b>', 'Fórmula', 'Fórmula KaTeX (envuelve la selección o abre el editor de fórmulas)')}
+        ${tool('data-act="link"', '🔗', 'Enlace', 'Enlace a una página web')}
+        ${side === 'front' ? tool('data-act="cloze"', '[…]', 'Ocultar', 'Ocultar el texto seleccionado (Ctrl+Shift+C)', 'ce-tool-cloze') : ''}
+        ${tool('data-act="audio"', ICON_AUDIO, 'Escuchar', 'Escuchar')}
+      </div>
+      <div class="ce-link-row hidden" data-linkrow="${side}">
+        <input type="url" class="ce-link-input" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://ejemplo.com" aria-label="Dirección del enlace" />
+        <button type="button" class="ce-link-ok" data-act="link-ok" data-side="${side}">Insertar</button>
+        <button type="button" class="ce-link-x" data-act="link-cancel" data-side="${side}" aria-label="Cancelar">✕</button>
+      </div>
     </div>`;
 }
 
-function imageSlotHtml(side: Side, src: string | undefined): string {
+function imageSlotHtml(side: Side, src: string | undefined, mode: Mode, choose: boolean): string {
+  const modes = (
+    [
+      ['basic', '🖼️', 'Imagen normal'],
+      ['cloze', '🕳️', 'Huecos'],
+      ['occlusion', '🔲', 'Oclusión']
+    ] as const
+  )
+    .map(([m, ic, label]) => `<button type="button" class="ce-img-mode ${m === mode ? 'on' : ''}" data-mode="${m}"><span>${ic}</span> ${label}</button>`)
+    .join('');
   return `
     <div class="ce-img ${src ? '' : 'hidden'}" data-side="${side}">
       <img src="${esc(src || '')}" alt="Imagen del ${side === 'front' ? 'anverso' : 'reverso'}" />
@@ -85,6 +111,7 @@ function imageSlotHtml(side: Side, src: string | undefined): string {
       </div>
       <button type="button" class="ce-img-btn" data-act="img-lib" data-side="${side}">Cambiar</button>
       <button type="button" class="ce-img-btn danger" data-act="img-del" data-side="${side}" aria-label="Quitar imagen">✕</button>
+      ${side === 'front' && choose ? `<div class="ce-img-modes" role="tablist" aria-label="Qué hacer con la imagen">${modes}</div>` : ''}
     </div>`;
 }
 
@@ -118,16 +145,6 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
         </button>
       </header>
 
-      ${
-        editCard
-          ? ''
-          : `<div class="ce-modes" role="tablist" aria-label="Tipo de tarjeta">
-        <button class="ce-mode ${mode === 'basic' ? 'on' : ''}" data-mode="basic" role="tab"><span>🗒️</span> Básica</button>
-        <button class="ce-mode ${mode === 'cloze' ? 'on' : ''}" data-mode="cloze" role="tab"><span>🕳️</span> Huecos</button>
-        <button class="ce-mode ${mode === 'occlusion' ? 'on' : ''}" data-mode="occlusion" role="tab"><span>🔲</span> Oclusión</button>
-      </div>`
-      }
-
       <div class="ce-draft hidden" id="ce-draft">
         <span>📝 Recuperamos tu borrador sin guardar.</span>
         <button type="button" id="ce-draft-discard">Descartar</button>
@@ -143,7 +160,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
             <div class="ce-box" id="drop-zone-anverso">
               <textarea id="f-anverso-input" class="ce-textarea" rows="2" spellcheck="true"
                 placeholder="Escribe la pregunta o el concepto… Toca Ω para insertar fórmulas y símbolos">${esc(frontText)}</textarea>
-              ${imageSlotHtml('front', frontImg)}
+              ${imageSlotHtml('front', frontImg, mode, !editCard)}
               ${toolbarHtml('front')}
             </div>
             <div class="ce-dup hidden" id="ce-dup">⚠️ Ya tienes una tarjeta con este anverso en el mazo.</div>
@@ -157,7 +174,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
             <div class="ce-box" id="drop-zone-reverso">
               <textarea id="f-reverso-input" class="ce-textarea" rows="2" spellcheck="true"
                 placeholder="Escribe la respuesta o la explicación…">${esc(editCard?.back || '')}</textarea>
-              ${imageSlotHtml('back', editCard?.backImage)}
+              ${imageSlotHtml('back', editCard?.backImage, mode, false)}
               ${toolbarHtml('back')}
             </div>
           </section>
@@ -169,23 +186,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
             </button>
           </section>
 
-          <section class="ce-meta" id="ce-meta">
-            <label class="ce-field">
-              <span class="ce-field-l">💡 Pista <small>opcional · se puede pedir antes de ver la respuesta</small></span>
-              <input type="text" id="ce-hint" class="ce-input" maxlength="240" autocomplete="off" placeholder="Ej.: empieza por «mito…», piensa en la energía" value="${esc(editCard?.hint || '')}" />
-            </label>
-            <div class="ce-field">
-              <span class="ce-field-l">🏷️ Etiquetas <small>para filtrar y estudiar por temas · Enter para añadir</small></span>
-              <div class="ce-tags" id="ce-tags"><input type="text" id="ce-tag-input" autocomplete="off" autocapitalize="off" placeholder="tema, examen-1…" /></div>
-              <div class="ce-tag-sugs" id="ce-tag-sugs"></div>
-            </div>
-          </section>
-
           <section class="ce-options" id="ce-options">
-            <label class="ce-switch-row">
-              <span class="ce-switch-text"><b>⭐ Favorita</b><small>Para encontrarla rápido y repasarla aparte</small></span>
-              <span class="figma-switch"><input type="checkbox" id="ce-star" ${editCard?.starred ? 'checked' : ''} /><span class="figma-slider"></span></span>
-            </label>
             <label class="ce-switch-row">
               <span class="ce-switch-text"><b>Tarjeta invertida</b><small>También se estudia de Reverso → Anverso</small></span>
               <span class="figma-switch"><input type="checkbox" id="toggle-inverted-cards" ${editCard?.isInverted || (!editCard && invertPref) ? 'checked' : ''} /><span class="figma-slider"></span></span>
@@ -197,22 +198,9 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
           </section>
         </div>
 
-        <aside class="ce-preview" id="ce-preview-wrap">
-          <div class="ce-preview-head">
-            <span>Vista previa</span>
-            <div class="ce-pv-tabs">
-              <button type="button" class="on" data-pv="front">Anverso</button>
-              <button type="button" data-pv="back">Reverso</button>
-            </div>
-          </div>
-          <div class="ce-flip" id="ce-flip" title="Toca para voltear">
-            <div class="ce-face ce-face-front"><div class="ce-face-body" id="ce-pv-front"></div></div>
-            <div class="ce-face ce-face-back"><div class="ce-face-body" id="ce-pv-back"></div></div>
-          </div>
-          <p class="ce-shortcuts">
-            <kbd>Ctrl</kbd>+<kbd>↵</kbd> crear y seguir · <kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>↵</kbd> crear y salir · <kbd>Ctrl</kbd>+<kbd>I</kbd> imagen · <kbd>Ctrl</kbd>+<kbd>M</kbd> símbolos · <kbd>\</kbd> + nombre para insertar un símbolo
+        <p class="ce-shortcuts">
+          <kbd>Ctrl</kbd>+<kbd>↵</kbd> crear y seguir · <kbd>Ctrl</kbd>+<kbd>⇧</kbd>+<kbd>↵</kbd> crear y salir · <kbd>Ctrl</kbd>+<kbd>I</kbd> imagen · <kbd>Ctrl</kbd>+<kbd>M</kbd> símbolos · <kbd>\</kbd> + nombre para insertar un símbolo
           </p>
-        </aside>
       </div>
 
       <div class="ce-bottom" id="ce-bottom">
@@ -239,12 +227,9 @@ export function bindFigmaCardEditorEvents(
   // Los cuadros de texto muestran las fórmulas ya renderizadas y se pulsan para editarlas
   const rawFront = q<HTMLTextAreaElement>('#f-anverso-input');
   const rawBack = q<HTMLTextAreaElement>('#f-reverso-input');
-  const frontEl = rawFront ? (upgradeTextarea(rawFront, (f) => openSymbols('front', true, f), 'Anverso') as unknown as HTMLTextAreaElement) : null;
-  const backEl = rawBack ? (upgradeTextarea(rawBack, (f) => openSymbols('back', true, f), 'Reverso') as unknown as HTMLTextAreaElement) : null;
+  const frontEl = rawFront ? (upgradeTextarea(rawFront, (f) => openSymbols('front', true, f), 'Anverso', true) as unknown as HTMLTextAreaElement) : null;
+  const backEl = rawBack ? (upgradeTextarea(rawBack, (f) => openSymbols('back', true, f), 'Reverso', true) as unknown as HTMLTextAreaElement) : null;
   const invertedToggle = q<HTMLInputElement>('#toggle-inverted-cards');
-  const flipEl = q<HTMLElement>('#ce-flip');
-  const pvFront = q<HTMLElement>('#ce-pv-front');
-  const pvBack = q<HTMLElement>('#ce-pv-back');
   const dupEl = q<HTMLElement>('#ce-dup');
   const counterEl = q<HTMLElement>('#ce-counter');
   const fileInput = q<HTMLInputElement>('#ce-file');
@@ -261,12 +246,6 @@ export function bindFigmaCardEditorEvents(
   let createdCount = 0;
   let lastCreatedIds: string[] = [];
   let pendingImageSide: Side = 'front';
-  const hintEl = q<HTMLInputElement>('#ce-hint');
-  const starEl = q<HTMLInputElement>('#ce-star');
-  const tagsBox = q<HTMLElement>('#ce-tags');
-  const tagInput = q<HTMLInputElement>('#ce-tag-input');
-  const tagSugs = q<HTMLElement>('#ce-tag-sugs');
-  let tags: string[] = (editCard?.tags || []).slice();
 
   /* ------------------------------------------------------------------ */
   /*  Utilidades                                                         */
@@ -306,48 +285,13 @@ export function bindFigmaCardEditorEvents(
   const currentImage = (side: Side): string | undefined => (side === 'front' ? frontImage || (mode === 'occlusion' ? occlusionImage : undefined) : backImage);
 
   /* ------------------------------------------------------------------ */
-  /*  Vista previa viva (con volteo)                                     */
-  /* ------------------------------------------------------------------ */
-  let pvTimer = 0;
-  const previewHtml = (text: string, img: string | undefined, kind: 'front' | 'back'): string => {
-    const imgHtml = img ? `<img class="ce-pv-img" src="${esc(img)}" alt="" />` : '';
-    if (mode === 'cloze') {
-      const first = /\{\{c(\d+)::/.exec(text);
-      const k = first ? Number(first[1]) : 1;
-      // Solo el primer hueco se oculta en la vista previa; los demás se muestran como texto
-      const only = text.replace(/\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g, (_m, n: string, a: string, h?: string) => (Number(n) === k ? `{{c::${a}${h ? '::' + h : ''}}}` : a));
-      const body = katexService.renderCloze(only, kind === 'back');
-      const extra = kind === 'back' && backEl.value.trim() ? `<div class="ce-pv-extra">${katexService.parseAndRender(backEl.value)}</div>` : '';
-      return `${imgHtml}<div class="ce-pv-text">${body || '<span class="ce-pv-empty">Escribe el texto y oculta una palabra…</span>'}</div>${extra}`;
-    }
-    const body = text.trim() ? katexService.parseAndRender(text) : `<span class="ce-pv-empty">${kind === 'front' ? 'La pregunta aparecerá aquí' : 'La respuesta aparecerá aquí'}</span>`;
-    return `${imgHtml}<div class="ce-pv-text">${body}</div>`;
-  };
-
-  const updatePreview = () => {
-    window.clearTimeout(pvTimer);
-    pvTimer = window.setTimeout(() => {
-      if (!root.isConnected) return;
-      if (pvFront) pvFront.innerHTML = previewHtml(frontEl.value, currentImage('front'), 'front');
-      if (pvBack) {
-        pvBack.innerHTML =
-          mode === 'cloze'
-            ? previewHtml(frontEl.value, currentImage('front'), 'back')
-            : previewHtml(backEl.value, currentImage('back'), 'back');
-      }
-    }, 120);
-  };
-
-  const setFlip = (back: boolean) => {
-    flipEl?.classList.toggle('flipped', back);
-    root.querySelectorAll<HTMLElement>('.ce-pv-tabs button').forEach((b) => b.classList.toggle('on', (b.dataset.pv === 'back') === back));
-  };
-  flipEl?.addEventListener('click', () => setFlip(!flipEl.classList.contains('flipped')));
-  root.querySelectorAll<HTMLElement>('.ce-pv-tabs button').forEach((b) => b.addEventListener('click', () => setFlip(b.dataset.pv === 'back')));
-
-  /* ------------------------------------------------------------------ */
   /*  Imágenes                                                            */
   /* ------------------------------------------------------------------ */
+  /** El selector «Imagen normal / Huecos / Oclusión» sigue al tipo de tarjeta actual */
+  const syncImageModes = () => {
+    root.querySelectorAll<HTMLElement>('.ce-img-mode').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
+  };
+
   const refreshImages = () => {
     (['front', 'back'] as Side[]).forEach((side) => {
       const slot = q<HTMLElement>(`.ce-img[data-side="${side}"]`);
@@ -360,7 +304,7 @@ export function bindFigmaCardEditorEvents(
       credit.textContent = credits[side] || '';
       credit.classList.toggle('hidden', !credits[side]);
     });
-    updatePreview();
+    syncImageModes();
     scheduleDraft();
   };
 
@@ -375,6 +319,8 @@ export function bindFigmaCardEditorEvents(
       backImage = dataUrl;
     }
     credits[side] = dataUrl ? credit : '';
+    // Sin imagen en el anverso no hay oclusión posible: se vuelve a tarjeta básica
+    if (side === 'front' && !dataUrl && mode === 'occlusion') applyMode('basic');
     refreshImages();
   };
 
@@ -507,7 +453,7 @@ export function bindFigmaCardEditorEvents(
   const applyMode = (next: Mode, userInitiated = false) => {
     mode = next;
     root.dataset.mode = next;
-    root.querySelectorAll<HTMLElement>('.ce-mode').forEach((b) => b.classList.toggle('on', b.dataset.mode === next));
+    syncImageModes();
     const lf = q('#ce-label-front');
     const lb = q('#ce-label-back');
     const hf = q('#ce-hint-front');
@@ -528,15 +474,21 @@ export function bindFigmaCardEditorEvents(
       frontEl.placeholder = 'Escribe la pregunta o el concepto… Toca Ω para insertar fórmulas y símbolos';
       backEl.placeholder = 'Escribe la respuesta o la explicación…';
     }
-    updatePreview();
     if (userInitiated) {
       if (next === 'occlusion') openOcclusionTool();
       else frontEl.focus();
       scheduleDraft();
     }
   };
-  root.querySelectorAll<HTMLElement>('.ce-mode').forEach((b) =>
-    b.addEventListener('click', () => applyMode((b.dataset.mode as Mode) || 'basic', true))
+  root.querySelectorAll<HTMLElement>('.ce-img-mode').forEach((b) =>
+    b.addEventListener('click', () => {
+      const next = (b.dataset.mode as Mode) || 'basic';
+      if (next === mode) {
+        if (next === 'occlusion') openOcclusionTool();
+        return;
+      }
+      applyMode(next, true);
+    })
   );
 
   /* ------------------------------------------------------------------ */
@@ -594,66 +546,84 @@ export function bindFigmaCardEditorEvents(
   /*  Barra de formato                                                    */
   /* ------------------------------------------------------------------ */
   const onTextChanged = () => {
-    updatePreview();
     scheduleDraft();
   };
 
-  const wrapSelection = (ta: HTMLTextAreaElement, prefix: string, suffix: string) => {
-    ta.focus();
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const val = ta.value;
-    const selected = val.substring(start, end);
-    const linePrefix = prefix === '## ' || prefix === '- ' || prefix === '1. ' || prefix === '> ';
+  /** Selección sin los espacios de los bordes (en Windows el doble clic incluye el espacio final) */
+  const trimmedSel = (ta: HTMLTextAreaElement): [number, number] => {
+    const v = ta.value;
+    let a = ta.selectionStart;
+    let b = ta.selectionEnd;
+    while (a < b && /\s/.test(v[a])) a++;
+    while (b > a && /\s/.test(v[b - 1])) b--;
+    return [a, b];
+  };
 
-    if (linePrefix) {
-      const lines = (selected || '').split('\n');
-      const formatted = selected ? lines.map((l) => (l.startsWith(prefix) ? l.substring(prefix.length) : prefix + l)).join('\n') : prefix;
-      ta.value = val.substring(0, start) + formatted + val.substring(end);
-      ta.setSelectionRange(start + (selected ? 0 : formatted.length), start + formatted.length);
-    } else if (prefix === '[enlace](url)') {
-      const text = selected || 'enlace';
-      const wrap = `[${text}](https://)`;
-      ta.value = val.substring(0, start) + wrap + val.substring(end);
-      const urlPos = start + text.length + 3;
-      ta.setSelectionRange(urlPos, urlPos + 8);
-    } else {
-      const wrapped = val.substring(start - prefix.length, start) === prefix && val.substring(end, end + suffix.length) === suffix && start >= prefix.length;
-      const selfWrapped = selected.length >= prefix.length + suffix.length && selected.startsWith(prefix) && selected.endsWith(suffix);
-      if (selfWrapped) {
-        const inner = selected.substring(prefix.length, selected.length - suffix.length);
-        ta.value = val.substring(0, start) + inner + val.substring(end);
-        ta.setSelectionRange(start, start + inner.length);
-      } else if (wrapped) {
-        ta.value = val.substring(0, start - prefix.length) + selected + val.substring(end + suffix.length);
-        ta.setSelectionRange(start - prefix.length, end - prefix.length);
-      } else {
-        ta.value = val.substring(0, start) + prefix + selected + suffix + val.substring(end);
-        ta.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
-      }
-    }
+  /** Cambia el texto entre `from` y `to` y deja seleccionado `selA…selB` */
+  const edit = (ta: HTMLTextAreaElement, from: number, to: number, text: string, selA: number, selB: number) => {
+    const v = ta.value;
+    ta.value = v.slice(0, from) + text + v.slice(to);
+    ta.setSelectionRange(selA, selB);
     autoGrow(ta);
     onTextChanged();
   };
 
-  root.querySelectorAll<HTMLButtonElement>('.tool-fmt-btn').forEach((btn) => {
-    // El cuadro de texto no pierde el foco ni la selección al pulsar un botón (móvil y escritorio)
-    btn.addEventListener('mousedown', (e) => e.preventDefault());
-    btn.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const side = (btn.closest('.ce-toolbar') as HTMLElement).dataset.side as Side;
-      const prefix = btn.dataset.fmt || '';
-      const suffix = btn.dataset.suffix || prefix;
-      wrapSelection(side === 'front' ? frontEl : backEl, prefix, suffix);
+  const NEED_SELECTION = 'Selecciona primero el texto al que quieres aplicarlo';
+
+  /** Negrita, cursiva, subrayado…: envuelve la selección (o la quita si ya estaba envuelta) */
+  const wrapSelection = (ta: HTMLTextAreaElement, prefix: string, suffix: string) => {
+    ta.focus();
+    const v = ta.value;
+    const [a, b] = trimmedSel(ta);
+    // Solo se aplica a texto seleccionado: nunca inserta texto nuevo
+    if (a === b) return toast(NEED_SELECTION);
+    const sel = v.slice(a, b);
+    const pl = prefix.length;
+    const sl = suffix.length;
+    // La cursiva (*) no debe confundirse con la negrita (**)
+    const notBold = (from: number, to: number) => prefix !== '*' || (v[from - 2] !== '*' && v[to + 1] !== '*');
+    if (sel.length >= pl + sl && sel.startsWith(prefix) && sel.endsWith(suffix) && notBold(a + pl, b - sl)) {
+      const inner = sel.slice(pl, sel.length - sl);
+      return edit(ta, a, b, inner, a, a + inner.length);
+    }
+    if (a >= pl && v.slice(a - pl, a) === prefix && v.slice(b, b + sl) === suffix && notBold(a, b)) {
+      return edit(ta, a - pl, b + sl, sel, a - pl, a - pl + sel.length);
+    }
+    edit(ta, a, b, prefix + sel + suffix, a + pl, a + pl + sel.length);
+  };
+
+  /** Título, cita y listas: se aplican al principio de cada línea tocada por la selección */
+  const LINE_TESTS: Record<string, RegExp> = { '## ': /^#{1,4} /, '> ': /^> /, '- ': /^- /, '1. ': /^\d+\. /, };
+  const stripLine = (l: string) => l.replace(/^(?:#{1,4} |> |- |\d+\. )/, '');
+  const toggleLine = (ta: HTMLTextAreaElement, prefix: string) => {
+    ta.focus();
+    const v = ta.value;
+    const s0 = ta.selectionStart;
+    const e0 = ta.selectionEnd;
+    if (s0 === e0) return toast(NEED_SELECTION);
+    const ls = s0 === 0 ? 0 : v.lastIndexOf('\n', s0 - 1) + 1;
+    let le = v.indexOf('\n', Math.max(s0, e0 > s0 ? e0 - 1 : e0));
+    if (le < 0) le = v.length;
+    const lines = v.slice(ls, le).split('\n');
+    const test = LINE_TESTS[prefix] || /^$/;
+    const filled = lines.filter((l) => l.trim());
+    const remove = filled.length > 0 && filled.every((l) => test.test(l));
+    let n = 0;
+    const out = lines.map((l) => {
+      if (remove) return stripLine(l);
+      if (!l.trim() && lines.length > 1) return l;
+      n++;
+      return (prefix === '1. ' ? `${n}. ` : prefix) + stripLine(l);
     });
-  });
+    const text = out.join('\n');
+    edit(ta, ls, le, text, ls, ls + text.length);
+  };
 
   const wrapCloze = () => {
     const ta = frontEl;
+    if (mode === 'occlusion') return toast('Esta tarjeta es de oclusión de imagen: marca las zonas en el editor de oclusión');
     ta.focus();
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
+    const [start, end] = trimmedSel(ta);
     if (start === end) {
       toast('Selecciona primero la palabra que quieres ocultar');
       return;
@@ -662,18 +632,101 @@ export function bindFigmaCardEditorEvents(
     const val = ta.value;
     const used = Array.from(val.matchAll(/\{\{c(\d+)::/g)).map((m) => Number(m[1]));
     const n = (used.length ? Math.max(...used) : 0) + 1;
-    const sel = val.substring(start, end);
-    const wrap = `{{c${n}::${sel}}}`;
-    ta.value = val.substring(0, start) + wrap + val.substring(end);
-    ta.setSelectionRange(start + wrap.length, start + wrap.length);
-    autoGrow(ta);
-    onTextChanged();
+    const wrap = `{{c${n}::${val.slice(start, end)}}}`;
+    edit(ta, start, end, wrap, start + wrap.length, start + wrap.length);
   };
+
+  /* ---- cajones desplegables ---- */
+  const toggleGroup = (bar: HTMLElement, id: string) => {
+    const wasOpen = bar.querySelector(`.ce-tb-tab[data-grp="${id}"]`)?.getAttribute('aria-expanded') === 'true';
+    bar.querySelectorAll<HTMLElement>('.ce-tb-tab').forEach((t) => {
+      const on = !wasOpen && t.dataset.grp === id;
+      t.classList.toggle('on', on);
+      t.setAttribute('aria-expanded', on ? 'true' : 'false');
+    });
+    bar.querySelectorAll<HTMLElement>('.ce-tb-panel').forEach((pn) => pn.classList.toggle('hidden', wasOpen || pn.dataset.panel !== id));
+    if (wasOpen) bar.querySelector('.ce-link-row')?.classList.add('hidden');
+  };
+
+  /* ---- enlace ---- */
+  let linkRange: [number, number] = [0, 0];
+  const linkRow = (side: Side) => q<HTMLElement>(`.ce-link-row[data-linkrow="${side}"]`);
+  const openLink = (side: Side) => {
+    const ta = side === 'front' ? frontEl : backEl;
+    linkRange = trimmedSel(ta);
+    if (linkRange[0] === linkRange[1]) return toast(NEED_SELECTION);
+    const row = linkRow(side);
+    const input = row?.querySelector('input') as HTMLInputElement | null;
+    if (!row || !input) return;
+    row.classList.remove('hidden');
+    input.value = /^https?:\/\/\S+$/.test(ta.value.slice(linkRange[0], linkRange[1])) ? ta.value.slice(linkRange[0], linkRange[1]) : '';
+    input.focus();
+  };
+  const applyLink = (side: Side) => {
+    const ta = side === 'front' ? frontEl : backEl;
+    const row = linkRow(side);
+    const input = row?.querySelector('input') as HTMLInputElement | null;
+    if (!row || !input) return;
+    let url = input.value.trim();
+    if (!url) return shake(input);
+    if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) url = 'https://' + url;
+    if (!/^https?:\/\/[^\s)]+$/.test(url)) {
+      toast('La dirección debe empezar por http:// o https://');
+      return shake(input);
+    }
+    const [a, b] = linkRange;
+    const v = ta.value;
+    const label = v.slice(a, b) || 'enlace';
+    const md = `[${label}](${url})`;
+    row.classList.add('hidden');
+    ta.focus();
+    edit(ta, a, b, md, a + md.length, a + md.length);
+  };
+  root.addEventListener('keydown', (e) => {
+    const input = (e.target as HTMLElement).closest('.ce-link-input') as HTMLInputElement | null;
+    if (!input) return;
+    const side = (input.closest('.ce-link-row') as HTMLElement).dataset.linkrow as Side;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      applyLink(side);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      linkRow(side)?.classList.add('hidden');
+      (side === 'front' ? frontEl : backEl).focus();
+    }
+  });
+
+  /* ---- tabla ---- */
+  const insertTable = (ta: HTMLTextAreaElement) => {
+    ta.focus();
+    const v = ta.value;
+    const [a, b] = [ta.selectionStart, ta.selectionEnd];
+    const lead = a > 0 && v[a - 1] !== '\n' ? '\n\n' : '';
+    const table = '| Concepto | Detalle |\n| --- | --- |\n|  |  |\n';
+    const cell = lead.length + table.indexOf('|  |') + 2;
+    edit(ta, a, b, lead + table, a + cell, a + cell);
+  };
+
+  // El cuadro de texto no pierde el foco ni la selección al pulsar un botón (móvil y escritorio)
+  root.addEventListener('mousedown', (e) => {
+    if ((e.target as HTMLElement).closest('.ce-toolbar button, .ce-menu button')) e.preventDefault();
+  });
 
   // Botones con acción propia
   root.addEventListener('click', (e) => {
     const t = e.target as HTMLElement;
     if (!t.closest('.ce-menu') && !t.closest('[data-act="img-menu"]')) closeMenus();
+    const tab = t.closest('[data-grp]') as HTMLElement | null;
+    if (tab) return toggleGroup(tab.closest('.ce-toolbar') as HTMLElement, tab.dataset.grp || 'fmt');
+    const fm = t.closest('[data-fmt]') as HTMLElement | null;
+    if (fm) {
+      const ta = fm.dataset.side === 'back' ? backEl : frontEl;
+      return wrapSelection(ta, fm.dataset.fmt || '', fm.dataset.suffix || fm.dataset.fmt || '');
+    }
+    const ln = t.closest('[data-line]') as HTMLElement | null;
+    if (ln) return toggleLine(ln.dataset.side === 'back' ? backEl : frontEl, ln.dataset.line || '');
     const b = t.closest('[data-act]') as HTMLElement | null;
     if (!b) return;
     const side = (b.dataset.side as Side) || 'front';
@@ -696,16 +749,26 @@ export function bindFigmaCardEditorEvents(
       case 'symbols':
         openSymbols(side);
         break;
-      case 'table': {
+      case 'formula': {
         const ta = side === 'front' ? frontEl : backEl;
-        const pos = ta.selectionStart ?? ta.value.length;
-        const lead = pos > 0 && ta.value[pos - 1] !== '\n' ? '\n\n' : '';
-        ta.setRangeText(`${lead}| Concepto | Detalle |\n| --- | --- |\n|  |  |\n`, pos, ta.selectionEnd ?? pos, 'end');
-        ta.focus();
-        autoGrow(ta);
-        onTextChanged();
+        const [a, c] = trimmedSel(ta);
+        if (a === c) openSymbols(side, true);
+        else wrapSelection(ta, '$', '$');
         break;
       }
+      case 'link':
+        openLink(side);
+        break;
+      case 'link-ok':
+        applyLink(side);
+        break;
+      case 'link-cancel':
+        linkRow(side)?.classList.add('hidden');
+        (side === 'front' ? frontEl : backEl).focus();
+        break;
+      case 'table':
+        insertTable(side === 'front' ? frontEl : backEl);
+        break;
     }
   });
 
@@ -730,68 +793,6 @@ export function bindFigmaCardEditorEvents(
     });
   };
   const detachAc = [attachSymbolAutocomplete(frontEl), attachSymbolAutocomplete(backEl)];
-
-  /* ------------------------------------------------------------------ */
-  /*  Pista, etiquetas y favorita                                         */
-  /* ------------------------------------------------------------------ */
-  const renderTags = () => {
-    if (!tagsBox || !tagInput) return;
-    tagsBox.querySelectorAll('.ce-tag').forEach((el) => el.remove());
-    tags.forEach((t) => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'ce-tag';
-      chip.dataset.tag = t;
-      chip.title = 'Quitar etiqueta';
-      chip.innerHTML = `#${esc(t)} <i>✕</i>`;
-      tagsBox.insertBefore(chip, tagInput);
-    });
-    if (tagSugs) {
-      const typed = normalizeTag(tagInput.value);
-      const sugs = deckService
-        .getDeckTags(deck.id)
-        .filter((x) => !tags.includes(x.tag) && (!typed || x.tag.includes(typed)))
-        .slice(0, 8);
-      tagSugs.innerHTML = sugs.map((x) => `<button type="button" data-tag="${esc(x.tag)}">+ ${esc(x.tag)}</button>`).join('');
-    }
-  };
-  const addTag = (raw: string) => {
-    const t = normalizeTag(raw);
-    if (t && !tags.includes(t) && tags.length < 12) tags.push(t);
-    if (tagInput) tagInput.value = '';
-    renderTags();
-  };
-  tagInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ',' || (e.key === ' ' && tagInput.value.trim())) {
-      e.preventDefault();
-      e.stopPropagation();
-      addTag(tagInput.value);
-    } else if (e.key === 'Backspace' && !tagInput.value && tags.length) {
-      tags.pop();
-      renderTags();
-    }
-  });
-  tagInput?.addEventListener('input', renderTags);
-  tagInput?.addEventListener('blur', () => tagInput.value.trim() && addTag(tagInput.value));
-  tagsBox?.addEventListener('click', (e) => {
-    const chip = (e.target as HTMLElement).closest('.ce-tag') as HTMLElement | null;
-    if (chip) {
-      tags = tags.filter((t) => t !== chip.dataset.tag);
-      renderTags();
-    } else tagInput?.focus();
-  });
-  tagSugs?.addEventListener('click', (e) => {
-    const b = (e.target as HTMLElement).closest('[data-tag]') as HTMLElement | null;
-    if (b) addTag(b.dataset.tag || '');
-  });
-  renderTags();
-
-  /** Lo que se guarda además del texto: pista, etiquetas y marca de favorita */
-  const extras = (): Partial<Flashcard> => ({
-    hint: hintEl?.value.trim() || undefined,
-    tags: tags.length ? tags.slice() : undefined,
-    starred: starEl?.checked || undefined
-  });
 
   q('#ce-swap')?.addEventListener('click', () => {
     if (mode !== 'basic') return toast('Solo las tarjetas básicas tienen dos caras intercambiables');
@@ -856,13 +857,10 @@ export function bindFigmaCardEditorEvents(
     lsRemove(draftKey(deck.id));
     q('#ce-draft')?.classList.add('hidden');
     dupEl?.classList.add('hidden');
-    // Las etiquetas se mantienen para la siguiente tarjeta (se suele crear por temas); la pista no
-    if (hintEl) hintEl.value = '';
-    if (starEl) starEl.checked = false;
     autoGrow(frontEl);
     autoGrow(backEl);
     refreshImages();
-    setFlip(false);
+    applyMode('basic');
     frontEl.focus({ preventScroll: false });
   };
 
@@ -908,7 +906,7 @@ export function bindFigmaCardEditorEvents(
         const idxs = Array.from(new Set(Array.from(front.matchAll(/\{\{c(\d+)::/g)).map((m) => Number(m[1])))).sort((a, b) => a - b);
         const first = idxs[0] ?? 1;
         const own = front.replace(/\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g, (_m, n: string, a: string, h?: string) => (Number(n) === first ? `{{c::${a}${h ? '::' + h : ''}}}` : a));
-        deckService.updateCard(editCard.id, { deckId: deck.id, type: 'cloze', front: own, back, frontImage, backImage, imageCredit: creditText(), ...extras() });
+        deckService.updateCard(editCard.id, { deckId: deck.id, type: 'cloze', front: own, back, frontImage, backImage, imageCredit: creditText() });
         if (idxs.length > 1) deckService.createClozeCards(deck.id, front, back, chunkId, { frontImage, backImage, imageCredit: creditText() }, idxs.slice(1));
       } else {
         const isLatex = front.includes('$') || back.includes('$');
@@ -923,10 +921,8 @@ export function bindFigmaCardEditorEvents(
           occlusionImage: undefined,
           occlusionMasks: undefined,
           activeMaskId: undefined,
-          ...extras()
         });
       }
-      if (mode === 'occlusion') deckService.patchCards(editCard.groupId ? deckService.getCardsByGroupId(editCard.groupId).map((c) => c.id) : [editCard.id], extras());
       callbacks.onSaved();
       return;
     }
@@ -949,17 +945,12 @@ export function bindFigmaCardEditorEvents(
           backImage,
           imageCredit: creditText(),
           chunkId,
-          ...extras()
         },
         createInverted
       );
       created = c.groupId ? deckService.getCardsByGroupId(c.groupId) : [c];
     }
     lastCreatedIds = created.map((c) => c.id);
-    if (mode !== 'basic') {
-      const ex = extras();
-      if (ex.hint || ex.tags || ex.starred) deckService.patchCards(lastCreatedIds, ex);
-    }
     bumpCounter(created.length);
 
     if (closeAfter) {
@@ -1037,6 +1028,5 @@ export function bindFigmaCardEditorEvents(
   /* ------------------------------------------------------------------ */
   applyMode(mode);
   refreshImages();
-  setFlip(false);
   if (!editCard) window.setTimeout(() => frontEl.focus({ preventScroll: true }), 60);
 }

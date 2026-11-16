@@ -48,6 +48,8 @@ export interface Flashcard {
   starred?: boolean;
   /** Pausada: no entra en los repasos hasta reactivarla */
   suspended?: boolean;
+  /** Archivada: se guarda fuera de la vista normal del mazo (y además queda pausada) */
+  archived?: boolean;
   /** Pista opcional que se puede pedir antes de ver la respuesta */
   hint?: string;
   /** Pospuesta: no vuelve a salir hasta esta fecha (ms) */

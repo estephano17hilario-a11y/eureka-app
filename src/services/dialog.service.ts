@@ -56,7 +56,8 @@ export class DialogService {
       ? options.initialMinutes 
       : 1440;
     
-    let initDays = Math.floor(totalInit / 1440);
+    const initMonths = Math.floor(totalInit / 43200);
+    let initDays = Math.floor((totalInit % 43200) / 1440);
     let remainingMinutes = totalInit % 1440;
     let initHours = Math.floor(remainingMinutes / 60);
     let initMins = remainingMinutes % 60;
@@ -85,8 +86,18 @@ export class DialogService {
         </div>
 
         <!-- 3 Stepper Input Cards: Días, Horas, Minutos -->
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:14px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap:10px; margin-bottom:14px;">
           
+          <!-- Meses (1 mes = 30 días) -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:10px; text-align:center;">
+            <label style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">MESES</label>
+            <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+              <button type="button" class="btn-picker-step" id="btn-sub-months" style="width:26px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer;">-</button>
+              <input type="number" id="picker-months" min="0" max="120" value="${initMonths}" class="cupertino-dialog-input" style="width:52px; padding:6px 2px; font-size:1.1rem; font-weight:800;" />
+              <button type="button" class="btn-picker-step" id="btn-add-months" style="width:26px; height:28px; border-radius:8px; background:rgba(255,255,255,0.08); border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer;">+</button>
+            </div>
+          </div>
+
           <!-- Días -->
           <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:10px; text-align:center;">
             <label style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">DÍAS</label>
@@ -121,7 +132,7 @@ export class DialogService {
 
         <!-- Live Calculation Banner -->
         <div id="picker-live-preview" style="background:linear-gradient(135deg, rgba(56,189,248,0.12), rgba(99,102,241,0.12)); border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:10px 14px; margin-bottom:14px; font-size:0.92rem; font-weight:800; color:#38bdf8; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px;">
-          <span>⚡ Intervalo resultante: ${this.formatReadableDuration(initDays, initHours, initMins)}</span>
+          <span>⚡ Intervalo resultante: ${this.formatReadableDuration(initDays, initHours, initMins, initMonths)}</span>
         </div>
 
         <!-- Quick Presets -->
@@ -145,10 +156,11 @@ export class DialogService {
             <button type="button" class="preset-btn" data-days="5" data-hours="0" data-mins="0">5 días</button>
             <button type="button" class="preset-btn" data-days="7" data-hours="0" data-mins="0">7 días (1 sem)</button>
             <button type="button" class="preset-btn" data-days="14" data-hours="0" data-mins="0">14 días</button>
-            <button type="button" class="preset-btn" data-days="30" data-hours="0" data-mins="0">30 días (1 mes)</button>
-            <button type="button" class="preset-btn" data-days="90" data-hours="0" data-mins="0">90 días</button>
-            <button type="button" class="preset-btn" data-days="180" data-hours="0" data-mins="0">180 días</button>
-            <button type="button" class="preset-btn" data-days="365" data-hours="0" data-mins="0">365 días (1 año)</button>
+            <button type="button" class="preset-btn" data-months="1" data-days="0" data-hours="0" data-mins="0">1 mes</button>
+            <button type="button" class="preset-btn" data-months="2" data-days="0" data-hours="0" data-mins="0">2 meses</button>
+            <button type="button" class="preset-btn" data-months="3" data-days="0" data-hours="0" data-mins="0">3 meses</button>
+            <button type="button" class="preset-btn" data-months="6" data-days="0" data-hours="0" data-mins="0">6 meses</button>
+            <button type="button" class="preset-btn" data-months="12" data-days="0" data-hours="0" data-mins="0">1 año</button>
           </div>
         </div>
 
@@ -166,24 +178,39 @@ export class DialogService {
 
     document.body.appendChild(modal);
 
+    const inputMonths = modal.querySelector('#picker-months') as HTMLInputElement;
     const inputDays = modal.querySelector('#picker-days') as HTMLInputElement;
     const inputHours = modal.querySelector('#picker-hours') as HTMLInputElement;
     const inputMins = modal.querySelector('#picker-minutes') as HTMLInputElement;
     const previewEl = modal.querySelector('#picker-live-preview') as HTMLElement;
 
-    const updatePreview = () => {
+    const readTotal = () => {
+      const mo = Math.max(0, parseInt(inputMonths.value, 10) || 0);
       const d = Math.max(0, parseInt(inputDays.value, 10) || 0);
       const h = Math.max(0, parseInt(inputHours.value, 10) || 0);
       const m = Math.max(0, parseInt(inputMins.value, 10) || 0);
-      const total = d * 1440 + h * 60 + m;
-      previewEl.innerHTML = `<span>⚡ Intervalo resultante: <strong>${this.formatReadableDuration(d, h, m)}</strong> (${total.toLocaleString()} minutos)</span>`;
+      return { mo, d, h, m, total: mo * 43200 + d * 1440 + h * 60 + m };
+    };
+    const updatePreview = () => {
+      const { mo, d, h, m, total } = readTotal();
+      const days = total / 1440;
+      const sub = total >= 1440 ? ` · ≈ ${Number.isInteger(days) ? days : days.toFixed(1)} días en total` : '';
+      previewEl.innerHTML = `<span>⚡ Intervalo resultante: <strong>${this.formatReadableDuration(d, h, m, mo)}</strong>${sub}</span>`;
     };
 
-    [inputDays, inputHours, inputMins].forEach((inp) => {
+    [inputMonths, inputDays, inputHours, inputMins].forEach((inp) => {
       inp.addEventListener('input', updatePreview);
     });
 
     // Steppers
+    modal.querySelector('#btn-sub-months')?.addEventListener('click', () => {
+      inputMonths.value = String(Math.max(0, (parseInt(inputMonths.value, 10) || 0) - 1));
+      updatePreview();
+    });
+    modal.querySelector('#btn-add-months')?.addEventListener('click', () => {
+      inputMonths.value = String((parseInt(inputMonths.value, 10) || 0) + 1);
+      updatePreview();
+    });
     modal.querySelector('#btn-sub-days')?.addEventListener('click', () => {
       inputDays.value = String(Math.max(0, (parseInt(inputDays.value, 10) || 0) - 1));
       updatePreview();
@@ -213,6 +240,7 @@ export class DialogService {
 
     modal.querySelectorAll<HTMLButtonElement>('.preset-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
+        inputMonths.value = btn.dataset.months || '0';
         inputDays.value = btn.dataset.days || '0';
         inputHours.value = btn.dataset.hours || '0';
         inputMins.value = btn.dataset.mins || '0';
@@ -240,17 +268,15 @@ export class DialogService {
     });
 
     modal.querySelector('#btn-dialog-save-interval')?.addEventListener('click', () => {
-      const d = Math.max(0, parseInt(inputDays.value, 10) || 0);
-      const h = Math.max(0, parseInt(inputHours.value, 10) || 0);
-      const m = Math.max(0, parseInt(inputMins.value, 10) || 0);
-      const total = Math.max(1, d * 1440 + h * 60 + m);
+      const total = Math.max(1, readTotal().total);
       closeModal();
       options.onConfirm(total);
     });
   }
 
-  private formatReadableDuration(days: number, hours: number, minutes: number): string {
+  private formatReadableDuration(days: number, hours: number, minutes: number, months: number = 0): string {
     const parts: string[] = [];
+    if (months > 0) parts.push(months === 1 ? '1 mes' : `${months} meses`);
     if (days > 0) parts.push(days === 1 ? '1 día' : `${days} días`);
     if (hours > 0) parts.push(hours === 1 ? '1 hora' : `${hours} horas`);
     if (minutes > 0 || parts.length === 0) parts.push(`${minutes} min`);

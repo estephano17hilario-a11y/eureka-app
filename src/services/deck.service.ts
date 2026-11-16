@@ -1367,6 +1367,27 @@ export class DeckService {
     return cards.length;
   }
 
+  /** Importa tarjetas ya leídas (con etiqueta opcional y, si se pide, su versión inversa). */
+  public importParsedCards(
+    deckId: string,
+    rows: Array<{ front: string; back: string }>,
+    opts: { tag?: string; inverted?: boolean } = {}
+  ): number {
+    if (rows.length === 0) return 0;
+    const tag = opts.tag ? normalizeTag(opts.tag) : '';
+    const created = this.createCards(
+      rows.map(r => ({
+        deckId,
+        type: (r.front.includes('$') || r.back.includes('$') ? 'latex' : 'standard') as CardType,
+        front: r.front,
+        back: r.back,
+        tags: tag ? [tag] : undefined
+      }))
+    );
+    if (opts.inverted) this.setReversible(created.map(c => c.id), true);
+    return created.length;
+  }
+
   public updateCard(cardId: string, updates: Partial<Flashcard>): Flashcard | undefined {
     const index = this.cards.findIndex(c => c.id === cardId);
     if (index === -1) return undefined;
@@ -1486,7 +1507,70 @@ export class DeckService {
   }
 
   /** Cambia marcas de varias tarjetas a la vez (favorita, pausada) con un solo guardado */
-  public setCardsFlags(cardIds: string[], flags: { starred?: boolean; suspended?: boolean }): void {
+  /**
+   * Activa o desactiva la versión inversa (Reverso → Anverso) de varias tarjetas.
+   *  - Activar: crea la tarjeta inversa de cada tarjeta normal que aún no la tenga.
+   *  - Desactivar: borra las tarjetas inversas y deja la original como tarjeta normal.
+   * Las tarjetas de huecos y de oclusión no tienen versión inversa y se ignoran.
+   * Devuelve cuántas tarjetas se cambiaron.
+   */
+  public setReversible(cardIds: string[], enable: boolean): number {
+    const idSet = new Set(cardIds);
+    const now = Date.now();
+    const selected = this.cards.filter(c => idSet.has(c.id));
+    let changed = 0;
+
+    if (enable) {
+      const added: Flashcard[] = [];
+      const groupFor = new Map<string, string>(); // id original -> groupId
+      for (const c of selected) {
+        if (c.isInverted || c.type === 'cloze' || c.type === 'image_occlusion') continue;
+        const hasPair = !!c.groupId && this.cards.some(x => x.groupId === c.groupId && x.isInverted);
+        if (hasPair) continue;
+        const gid = c.groupId || makeId('grp-inv');
+        groupFor.set(c.id, gid);
+        added.push(
+          this.buildCard(
+            {
+              deckId: c.deckId,
+              type: c.type,
+              front: c.back,
+              back: c.front,
+              frontImage: c.backImage,
+              backImage: c.frontImage,
+              imageCredit: c.imageCredit,
+              chunkId: c.chunkId,
+              tags: c.tags,
+              groupId: gid,
+              groupTitle: 'Par Invertido',
+              isInverted: true
+            },
+            now,
+            added.length + 1
+          )
+        );
+      }
+      if (added.length === 0) return 0;
+      this.cards = this.cards.map(c => (groupFor.has(c.id) ? { ...c, groupId: groupFor.get(c.id), groupTitle: 'Par Invertido', updatedAt: now } : c));
+      this.cards.push(...added);
+      changed = added.length;
+    } else {
+      const groups = new Set<string>();
+      for (const c of selected) if (c.groupId && this.cards.some(x => x.groupId === c.groupId && x.isInverted)) groups.add(c.groupId);
+      if (groups.size === 0) return 0;
+      const toDelete = this.cards.filter(c => c.groupId && groups.has(c.groupId) && c.isInverted).map(c => c.id);
+      const delSet = new Set(toDelete);
+      this.cards = this.cards
+        .filter(c => !delSet.has(c.id))
+        .map(c => (c.groupId && groups.has(c.groupId) ? { ...c, groupId: undefined, groupTitle: undefined, isInverted: false, updatedAt: now } : c));
+      this.queueDeletes([], toDelete);
+      changed = groups.size;
+    }
+    this.notify();
+    return changed;
+  }
+
+  public setCardsFlags(cardIds: string[], flags: { starred?: boolean; suspended?: boolean; archived?: boolean }): void {
     const idSet = new Set(cardIds);
     const now = Date.now();
     this.cards = this.cards.map(c => (idSet.has(c.id) ? { ...c, ...flags, updatedAt: now } : c));

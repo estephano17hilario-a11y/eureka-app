@@ -38,13 +38,23 @@ export function renderFigmaLearningPhaseView(deck: Deck): string {
           </p>
         </div>
 
-        <!-- Quick Presets / Templates Toolbar -->
-        <div style="display:flex; align-items:center; gap:8px; overflow-x:auto; padding:4px 0;">
-          <span style="font-size:0.75rem; font-weight:800; color:var(--f-text-muted); text-transform:uppercase; letter-spacing:0.04em; white-space:nowrap;">Plantillas:</span>
-          <button type="button" class="apple-btn-outline-pill" id="btn-view-tpl-fsrs" style="font-size:0.75rem; padding:4px 10px; white-space:nowrap;">12 Pasos FSRS</button>
-          <button type="button" class="apple-btn-outline-pill" id="btn-view-tpl-anki" style="font-size:0.75rem; padding:4px 10px; white-space:nowrap;">Anki Estándar</button>
-          <button type="button" class="apple-btn-outline-pill" id="btn-view-tpl-fast" style="font-size:0.75rem; padding:4px 10px; white-space:nowrap;">Examen Rápido</button>
-          <button type="button" class="apple-btn-outline-pill" id="btn-view-sort" style="font-size:0.75rem; padding:4px 10px; margin-left:auto; white-space:nowrap; color:var(--f-blue); border-color:rgba(56,189,248,0.3);">↕ Ordenar</button>
+        <!-- Plantillas listas para usar -->
+        <div>
+          <div class="lp-section-head">
+            <div>
+              <div class="lp-section-title">Plantillas</div>
+              <div class="lp-section-sub">Toca una para cargar sus pasos. Después puedes ajustarlos uno por uno.</div>
+            </div>
+          </div>
+          <div class="lp-tpl-grid" id="lp-templates"></div>
+        </div>
+
+        <div class="lp-section-head" style="margin-top:4px;">
+          <div>
+            <div class="lp-section-title" id="lp-steps-title">Tus pasos</div>
+            <div class="lp-section-sub">Toca un paso para cambiar su tiempo (meses, días, horas y minutos).</div>
+          </div>
+          <button type="button" class="apple-btn-outline-pill" id="btn-view-sort" style="font-size:0.78rem; padding:6px 12px; white-space:nowrap; color:var(--f-blue); border-color:rgba(56,189,248,0.3);">↕ Ordenar</button>
         </div>
 
         <!-- Steps List Mount -->
@@ -81,9 +91,53 @@ export function bindFigmaLearningPhaseViewEvents(
     : [4, 1440, 2880, 7200, 15840, 25920, 41760, 82080, 146880, 246240, 400320, 633600];
 
   const mount = container.querySelector('#learning-phase-steps-container');
+  const tplMount = container.querySelector('#lp-templates') as HTMLElement | null;
+
+  const TEMPLATES: Array<{ id: string; icon: string; name: string; desc: string; steps: number[] }> = [
+    { id: 'fsrs', icon: '🧠', name: '12 pasos FSRS', desc: 'La escalera larga: del mismo día hasta más de un año. Ideal para retener a largo plazo.', steps: [4, 1440, 2880, 7200, 15840, 25920, 41760, 82080, 146880, 246240, 400320, 633600] },
+    { id: 'anki', icon: '📚', name: 'Anki estándar', desc: 'Clásica y equilibrada: pasos cortos al inicio y repasos hasta 1 mes.', steps: [1, 10, 1440, 4320, 10080, 21600, 43200] },
+    { id: 'fast', icon: '⚡', name: 'Examen rápido', desc: 'Para preparar una prueba cercana: todo concentrado en la primera semana.', steps: [5, 25, 120, 720, 1440, 2880, 5760] }
+  ];
+  const sameSteps = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
+
+  const renderTemplates = () => {
+    if (!tplMount) return;
+    tplMount.innerHTML = TEMPLATES.map((t) => {
+      const last = t.steps[t.steps.length - 1];
+      const on = sameSteps(steps, t.steps);
+      // mini línea de tiempo: la posición de cada paso en escala logarítmica
+      const maxLog = Math.log(last + 1);
+      const dots = t.steps.map((m) => `<i style="left:${Math.round((Math.log(m + 1) / maxLog) * 100)}%"></i>`).join('');
+      return `
+        <button type="button" class="lp-tpl ${on ? 'on' : ''}" data-tpl="${t.id}" aria-pressed="${on}">
+          <span class="lp-tpl-top">
+            <span class="lp-tpl-ic">${t.icon}</span>
+            <span class="lp-tpl-name">${t.name}</span>
+            <span class="lp-tpl-check">${on ? '✓' : ''}</span>
+          </span>
+          <span class="lp-tpl-desc">${t.desc}</span>
+          <span class="lp-tpl-line">${dots}</span>
+          <span class="lp-tpl-meta"><b>${t.steps.length} pasos</b><span>hasta ${srsService.formatMinutesDetailed(last)}</span></span>
+        </button>`;
+    }).join('');
+    tplMount.querySelectorAll<HTMLButtonElement>('.lp-tpl').forEach((b) => {
+      b.addEventListener('click', () => {
+        const t = TEMPLATES.find((x) => x.id === b.dataset.tpl);
+        if (!t) return;
+        steps = [...t.steps];
+        renderStepsList();
+      });
+    });
+  };
 
   const renderStepsList = () => {
     if (!mount) return;
+    renderTemplates();
+    const title = container.querySelector('#lp-steps-title');
+    if (title) {
+      const longest = steps.reduce((a, b) => Math.max(a, b), 0);
+      title.textContent = `Tus pasos · ${steps.length} · hasta ${srsService.formatMinutesDetailed(longest)}`;
+    }
     mount.innerHTML = steps
       .map(
         (minutes, idx) => `
@@ -93,7 +147,8 @@ export function bindFigmaLearningPhaseViewEvents(
             ${idx + 1}
           </div>
           <div style="font-size:0.96rem; font-weight:600; color:#ffffff;">
-            Revisión ${idx + 1}: <span style="color:var(--f-blue); font-weight:800; margin-left:6px;" id="step-label-${idx}">${srsService.formatMinutesToHuman(minutes)}</span>
+            Revisión ${idx + 1}: <span style="color:var(--f-blue); font-weight:800; margin-left:6px;" id="step-label-${idx}">${srsService.formatMinutesDetailed(minutes)}</span>
+            ${minutes >= 43200 ?`<div class="lp-step-total">≈ ${Math.round((minutes / 1440) * 10) / 10} días en total</div>` : ''}
           </div>
         </div>
         
@@ -155,24 +210,6 @@ export function bindFigmaLearningPhaseViewEvents(
         renderStepsList();
       }
     });
-  });
-
-  // Template: FSRS
-  container.querySelector('#btn-view-tpl-fsrs')?.addEventListener('click', () => {
-    steps = [4, 1440, 2880, 7200, 15840, 25920, 41760, 82080, 146880, 246240, 400320, 633600];
-    renderStepsList();
-  });
-
-  // Template: Anki
-  container.querySelector('#btn-view-tpl-anki')?.addEventListener('click', () => {
-    steps = [1, 10, 1440, 4320, 10080, 21600, 43200];
-    renderStepsList();
-  });
-
-  // Template: Fast Exam
-  container.querySelector('#btn-view-tpl-fast')?.addEventListener('click', () => {
-    steps = [5, 25, 120, 720, 1440, 2880, 5760];
-    renderStepsList();
   });
 
   // Sort steps

@@ -26,3 +26,29 @@
 
 /* En el mapa mental el campo ocupa exactamente la caja de la idea */
 .mmx-edit-input.rf { overflow: hidden; padding: 0; }
+
+/* ---- Markdown ya aplicado mientras se escribe ---- */
+/* Las marcas del formato (**, ==, {{c1::…) no se ven: solo se ve el resultado. Los números y viñetas sí */
+.rf .rf-mk:not(.rf-vis) { display: none; }
+.rf .rf-b { font-weight: 800; color: #fff; }
+.rf .rf-i { font-style: italic; color: #e2e8f0; }
+.rf .rf-u { text-decoration: underline; text-underline-offset: 3px; }
+.rf .rf-s { text-decoration: line-through; opacity: 0.8; }
+.rf .rf-hl { background: rgba(250, 204, 21, 0.3); border-radius: 4px; padding: 0 2px; }
+.rf .rf-sub { font-size: 0.8em; vertical-align: sub; }
+.rf .rf-sup { font-size: 0.8em; vertical-align: super; }
+.rf .rf-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; background: rgba(255, 255, 255, 0.1); border-radius: 5px; padding: 1px 4px; }
+.rf .rf-a { color: #38bdf8; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.rf .rf-a.rf-a-bad { color: #fbbf24; text-decoration: underline wavy; }
+.rf .rf-a .rf-mk { text-decoration: none; }
+.rf .rf-cloze { color: #d8b4fe; font-weight: 800; background: rgba(168, 85, 247, 0.22); border-radius: 6px; padding: 0 3px; box-shadow: inset 0 -2px 0 rgba(168, 85, 247, 0.55); }
+.rf .rf-h { font-weight: 800; color: #fff; line-height: 1.3; }
+.rf .rf-h1 { font-size: 1.55em; }
+.rf .rf-h2 { font-size: 1.32em; }
+.rf .rf-h3 { font-size: 1.16em; }
+.rf .rf-h4 { font-size: 1.05em; }
+.rf .rf-q { font-style: italic; color: #cbd5e1; border-left: 3px solid rgba(56, 189, 248, 0.7); padding-left: 8px; margin-left: 2px; }
+.rf .rf-li .rf-bk, .rf .rf-ol .rf-bk { color: #38bdf8; font-weight: 800; }
+.rf .rf-tr { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; background: rgba(255, 255, 255, 0.045); border-radius: 4px; }
+.rf .rf-trs { opacity: 0.45; }
+.rf .rf-pipe { color: #38bdf8; font-weight: 800; padding: 0 2px; }
