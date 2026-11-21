@@ -172,9 +172,74 @@ body.adv-card-border-accent :is(.apple-card-grouped, .figma-card-container, .fig
 }
 
 /* ------------------------------ Flashcards ------------------------------ */
+/* Contraste automático cuando el usuario elige un color sólido de fondo general */
+body.adv-bg-dark {
+  --fc-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03)),
+    linear-gradient(180deg, rgba(var(--u-bg-rgb, 23, 25, 31), 0.76), rgba(var(--u-bg-rgb, 23, 25, 31), 0.62));
+  --fc-border: rgba(255, 255, 255, 0.18);
+  --fc-shadow: 0 24px 54px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  --fc-ink-strong: #ffffff;
+  --fc-ink: #f1f5f9;
+  --fc-ink-soft: #94a3b8;
+  --fc-code-ink: #7dd3fc;
+}
+
+body.adv-bg-light {
+  --fc-bg:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.07), rgba(15, 23, 42, 0.03)),
+    linear-gradient(180deg, rgba(var(--u-bg-rgb, 248, 250, 252), 0.78), rgba(var(--u-bg-rgb, 248, 250, 252), 0.64));
+  --fc-border: rgba(15, 23, 42, 0.16);
+  --fc-shadow: 0 20px 44px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --fc-ink-strong: #0b1220;
+  --fc-ink: #1e293b;
+  --fc-ink-soft: #475569;
+  --fc-code-ink: #be123c;
+}
+
+/* Fondo personalizado de flashcard con translucidez y contraste automático de texto */
 body.adv-fc-bg .cupertino-flashcard-box {
-  background: var(--u-fc-bg) !important;
-  background-image: none !important;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--u-fc-bg-rgb, 23, 25, 31), 0.86),
+    rgba(var(--u-fc-bg-rgb, 23, 25, 31), 0.74)
+  ) !important;
+}
+
+body.adv-fc-dark {
+  --fc-border: rgba(255, 255, 255, 0.18);
+  --fc-shadow: 0 24px 54px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  --fc-ink-strong: #ffffff;
+  --fc-ink: #f1f5f9;
+  --fc-ink-soft: #94a3b8;
+  --fc-code-ink: #7dd3fc;
+}
+
+body.adv-fc-light {
+  --fc-border: rgba(15, 23, 42, 0.16);
+  --fc-shadow: 0 20px 44px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --fc-ink-strong: #0b1220;
+  --fc-ink: #1e293b;
+  --fc-ink-soft: #475569;
+  --fc-code-ink: #be123c;
+}
+
+body.adv-fc-light .cupertino-flashcard-box .cloze-blank,
+body.adv-bg-light:not(.adv-fc-dark) .cupertino-flashcard-box .cloze-blank {
+  color: #0369a1;
+  background: rgba(2, 132, 199, 0.14);
+}
+
+body.adv-fc-light .cupertino-flashcard-box .cloze-answer,
+body.adv-bg-light:not(.adv-fc-dark) .cupertino-flashcard-box .cloze-answer {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.18);
+}
+
+body.adv-fc-text {
+  --fc-ink-strong: var(--u-fc-text);
+  --fc-ink: var(--u-fc-text);
+  --fc-ink-soft: color-mix(in srgb, var(--u-fc-text) 72%, transparent);
 }
 
 body.adv-fc-text .cupertino-flashcard-box,
@@ -444,7 +509,7 @@ body.theme-clean_glass .nbf-title {
 }
 
 body.theme-clean_glass .cupertino-flashcard-box {
-  border-top: 5px solid var(--warm-b) !important;
+  border-top: 4px solid var(--warm-b) !important;
 }
 
 /* ---- Cristal moderno: ajustes propios ---- */

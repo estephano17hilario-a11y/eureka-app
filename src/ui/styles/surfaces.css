@@ -1369,66 +1369,140 @@ body.theme-zen_garden .nbf-title {
 }
 
 /* ==========================================================================
-   4. ESTUDIO DE FLASHCARDS: la tarjeta es una ficha de cada ambiente
+   4. ESTUDIO DE FLASHCARDS: cristal translúcido acorde al fondo del ambiente
+      con contraste automático de texto (soporta ambientes y Estilo avanzado)
    ========================================================================== */
+body {
+  --fc-bg:
+    radial-gradient(120% 90% at 50% 0%, rgba(var(--lamp, 148, 163, 184), 0.12), transparent 65%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.02)),
+    linear-gradient(180deg, rgba(var(--sheet-rgb, 23, 25, 31), 0.66), rgba(var(--sheet-rgb, 23, 25, 31), 0.50));
+  --fc-border: rgba(var(--lamp, 255, 255, 255), 0.24);
+  --fc-shadow:
+    0 24px 54px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --fc-ink-strong: var(--txt-hi, #ffffff);
+  --fc-ink: color-mix(in srgb, var(--txt-hi, #ffffff) 92%, var(--txt-mid, #cbd5e1));
+  --fc-ink-soft: var(--txt-soft, #94a3b8);
+  --fc-divider: color-mix(in srgb, var(--fc-ink-strong) 15%, transparent);
+  --fc-block-bg: color-mix(in srgb, var(--fc-ink-strong) 6%, transparent);
+  --fc-block-border: color-mix(in srgb, var(--fc-ink-strong) 18%, transparent);
+  --fc-code-bg: color-mix(in srgb, var(--fc-ink-strong) 10%, transparent);
+  --fc-code-ink: #7dd3fc;
+}
+
 .cupertino-flashcard-box {
-  background:
-    var(--card-lines),
-    linear-gradient(180deg, var(--paper-a), var(--paper-b)) !important;
-  border: 1px solid var(--card-border) !important;
+  background: var(--fc-bg) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  backdrop-filter: blur(18px) saturate(1.25);
+  border: 1px solid var(--fc-border) !important;
   border-radius: var(--card-radius) !important;
-  box-shadow: var(--card-shadow) !important;
-  color: var(--paper-ink);
+  box-shadow: var(--fc-shadow) !important;
+  color: var(--fc-ink);
   overflow-x: hidden;
 }
 
 .cupertino-flashcard-box .cupertino-card-main-title {
-  color: var(--paper-strong) !important;
+  color: var(--fc-ink-strong) !important;
   font-family: var(--card-font);
   font-size: var(--card-size);
   font-weight: var(--card-weight);
   line-height: 1.3;
 }
 
+.cupertino-flashcard-box .cupertino-card-main-title.is-back-prompt {
+  color: var(--fc-ink-soft) !important;
+  font-size: 1.15rem;
+}
+
 .cupertino-flashcard-box .cupertino-card-answer-text {
-  color: var(--paper-ink) !important;
+  color: var(--fc-ink) !important;
   font-family: var(--card-font);
   font-size: var(--card-ans-size);
   line-height: 1.4;
 }
 
+.cupertino-flashcard-box .reading-p {
+  color: inherit !important;
+}
+
+.cupertino-flashcard-box .apple-markdown-h1,
+.cupertino-flashcard-box .apple-markdown-h2 {
+  color: var(--fc-ink-strong) !important;
+}
+
+.cupertino-flashcard-box .apple-markdown-h3 {
+  color: color-mix(in srgb, var(--f-accent, #38bdf8) 78%, var(--fc-ink-strong)) !important;
+}
+
+.cupertino-flashcard-box .apple-markdown-h4 {
+  color: var(--fc-ink-soft) !important;
+}
+
+.cupertino-flashcard-box .apple-markdown-list-item,
+.cupertino-flashcard-box .apple-markdown-quote,
+.cupertino-flashcard-box .apple-markdown-table td {
+  color: var(--fc-ink) !important;
+}
+
+.cupertino-flashcard-box .apple-markdown-table th {
+  color: var(--fc-ink-strong) !important;
+  background: var(--fc-block-bg);
+  border-bottom-color: var(--fc-block-border);
+}
+
+.cupertino-flashcard-box .apple-markdown-table td {
+  border-bottom-color: var(--fc-divider);
+}
+
+.cupertino-flashcard-box .apple-markdown-quote {
+  background: var(--fc-block-bg);
+  border-left-color: var(--f-accent, #38bdf8);
+}
+
+.cupertino-flashcard-box .apple-markdown-hr {
+  background: var(--fc-divider);
+}
+
 .cupertino-flashcard-box .cupertino-card-divider {
-  background: var(--paper-block-border) !important;
+  background: var(--fc-divider) !important;
 }
 
 .cupertino-flashcard-box .cupertino-card-hint-text,
 .cupertino-flashcard-box .cupertino-btn-card-menu {
-  color: var(--paper-soft) !important;
+  color: var(--fc-ink-soft) !important;
 }
 
 .cupertino-flashcard-box .katex,
 .cupertino-flashcard-box .katex * {
-  color: var(--paper-strong);
+  color: var(--fc-ink-strong);
 }
 
 .cupertino-flashcard-box .katex-block-container {
-  background: var(--paper-block-bg);
-  border: 1px dashed var(--paper-block-border);
+  background: var(--fc-block-bg);
+  border: 1px dashed var(--fc-block-border);
   box-shadow: none;
 }
 
 .cupertino-flashcard-box .apple-code-inline {
-  background: var(--paper-code-bg);
-  color: var(--paper-code-ink);
+  background: var(--fc-code-bg);
+  color: var(--fc-code-ink);
   border-color: transparent;
 }
 
 .cupertino-flashcard-box strong {
-  color: var(--paper-strong) !important;
+  color: var(--fc-ink-strong) !important;
 }
 
 .cupertino-flashcard-box em {
-  color: var(--paper-soft) !important;
+  color: var(--fc-ink-soft) !important;
+}
+
+.cupertino-flashcard-box .cupertino-card-main-title.is-back-prompt strong,
+.cupertino-flashcard-box .cupertino-card-main-title.is-back-prompt .apple-markdown-h1,
+.cupertino-flashcard-box .cupertino-card-main-title.is-back-prompt .apple-markdown-h2 {
+  color: var(--fc-ink-soft) !important;
 }
 
 .cupertino-btn-show-answer {
@@ -1473,12 +1547,12 @@ body.theme-space_station .cupertino-flashcard-box::before {
 }
 
 body.theme-library .cupertino-flashcard-box {
-  outline: 1px solid rgba(184, 137, 47, 0.55);
+  outline: 1px solid rgba(184, 137, 47, 0.45);
   outline-offset: -9px;
 }
 
 body.theme-zen_garden .cupertino-flashcard-box {
-  border-left: 6px solid #c0392b !important;
+  border-left: 5px solid #c0392b !important;
 }
 
 body.theme-cabin .cupertino-flashcard-box::before {
@@ -1488,13 +1562,13 @@ body.theme-cabin .cupertino-flashcard-box::before {
   border-radius: inherit;
   pointer-events: none;
   background: var(--fiber);
-  opacity: 0.5;
-  mix-blend-mode: multiply;
+  opacity: 0.14;
+  mix-blend-mode: soft-light;
 }
 
 body.theme-office .cupertino-flashcard-box,
 body.theme-modern_black .cupertino-flashcard-box {
-  border-top: 5px solid var(--warm-b) !important;
+  border-top: 4px solid var(--warm-b) !important;
 }
 
 /* ==========================================================================

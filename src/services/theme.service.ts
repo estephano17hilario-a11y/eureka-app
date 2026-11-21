@@ -287,24 +287,38 @@ export class ThemeService {
       if (value && value !== 'default') body.classList.add(`${prefix}-${value}`);
     });
 
+    const parseHex = (hex: string): [number, number, number] | null => {
+      const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec((hex || '').trim());
+      return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : null;
+    };
+    const isLight = (rgb: [number, number, number]): boolean => (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000 > 155;
+
     // Fondo
     const filtered = a.bgBlur || a.bgSaturate !== 100 || a.bgDim;
     setVar('--u-bg-filter', filtered ? `blur(${a.bgBlur}px) saturate(${a.bgSaturate}%) brightness(${1 - a.bgDim / 100})` : '');
     setVar('--u-bg-color', a.bgColor);
     if (filtered) body.classList.add('adv-bg-filter');
-    if (a.bgColor) body.classList.add('adv-bg-color');
+    if (a.bgColor) {
+      body.classList.add('adv-bg-color');
+      const bgRgb = parseHex(a.bgColor);
+      if (bgRgb) {
+        setVar('--u-bg-rgb', `${bgRgb[0]}, ${bgRgb[1]}, ${bgRgb[2]}`);
+        body.classList.add(isLight(bgRgb) ? 'adv-bg-light' : 'adv-bg-dark');
+      } else {
+        setVar('--u-bg-rgb', '');
+      }
+    } else {
+      setVar('--u-bg-rgb', '');
+    }
 
     // Botones
     setVar('--u-btn-color', a.btnColor);
     if (a.btnColor) {
       body.classList.add('adv-btn-color');
-      const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(a.btnColor);
-      if (m) {
-        const r = parseInt(m[1], 16);
-        const g = parseInt(m[2], 16);
-        const b = parseInt(m[3], 16);
-        setVar('--u-btn-rgb', `${r}, ${g}, ${b}`);
-        setVar('--u-btn-ink', (r * 299 + g * 587 + b * 114) / 1000 > 150 ? '#0b1220' : '#ffffff');
+      const btnRgb = parseHex(a.btnColor);
+      if (btnRgb) {
+        setVar('--u-btn-rgb', `${btnRgb[0]}, ${btnRgb[1]}, ${btnRgb[2]}`);
+        setVar('--u-btn-ink', isLight(btnRgb) ? '#0b1220' : '#ffffff');
       }
     } else {
       setVar('--u-btn-rgb', '');
@@ -323,10 +337,21 @@ export class ThemeService {
     setVar('--u-card-blur', a.cardBlur ? `${a.cardBlur}px` : '');
     if (a.cardBlur) body.classList.add('adv-card-blur');
 
-    // Flashcards
+    // Flashcards (con detección automática de contraste según luminancia del fondo)
     setVar('--u-fc-bg', a.fcBg);
     setVar('--u-fc-text', a.fcText);
-    if (a.fcBg) body.classList.add('adv-fc-bg');
+    if (a.fcBg) {
+      body.classList.add('adv-fc-bg');
+      const fcRgb = parseHex(a.fcBg);
+      if (fcRgb) {
+        setVar('--u-fc-bg-rgb', `${fcRgb[0]}, ${fcRgb[1]}, ${fcRgb[2]}`);
+        body.classList.add(isLight(fcRgb) ? 'adv-fc-light' : 'adv-fc-dark');
+      } else {
+        setVar('--u-fc-bg-rgb', '');
+      }
+    } else {
+      setVar('--u-fc-bg-rgb', '');
+    }
     if (a.fcText) body.classList.add('adv-fc-text');
     setVar('--u-fc-scale', a.fcScale !== 100 ? String(a.fcScale / 100) : '');
     if (a.fcScale !== 100) body.classList.add('adv-fc-scale');

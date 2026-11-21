@@ -209,7 +209,7 @@ export class FigmaStudySession {
             `
                 : this.isFlipped
                 ? `
-              <div class="cupertino-card-hint-text" style="color:var(--f-text-secondary); opacity:0.85;">
+              <div class="cupertino-card-hint-text" style="opacity:0.85;">
                 Presiona [1] De nuevo • [2] Difícil • [3 / Espacio] Bien • [4] Fácil
               </div>
             `
@@ -596,7 +596,7 @@ export class FigmaStudySession {
     return `
       <div style="display:flex; flex-direction:column; align-items:center; text-align:center; width:100%;">
         ${mediaHtml}
-        <div class="cupertino-card-main-title" style="color:var(--f-text-secondary); font-size:1.15rem;">
+        <div class="cupertino-card-main-title is-back-prompt">
           ${katexService.parseAndRender(card.front)}
         </div>
 
