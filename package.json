@@ -30,9 +30,11 @@
     "@capacitor/status-bar": "^6.0.2",
     "@cortex-js/compute-engine": "^0.128.0",
     "canvas-confetti": "^1.9.4",
+    "jszip": "^3.10.2",
     "katex": "^0.16.47",
     "lucide": "^0.475.0",
     "mathlive": "^0.110.0",
+    "pdfjs-dist": "^4.10.38",
     "simple-mind-map": "^0.14.0-fix.3",
     "sortablejs": "^1.15.7",
     "sucrase": "^3.35.1"
