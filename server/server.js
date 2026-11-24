@@ -215,7 +215,8 @@ class ResilientStore {
         due_date: Number(c.due_date) || Date.now(),
         last_review_date: c.last_review_date ? Number(c.last_review_date) : null,
         created_at: Number(c.created_at) || Date.now(),
-        updated_at: Number(c.updated_at) || Date.now()
+        updated_at: Number(c.updated_at) || Date.now(),
+        meta: c.meta && typeof c.meta === 'object' ? c.meta : (idx >= 0 ? this.data.cards[idx].meta || null : null)
       };
 
       if (idx >= 0) {
@@ -289,6 +290,9 @@ class ResilientStore {
     return {
       decksUpdatedAt: maxDecks,
       cardsUpdatedAt: maxCards,
+      decksCount: userDecks.length,
+      cardsCount: userCards.length,
+      serverTime: Date.now(),
       settingsUpdatedAt: typeof maxSettings === 'number' ? maxSettings : new Date(maxSettings).getTime()
     };
   }
@@ -307,6 +311,8 @@ const pool = new pg.Pool({
 let isPgHealthy = false;
 let reconciling = false;
 let lastReconcile = null;
+// La columna meta (etiquetas, favorita, pausada, pista…) se crea sola al arrancar; mientras no exista se usa el SQL anterior.
+let cardMetaReady = false;
 
 pool.on('error', (err) => {
   isPgHealthy = false;
@@ -331,6 +337,19 @@ function pgFail(err) {
     isPgHealthy = false;
   } else if (err) {
     console.warn('[PostgreSQL Query Warning]:', err.message);
+  }
+}
+
+// Migración idempotente y aditiva: nunca borra ni reescribe datos.
+async function ensureSchema() {
+  if (cardMetaReady) return;
+  try {
+    await pool.query('ALTER TABLE eureka_flashcards ADD COLUMN IF NOT EXISTS meta jsonb');
+    cardMetaReady = true;
+    console.log('✅ Columna eureka_flashcards.meta lista.');
+  } catch (err) {
+    pgFail(err);
+    console.warn('[ensureSchema] no se pudo preparar la columna meta:', err.message);
   }
 }
 
@@ -385,9 +404,9 @@ function cardUpsertSql(onlyIfNewer) {
       occlusion_image, occlusion_masks, active_mask_id, occlusion_mode,
       audio_lang, audio_text, is_inverted, group_id, group_title, group_role,
       state, step_index, interval_minutes, ease_factor, lapses, reps,
-      due_date, last_review_date, created_at, updated_at
+      due_date, last_review_date, created_at, updated_at${cardMetaReady ? ', meta' : ''}
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28${cardMetaReady ? ', $29::jsonb' : ''})
     ON CONFLICT (user_id, id) DO UPDATE SET
       deck_id = EXCLUDED.deck_id,
       type = EXCLUDED.type,
@@ -413,13 +432,13 @@ function cardUpsertSql(onlyIfNewer) {
       reps = EXCLUDED.reps,
       due_date = EXCLUDED.due_date,
       last_review_date = EXCLUDED.last_review_date,
-      updated_at = EXCLUDED.updated_at
+      updated_at = EXCLUDED.updated_at${cardMetaReady ? ', meta = COALESCE(EXCLUDED.meta, eureka_flashcards.meta)' : ''}
     ${onlyIfNewer ? 'WHERE EXCLUDED.updated_at > COALESCE(eureka_flashcards.updated_at, 0)' : ''};
   `;
 }
 
 function cardParams(userId, c) {
-  return [
+  const params = [
     c.id, c.deck_id, userId, c.type || 'standard', c.front, c.back,
     c.front_image || null, c.back_image || null, c.occlusion_image || null,
     JSON.stringify(c.occlusion_masks || null), c.active_mask_id || null, c.occlusion_mode || null,
@@ -429,6 +448,9 @@ function cardParams(userId, c) {
     c.lapses || 0, c.reps || 0, Number(c.due_date) || Date.now(), c.last_review_date ? Number(c.last_review_date) : null,
     Number(c.created_at) || Date.now(), Number(c.updated_at) || Date.now()
   ];
+  // meta ausente (cliente antiguo) = NULL: el COALESCE del upsert conserva lo que ya hubiera guardado
+  if (cardMetaReady) params.push(c.meta && typeof c.meta === 'object' ? JSON.stringify(c.meta) : null);
+  return params;
 }
 
 async function ensurePlaceholderDeck(deckId, userId) {
@@ -502,6 +524,7 @@ async function checkPgHealth() {
     const client = await pool.connect();
     await client.query('SELECT 1');
     client.release();
+    if (!cardMetaReady) await ensureSchema();
     if (!isPgHealthy) {
       console.log('✅ Conexión con PostgreSQL restablecida y operativa.');
       isPgHealthy = true;
@@ -730,13 +753,17 @@ app.get('/api/sync/version', async (req, res) => {
   if (isPgHealthy) {
     try {
       const [decksRes, cardsRes, settingsRes] = await Promise.all([
-        pool.query('SELECT MAX(updated_at) as max_decks FROM eureka_decks WHERE user_id = $1', [userId]),
-        pool.query('SELECT MAX(updated_at) as max_cards FROM eureka_flashcards WHERE user_id = $1', [userId]),
+        pool.query('SELECT MAX(updated_at) as max_decks, COUNT(*) as n_decks FROM eureka_decks WHERE user_id = $1', [userId]),
+        pool.query('SELECT MAX(updated_at) as max_cards, COUNT(*) as n_cards FROM eureka_flashcards WHERE user_id = $1', [userId]),
         pool.query('SELECT updated_at as max_settings FROM eureka_user_settings WHERE user_id = $1 LIMIT 1', [userId])
       ]);
       return res.json({
         decksUpdatedAt: Number(decksRes.rows[0]?.max_decks) || 0,
         cardsUpdatedAt: Number(cardsRes.rows[0]?.max_cards) || 0,
+        // Los recuentos hacen visibles los borrados hechos en otro dispositivo (no cambian el máximo de updated_at)
+        decksCount: Number(decksRes.rows[0]?.n_decks) || 0,
+        cardsCount: Number(cardsRes.rows[0]?.n_cards) || 0,
+        serverTime: Date.now(),
         settingsUpdatedAt: settingsRes.rows[0]?.max_settings ? new Date(settingsRes.rows[0].max_settings).getTime() : 0
       });
     } catch (err) {

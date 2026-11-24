@@ -179,7 +179,7 @@ body.theme-desk_wood::after {
   transform: scale(0.96);
 }
 
-/* Dock inferior con botón central de creación */
+/* Dock inferior: las secciones ocupan todo el ancho */
 .eureka-mobile-bottom-nav {
   background: var(--nav-bg);
   border-top: 1px solid rgba(var(--lamp), 0.18);
@@ -198,30 +198,65 @@ body.theme-desk_wood::after {
   color: var(--warm-a);
 }
 
-.eureka-bottom-nav-create {
-  flex: 0 0 auto !important;
-  width: 58px;
-  height: 58px;
-  margin: -26px 6px 0 6px;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  border: 3px solid var(--nav-bg) !important;
-  background: var(--warm-grad) !important;
-  color: var(--warm-ink) !important;
-  box-shadow: 0 10px 26px rgba(var(--warm-rgb), 0.5), 0 0 0 1px rgba(255, 255, 255, 0.18) inset;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+.eureka-bottom-nav-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  width: 100%;
+  max-width: 560px;
+  padding: 4px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-.eureka-bottom-nav-create:active {
-  transform: scale(0.9) rotate(45deg);
+/* Indicador deslizante: ocupa exactamente una celda y viaja a la pestaña activa */
+.ebn-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 4);
+  border-radius: 17px;
+  background: rgba(var(--lamp), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--lamp), 0.28), 0 6px 18px rgba(var(--lamp), 0.16);
+  transform: translateX(calc(var(--i, 0) * 100%));
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
 }
 
-.eureka-bottom-nav-create svg {
-  stroke: var(--warm-ink) !important;
+.eureka-mobile-bottom-nav .eureka-bottom-nav-item {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 52px;
+  padding: 7px 2px 6px;
+  gap: 2px;
+  border-radius: 17px;
+}
+
+.eureka-mobile-bottom-nav .eureka-nav-icon-wrap,
+.eureka-mobile-bottom-nav .eureka-bottom-nav-item.active .eureka-nav-icon-wrap {
+  width: auto;
+  height: 26px;
+  background: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.eureka-mobile-bottom-nav .eureka-bottom-nav-item svg { transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
+.eureka-mobile-bottom-nav .eureka-bottom-nav-item.active svg { transform: translateY(-1px) scale(1.1); }
+.eureka-mobile-bottom-nav .eureka-nav-label { font-size: 0.68rem; line-height: 1.1; white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ebn-pill, .eureka-mobile-bottom-nav .eureka-bottom-nav-item svg { transition: none; }
+}
+
+/* Crear en el celular: solo el símbolo, redondo, en la cabecera */
+@media screen and (max-width: 860px) {
+  .btn-header-create { width: 38px; height: 38px; padding: 0; justify-content: center; }
+  .btn-header-create .hc-label { display: none; }
 }
 
 /* ==========================================================================
@@ -370,6 +405,8 @@ body.theme-desk_wood::after {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
+.ch-grid.single { grid-template-columns: 1fr; }
 
 .ch-tile {
   text-align: left;

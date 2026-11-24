@@ -2,7 +2,7 @@ import type { Deck, Flashcard } from '../types/flashcard';
 import { deckService } from '../services/deck.service';
 import { katexService } from '../services/katex.service';
 import { dialogService } from '../services/dialog.service';
-import { askTag, bindDeckFilters, cardBadgesHtml, cardDataAttrs, deckFilterBarHtml, openDeckStats, openStudyLauncher, type StudyLaunch } from './DeckInsights';
+import { askTag, bindDeckFilters, cardBadgesHtml, cardDataAttrs, deckFilterActiveCount, deckFilterBarHtml, deckNoResultsHtml, openDeckStats, openStudyLauncher, type StudyLaunch } from './DeckInsights';
 
 export interface FigmaDashboardCallbacks {
   onBackToSubdecks: () => void;
@@ -98,9 +98,15 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
     }
   }
 
+  const isEmpty = totalInDeck === 0;
+  const filtersOpen = dashUi.filtersOpen.has(deck.id) || deckFilterActiveCount(deck.id) > 0;
+  const studyMoreOpen = dashUi.studyMoreOpen;
+  const chevron =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+
   return `
-    <div>
-      <!-- Action Header with 3-level Breadcrumb -->
+    <div class="dk2">
+      <!-- Cabecera: volver, ruta y ajustes del mazo -->
       <div class="figma-action-header">
         <div class="figma-breadcrumbs">
           <button class="figma-icon-btn-dark" id="btn-dash-back" style="margin-right:6px;" title="Volver">
@@ -120,185 +126,178 @@ export function renderFigmaDeckDashboard(deck: Deck, parentDeck?: Deck): string 
         </div>
 
         <div class="figma-header-actions-group">
-          <button class="figma-icon-btn-dark" id="btn-dash-menu" title="Ajustes del Mazo">
+          <button class="figma-icon-btn-dark" id="btn-dash-menu" title="Ajustes del mazo" aria-label="Ajustes del mazo">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
           </button>
         </div>
       </div>
 
-      <!-- Title & Algorithm Info -->
-      <div class="figma-dashboard-header">
-        <div>
-          <h1 class="figma-dash-title">${deck.name}</h1>
-          <p class="figma-dash-subtitle">
-            Algoritmo: <strong id="btn-open-algo-settings" style="cursor:pointer; color:var(--f-blue); text-decoration:underline;">${algoLabel} ⓘ</strong>
-          </p>
-        </div>
+      <!-- Título y algoritmo (discreto: un toque abre los ajustes) -->
+      <div class="dk2-titlebar">
+        <h1 class="figma-dash-title">${deck.name}</h1>
+        <button type="button" class="dk2-algo" id="btn-open-algo-settings" title="Cambiar el algoritmo de repaso">${algoLabel}${chevron}</button>
       </div>
 
-      <!-- Hero Metric Box (Compact On-Screen View) -->
-      <div class="figma-hero-metric-box apple-glass-panel">
-        <div class="figma-hero-main-group">
-          <div class="figma-hero-due-col">
+      <!-- Panel de estudio: UNA acción principal; lo demás, desplegable -->
+      <section class="figma-hero-metric-box dk2-hero apple-glass-panel">
+        <div class="dk2-hero-top">
+          <div class="dk2-due">
             <span class="figma-hero-large-number">${dueCount}</span>
             <span class="figma-hero-label">para hoy</span>
           </div>
 
-          <div class="figma-three-stats-row">
-            <div class="figma-stat-pill" title="Tarjetas nuevas no estudiadas">
-              <div class="figma-stat-val-badge" style="color:#94a3b8;">
-                <span>+</span> <span>${newCount}</span>
-              </div>
-              <span class="figma-stat-name">Nuevas</span>
-            </div>
-
-            <div class="figma-stat-pill" title="Tarjetas en fase de aprendizaje">
-              <div class="figma-stat-val-badge" style="color:#10b981;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span>${learningCount}</span>
-              </div>
-              <span class="figma-stat-name">Repaso</span>
-            </div>
-
-            <div class="figma-stat-pill" title="Tarjetas consolidadas y dominadas">
-              <div class="figma-stat-val-badge" style="color:#38bdf8;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                <span>${masteredCount}</span>
-              </div>
-              <span class="figma-stat-name">Dominadas</span>
-            </div>
-          </div>
+          ${
+            isEmpty
+              ? `<button class="figma-btn-study-large dk2-study" id="btn-dash-add-first">+ Agregar tarjetas</button>`
+              : `<div class="dk2-cta">
+                  <button class="figma-btn-study-large dk2-study" id="btn-study-cards-main">${dueCount > 0 ? 'Estudiar' : 'Repasar'}</button>
+                  <button type="button" class="dk2-icon-btn" id="btn-study-more" data-expand="dk2-study-more" aria-expanded="${studyMoreOpen}" aria-controls="dk2-study-more" aria-label="Más formas de estudiar" title="Más formas de estudiar">${chevron}</button>
+                </div>`
+          }
         </div>
 
-        <button class="figma-btn-study-large" id="btn-study-cards-main">
-          ${dueCount > 0 ? 'Estudiar tarjetas' : '✨ Repasar mazo'}
-        </button>
-        <div class="dk-hero-actions">
-          <button type="button" class="dk-hero-btn" id="btn-study-modes" title="Elegir qué, cómo y cuánto estudiar">🎯 Modos de estudio</button>
-          <button type="button" class="dk-hero-btn" id="btn-deck-stats" title="Racha, actividad y previsión de repasos">📊 Estadísticas</button>
-        </div>
-      </div>
+        ${
+          isEmpty
+            ? ''
+            : `<div class="dk2-collapse dk2-more-row" id="dk2-study-more" data-open="${studyMoreOpen ? 1 : 0}">
+                <div class="dk2-collapse-inner">
+                  <div class="dk2-more-actions">
+                    <button type="button" class="dk-hero-btn" id="btn-study-modes" title="Elegir qué, cómo y cuánto estudiar">🎯 Modos de estudio</button>
+                    <button type="button" class="dk-hero-btn" id="btn-deck-stats" title="Racha, actividad y previsión de repasos">📊 Estadísticas</button>
+                  </div>
+                </div>
+              </div>
+              <div class="dk2-progress">
+                <div class="figma-segment-bar dk2-bar" role="img" aria-label="${newCount} nuevas, ${learningCount} aprendiendo, ${masteredCount} dominadas">
+                  <div class="f-seg-gray" style="width: ${pctGray}%;"></div>
+                  <div class="f-seg-green" style="width: ${pctGreen}%;"></div>
+                  <div class="f-seg-blue" style="width: ${pctBlue}%;"></div>
+                </div>
+                <div class="dk2-legend">
+                  <span title="Tarjetas nuevas, aún sin estudiar"><i style="background:#94a3b8"></i><b>${newCount}</b> nuevas</span>
+                  <span title="Tarjetas en fase de aprendizaje"><i style="background:#10b981"></i><b>${learningCount}</b> aprendiendo</span>
+                  <span title="Tarjetas consolidadas"><i style="background:#38bdf8"></i><b>${masteredCount}</b> dominadas</span>
+                </div>
+              </div>`
+        }
+      </section>
 
-      <!-- Bottom Board: Sección de Tarjetas -->
+      <!-- Tarjetas del mazo -->
       <div class="figma-dashboard-bottom-board">
-        <div class="figma-bottom-tabs-header">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><line x1="7" y1="9" x2="13" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/></svg>
-            <strong style="color:#fff; font-size:1.05rem;">Tarjetas del Mazo</strong>
-            <span class="figma-tab-count-chip">${totalInDeck}</span>
-          </div>
-
-          <button class="figma-icon-btn-ghost" id="btn-deck-info-icon" title="Ajustes del mazo">
-            ⓘ
-          </button>
-        </div>
-
-        <!-- SECCIÓN DE FLASHCARDS -->
         <div id="dash-section-flashcards" class="dash-bottom-section active">
-          <!-- Progress Bar & Legend -->
-          <div class="figma-segment-bar">
-            <div class="f-seg-gray" style="width: ${pctGray}%;"></div>
-            <div class="f-seg-green" style="width: ${pctGreen}%;"></div>
-            <div class="f-seg-blue" style="width: ${pctBlue}%;"></div>
+          <div class="dk2-cards-head">
+            <h2 class="dk2-cards-title">Tarjetas <span class="figma-tab-count-chip">${totalInDeck}</span></h2>
+            ${
+              isEmpty
+                ? ''
+                : `<div class="dk2-tools">
+                    <button type="button" class="dk2-icon-btn ${deckFilterActiveCount(deck.id) > 0 ? 'has-active' : ''}" id="btn-dash-filters" aria-expanded="${filtersOpen}" aria-controls="dk2-filter-panel" aria-label="Filtros y orden" title="Filtros y orden">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+                      <span class="dk2-dot"></span>
+                    </button>
+                    <button class="figma-btn-white-pill dk2-add" id="btn-dash-add-card">+ Agregar</button>
+                  </div>`
+            }
           </div>
 
-          <div class="figma-bar-legend">
-            <div class="f-legend-item">
-              <div class="f-dot" style="background:#64748b;"></div>
-              <span><strong>${newCount}</strong> No estudiadas</span>
-            </div>
-            <div class="f-legend-item">
-              <div class="f-dot" style="background:#10b981;"></div>
-              <span><strong>${learningCount}</strong> En aprendizaje</span>
-            </div>
-            <div class="f-legend-item">
-              <div class="f-dot" style="background:#38bdf8;"></div>
-              <span><strong>${masteredCount}</strong> Dominadas</span>
-            </div>
-          </div>
+          ${
+            isEmpty
+              ? ''
+              : `<div class="figma-search-input-wrap dk2-search">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" class="figma-search-input" placeholder="Buscar tarjetas…" id="dash-search-input" />
+                </div>
 
-          <!-- Search and Action Bar -->
-          <div class="figma-search-bar-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <div class="figma-search-input-wrap" style="flex:1; min-width:180px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" class="figma-search-input" placeholder="Buscar tarjetas en el mazo..." id="dash-search-input" />
-            </div>
+                <div class="dk2-collapse" id="dk2-filter-panel" data-open="${filtersOpen ? 1 : 0}">
+                  <div class="dk2-collapse-inner">${deckFilterBarHtml(deck)}</div>
+                </div>
+                ${deckNoResultsHtml()}`
+          }
 
-            <button class="figma-btn-white-pill" id="btn-dash-add-card" style="padding:10px 18px; font-size:0.88rem;">
-              + Agregar tarjetas
-            </button>
-          </div>
-
-          ${deckFilterBarHtml(deck)}
-
-          <!-- Cards List Container with Accordions and Long-Press Multi-Selection -->
-          <div id="dash-cards-list-mount" style="margin-top:18px;">
+          <!-- Lista de tarjetas (selección múltiple con pulsación larga) -->
+          <div id="dash-cards-list-mount" style="margin-top:14px;">
             ${cardItemsHtml.length > 0 ? cardItemsHtml.join('') : `
-              <div style="text-align:center; padding:36px 16px; color:var(--f-text-muted);">
-                No hay tarjetas en este mazo todavía. ¡Agrega una con el botón de arriba!
+              <div class="dk2-empty">
+                Este mazo aún no tiene tarjetas.
               </div>
             `}
           </div>
         </div>
       </div>
 
-      <!-- Floating Batch Actions Bar (Visible when cards are selected) -->
-      <div id="figma-batch-dock" class="figma-batch-actions-dock" style="display:none;">
+      <!-- Barra de acciones de la selección: lo esencial a la vista, el resto en «Más» -->
+      <div id="figma-batch-dock" class="figma-batch-actions-dock dk2-dock" style="display:none;">
         <div class="batch-info">
-          <span class="batch-count-badge" id="batch-selected-count">0 seleccionadas</span>
+          <button class="batch-action-btn btn-batch-close" id="btn-batch-close-action" title="Cancelar selección" aria-label="Cancelar selección">✕</button>
+          <span class="batch-count-badge" id="batch-selected-count">0 sel.</span>
           <button class="batch-text-btn" id="btn-batch-select-all">Todas</button>
         </div>
 
         <div class="batch-actions-btns">
-          <button class="batch-action-btn btn-batch-edit" id="btn-batch-edit-action" title="Editar tarjeta" style="display:none;">
-            ✏️ Editar
-          </button>
-          <button class="batch-action-btn btn-batch-move" id="btn-batch-move-action" title="Mover a otra carpeta/mazo">
-            📁 Mover
-          </button>
-          <button class="batch-action-btn" id="btn-batch-star-action" title="Marcar o desmarcar como favoritas">
-            ⭐ Favorita
-          </button>
-          <button class="batch-action-btn" id="btn-batch-tag-action" title="Añadir o quitar una etiqueta">
-            🏷️ Etiquetar
-          </button>
-          <button class="batch-action-btn" id="btn-batch-suspend-action" title="Pausar o reactivar: las pausadas no entran en los repasos">
-            ⏸ Pausar
-          </button>
-          <button class="batch-action-btn" id="btn-batch-dup-action" title="Duplicar como tarjetas nuevas">
-            ⧉ Duplicar
-          </button>
-          <button class="batch-action-btn btn-batch-invert" id="btn-batch-rev-on-action" title="Activar la versión inversa (Reverso → Anverso) de las seleccionadas">
-            ⇄ Activar inversa
-          </button>
-          <button class="batch-action-btn btn-batch-invert" id="btn-batch-rev-off-action" title="Quitar la versión inversa de las seleccionadas">
-            ⇄ Quitar inversa
-          </button>
-          <button class="batch-action-btn" id="btn-batch-archive-action" title="Archivar o desarchivar: salen de la vista normal y de los repasos">
-            📦 Archivar
-          </button>
-          <button class="batch-action-btn btn-batch-reset" id="btn-batch-reset-action" title="Restablecer progreso a nuevo" style="background:rgba(245,158,11,0.18); color:#f59e0b; border:1px solid rgba(245,158,11,0.35);">
-            🔄 Borrar Progreso
-          </button>
-          <button class="batch-action-btn btn-batch-delete" id="btn-batch-delete-action" title="Eliminar seleccionadas">
-            🗑️ Borrar
-          </button>
-          <button class="batch-action-btn btn-batch-close" id="btn-batch-close-action" title="Cancelar selección">
-            ✕
-          </button>
+          <button class="batch-action-btn btn-batch-edit" id="btn-batch-edit-action" title="Editar tarjeta" style="display:none;">✏️ Editar</button>
+          <button class="batch-action-btn btn-batch-move" id="btn-batch-move-action" title="Mover a otra carpeta/mazo">📁 Mover</button>
+          <button class="batch-action-btn btn-batch-delete" id="btn-batch-delete-action" title="Eliminar seleccionadas">🗑️ Borrar</button>
+          <div class="dk2-pop-wrap">
+            <button type="button" class="batch-action-btn dk2-more" id="btn-batch-more" data-menu-toggle="dk2-batch-menu" aria-haspopup="menu" aria-expanded="false" title="Más acciones">Más ⋯</button>
+            <div class="dk2-menu up" id="dk2-batch-menu" role="menu" data-open="0">
+              <button type="button" role="menuitem" id="btn-batch-star-action" title="Marcar o desmarcar como favoritas">⭐ Favorita</button>
+              <button type="button" role="menuitem" id="btn-batch-tag-action" title="Añadir o quitar una etiqueta">🏷️ Etiquetar</button>
+              <button type="button" role="menuitem" id="btn-batch-suspend-action" title="Las pausadas no entran en los repasos">⏸ Pausar / reactivar</button>
+              <button type="button" role="menuitem" id="btn-batch-dup-action" title="Duplicar como tarjetas nuevas">⧉ Duplicar</button>
+              <button type="button" role="menuitem" id="btn-batch-rev-on-action" title="Activar la versión inversa (Reverso → Anverso)">⇄ Activar inversa</button>
+              <button type="button" role="menuitem" id="btn-batch-rev-off-action" title="Quitar la versión inversa">⇄ Quitar inversa</button>
+              <button type="button" role="menuitem" id="btn-batch-archive-action" title="Salen de la vista normal y de los repasos">📦 Archivar / desarchivar</button>
+              <button type="button" role="menuitem" class="warn" id="btn-batch-reset-action" title="Restablecer progreso a nuevo">🔄 Borrar progreso</button>
+            </div>
+          </div>
         </div>
       </div>
-
-      <!-- Floating Action Buttons -->
-      <button class="figma-fab-gift" id="btn-fab-gift" title="Recompensas">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-      </button>
-
-      <button class="figma-fab-help" id="btn-fab-help" title="Ayuda">
-        ?
-      </button>
     </div>
   `;
+}
+
+/** Estado de interfaz que debe sobrevivir a los repintados por cambio de datos (p. ej. al llegar una sincronización). */
+const dashUi = { filtersOpen: new Set<string>(), studyMoreOpen: false };
+let disposePopovers: (() => void) | null = null;
+
+/** Menús desplegables pequeños: se cierran al elegir, al tocar fuera o con Esc. */
+function bindPopovers(container: HTMLElement): void {
+  disposePopovers?.();
+  const menus = Array.from(container.querySelectorAll<HTMLElement>('.dk2-menu'));
+  const setOpen = (menu: HTMLElement, open: boolean) => {
+    menu.dataset.open = open ? '1' : '0';
+    menu.parentElement?.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', String(open));
+  };
+  const closeAll = () => menus.forEach((m) => setOpen(m, false));
+
+  container.querySelectorAll<HTMLElement>('[data-menu-toggle]').forEach((btn) => {
+    const menu = container.querySelector<HTMLElement>(`#${btn.dataset.menuToggle}`);
+    if (!menu) return;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = menu.dataset.open !== '1';
+      closeAll();
+      setOpen(menu, willOpen);
+    });
+  });
+  menus.forEach((m) =>
+    m.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('button')) closeAll();
+    })
+  );
+
+  const onOutside = (e: Event) => {
+    if (!(e.target as HTMLElement | null)?.closest?.('.dk2-pop-wrap')) closeAll();
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') closeAll();
+  };
+  document.addEventListener('pointerdown', onOutside, true);
+  document.addEventListener('keydown', onKey);
+  disposePopovers = () => {
+    document.removeEventListener('pointerdown', onOutside, true);
+    document.removeEventListener('keydown', onKey);
+  };
 }
 
 export function bindFigmaDashboardEvents(
@@ -318,7 +317,23 @@ export function bindFigmaDashboardEvents(
   // Open Settings View
   container.querySelector('#btn-dash-menu')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
   container.querySelector('#btn-open-algo-settings')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
-  container.querySelector('#btn-deck-info-icon')?.addEventListener('click', () => callbacks.onConfigureDeck(deck.id));
+  container.querySelector('#btn-dash-add-first')?.addEventListener('click', () => callbacks.onAddCard(deck.id));
+
+  // Menús pequeños (más formas de estudiar, más acciones de la selección) y panel de filtros plegable
+  bindPopovers(container);
+  const bindExpander = (btnSel: string, panelSel: string, remember: (open: boolean) => void) => {
+    const btn = container.querySelector<HTMLElement>(btnSel);
+    const panel = container.querySelector<HTMLElement>(panelSel);
+    btn?.addEventListener('click', () => {
+      if (!panel) return;
+      const open = panel.dataset.open !== '1';
+      panel.dataset.open = open ? '1' : '0';
+      btn.setAttribute('aria-expanded', String(open));
+      remember(open);
+    });
+  };
+  bindExpander('#btn-dash-filters', '#dk2-filter-panel', (open) => (open ? dashUi.filtersOpen.add(deck.id) : dashUi.filtersOpen.delete(deck.id)));
+  bindExpander('#btn-study-more', '#dk2-study-more', (open) => (dashUi.studyMoreOpen = open));
 
   // Estado de Selección Múltiple (Activado por Long-Press)
   const selectedCards = new Set<string>();

@@ -1,7 +1,7 @@
 import type { Deck, Flashcard, DeckStats, StudyRating, DeckSettings, CardType, OcclusionMask, OcclusionMode, BatchParseOptions } from '../types/flashcard';
 import { getInitialDemoDecks } from './demo-data';
 import { srsService } from './srs.service';
-import { eurekaBackend } from './backend.service';
+import { eurekaBackend, packCardMeta } from './backend.service';
 import { idbGet, idbSet, lsGet, lsSet, lsRemove, requestPersistentStorage } from './storage.service';
 import { studyStats } from './study-stats.service';
 
@@ -11,6 +11,8 @@ interface SyncMeta {
   cards: Record<string, number>;
   delDecks: string[];
   delCards: string[];
+  /** Versión del esquema de sincronización de este dispositivo (2 = etiquetas/favoritas/… viajan con la tarjeta). */
+  v?: number;
 }
 
 interface CoreSnapshot {
@@ -268,7 +270,8 @@ export class DeckService {
             decks: m.decks || {},
             cards: m.cards || {},
             delDecks: Array.isArray(m.delDecks) ? m.delDecks : [],
-            delCards: Array.isArray(m.delCards) ? m.delCards : []
+            delCards: Array.isArray(m.delCards) ? m.delCards : [],
+            v: typeof m.v === 'number' ? m.v : undefined
           };
         }
       } catch {
@@ -542,6 +545,12 @@ export class DeckService {
    *  - solo se borra localmente lo que el servidor tenía confirmado y luego dejó de tener (borrado en otro dispositivo).
    */
   private syncDone: Promise<void> = Promise.resolve();
+  private lastSyncOk = false;
+
+  /** ¿La última sincronización llegó a completarse (servidor alcanzado y datos fusionados)? */
+  public didLastSyncSucceed(): boolean {
+    return this.lastSyncOk;
+  }
 
   public syncWithCloud(): Promise<void> {
     // Si ya hay una sincronización en curso (quizá de la cuenta anterior) se encadena otra para la cuenta actual
@@ -567,6 +576,7 @@ export class DeckService {
     // La cuenta y la época quedan fijadas al empezar: lo que llegue de la red solo se aplica si seguimos en la misma
     const uid = this.uid();
     const epoch = this.epoch;
+    this.lastSyncOk = false;
     try {
       if (!(await this.ensureRepaired(uid))) return;
       if (epoch !== this.epoch) return;
@@ -670,12 +680,22 @@ export class DeckService {
         }
       }
 
+      // Una sola vez por dispositivo: lo que antes era solo local (etiquetas, favoritas, pausadas…) se vuelve a
+      // subir para que llegue a los demás dispositivos. Va después de fusionar, así nunca pisa algo más nuevo.
+      if (this.meta.v !== 2) {
+        for (const c of this.cards) {
+          if (Object.keys(packCardMeta(c)).length > 0) delete this.meta.cards[c.id];
+        }
+        this.meta.v = 2;
+      }
+
       this.saveMeta();
       if (changed) {
         this.invalidate();
         this.scheduleSave();
         this.listeners.forEach(fn => fn());
       }
+      this.lastSyncOk = true;
       // Lo que solo existe aquí (creado sin conexión, por ejemplo) se sube ahora
       this.schedulePush(150);
     } catch (err) {

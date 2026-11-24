@@ -112,6 +112,37 @@ async function apiFetch<T = any>(
   return { ok: false, status: lastStatus, error: lastError };
 }
 
+/** Campos de la tarjeta que no tienen columna propia en el servidor y viajan juntos en `meta`. */
+export function packCardMeta(c: Flashcard): Record<string, unknown> {
+  const meta: Record<string, unknown> = {};
+  if (c.tags && c.tags.length) meta.tags = c.tags;
+  if (c.starred) meta.starred = true;
+  if (c.suspended) meta.suspended = true;
+  if (c.archived) meta.archived = true;
+  if (c.hint) meta.hint = c.hint;
+  if (c.buriedUntil) meta.buriedUntil = c.buriedUntil;
+  if (c.imageCredit) meta.imageCredit = c.imageCredit;
+  return meta;
+}
+
+/**
+ * Inversa de packCardMeta. Sin `meta` (fila escrita por un cliente antiguo) no se devuelve ninguna clave, así lo
+ * que ya hay en este dispositivo no se pisa; con `meta` se devuelven todas, y una ausente significa "quitado".
+ */
+export function unpackCardMeta(meta: unknown): Partial<Flashcard> {
+  if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return {};
+  const m = meta as Record<string, any>;
+  return {
+    tags: Array.isArray(m.tags) && m.tags.length ? m.tags.filter((t: unknown) => typeof t === 'string') : undefined,
+    starred: m.starred ? true : undefined,
+    suspended: m.suspended ? true : undefined,
+    archived: m.archived ? true : undefined,
+    hint: typeof m.hint === 'string' && m.hint ? m.hint : undefined,
+    buriedUntil: Number(m.buriedUntil) > 0 ? Number(m.buriedUntil) : undefined,
+    imageCredit: typeof m.imageCredit === 'string' && m.imageCredit ? m.imageCredit : undefined
+  };
+}
+
 /**
  * EurekaBackendService
  * Gestiona la autenticación, sincronización con el servidor VPS propio y persistencia universal por cuenta.
@@ -173,12 +204,26 @@ class EurekaBackendService {
     return this.currentUser;
   }
 
-  public async fetchSyncVersion(uid?: string): Promise<{ decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number } | null> {
+  /**
+   * Huella ligera del estado del servidor para esta cuenta. Los recuentos (servidores nuevos) permiten notar
+   * borrados hechos en otro dispositivo; con un servidor antiguo solo vienen las marcas de tiempo.
+   */
+  public async fetchSyncVersion(uid?: string): Promise<{
+    decksUpdatedAt: number;
+    cardsUpdatedAt: number;
+    settingsUpdatedAt: number;
+    decksCount?: number;
+    cardsCount?: number;
+  } | null> {
     const activeUserId = uid || this.getUserId();
     try {
-      const res = await apiFetch<{ decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number }>(
-        `/api/sync/version?userId=${encodeURIComponent(activeUserId)}`
-      );
+      const res = await apiFetch<{
+        decksUpdatedAt: number;
+        cardsUpdatedAt: number;
+        settingsUpdatedAt: number;
+        decksCount?: number;
+        cardsCount?: number;
+      }>(`/api/sync/version?userId=${encodeURIComponent(activeUserId)}`, {}, 6000);
       if (!res.ok || !res.data) return null;
       return res.data;
     } catch {
@@ -578,7 +623,9 @@ class EurekaBackendService {
           due_date: Number(c.dueDate) || Date.now(),
           last_review_date: c.lastReviewDate ? Number(c.lastReviewDate) : null,
           created_at: Number(c.createdAt) || Date.now(),
-          updated_at: Number(c.updatedAt) || Date.now()
+          updated_at: Number(c.updatedAt) || Date.now(),
+          // Etiquetas, favorita, pausada… viajan en `meta` (siempre un objeto: {} borra lo anterior en el servidor)
+          meta: packCardMeta(c)
         }));
 
         const res = await apiFetch('/api/cards/sync', {
@@ -643,6 +690,7 @@ class EurekaBackendService {
 
         const lastReview = c.last_review_date ?? c.lastReviewDate;
         return {
+          ...unpackCardMeta(c.meta),
           id: c.id,
           deckId: c.deck_id,
           type: c.type || 'standard',

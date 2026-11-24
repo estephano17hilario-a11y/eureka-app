@@ -1,5 +1,7 @@
 import type { FigmaMainTab } from './FigmaHeader';
 
+let lastIndex = -1;
+
 export function renderEurekaBottomNav(activeTab: FigmaMainTab = 'flashcards'): string {
   const isFlashcards = activeTab === 'flashcards' || activeTab === 'inicio';
 
@@ -44,8 +46,18 @@ export function renderEurekaBottomNav(activeTab: FigmaMainTab = 'flashcards'): s
     }
   ];
 
+  // El indicador nace en la pestaña anterior y se desliza a la actual (el nav se repinta al cambiar de pestaña)
+  const current = Math.max(0, tabs.findIndex((t) => t.isActive));
+  const from = lastIndex < 0 ? current : lastIndex;
+  lastIndex = current;
+  if (from !== current && typeof requestAnimationFrame !== 'undefined') {
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => document.querySelector<HTMLElement>('.ebn-pill')?.style.setProperty('--i', String(current)))
+    );
+  }
+
   const renderTab = (tab: (typeof tabs)[number]) => `
-          <button class="eureka-bottom-nav-item figma-nav-tab-btn ${tab.isActive ? 'active' : ''}" data-tab="${tab.id}">
+          <button class="eureka-bottom-nav-item figma-nav-tab-btn ${tab.isActive ? 'active' : ''}" data-tab="${tab.id}" aria-current="${tab.isActive ? 'page' : 'false'}">
             <div class="eureka-nav-icon-wrap">
               ${tab.icon}
             </div>
@@ -53,18 +65,11 @@ export function renderEurekaBottomNav(activeTab: FigmaMainTab = 'flashcards'): s
           </button>
         `;
 
-  const createButton = `
-          <button class="eureka-bottom-nav-create" id="btn-nav-create" type="button" aria-label="Crear" title="Crear cuaderno, ruta Feynman, mazo o carpeta">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-        `;
-
   return `
     <nav class="eureka-mobile-bottom-nav mobile-only" aria-label="Navegación inferior">
       <div class="eureka-bottom-nav-inner">
-        ${tabs.slice(0, 2).map(renderTab).join('')}
-        ${createButton}
-        ${tabs.slice(2).map(renderTab).join('')}
+        <span class="ebn-pill" aria-hidden="true" style="--i:${from}"></span>
+        ${tabs.map(renderTab).join('')}
       </div>
     </nav>
   `;

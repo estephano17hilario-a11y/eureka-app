@@ -362,3 +362,137 @@ html body .figma-card-stacked-wrapper::after {
   filter: brightness(0.88);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.28);
 }
+
+/* ==========================================================================
+   Tablero del mazo (rediseño): una acción principal visible, todo lo demás pequeño y desplegable.
+   Los colores salen de las variables de cada ambiente para leerse en cualquier tema.
+   ========================================================================== */
+.dk2 {
+  --dk2-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dk2-ink: var(--txt-hi, #fff);
+  --dk2-sub: var(--txt-soft, #9da3af);
+  --dk2-line: color-mix(in srgb, var(--txt-hi, #fff) 18%, transparent);
+  --dk2-fill: color-mix(in srgb, var(--txt-hi, #fff) 7%, transparent);
+}
+/* Dentro del panel de estudio la tinta es la de la superficie del ambiente */
+.dk2-hero {
+  --dk2-ink: var(--row-ink, #fff);
+  --dk2-sub: var(--row-sub, #9da3af);
+  --dk2-line: var(--row-border, rgba(255, 255, 255, 0.16));
+  --dk2-fill: var(--row-pill-bg, rgba(255, 255, 255, 0.06));
+}
+
+/* La animación de entrada de la pantalla usa fill-mode «both»: dejaba un transform permanente en este contenedor
+   y la barra de selección (position: fixed) quedaba anclada al final de la lista en vez de a la pantalla. */
+.figma-main-content > .dk2 { animation-fill-mode: backwards; }
+
+.dk2 .figma-action-header { margin-bottom: 10px; }
+
+/* ---- título + algoritmo discreto ---- */
+.dk2-titlebar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 2px 0 14px; }
+.dk2-titlebar .figma-dash-title { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.dk2 .dk2-algo {
+  display: inline-flex; align-items: center; gap: 3px; height: 26px; min-height: 0; padding: 0 7px 0 10px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: 0.72rem; font-weight: 700; color: var(--dk2-sub); background: transparent; border: 1px solid var(--dk2-line);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.dk2 .dk2-algo:hover { color: var(--dk2-ink); background: var(--dk2-fill); }
+.dk2 .dk2-algo svg { width: 12px; height: 12px; opacity: 0.7; }
+
+/* ---- panel de estudio ---- */
+.figma-hero-metric-box.dk2-hero { flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 12px; padding: 14px 16px 14px 20px; margin-bottom: 18px; }
+.dk2-hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dk2-due { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.dk2-cta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.figma-hero-metric-box .figma-btn-study-large.dk2-study { width: auto; height: 44px; min-height: 0; padding: 0 24px; font-size: 0.98rem; }
+
+.dk2-progress { display: flex; flex-direction: column; gap: 8px; }
+.dk2 .dk2-bar { height: 6px; margin: 0; background: color-mix(in srgb, var(--row-ink, #fff) 14%, transparent); }
+.dk2-bar > div { transition: width 0.5s var(--dk2-ease); }
+.dk2-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.76rem; color: var(--row-sub, #9da3af); }
+.dk2-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dk2-legend i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.dk2-legend b { color: var(--row-ink, #fff); font-weight: 800; }
+
+/* ---- botón redondo pequeño (chevron del estudio, filtros) ---- */
+.dk2 .dk2-icon-btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 40px; height: 40px; min-height: 0; padding: 0;
+  border-radius: 50%; cursor: pointer; color: var(--dk2-ink); background: var(--dk2-fill); border: 1px solid var(--dk2-line);
+  transition: background 0.18s ease, transform 0.12s ease;
+}
+.dk2 .dk2-icon-btn:hover { background: color-mix(in srgb, var(--dk2-ink) 14%, transparent); }
+.dk2 .dk2-icon-btn:active { transform: scale(0.93); }
+.dk2 .dk2-icon-btn svg { transition: transform 0.25s var(--dk2-ease); }
+.dk2 .dk2-icon-btn[aria-expanded='true'] { background: color-mix(in srgb, var(--dk2-ink) 16%, transparent); }
+.dk2 #btn-study-more[aria-expanded='true'] svg { transform: rotate(180deg); }
+.dk2-dot {
+  position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--f-blue, #38bdf8);
+  transform: scale(0); transition: transform 0.22s var(--dk2-ease);
+}
+.dk2 .dk2-icon-btn.has-active .dk2-dot { transform: scale(1); }
+
+/* ---- fila desplegable dentro del panel de estudio ---- */
+.dk2-more-row { margin-bottom: -12px; transition: grid-template-rows 0.3s var(--dk2-ease), opacity 0.22s ease, margin-bottom 0.3s var(--dk2-ease); }
+.dk2-more-row[data-open='1'] { margin-bottom: 0; }
+.dk2-more-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 2px; }
+.dk2-more-actions .dk-hero-btn { flex: 1; min-width: 140px; height: 38px; font-size: 0.82rem; }
+
+/* ---- menús desplegables (barra de selección) ---- */
+.dk2-pop-wrap { position: relative; }
+.dk2-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; min-width: 250px; max-width: min(86vw, 320px); padding: 6px; border-radius: 16px;
+  color: #f8fafc; background: rgba(24, 25, 32, 0.98); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+  opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-6px) scale(0.97); transform-origin: top right;
+  transition: opacity 0.16s ease, transform 0.22s var(--dk2-ease), visibility 0s linear 0.22s;
+}
+.dk2-menu.up { top: auto; bottom: calc(100% + 10px); transform: translateY(6px) scale(0.97); transform-origin: bottom right; }
+.dk2-menu[data-open='1'] { opacity: 1; visibility: visible; pointer-events: auto; transform: none; transition: opacity 0.16s ease, transform 0.22s var(--dk2-ease), visibility 0s; }
+.dk2-menu button {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%; min-height: 0; padding: 10px 12px; border: 0; border-radius: 11px; cursor: pointer;
+  font: inherit; font-size: 0.9rem; font-weight: 700; text-align: left; color: #f8fafc; background: transparent;
+}
+.dk2-menu button b { font-weight: 700; }
+.dk2-menu button small { font-size: 0.72rem; font-weight: 500; color: #94a3b8; }
+.dk2-menu button:hover, .dk2-menu button:focus-visible { background: rgba(255, 255, 255, 0.09); outline: 0; }
+.dk2-menu button.warn { color: #fbbf24; }
+
+/* ---- tarjetas del mazo ---- */
+.dk2-cards-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.dk2-cards-title { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.02rem; font-weight: 800; color: var(--txt-hi, #fff); }
+.dk2-tools { display: flex; align-items: center; gap: 8px; }
+.figma-btn-white-pill.dk2-add { height: 38px; min-height: 0; padding: 0 16px; font-size: 0.86rem; }
+.dk2-search { margin: 0 0 10px; min-width: 0; }
+.dk2-search .figma-search-input { height: 42px; padding: 0 16px 0 44px; font-size: 0.92rem; }
+.dk2-search svg { left: 15px; }
+
+/* panel de filtros plegable (se anima la altura real sin medir nada) */
+.dk2-collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s var(--dk2-ease), opacity 0.22s ease; }
+.dk2-collapse[data-open='1'] { grid-template-rows: 1fr; opacity: 1; }
+.dk2-collapse-inner { overflow: hidden; min-height: 0; }
+.dk2-collapse:not([data-open='1']) .dk2-collapse-inner { visibility: hidden; transition: visibility 0s linear 0.3s; }
+.dk2-collapse-inner .dk-filters { margin-top: 2px; }
+.dk2-collapse-inner .dk-tags { padding-bottom: 2px; }
+
+.dk2-empty { text-align: center; padding: 30px 16px; font-size: 0.92rem; color: var(--txt-soft, #9da3af); }
+
+/* ---- barra de la selección ---- */
+.figma-batch-actions-dock.dk2-dock { gap: 10px; padding: 8px 10px 8px 12px; }
+.dk2-dock .batch-info { gap: 8px; }
+.dk2-dock .batch-actions-btns { overflow: visible; max-height: none; flex-wrap: nowrap; gap: 6px; }
+.dk2-dock .batch-action-btn { height: 36px; min-height: 0; padding: 0 12px; justify-content: center; }
+.dk2-dock .btn-batch-close { width: 32px; height: 32px; padding: 0; }
+.dk2-dock .dk2-more, .dk2-dock .btn-batch-edit { background: rgba(255, 255, 255, 0.1); color: #fff; }
+@media (max-width: 600px) {
+  .figma-batch-actions-dock.dk2-dock { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px; }
+  .dk2-dock .batch-actions-btns { display: flex; }
+  .dk2-dock .batch-actions-btns > * { flex: 1; min-width: 0; }
+  .dk2-dock .batch-actions-btns .batch-action-btn { width: 100%; padding: 0 8px; }
+}
+
+@media (max-width: 420px) {
+  .figma-hero-metric-box.dk2-hero { padding: 12px 12px 12px 16px; }
+  .figma-hero-metric-box .figma-btn-study-large.dk2-study { padding: 0 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dk2-menu, .dk2-collapse, .dk2-bar > div, .dk2 .dk2-icon-btn svg, .dk2-dot { transition: none; }
+}

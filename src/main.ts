@@ -85,7 +85,9 @@ class EurekaFigmaApp {
   private renderQueued = false;
   private activeAccountId = '';
   private activation: Promise<void> = Promise.resolve();
-  private lastVersionState = { decks: 0, cards: 0, settings: 0 };
+  /** Huella del servidor la última vez que se sincronizó (vacía = aún no se conoce). */
+  private lastSyncSignature = '';
+  private lastFullSyncAt = 0;
 
   constructor() {
     const el = document.getElementById('app');
@@ -143,9 +145,14 @@ class EurekaFigmaApp {
     await this.activateAccount(currentUser?.id || eurekaBackend.getUserId(), { waitForCloud: false });
     this.render(true);
 
-    // 2. Transmisión Automática entre Navegadores y Dispositivos:
-    // Sincronización inteligente con comprobación de versión de bajo peso cada 5 segundos y sincronización inmediata al enfocar
+    // 2. Transmisión automática entre dispositivos (PC ↔ móvil ↔ otras pestañas).
+    // Cada 10 s se pide al servidor una huella mínima (marcas de tiempo + recuentos): solo si cambió se descargan
+    // los datos. Además se sincroniza de inmediato al volver a la app (foco, pestaña visible, red recuperada,
+    // reanudar la app nativa), y de vez en cuando se fuerza una pasada completa como red de seguridad.
     let isPolling = false;
+    let lastWakeAt = 0;
+    const signatureOf = (v: { decksUpdatedAt: number; cardsUpdatedAt: number; settingsUpdatedAt: number; decksCount?: number; cardsCount?: number }) =>
+      `${v.decksUpdatedAt}:${v.decksCount ?? '-'}|${v.cardsUpdatedAt}:${v.cardsCount ?? '-'}|${v.settingsUpdatedAt}`;
 
     const pollRemoteSync = async (force: boolean = false) => {
       if (isPolling || this.currentView === 'study' || isActivelyStudying()) return;
@@ -156,47 +163,60 @@ class EurekaFigmaApp {
       if (!user || user.id.startsWith('guest_')) return;
 
       isPolling = true;
+      const accountAtStart = this.activeAccountId;
       try {
-        if (!force) {
+        let signature = '';
+        let needed = force || this.lastFullSyncAt === 0;
+        if (!needed) {
           const version = await eurekaBackend.fetchSyncVersion();
-          if (version) {
-            const hasNewDecks = version.decksUpdatedAt > this.lastVersionState.decks;
-            const hasNewCards = version.cardsUpdatedAt > this.lastVersionState.cards;
-            const hasNewSettings = version.settingsUpdatedAt > this.lastVersionState.settings;
-
-            if (!hasNewDecks && !hasNewCards && !hasNewSettings && this.lastVersionState.decks > 0) {
-              return; // Sin cambios en el servidor, no descargar datos innecesarios
-            }
-
-            this.lastVersionState = {
-              decks: version.decksUpdatedAt || 0,
-              cards: version.cardsUpdatedAt || 0,
-              settings: version.settingsUpdatedAt || 0
-            };
-          }
+          if (!version) return; // sin respuesta del servidor: se reintenta en el próximo ciclo
+          signature = signatureOf(version);
+          // Servidor antiguo (sin recuentos): un borrado en otro dispositivo no cambia las marcas, así que se fuerza cada minuto
+          const safetyMs = version.decksCount === undefined ? 60_000 : 300_000;
+          needed = signature !== this.lastSyncSignature || Date.now() - this.lastFullSyncAt > safetyMs;
         }
+        if (!needed) return;
 
         await Promise.all([
           deckService.syncWithCloud(),
           activeStudyService.syncWithCloud()
         ]);
+
+        // La huella solo se da por vista si la sincronización se completó; si falló se reintenta en el siguiente ciclo
+        if (accountAtStart === this.activeAccountId && deckService.didLastSyncSucceed()) {
+          this.lastFullSyncAt = Date.now();
+          if (!signature) {
+            const v = await eurekaBackend.fetchSyncVersion();
+            if (v) signature = signatureOf(v);
+          }
+          this.lastSyncSignature = signature;
+        }
       } catch {}
       finally {
         isPolling = false;
       }
     };
 
+    const wake = () => {
+      const now = Date.now();
+      if (now - lastWakeAt < 1500) return;
+      lastWakeAt = now;
+      void pollRemoteSync(true);
+    };
+
     if (typeof window !== 'undefined') {
-      window.addEventListener('focus', () => {
-        pollRemoteSync(true);
-      });
+      window.addEventListener('focus', wake);
+      window.addEventListener('pageshow', wake);
+      window.addEventListener('online', wake);
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          pollRemoteSync(true);
-        }
+        if (document.visibilityState === 'visible') wake();
       });
-      setInterval(() => {
-        pollRemoteSync(false);
+      // App nativa (Android): al volver del segundo plano el WebView no siempre avisa de la visibilidad
+      void import('@capacitor/app')
+        .then(({ App }) => App.addListener('appStateChange', (state) => { if (state.isActive) wake(); }))
+        .catch(() => {});
+      window.setInterval(() => {
+        void pollRemoteSync(false);
       }, 10000);
     }
   }
@@ -209,7 +229,8 @@ class EurekaFigmaApp {
     const run = async () => {
       if (!userId || userId === this.activeAccountId) return;
       this.activeAccountId = userId;
-      this.lastVersionState = { decks: 0, cards: 0, settings: 0 };
+      this.lastSyncSignature = '';
+      this.lastFullSyncAt = 0;
 
       const loads = Promise.all([
         deckService.setUser(userId, opts),
@@ -725,7 +746,7 @@ class EurekaFigmaApp {
       this.render();
     });
 
-    // Botón "Crear" (escritorio) y botón central "+" (celular)
+    // Botón "Crear" de la cabecera
     const openGlobalCreate = () => {
       nativeService.triggerHaptics('medium');
       if (this.currentTab === 'estudio') {
@@ -735,7 +756,6 @@ class EurekaFigmaApp {
       }
     };
     layout.querySelector('#btn-header-create')?.addEventListener('click', openGlobalCreate);
-    layout.querySelector('#btn-nav-create')?.addEventListener('click', openGlobalCreate);
 
     // Reloj de sesión: toca para pausar / reanudar
     layout.querySelector('#btn-header-premium')?.addEventListener('click', () => {

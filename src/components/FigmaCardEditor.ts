@@ -5,7 +5,7 @@ import { ttsService } from '../services/tts.service';
 import { compressImageFile } from '../services/image-library.service';
 import { lsGet, lsSet, lsRemove } from '../services/storage.service';
 import { openImageOcclusionModal } from './ImageOcclusionModal';
-import { openFigmaAiBuilderModal } from './FigmaAiBuilderModal';
+import { openFigmaBatchImportModal } from './FigmaBatchImportModal';
 import { textareaHost, isCoarsePointer } from '../symbols/host';
 import { upgradeTextarea, type FormulaInfo } from '../symbols/RichField';
 import { attachSymbolAutocomplete, openSymbolStudioLazy } from '../symbols/autocomplete';
@@ -192,7 +192,7 @@ export function renderFigmaCardEditor(deck: Deck, parentDeck?: Deck, editCard?: 
               <span class="figma-switch"><input type="checkbox" id="toggle-inverted-cards" ${editCard?.isInverted || (!editCard && invertPref) ? 'checked' : ''} /><span class="figma-slider"></span></span>
             </label>
             <div class="ce-option-btns">
-              <button type="button" class="ce-ai" id="btn-ai-anverso">✨ Generar con IA</button>
+              ${editCard ? '' : '<button type="button" class="ce-ai" id="btn-batch-create" title="Pega o sube muchas tarjetas de una vez">📥 Crear en lote</button>'}
               <button type="button" class="ce-ghost" id="ce-swap" title="Intercambiar anverso y reverso">⇅ Intercambiar caras</button>
             </div>
           </section>
@@ -828,19 +828,12 @@ export function bindFigmaCardEditorEvents(
   });
 
   /* ------------------------------------------------------------------ */
-  /*  AI Builder                                                          */
+  /*  Crear en lote                                                       */
   /* ------------------------------------------------------------------ */
-  q('#btn-ai-anverso')?.addEventListener('click', () => {
-    openFigmaAiBuilderModal({
+  q('#btn-batch-create')?.addEventListener('click', () => {
+    openFigmaBatchImportModal({
       deckId: deck.id,
-      onInsertToEditor: (card) => {
-        frontEl.value = card.front;
-        backEl.value = card.back;
-        autoGrow(frontEl);
-        autoGrow(backEl);
-        onTextChanged();
-      },
-      onBatchAdded: () => callbacks.onSaved(),
+      onImported: () => callbacks.onSaved(),
       onClose: () => {}
     });
   });

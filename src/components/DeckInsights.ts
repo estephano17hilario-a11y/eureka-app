@@ -79,6 +79,16 @@ const stateFor = (deckId: string): FilterState => {
   return s;
 };
 
+/** Cuántos ajustes de la lista (filtro, etiqueta, orden) se apartan de lo normal: se muestra como punto en el botón de filtros. */
+export function deckFilterActiveCount(deckId: string): number {
+  const st = stateFor(deckId);
+  return (st.filter !== 'all' ? 1 : 0) + (st.tag ? 1 : 0) + (st.sort !== 'recent' ? 1 : 0);
+}
+
+export function deckNoResultsHtml(): string {
+  return `<div class="dk-noresults" id="dk-noresults" hidden>Ninguna tarjeta coincide con el filtro. <button type="button" id="dk-clear">Quitar filtros</button></div>`;
+}
+
 export function deckFilterBarHtml(deck: Deck): string {
   const everything = deckService.getCardsByDeck(deck.id, true);
   const cards = everything.filter((c) => !c.archived);
@@ -129,8 +139,7 @@ export function deckFilterBarHtml(deck: Deck): string {
             .map((t) => `<button type="button" class="dk-tagchip ${st.tag === t.tag ? 'on' : ''}" data-tag="${esc(t.tag)}">#${esc(t.tag)}<i>${t.count}</i></button>`)
             .join('')}</div>`
         : ''
-    }
-    <div class="dk-noresults" id="dk-noresults" hidden>Ninguna tarjeta coincide con el filtro. <button type="button" id="dk-clear">Quitar filtros</button></div>`;
+    }`;
 }
 
 export function bindDeckFilters(container: HTMLElement, deck: Deck): void {
@@ -197,6 +206,8 @@ export function bindDeckFilters(container: HTMLElement, deck: Deck): void {
   };
 
   const syncChips = () => {
+    const active = (st.filter !== 'all' ? 1 : 0) + (st.tag ? 1 : 0) + (st.sort !== 'recent' ? 1 : 0);
+    container.querySelector('#btn-dash-filters')?.classList.toggle('has-active', active > 0);
     container.querySelectorAll<HTMLElement>('.dk-chip').forEach((b) => b.classList.toggle('on', b.dataset.filter === st.filter));
     container.querySelectorAll<HTMLElement>('.dk-tagchip').forEach((b) => b.classList.toggle('on', b.dataset.tag === st.tag));
   };
@@ -217,6 +228,7 @@ export function bindDeckFilters(container: HTMLElement, deck: Deck): void {
   });
   (container.querySelector('#dk-sort') as HTMLSelectElement | null)?.addEventListener('change', (e) => {
     st.sort = (e.target as HTMLSelectElement).value;
+    syncChips();
     sort();
   });
   let t = 0;

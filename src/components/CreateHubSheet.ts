@@ -51,17 +51,18 @@ const TILES: Record<CreateHubChoice, HubTile> = {
 };
 
 /**
- * Hub único de creación: todo lo que se puede crear (cuaderno, ruta Feynman, mazo, carpeta)
- * está a un toque, ordenado según desde dónde lo abres.
+ * Hub único de creación, según desde dónde lo abres: en Cuadernos, cuaderno / ruta Feynman / .md / mazo / carpeta;
+ * en Mazos, solo mazo o carpeta.
  */
 export function openCreateHub(options: CreateHubOptions): void {
   document.getElementById('create-hub-root')?.remove();
 
   const isDecks = options.context === 'decks';
 
+  // En Mazos solo se crean mazos y carpetas; cuadernos y rutas Feynman se crean desde Cuadernos
   const featured = isDecks ? TILES.deck : TILES.feynman;
   const grid: HubTile[] = isDecks
-    ? [TILES.folder, TILES.notebook, TILES.feynman, TILES.import]
+    ? [TILES.folder]
     : [TILES.notebook, TILES.import, TILES.deck, TILES.folder];
 
   const featuredBadge = isDecks ? 'Rápido' : 'Recomendado';
@@ -89,7 +90,7 @@ export function openCreateHub(options: CreateHubOptions): void {
         </div>
       </button>
 
-      <div class="ch-grid">
+      <div class="ch-grid ${isDecks ? 'single' : ''}">
         ${grid
           .map(
             (t) => `

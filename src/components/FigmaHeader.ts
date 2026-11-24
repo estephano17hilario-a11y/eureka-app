@@ -52,9 +52,9 @@ export function renderFigmaHeader(activeTab: FigmaMainTab = 'flashcards'): strin
             <span id="header-session-clock">00:00</span>
           </button>
 
-          <!-- Crear (escritorio) -->
-          <button class="btn-header-create desktop-only" id="btn-header-create" title="Crear cuaderno, ruta Feynman, mazo o carpeta">
-            <span style="font-size:1.1rem; line-height:1;">＋</span><span>Crear</span>
+          <!-- Crear (en el celular, solo el símbolo) -->
+          <button class="btn-header-create" id="btn-header-create" aria-label="Crear" title="Crear cuaderno, ruta Feynman, mazo o carpeta">
+            <span style="font-size:1.1rem; line-height:1;">＋</span><span class="hc-label">Crear</span>
           </button>
 
           <!-- Racha -->
